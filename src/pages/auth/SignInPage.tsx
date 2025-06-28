@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import AuthLayout from '@/components/auth/AuthLayout';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const SignInPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [authError, setAuthError] = useState<string>('');
 
   // Redirect if already logged in
   useEffect(() => {
@@ -53,6 +55,7 @@ const SignInPage = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    setAuthError('');
     
     try {
       await signIn(email, password);
@@ -61,19 +64,25 @@ const SignInPage = () => {
         localStorage.setItem('rememberMe', 'true');
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You've been successfully signed in.",
-      });
-      
-      navigate('/');
+      // Navigation will be handled by the auth context redirect
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast({
-        title: "Sign in failed",
-        description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = error.message || 'Sign in failed';
+      
+      // Map common Supabase error messages to user-friendly ones
+      if (errorMessage.includes('Email not confirmed')) {
+        errorMessage = 'Please verify your email address before signing in. Check your inbox for a verification link.';
+      } else if (errorMessage.includes('Invalid login credentials')) {
+        errorMessage = 'The email or password you entered is incorrect. Please try again.';
+      } else if (errorMessage.includes('User not found')) {
+        errorMessage = 'No account found with this email address. Please check your email or sign up for a new account.';
+      } else if (errorMessage.includes('Too many requests')) {
+        errorMessage = 'Too many sign-in attempts. Please wait a few minutes before trying again.';
+      }
+      
+      setAuthError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -84,6 +93,9 @@ const SignInPage = () => {
     if (errors.email) {
       setErrors(prev => ({ ...prev, email: undefined }));
     }
+    if (authError) {
+      setAuthError('');
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +103,14 @@ const SignInPage = () => {
     if (errors.password) {
       setErrors(prev => ({ ...prev, password: undefined }));
     }
+    if (authError) {
+      setAuthError('');
+    }
+  };
+
+  const handleRetry = () => {
+    setAuthError('');
+    setErrors({});
   };
 
   return (
@@ -99,6 +119,16 @@ const SignInPage = () => {
       subtitle="Sign in to your SmartKenya account"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Enhanced Error Display */}
+        {authError && (
+          <EnhancedAuthError 
+            error={authError} 
+            type="login" 
+            onRetry={handleRetry}
+            className="mb-4"
+          />
+        )}
+
         {/* Email Field */}
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
