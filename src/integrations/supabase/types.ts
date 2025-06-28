@@ -187,6 +187,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["product_id"]
           },
+          {
+            foreignKeyName: "fk_cart_items_product_id"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
         ]
       }
       carts: {
@@ -236,12 +243,12 @@ export type Database = {
         }
         Insert: {
           category: string
-          id?: never
+          id?: number
           parent_id?: number | null
         }
         Update: {
           category?: string
-          id?: never
+          id?: number
           parent_id?: number | null
         }
         Relationships: [
@@ -737,7 +744,7 @@ export type Database = {
           shipping_address?: string | null
           status: string
           tracking_number?: string | null
-          updated_at: string
+          updated_at?: string
           user_id?: string | null
           username?: string | null
         }
@@ -790,7 +797,7 @@ export type Database = {
           mpesa_checkout_request_id: string | null
           mpesa_code: string | null
           phone_number: string | null
-          status: string
+          status: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -803,7 +810,7 @@ export type Database = {
           mpesa_checkout_request_id?: string | null
           mpesa_code?: string | null
           phone_number?: string | null
-          status?: string
+          status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -816,7 +823,7 @@ export type Database = {
           mpesa_checkout_request_id?: string | null
           mpesa_code?: string | null
           phone_number?: string | null
-          status?: string
+          status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1185,7 +1192,7 @@ export type Database = {
         Returns: boolean
       }
       check_is_admin: {
-        Args: Record<PropertyKey, never> | { uid: string }
+        Args: { uid?: string }
         Returns: boolean
       }
       cleanup_expired_carts: {
