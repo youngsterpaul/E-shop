@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -95,7 +94,7 @@ export const useCart = () => {
       };
       setCart(typedCartData);
 
-      // Fetch cart items with product details
+      // Fetch cart items with product details - fix the relationship hint
       const { data: itemsData, error: itemsError } = await supabase
         .from('cart_items')
         .select(`
@@ -104,7 +103,7 @@ export const useCart = () => {
           product_id,
           variant_selections,
           quantity,
-          products!inner (
+          products!cart_items_product_id_fkey (
             product_id,
             name,
             price,

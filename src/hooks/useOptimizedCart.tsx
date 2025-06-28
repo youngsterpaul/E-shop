@@ -45,7 +45,7 @@ export const useOptimizedCart = () => {
         cart_id,
         quantity,
         variant_selections,
-        products!inner (
+        products!cart_items_product_id_fkey (
           product_id,
           name,
           price,

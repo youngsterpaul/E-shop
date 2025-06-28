@@ -1,5 +1,4 @@
 
-
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -55,7 +54,7 @@ const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
-const AdminChatManagementPage = lazy(() => import("./pages/admin/AdminChatmanagementPage"));
+const AdminChatManagementPage = lazy(() => import("./pages/admin/AdminChatManagementPage"));
 const AdminNotificationsPage = lazy(() => import("./pages/admin/AdminNotificationsPage"));
 
 function App() {
