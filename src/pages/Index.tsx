@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -7,10 +6,10 @@ import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const Index = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   
   return (
     <>
@@ -43,7 +42,7 @@ const Index = () => {
         })}
       </script>
       
-      <div className={`min-h-screen flex flex-col ${!isMobile ? 'max-w-7xl mx-auto' : ''}`}>
+      <div className={`min-h-screen flex flex-col ${!isMobile ? 'min-width-max' : ''}`}>
         <PerformanceMonitor />
         <Header />
         <main className={`flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
@@ -51,7 +50,7 @@ const Index = () => {
           <EnhancedFeaturedProducts />
         </main>
         <Footer />
-        {isMobile && <MobileNav />}
+        <MobileNav />
       </div>
     </>
   );

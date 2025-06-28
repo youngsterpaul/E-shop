@@ -3,30 +3,31 @@ import { useEffect } from 'react';
 
 const CriticalCSS = () => {
   useEffect(() => {
-    // Inject critical CSS for above-the-fold content
+    // Inline critical CSS for above-the-fold content
     const criticalStyles = `
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+      .hero-section {
+        min-height: 60vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       }
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
+      .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
       }
-      .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
       }
     `;
 
-    const styleSheet = document.createElement('style');
-    styleSheet.type = 'text/css';
-    styleSheet.innerText = criticalStyles;
-    document.head.appendChild(styleSheet);
+    const style = document.createElement('style');
+    style.textContent = criticalStyles;
+    document.head.appendChild(style);
 
     return () => {
-      document.head.removeChild(styleSheet);
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
     };
   }, []);
 

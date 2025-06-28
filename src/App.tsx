@@ -1,4 +1,5 @@
 
+
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -54,74 +55,74 @@ const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
-const AdminChatManagementPage = lazy(() => import("./pages/admin/AdminChatManagementPage"));
+const AdminChatManagementPage = lazy(() => import("./pages/admin/AdminChatmanagementPage"));
 const AdminNotificationsPage = lazy(() => import("./pages/admin/AdminNotificationsPage"));
 
 function App() {
   return (
     <ErrorBoundary>
       <TooltipProvider>
-        <Sonner />
-        <div className="min-h-screen bg-background">
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
-              <Route path="/products/:productId/review" element={<WriteReviewPage />} />
-              
-              {/* Auth Routes */}
-              <Route path="/auth/signin" element={<SignInPage />} />
-              <Route path="/auth/signup" element={<SignUpPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-              
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/wishlist" element={<WishlistPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/order/:id" element={<OrderDetailPage />} />
-              <Route path="/shipping" element={<ShippingPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/faq" element={<FAQPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/returns" element={<ReturnsPage />} />
-                      
-              {/* New Pages */}
-              <Route path="/careers" element={<CareersPage />} />
-              <Route path="/sitemap" element={<SitemapPage />} />
-
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/admin/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
-              <Route path="/admin/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
-              <Route path="/admin/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
-              <Route path="/admin/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
-              <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
-              <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-              <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
-              <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
-              <Route path="/admin/chat" element={<AdminRoute><AdminChatManagementPage /></AdminRoute>} />
-              <Route path="/admin/notifications" element={<AdminRoute><AdminNotificationsPage /></AdminRoute>} />
-
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+      <Sonner />
+      <div className="min-h-screen bg-background">
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
+            <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             
-          {/* Global Checkout Modal */}
-          <CheckoutModal />
+            {/* Auth Routes */}
+            <Route path="/auth/signin" element={<SignInPage />} />
+            <Route path="/auth/signup" element={<SignUpPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             
-          <Toaster />
-        </div>
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/order/:id" element={<OrderDetailPage />} />
+            <Route path="/shipping" element={<ShippingPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/returns" element={<ReturnsPage />} />
+                    
+            {/* New Pages */}
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/sitemap" element={<SitemapPage />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
+            <Route path="/admin/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
+            <Route path="/admin/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
+            <Route path="/admin/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
+            <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/admin/chat" element={<AdminRoute><AdminChatManagementPage /></AdminRoute>} />
+            <Route path="/admin/notifications" element={<AdminRoute><AdminNotificationsPage /></AdminRoute>} />
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+        
+      {/* Global Checkout Modal */}
+      <CheckoutModal />
+        
+      <Toaster />
+      </div>
       </TooltipProvider>
     </ErrorBoundary>
   );

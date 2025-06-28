@@ -1,22 +1,116 @@
 
-import React from 'react';
+import { useCart } from '@/hooks/useCart';
+import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
+import { MobileHeader } from '@/components/ui/mobile-header';
+import CartHeader from '@/components/cart/CartHeader';
+import SelectableCartItem from '@/components/cart/SelectableCartItem';
+import CartSummary from '@/components/cart/CartSummary';
+import EmptyCart from '@/components/cart/EmptyCart';
+import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ShoppingBag } from 'lucide-react';
+import MobileNav from '@/components/MobileNav';
 
 const CartPage = () => {
+  const { cartItems, loading } = useCart();
+  const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
   const isMobile = useIsMobile();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading cart...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        {!isMobile && <Header />}
+        <MobileHeader 
+          title="Shopping Cart"
+          backTo="/products"
+          rightAction={
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <ShoppingBag className="h-4 w-4" />
+              <span>0</span>
+            </div>
+          }
+        />
+        <EmptyCart />
+        <MobileNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Shopping Cart</h1>
-        <p className="text-muted-foreground">Cart functionality will be implemented here.</p>
-      </main>
-      <Footer />
-      {isMobile && <MobileNav />}
+    <div className="min-h-screen bg-gray-50">
+      {!isMobile && <Header />}
+      <MobileHeader 
+        title="Shopping Cart"
+        backTo="/products"
+        rightAction={
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <ShoppingBag className="h-4 w-4" />
+            <span>{cartItems.length}</span>
+          </div>
+        }
+      />
+
+      <div className="container mx-auto px-4 py-6">
+        {!isMobile && (
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Shopping Cart</h1>
+            <p className="text-gray-600 mt-1">
+              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <CartHeader
+                totalItems={cartItems.length}
+                selectedCount={selectedItems.length}
+                onSelectAll={(selectAll) => {
+                  cartItems.forEach(item => {
+                    if (selectAll && !selectedItems.includes(item.id)) {
+                      toggleItemSelection(item.id);
+                    } else if (!selectAll && selectedItems.includes(item.id)) {
+                      toggleItemSelection(item.id);
+                    }
+                  });
+                }}
+                allSelected={selectedItems.length === cartItems.length}
+              />
+              
+              <div className="divide-y divide-gray-200">
+                {cartItems.map((item) => (
+                  <SelectableCartItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedItems.includes(item.id)}
+                    onToggleSelect={() => toggleItemSelection(item.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Cart Summary */}
+          <div className="lg:col-span-1">
+            <CartSummary />
+          </div>
+        </div>
+      </div>
+      <MobileNav/>
     </div>
   );
 };
