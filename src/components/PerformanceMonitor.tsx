@@ -11,8 +11,8 @@ const PerformanceMonitor = () => {
           const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
           
           console.log('Performance Metrics:', {
-            pageLoadTime: perfData.loadEventEnd - perfData.navigationStart,
-            domContentLoaded: perfData.domContentLoadedEventEnd - perfData.navigationStart,
+            pageLoadTime: perfData.loadEventEnd - perfData.startTime,
+            domContentLoaded: perfData.domContentLoadedEventEnd - perfData.startTime,
             firstPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime,
             firstContentfulPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint')?.startTime,
           });
