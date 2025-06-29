@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -13,7 +12,7 @@ import { CheckoutModal } from '@/components/checkout/CheckoutModal';
 const Index = lazy(() => import("./pages/Index"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
 const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const WishlistPage = lazy(() => import("./pages/WishlistPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
