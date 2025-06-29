@@ -42,7 +42,7 @@ export const useOptimizedProductsData = ({
   const { toast } = useToast();
 
   // Fetch products with caching
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async (): Promise<ProductCardData[]> => {
       const { data: productData, error } = await supabase
@@ -81,8 +81,12 @@ export const useOptimizedProductsData = ({
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    retry: 2,
-    onError: (error) => {
+    retry: 2
+  });
+
+  // Handle errors using useEffect instead of onError
+  useEffect(() => {
+    if (error) {
       console.error('Error fetching products:', error);
       toast({
         title: "Error",
@@ -90,7 +94,7 @@ export const useOptimizedProductsData = ({
         variant: "destructive",
       });
     }
-  });
+  }, [error, toast]);
 
   // Apply filters and sorting with memoization
   const filteredProducts = useMemo(() => {

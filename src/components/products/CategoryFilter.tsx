@@ -4,8 +4,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface CategoryData {
   id: string;
   name: string;
-  subcategories: any[];
-  brands: any[];
   product_count?: number;
 }
 

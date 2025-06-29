@@ -25,7 +25,7 @@ interface ProductFiltersProps {
   onPriceChange: (range: [number, number]) => void;
   onResetFilters: () => void;
   
-  // Data
+  // Data - simplified interfaces
   categories: Array<{ id: string; name: string; }>;
   subcategories: Array<{ id: string; name: string; }>;
   
