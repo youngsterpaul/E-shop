@@ -1,5 +1,6 @@
 
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
+import { useCheckout } from '@/contexts/CheckoutContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -7,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const CartSummary = () => {
   const { 
@@ -19,7 +19,7 @@ const CartSummary = () => {
     removeCoupon 
   } = useSelectiveCart();
   
-  const navigate = useNavigate();
+  const { openCheckout } = useCheckout();
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
 
@@ -57,8 +57,7 @@ const CartSummary = () => {
     if (calculations.selectedItemsCount === 0) {
       return;
     }
-    // Navigate to new MPesa checkout page
-    navigate('/mpesa-checkout');
+    openCheckout();
   };
 
   return (
