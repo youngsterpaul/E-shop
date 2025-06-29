@@ -90,24 +90,31 @@ const ResetPasswordPage = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log('Attempting to update password...');
+      
+      const { data: { user }, error } = await supabase.auth.updateUser({
         password: password
       });
 
       if (error) {
+        console.error('Password update error:', error);
         throw error;
       }
 
-      setIsSuccess(true);
-      toast({
-        title: "Password updated successfully!",
-        description: "Your password has been reset. You can now sign in with your new password.",
-      });
+      if (user) {
+        console.log('Password updated successfully for user:', user.id);
+        setIsSuccess(true);
+        
+        toast({
+          title: "Password updated successfully!",
+          description: "Your password has been reset. You can now sign in with your new password.",
+        });
 
-      // Redirect to sign in page after 3 seconds
-      setTimeout(() => {
-        navigate('/auth/signin');
-      }, 3000);
+        // Redirect to sign in page after 3 seconds
+        setTimeout(() => {
+          navigate('/auth/signin');
+        }, 3000);
+      }
 
     } catch (error: any) {
       console.error('Reset password error:', error);
@@ -211,7 +218,6 @@ const ResetPasswordPage = () => {
             subtitle="Enter your new password below"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* New Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   New password
@@ -244,7 +250,6 @@ const ResetPasswordPage = () => {
                 )}
               </div>
 
-              {/* Password Requirements */}
               {password && passwordRequirements && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700">Password requirements:</p>
@@ -265,7 +270,6 @@ const ResetPasswordPage = () => {
                 </div>
               )}
 
-              {/* Confirm Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                   Confirm new password
@@ -294,7 +298,6 @@ const ResetPasswordPage = () => {
                 )}
               </div>
 
-              {/* Reset Button */}
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-medium transition-colors"
@@ -310,7 +313,6 @@ const ResetPasswordPage = () => {
                 )}
               </Button>
 
-              {/* Back to Sign In */}
               <div className="text-center">
                 <Link
                   to="/auth/signin"

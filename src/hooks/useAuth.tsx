@@ -25,27 +25,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const cleanupAuthState = () => {
-    localStorage.removeItem('supabase.auth.token');
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        sessionStorage.removeItem(key);
-      }
-    });
+    // Clear all auth-related localStorage items
+    const keysToRemove = Object.keys(localStorage).filter(key => 
+      key.startsWith('supabase.auth.') || key.includes('sb-')
+    );
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage if available
+    if (typeof sessionStorage !== 'undefined') {
+      const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
+        key.startsWith('supabase.auth.') || key.includes('sb-')
+      );
+      sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+    }
   };
 
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch profile data if user is signed in
+        // Handle profile fetching asynchronously to avoid blocking
         if (session?.user?.id) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -53,17 +56,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
         }
+        
+        // Set loading to false after handling the auth state
+        setLoading(false);
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user?.id) {
         fetchProfile(session.user.id);
       }
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error getting initial session:', error);
       setLoading(false);
     });
 
@@ -94,27 +104,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      
       // Clean up existing state
       cleanupAuthState();
       
-      // Attempt global sign out
+      // Attempt to sign out any existing session
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
         // Continue even if this fails
+        console.warn('Failed to sign out existing session:', err);
       }
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
       
       if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.error('Sign in error:', error);
         throw error;
       }
       
@@ -125,7 +133,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error: any) {
-      console.error('Login error:', error.message);
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -139,13 +148,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     try {
       setLoading(true);
+      
       // Clean up existing state
       cleanupAuthState();
       
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/signin`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -154,21 +165,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          title: "Registration failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.error('Sign up error:', error);
         throw error;
       }
 
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created.",
-      });
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Check your email",
+          description: "We've sent you a confirmation link. Please check your email to complete registration.",
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created.",
+        });
+      }
       
     } catch (error: any) {
-      console.error('Registration error:', error.message);
+      console.error('Registration error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -177,11 +192,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       setLoading(true);
+      
       // Clean up auth state
       cleanupAuthState();
       
-      // Attempt global sign out
-      await supabase.auth.signOut({ scope: 'global' });
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
       
       toast({
         title: "Logged out",
@@ -191,7 +212,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Force page reload for a clean state
       window.location.href = '/';
     } catch (error: any) {
-      console.error('Logout error:', error.message);
+      console.error('Logout error:', error);
       toast({
         title: "Logout failed",
         description: "Please try again.",
@@ -224,11 +245,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Your profile has been successfully updated.",
       });
     } catch (error: any) {
+      console.error('Profile update error:', error);
       toast({
         title: "Update failed",
         description: error.message,
         variant: "destructive",
       });
+      throw error;
     } finally {
       setLoading(false);
     }
