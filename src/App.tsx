@@ -56,6 +56,9 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 const AdminChatManagementPage = lazy(() => import("./pages/admin/AdminChatManagementPage"));
 const AdminNotificationsPage = lazy(() => import("./pages/admin/AdminNotificationsPage"));
 
+// Add the lazy import for OptimizedProductsPage
+const OptimizedProductsPage = lazy(() => import("./pages/OptimizedProductsPage"));
+
 function App() {
   return (
     <ErrorBoundary>
@@ -66,7 +69,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products" element={<OptimizedProductsPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             
