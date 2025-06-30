@@ -109,13 +109,13 @@ const ModernEmptyCart = () => {
                   id: product.product_id,
                   name: product.name,
                   price: product.price,
-                  originalPrice: product.original_price,
+                  originalPrice: undefined, // Database doesn't have original_price
                   image: product.image_urls?.[0] || '/placeholder.svg',
-                  rating: 4,
-                  reviews: 0,
+                  rating: product.rating || 4,
+                  reviews: product.review_count || 0,
                   discount: undefined,
-                  category: product.category || '',
-                  inStock: true,
+                  category: product.categories || 'General',
+                  inStock: (product.stock || 0) > 0,
                 };
                 return <ProductCard key={product.product_id} product={productCardData} />;
               })}
