@@ -1,8 +1,10 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
+import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
@@ -47,6 +49,7 @@ const Index = () => {
         <Header />
         <main className={`flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
           <EnhancedHeroSection />
+          <CategoryIcons />
           <EnhancedFeaturedProducts />
         </main>
         <Footer />

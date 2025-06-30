@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Star, TrendingUp } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface HeroSlide {
   id: number;
@@ -52,6 +53,7 @@ const heroSlides: HeroSlide[] = [
 const EnhancedHeroSection = memo(() => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -71,8 +73,11 @@ const EnhancedHeroSection = memo(() => {
 
   const currentSlideData = heroSlides[currentSlide];
 
+  // Dynamic height based on device type
+  const heroHeight = isMobile ? 'min-h-[40vh]' : 'min-h-[70vh]';
+
   return (
-    <section className="relative overflow-hidden min-h-[70vh] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900`}>
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <LazyImage
@@ -85,7 +90,7 @@ const EnhancedHeroSection = memo(() => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 h-full min-h-[70vh] flex items-center">
+      <div className={`relative z-10 container mx-auto px-4 h-full ${heroHeight} flex items-center`}>
         <div className="max-w-2xl text-white">
           {/* Badge */}
           {currentSlideData.badge && (
@@ -101,20 +106,24 @@ const EnhancedHeroSection = memo(() => {
           </p>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          <h1 className={`font-bold mb-4 leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent ${
+            isMobile ? 'text-2xl md:text-4xl' : 'text-4xl md:text-6xl'
+          }`}>
             {currentSlideData.title}
           </h1>
 
           {/* Description */}
-          <p className="text-lg md:text-xl mb-8 text-gray-200 leading-relaxed">
+          <p className={`mb-8 text-gray-200 leading-relaxed ${
+            isMobile ? 'text-base md:text-lg' : 'text-lg md:text-xl'
+          }`}>
             {currentSlideData.description}
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-row gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Button 
               asChild 
-              size="lg" 
+              size={isMobile ? "default" : "lg"}
               className="bg-gray-800 hover:bg-gray-600 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
             >
               <Link to={currentSlideData.buttonLink}>
@@ -124,7 +133,7 @@ const EnhancedHeroSection = memo(() => {
             <Button 
               asChild 
               variant="outline" 
-              size="lg"
+              size={isMobile ? "default" : "lg"}
               className="border-white text-gray-900 hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 rounded-lg transition-all duration-300"
             >
               <Link to="/products">
@@ -134,7 +143,7 @@ const EnhancedHeroSection = memo(() => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex items-center gap-6 text-sm text-gray-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm text-gray-300">
             <div className="flex items-center gap-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -165,10 +174,12 @@ const EnhancedHeroSection = memo(() => {
         ))}
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
-        <ChevronDown size={24} />
-      </div>
+      {/* Scroll Indicator - Only show on desktop */}
+      {!isMobile && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+          <ChevronDown size={24} />
+        </div>
+      )}
     </section>
   );
 });
