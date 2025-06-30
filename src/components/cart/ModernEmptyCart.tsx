@@ -3,15 +3,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart, Sparkles, TrendingUp, Gift } from 'lucide-react';
-import { useProducts } from '@/hooks/useProducts';
+import { useFeaturedProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from '@/components/products/ProductSkeleton';
 
 const ModernEmptyCart = () => {
-  const { data: products, isLoading } = useProducts({
-    limit: 4,
-    featured: true
-  });
+  const { data: products, isLoading } = useFeaturedProducts();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
