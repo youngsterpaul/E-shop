@@ -10,7 +10,7 @@ interface OptimisticUpdate {
 }
 
 export const useOptimisticCart = () => {
-  const { updateCartItemQuantity, removeFromCart } = useCartContext();
+  const { updateCartItemQuantity, removeFromCart: removeCartItem } = useCartContext();
   const { toast } = useToast();
   const [pendingUpdates, setPendingUpdates] = useState<OptimisticUpdate[]>([]);
 
@@ -40,7 +40,7 @@ export const useOptimisticCart = () => {
     setPendingUpdates(prev => [...prev, { type: 'remove', itemId }]);
 
     try {
-      await removeFromCart(itemId);
+      await removeCartItem(itemId);
     } catch (error) {
       console.error('Failed to remove item:', error);
       toast({
@@ -54,7 +54,7 @@ export const useOptimisticCart = () => {
         !(update.type === 'remove' && update.itemId === itemId)
       ));
     }
-  }, [removeFromCart, toast]);
+  }, [removeCartItem, toast]);
 
   return {
     updateQuantity,
