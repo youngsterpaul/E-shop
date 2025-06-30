@@ -6,7 +6,8 @@ import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
 import SelectableCartItem from '@/components/cart/SelectableCartItem';
 import CartSummary from '@/components/cart/CartSummary';
-import EmptyCart from '@/components/cart/EmptyCart';
+import CartSkeleton from '@/components/cart/CartSkeleton';
+import ModernEmptyCart from '@/components/cart/ModernEmptyCart';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
@@ -18,14 +19,7 @@ const CartPage = () => {
   const isMobile = useIsMobile();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading cart...</p>
-        </div>
-      </div>
-    );
+    return <CartSkeleton />;
   }
 
   if (cartItems.length === 0) {
@@ -42,7 +36,7 @@ const CartPage = () => {
             </div>
           }
         />
-        <EmptyCart />
+        <ModernEmptyCart />
         <MobileNav />
       </div>
     );
