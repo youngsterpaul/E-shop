@@ -1,49 +1,31 @@
+
 import { useCheckout } from '@/contexts/CheckoutContext';
-import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
-import { CheckoutHeader } from './CheckoutHeader';
+import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { X, CheckCircle } from 'lucide-react';
 import { CustomerDetailsStep } from './CustomerDetailsStep';
-import { DeliveryInfoStep } from './DeliveryInfoStep';
+import { DeliveryStep } from './DeliveryStep';
 import { PaymentStep } from './PaymentStep';
 import { SuccessStep } from './SuccessStep';
-import { OrderSummary } from './OrderSummary';
-import { useEffect } from 'react';
 
-export const CheckoutModal = () => {
-  const { isOpen, closeCheckout, step, paymentStatus } = useCheckout();
+const CheckoutModal = () => {
+  const { 
+    isOpen, 
+    closeCheckout, 
+    step, 
+    paymentStatus 
+  } = useCheckout();
+  
+  const { calculations } = useSelectiveCart();
 
-  // Prevent body scroll when modal is open and ensure mobile viewport
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-      
-      // Ensure proper viewport for mobile
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
-      }
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-      
-      // Reset viewport
-      const viewport = document.querySelector('meta[name="viewport"]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
-      }
-    }
-    
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    };
-  }, [isOpen]);
+  const steps = [
+    { id: 1, title: 'Customer Details', completed: step > 1, active: step === 1 },
+    { id: 2, title: 'Delivery', completed: step > 2, active: step === 2 },
+    { id: 3, title: 'Payment', completed: step > 3, active: step === 3 },
+    { id: 4, title: 'Complete', completed: step === 4, active: step === 4 }
+  ];
 
   const handleClose = () => {
     if (paymentStatus.status === 'processing' || paymentStatus.status === 'waiting') {
@@ -55,12 +37,12 @@ export const CheckoutModal = () => {
     }
   };
 
-  const renderStep = () => {
+  const renderStepContent = () => {
     switch (step) {
       case 1:
         return <CustomerDetailsStep />;
       case 2:
-        return <DeliveryInfoStep />;
+        return <DeliveryStep />;
       case 3:
         return <PaymentStep />;
       case 4:
@@ -70,38 +52,78 @@ export const CheckoutModal = () => {
     }
   };
 
+  const progressValue = (step / 4) * 100;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogOverlay className="bg-black/50 backdrop-blur-sm fixed inset-0 z-50" />
-      <DialogContent className="fixed inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[90vw] md:max-w-4xl md:h-auto md:max-h-[90vh] p-0 border-0 md:border md:rounded-lg z-50 flex flex-col overflow-hidden">
-        <div className="flex flex-col md:flex-row h-full flex-1 overflow-hidden">
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden bg-white">
-            <CheckoutHeader />
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="p-4 md:p-6">
-                <div className="pb-20 md:pb-0">
-                  {renderStep()}
-                </div>
-              </div>
-            </div>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="pb-4 border-b">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold">
+              {step === 4 ? 'Order Complete' : 'Checkout'}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
           
-          {/* Order Summary - Mobile: Fixed bottom, Desktop: Sidebar */}
-          <div className={`
-            ${(step === 3 || step === 4) ? 'hidden md:flex' : 'flex'}
-            ${step === 4 ? 'hidden' : ''}
-            w-full md:w-80 bg-gray-50 border-t md:border-t-0 md:border-l
-            fixed bottom-0 left-0 right-0 md:relative md:bottom-auto
-            max-h-[40vh] md:max-h-full md:flex-col
-            z-10 safe-area-inset-bottom overflow-hidden
-          `}>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <OrderSummary />
+          {step < 4 && (
+            <div className="space-y-4">
+              <Progress value={progressValue} className="w-full" />
+              
+              <div className="flex justify-between text-sm">
+                {steps.map((stepItem) => (
+                  <div
+                    key={stepItem.id}
+                    className={`flex items-center gap-2 ${
+                      stepItem.completed
+                        ? 'text-green-600'
+                        : stepItem.active
+                        ? 'text-orange-600'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    {stepItem.completed ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <div
+                        className={`h-4 w-4 rounded-full border-2 ${
+                          stepItem.active
+                            ? 'border-orange-600 bg-orange-100'
+                            : 'border-gray-300'
+                        }`}
+                      />
+                    )}
+                    <span className="hidden sm:inline">{stepItem.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          {renderStepContent()}
+        </div>
+
+        {step < 4 && calculations.selectedItemsCount > 0 && (
+          <div className="border-t pt-4 px-6 pb-6">
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <span>{calculations.selectedItemsCount} items selected</span>
+              <span className="font-semibold text-lg">
+                Total: KES {calculations.total.toLocaleString()}
+              </span>
             </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
 };
+
+export default CheckoutModal;
