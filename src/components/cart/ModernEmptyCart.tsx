@@ -112,7 +112,7 @@ const ModernEmptyCart = () => {
                   originalPrice: undefined, // Database doesn't have original_price
                   image: product.image_urls?.[0] || '/placeholder.svg',
                   rating: product.rating || 4,
-                  reviews: product.review_count || 0,
+                  reviews: 0, // Set to 0 since review_count doesn't exist in Product type
                   discount: undefined,
                   category: product.categories || 'General',
                   inStock: (product.stock || 0) > 0,
