@@ -1,5 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
+import { LucideIcon } from 'lucide-react';
 import { 
   Smartphone, 
   Laptop, 
@@ -18,7 +19,7 @@ import {
 interface CategoryIcon {
   id: string;
   name: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   searchQuery: string;
   color: string;
 }
