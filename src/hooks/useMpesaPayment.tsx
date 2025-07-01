@@ -30,6 +30,17 @@ export const useMpesaPayment = () => {
     try {
       console.log('Initiating M-Pesa payment:', request);
       
+      // Validate phone number format before sending
+      const phoneRegex = /^(\+?254|0)?[17]\d{8}$/;
+      if (!phoneRegex.test(request.phone)) {
+        throw new Error('Invalid phone number format. Please use format: 0712345678 or +254712345678');
+      }
+
+      // Validate amount
+      if (request.amount < 1) {
+        throw new Error('Amount must be at least 1 KES');
+      }
+
       const { data, error } = await supabase.functions.invoke('mpesa-payment', {
         body: request
       });
@@ -38,21 +49,42 @@ export const useMpesaPayment = () => {
 
       if (error) {
         console.error('Payment initiation error:', error);
-        return { 
-          success: false, 
-          error: error.message || 'Failed to initiate payment' 
-        };
+        
+        // Handle different types of errors
+        if (error.message?.includes('not properly configured')) {
+          throw new Error('M-Pesa service is currently unavailable. Please try again later or contact support.');
+        } else if (error.message?.includes('Invalid phone number')) {
+          throw new Error('Please enter a valid Safaricom phone number (07XXXXXXXX or 01XXXXXXXX)');
+        } else if (error.message?.includes('Unable to connect')) {
+          throw new Error('Connection error. Please check your internet connection and try again.');
+        }
+        
+        throw new Error(error.message || 'Failed to initiate payment');
       }
 
       if (data && data.success) {
+        toast({
+          title: "Payment Request Sent",
+          description: "Please check your phone and enter your M-Pesa PIN",
+        });
+        
         return {
           success: true,
           checkoutRequestId: data.checkoutRequestId
         };
       } else {
+        const errorMessage = data?.error || 'Payment initiation failed';
+        console.error('Payment failed:', errorMessage);
+        
+        toast({
+          title: "Payment Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        
         return { 
           success: false, 
-          error: data?.error || 'Payment initiation failed' 
+          error: errorMessage
         };
       }
     } catch (error: any) {
@@ -62,6 +94,12 @@ export const useMpesaPayment = () => {
       if (error.message) {
         errorMessage = error.message;
       }
+      
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
       
       return { success: false, error: errorMessage };
     } finally {

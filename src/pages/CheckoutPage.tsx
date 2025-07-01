@@ -1,11 +1,9 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { useMpesaPayment } from '@/hooks/useMpesaPayment';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Json } from '@/integrations/supabase/types';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 const checkoutSchema = z.object({
   firstName: z.string().min(2, { message: 'First name is required' }),
@@ -37,7 +35,6 @@ const checkoutSchema = z.object({
   address: z.string().min(5, { message: 'Address is required' }),
   city: z.string().min(2, { message: 'City is required' }),
   paymentMethod: z.enum(['mpesa']),
-  //notes: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -62,9 +59,11 @@ const CheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<ShippingAddress | null>(null);
-  const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'success'>('form');
+  const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'success' | 'failed'>('form');
   const [checkoutRequestId, setCheckoutRequestId] = useState<string>('');
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [paymentTimer, setPaymentTimer] = useState(300); // 5 minutes
+  const [paymentError, setPaymentError] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -81,7 +80,6 @@ const CheckoutPage = () => {
       address: '',
       city: '',
       paymentMethod: 'mpesa',
-      //notes: '',
     },
   });
 
@@ -97,7 +95,7 @@ const CheckoutPage = () => {
     );
   }
 
-  // Redirect if cart is empty - but only do this once to prevent loops
+  // Redirect if cart is empty
   useEffect(() => {
     if (!cartLoading && items.length === 0 && !hasRedirected) {
       setHasRedirected(true);
@@ -115,6 +113,28 @@ const CheckoutPage = () => {
       </div>
     );
   }
+
+  // Payment timer countdown
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (paymentStep === 'processing' && paymentTimer > 0) {
+      interval = setInterval(() => {
+        setPaymentTimer(prev => {
+          if (prev <= 1) {
+            setPaymentStep('failed');
+            setPaymentError('Payment request timed out. Please try again.');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [paymentStep, paymentTimer]);
 
   // Fetch user's shipping addresses
   const fetchAddresses = useCallback(async () => {
@@ -156,7 +176,7 @@ const CheckoutPage = () => {
       form.setValue('email', user.email || '');
       form.setValue('phone', profile.phone || '');
     }
-  }, [profile, user]);
+  }, [profile, user, form]);
   
   // Update form with selected address
   useEffect(() => {
@@ -168,7 +188,7 @@ const CheckoutPage = () => {
       form.setValue('city', selectedAddress.city);
       form.setValue('phone', selectedAddress.phone_number);
     }
-  }, [selectedAddress]);
+  }, [selectedAddress, form]);
 
   // Poll payment status when processing
   useEffect(() => {
@@ -190,13 +210,9 @@ const CheckoutPage = () => {
             navigate('/orders');
           }, 3000);
         } else if (status?.status === 'failed') {
-          setPaymentStep('form');
+          setPaymentStep('failed');
+          setPaymentError(status.result_desc || "Payment was not completed. Please try again.");
           setIsSubmitting(false);
-          toast({
-            title: "Payment Failed",
-            description: status.result_desc || "Payment was not completed. Please try again.",
-            variant: "destructive",
-          });
         }
       }, 3000);
     }
@@ -218,6 +234,7 @@ const CheckoutPage = () => {
     }
 
     setIsSubmitting(true);
+    setPaymentError('');
 
     try {
       // Create order in the database
@@ -234,6 +251,8 @@ const CheckoutPage = () => {
           amount: total,
           items: items as unknown as Json,
           shipping_address: `${data.address}, ${data.city}`,
+          first_name: data.firstName,
+          last_name: data.lastName,
           updated_at: new Date().toISOString(),
         })
         .select()
@@ -251,12 +270,14 @@ const CheckoutPage = () => {
       if (paymentResult.success && paymentResult.checkoutRequestId) {
         setCheckoutRequestId(paymentResult.checkoutRequestId);
         setPaymentStep('processing');
+        setPaymentTimer(300); // Reset timer to 5 minutes
       } else {
         throw new Error(paymentResult.error || 'Payment initiation failed');
       }
 
     } catch (error: any) {
       console.error('Checkout error:', error);
+      setPaymentError(error.message);
       toast({
         title: "Checkout failed",
         description: error.message,
@@ -266,32 +287,52 @@ const CheckoutPage = () => {
     }
   };
 
+  const retryPayment = () => {
+    setPaymentStep('form');
+    setPaymentError('');
+    setPaymentTimer(300);
+    setIsSubmitting(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (paymentStep === 'processing') {
     return (
       <div className="min-h-screen flex flex-col">
-
+        <Header />
         <main className="flex-grow container py-8">
           <div className="max-w-md mx-auto text-center">
-            <Card>
+            <Card className="border-blue-200 bg-blue-50">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
-                  <h2 className="text-xl font-semibold">Processing Payment</h2>
-                  <p className="text-muted-foreground text-center">
-                    Please check your phone and enter your M-Pesa PIN to complete the payment.
+                  <div className="relative">
+                    <Clock className="h-12 w-12 text-blue-500" />
+                    <div className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                      📱
+                    </div>
+                  </div>
+                  <h2 className="text-xl font-semibold text-blue-900">Check Your Phone</h2>
+                  <p className="text-blue-700 text-center">
+                    Please enter your M-Pesa PIN to complete the payment.
                   </p>
-                  <div className="bg-orange-50 p-4 rounded-lg w-full">
-                    <p className="text-sm text-orange-800">
-                      <strong>Amount:</strong> Ksh {total.toLocaleString()}<br/>
-                      <strong>Order ID:</strong> {checkoutRequestId}
+                  <div className="bg-white p-4 rounded-lg border w-full">
+                    <p className="text-sm text-gray-600">
+                      <strong>Amount:</strong> KES {total.toLocaleString()}<br/>
+                      <strong>Time remaining:</strong> {formatTime(paymentTimer)}
                     </p>
                   </div>
+                  <p className="text-xs text-blue-600">
+                    If you don't see the prompt, dial *334# and check your pending requests
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </div>
         </main>
-        
       </div>
     );
   }
@@ -302,15 +343,15 @@ const CheckoutPage = () => {
         <Header />
         <main className="flex-grow container py-8">
           <div className="max-w-md mx-auto text-center">
-            <Card>
+            <Card className="border-green-200 bg-green-50">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4">
                   <CheckCircle className="h-12 w-12 text-green-500" />
                   <h2 className="text-xl font-semibold text-green-600">Payment Successful!</h2>
-                  <p className="text-muted-foreground text-center">
+                  <p className="text-green-700 text-center">
                     Your payment has been confirmed and your order is being processed.
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-green-600">
                     Redirecting to your orders...
                   </p>
                 </div>
@@ -318,15 +359,52 @@ const CheckoutPage = () => {
             </Card>
           </div>
         </main>
-        
+      </div>
+    );
+  }
+
+  if (paymentStep === 'failed') {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow container py-8">
+          <div className="max-w-md mx-auto text-center">
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center space-y-4">
+                  <AlertCircle className="h-12 w-12 text-red-500" />
+                  <h2 className="text-xl font-semibold text-red-600">Payment Failed</h2>
+                  <p className="text-red-700 text-center">
+                    {paymentError || 'Your payment could not be processed.'}
+                  </p>
+                  <div className="flex flex-col gap-2 w-full">
+                    <Button onClick={retryPayment} className="bg-red-600 hover:bg-red-700">
+                      Try Again
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate('/cart')}>
+                      Return to Cart
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Header />
       <main className="flex-grow container py-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-8">Checkout</h1>
+
+        {paymentError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800">{paymentError}</p>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
@@ -432,6 +510,9 @@ const CheckoutPage = () => {
                             />
                           </FormControl>
                           <FormMessage />
+                          <p className="text-xs text-muted-foreground">
+                            Must be a Safaricom number for M-Pesa payments
+                          </p>
                         </FormItem>
                       )}
                     />
@@ -508,15 +589,15 @@ const CheckoutPage = () => {
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>Ksh {subtotal.toLocaleString()}</span>
+                      <span>KES {subtotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
-                      <span>Ksh {shippingFee.toLocaleString()}</span>
+                      <span>KES {shippingFee.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between font-bold">
                       <span>Total</span>
-                      <span>Ksh {total.toLocaleString()}</span>
+                      <span>KES {total.toLocaleString()}</span>
                     </div>
                   </div>
                   <Button
@@ -550,7 +631,7 @@ const CheckoutPage = () => {
                       <p className="font-medium">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
-                    <p>Ksh {(item.product.price * item.quantity).toLocaleString()}</p>
+                    <p>KES {(item.product.price * item.quantity).toLocaleString()}</p>
                   </div>
                 ))}
 
@@ -559,11 +640,11 @@ const CheckoutPage = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>Ksh {subtotal.toLocaleString()}</span>
+                    <span>KES {subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>Ksh {shippingFee.toLocaleString()}</span>
+                    <span>KES {shippingFee.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -571,7 +652,7 @@ const CheckoutPage = () => {
 
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>Ksh {total.toLocaleString()}</span>
+                  <span>KES {total.toLocaleString()}</span>
                 </div>
               </CardContent>
               <CardFooter>
