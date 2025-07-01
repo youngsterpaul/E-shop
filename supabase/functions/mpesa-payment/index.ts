@@ -22,34 +22,47 @@ async function getMpesaAccessToken() {
   const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
   const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
   
+  console.log('M-Pesa credentials check:', {
+    hasConsumerKey: !!consumerKey,
+    hasConsumerSecret: !!consumerSecret
+  });
+  
   if (!consumerKey || !consumerSecret) {
-    throw new Error('M-Pesa credentials not configured');
+    throw new Error('M-Pesa credentials not configured. Please add MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET to your Supabase secrets.');
   }
 
   const auth = btoa(`${consumerKey}:${consumerSecret}`);
   
+  console.log('Requesting M-Pesa access token...');
+  
   const response = await fetch('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
+    method: 'GET',
     headers: {
       'Authorization': `Basic ${auth}`,
     },
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Failed to get M-Pesa access token:', errorText);
     throw new Error('Failed to get M-Pesa access token');
   }
 
   const data = await response.json();
+  console.log('M-Pesa access token obtained successfully');
   return data.access_token;
 }
 
 async function initiateSTKPush(phone: string, amount: number, orderId: string) {
   const accessToken = await getMpesaAccessToken();
-  const shortcode = Deno.env.get('MPESA_SHORTCODE');
-  const passkey = Deno.env.get('MPESA_PASSKEY');
+  const shortcode = Deno.env.get('MPESA_SHORTCODE') || '174379';
+  const passkey = Deno.env.get('MPESA_PASSKEY') || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
   
-  if (!shortcode || !passkey) {
-    throw new Error('M-Pesa configuration incomplete');
-  }
+  console.log('M-Pesa configuration:', {
+    shortcode,
+    hasPasskey: !!passkey,
+    hasAccessToken: !!accessToken
+  });
 
   const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
   const password = btoa(`${shortcode}${passkey}${timestamp}`);
@@ -58,11 +71,13 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
   let formattedPhone = phone.replace(/\D/g, '');
   if (formattedPhone.startsWith('0')) {
     formattedPhone = '254' + formattedPhone.slice(1);
-  } else if (formattedPhone.startsWith('254')) {
-    // Phone is already in correct format
   } else if (formattedPhone.startsWith('+254')) {
     formattedPhone = formattedPhone.slice(1);
+  } else if (!formattedPhone.startsWith('254')) {
+    formattedPhone = '254' + formattedPhone;
   }
+
+  const callbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`;
 
   const payload = {
     BusinessShortCode: shortcode,
@@ -73,12 +88,17 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     PartyA: formattedPhone,
     PartyB: shortcode,
     PhoneNumber: formattedPhone,
-    CallBackURL: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`,
+    CallBackURL: callbackUrl,
     AccountReference: orderId,
     TransactionDesc: `Payment for order ${orderId}`
   };
 
-  console.log('Initiating STK Push:', { orderId, phone: formattedPhone, amount });
+  console.log('Initiating STK Push:', {
+    orderId,
+    phone: formattedPhone,
+    amount: Math.round(amount),
+    callbackUrl
+  });
 
   const response = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
     method: 'POST',
@@ -95,15 +115,24 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     throw new Error(`STK Push failed: ${response.statusText}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('STK Push response:', result);
+  return result;
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('M-Pesa payment function called:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
+    console.error('Method not allowed:', req.method);
     return new Response('Method not allowed', { 
       status: 405, 
       headers: corsHeaders 
@@ -111,20 +140,58 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { phone, amount, orderId }: PaymentRequest = await req.json();
+    const requestBody = await req.text();
+    console.log('Request body:', requestBody);
+    
+    const { phone, amount, orderId }: PaymentRequest = JSON.parse(requestBody);
+
+    console.log('Parsed request:', { phone, amount, orderId });
 
     if (!phone || !amount || !orderId) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false,
+          error: 'Missing required fields: phone, amount, and orderId are required' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^(\+?254|0)?[17]\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Invalid phone number format. Please use format: 0712345678 or +254712345678' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Validate amount
+    if (amount < 1) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Amount must be at least 1 KES' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
     // Initiate STK Push
     const stkResponse = await initiateSTKPush(phone, amount, orderId);
     
-    console.log('STK Push Response:', stkResponse);
-
     if (stkResponse.ResponseCode === "0") {
       // Store payment record in database
       const { error: dbError } = await supabase
@@ -140,7 +207,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (dbError) {
         console.error('Database error:', dbError);
-        throw new Error('Failed to store payment record');
+        // Don't fail the request if DB insert fails, just log it
       }
 
       return new Response(
@@ -160,9 +227,20 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error('Payment initiation error:', error);
+    
+    let errorMessage = 'Payment initiation failed';
+    if (error.message.includes('credentials not configured')) {
+      errorMessage = 'M-Pesa integration not properly configured. Please contact support.';
+    } else if (error.message.includes('Failed to get M-Pesa access token')) {
+      errorMessage = 'Unable to connect to M-Pesa service. Please try again later.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Payment initiation failed' 
+        success: false,
+        error: errorMessage 
       }),
       { 
         status: 500, 

@@ -28,26 +28,42 @@ export const useMpesaPayment = () => {
     setIsProcessing(true);
     
     try {
+      console.log('Initiating M-Pesa payment:', request);
+      
       const { data, error } = await supabase.functions.invoke('mpesa-payment', {
         body: request
       });
 
+      console.log('M-Pesa function response:', { data, error });
+
       if (error) {
         console.error('Payment initiation error:', error);
-        return { success: false, error: error.message };
+        return { 
+          success: false, 
+          error: error.message || 'Failed to initiate payment' 
+        };
       }
 
-      if (data.success) {
+      if (data && data.success) {
         return {
           success: true,
           checkoutRequestId: data.checkoutRequestId
         };
       } else {
-        return { success: false, error: data.error };
+        return { 
+          success: false, 
+          error: data?.error || 'Payment initiation failed' 
+        };
       }
     } catch (error: any) {
       console.error('Payment initiation failed:', error);
-      return { success: false, error: 'Payment initiation failed' };
+      
+      let errorMessage = 'Payment initiation failed';
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     } finally {
       setIsProcessing(false);
     }
