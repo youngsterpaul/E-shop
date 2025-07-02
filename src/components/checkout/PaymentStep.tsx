@@ -23,7 +23,7 @@ export const PaymentStep = () => {
   const [countdown, setCountdown] = useState(300); // 5 minutes
 
   // Calculate total with delivery
-  const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 500;
+  const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 0;
   const finalTotal = calculations.total + deliveryCost;
 
   useEffect(() => {
