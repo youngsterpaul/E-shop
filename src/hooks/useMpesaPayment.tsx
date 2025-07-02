@@ -113,11 +113,17 @@ export const useMpesaPayment = () => {
         .from('mpesa_payments')
         .select('status, result_desc, result_code')
         .eq('checkout_request_id', checkoutRequestId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error checking payment status:', error);
         return null;
+      }
+
+      // If no record found yet, payment is still pending
+      if (!data) {
+        console.log('No payment record found yet, status is pending');
+        return { status: 'pending' };
       }
 
       // Handle different M-Pesa result codes
