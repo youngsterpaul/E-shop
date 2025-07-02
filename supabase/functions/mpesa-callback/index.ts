@@ -181,8 +181,19 @@ const handler = async (req: Request): Promise<Response> => {
         )
       ).toISOString();
     } else {
-      // Payment failed
+      // Payment failed or cancelled
       updateData.status = 'failed';
+      
+      // Log specific cancellation codes for debugging
+      if (ResultCode === 1032) {
+        console.log('Payment cancelled by user (code 1032)');
+        updateData.result_desc = 'Payment cancelled by user';
+      } else if (ResultCode === 1037) {
+        console.log('Payment timeout or user unavailable (code 1037)');
+        updateData.result_desc = 'Payment request timed out';
+      } else {
+        console.log(`Payment failed with result code: ${ResultCode}`);
+      }
     }
 
     const { data: payment, error: updateError } = await supabase

@@ -111,7 +111,7 @@ export const useMpesaPayment = () => {
     try {
       const { data, error } = await supabase
         .from('mpesa_payments')
-        .select('status, result_desc')
+        .select('status, result_desc, result_code')
         .eq('checkout_request_id', checkoutRequestId)
         .single();
 
@@ -120,9 +120,23 @@ export const useMpesaPayment = () => {
         return null;
       }
 
+      // Handle different M-Pesa result codes
+      // 0 = Success, 1032 = Cancelled by user, other codes = Failed
+      let status: 'pending' | 'success' | 'failed' = 'pending';
+      
+      if (data.result_code === 0) {
+        status = 'success';
+      } else if (data.result_code === 1032 || data.result_code === 1037 || data.result_desc?.toLowerCase().includes('cancel')) {
+        status = 'failed'; // Treat cancellation as failed for UI purposes
+      } else if (data.result_code && data.result_code !== 0) {
+        status = 'failed';
+      } else if (data.status) {
+        status = data.status as 'pending' | 'success' | 'failed';
+      }
+
       return {
-        status: data.status as 'pending' | 'success' | 'failed',
-        result_desc: data.result_desc
+        status,
+        result_desc: data.result_desc || (data.result_code === 1032 ? 'Payment cancelled by user' : undefined)
       };
     } catch (error) {
       console.error('Error checking payment status:', error);
