@@ -111,38 +111,18 @@ export const useMpesaPayment = () => {
     try {
       const { data, error } = await supabase
         .from('mpesa_payments')
-        .select('status, result_desc, result_code')
+        .select('status, result_desc')
         .eq('checkout_request_id', checkoutRequestId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error checking payment status:', error);
         return null;
       }
 
-      // If no record found yet, payment is still pending
-      if (!data) {
-        console.log('No payment record found yet, status is pending');
-        return { status: 'pending' };
-      }
-
-      // Handle different M-Pesa result codes
-      // 0 = Success, 1032 = Cancelled by user, other codes = Failed
-      let status: 'pending' | 'success' | 'failed' = 'pending';
-      
-      if (data.result_code === 0) {
-        status = 'success';
-      } else if (data.result_code === 1032 || data.result_code === 1037 || data.result_desc?.toLowerCase().includes('cancel')) {
-        status = 'failed'; // Treat cancellation as failed for UI purposes
-      } else if (data.result_code && data.result_code !== 0) {
-        status = 'failed';
-      } else if (data.status) {
-        status = data.status as 'pending' | 'success' | 'failed';
-      }
-
       return {
-        status,
-        result_desc: data.result_desc || (data.result_code === 1032 ? 'Payment cancelled by user' : undefined)
+        status: data.status as 'pending' | 'success' | 'failed',
+        result_desc: data.result_desc ?? undefined
       };
     } catch (error) {
       console.error('Error checking payment status:', error);

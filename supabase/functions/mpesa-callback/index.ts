@@ -110,8 +110,14 @@ const handler = async (req: Request): Promise<Response> => {
     const clientIP = getClientIP(req);
     console.log('Callback received from IP:', clientIP);
 
-    // For development/testing, skip IP whitelist check
-    console.log('Skipping IP whitelist check for development');
+    // For development/testing, you might want to skip IP whitelist check
+    // Comment out these lines if you're testing locally
+    const isWhitelisted = await isIPWhitelisted(clientIP);
+    if (!isWhitelisted) {
+      console.warn('Unauthorized callback attempt from IP:', clientIP);
+      // In development, you might want to allow this for testing
+      // return new Response('Unauthorized', { status: 401 });
+    }
 
     const callbackData = await req.json();
     console.log('M-Pesa Callback Data:', JSON.stringify(callbackData, null, 2));
@@ -181,19 +187,8 @@ const handler = async (req: Request): Promise<Response> => {
         )
       ).toISOString();
     } else {
-      // Payment failed or cancelled
+      // Payment failed
       updateData.status = 'failed';
-      
-      // Log specific cancellation codes for debugging
-      if (ResultCode === 1032) {
-        console.log('Payment cancelled by user (code 1032)');
-        updateData.result_desc = 'Payment cancelled by user';
-      } else if (ResultCode === 1037) {
-        console.log('Payment timeout or user unavailable (code 1037)');
-        updateData.result_desc = 'Payment request timed out';
-      } else {
-        console.log(`Payment failed with result code: ${ResultCode}`);
-      }
     }
 
     const { data: payment, error: updateError } = await supabase

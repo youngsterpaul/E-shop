@@ -124,7 +124,7 @@ const OptimizedProductsPage = () => {
         })}
       </script>
 
-      <div className="flex flex-col min-h-screen">
+      <div className={`flex flex-col min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 

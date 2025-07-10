@@ -1,11 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, SearchIcon, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SearchSuggestions from './SearchSuggestions';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface EnhancedSearchInputProps {
   value: string;
@@ -29,6 +30,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
 
   const { searchHistory, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { suggestions, isLoading } = useSearchSuggestions(value, searchHistory);
+  const isMobile = isMobileUserAgent();
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -104,12 +106,14 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+        {!isMobile && (
+          <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground pointer-events-none item-center" />
+        )}
         <Input
           ref={inputRef}
           type="search"
           placeholder={placeholder}
-          className="pl-9 pr-16 h-12 text-base border-2 border-gray-200 focus:border-orange-500 rounded-lg transition-all duration-200"
+          className={`pr-16 h-12 text-base border-2 border-gray-200 rounded-lg transition-all duration-200 ${isMobile ? 'pl-3' : 'pl-9'}`}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => {
@@ -120,24 +124,15 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
         />
         
         <div className="absolute right-2 top-2 flex items-center space-x-1">
-          {value && (
+          {!isMobile && (
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClear}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
+              onClick={() => handleSubmit()}
+              className="h-8 bg-orange-500 hover:bg-orange-600 px-3"
             >
-              <X className="h-4 w-4" />
+              <SearchIcon className="h-4 w-4" />
             </Button>
           )}
-          <Button
-            type="button"
-            onClick={() => handleSubmit()}
-            className="h-8 bg-orange-500 hover:bg-orange-600 px-3"
-          >
-            Search
-          </Button>
         </div>
       </div>
 

@@ -62,6 +62,8 @@ class ErrorBoundary extends Component<Props, State> {
               We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.
             </p>
             
+            {/*
+            
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mb-6 text-left bg-red-50 p-4 rounded-lg">
                 <summary className="cursor-pointer font-medium text-red-800">
@@ -73,7 +75,7 @@ class ErrorBoundary extends Component<Props, State> {
                   {this.state.error.stack}
                 </pre>
               </details>
-            )}
+            )}  */} 
             
             <div className="flex gap-4 justify-center">
               <Button onClick={this.handleRetry} variant="outline">

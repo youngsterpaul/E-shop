@@ -23,7 +23,7 @@ const heroSlides: HeroSlide[] = [
     title: "Summer Tech Sale",
     subtitle: "Latest Gadgets & Electronics",
     description: "Up to 50% off on premium electronics. Free delivery on orders over KES 10,000.",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    image: "/hero1.webp",
     buttonText: "Shop Now",
     buttonLink: "/products",
     badge: "50% OFF"
@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
     title: "New Arrivals",
     subtitle: "Cutting-Edge Technology",
     description: "Discover the latest innovations in tech. Premium quality, best prices guaranteed.",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+    image: "/hero2.webp",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
@@ -43,7 +43,7 @@ const heroSlides: HeroSlide[] = [
     title: "Smart Living",
     subtitle: "Transform Your Lifestyle",
     description: "Smart home solutions that make life easier. Connect, control, and customize your space.",
-    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1",
+    image: "/hero3.webp",
     buttonText: "Discover More",
     buttonLink: "/products",
     badge: "TRENDING"
@@ -74,12 +74,12 @@ const EnhancedHeroSection = memo(() => {
   const currentSlideData = heroSlides[currentSlide];
 
   // Dynamic height based on device type
-  const heroHeight = isMobile ? 'min-h-[40vh]' : 'min-h-[70vh]';
+  const heroHeight = isMobile ? 'min-h-[20vh]' : 'min-h-[70vh]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900`}>
+    <section className={`relative mx-0 lg:mx-16 overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${isMobile ? 'mx-2 rounded-lg':'' }`}>
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 aspect-square ">
         <LazyImage
           src={`${currentSlideData.image}?auto=format&fit=crop&w=1920&q=80&fm=webp`}
           alt={currentSlideData.title}
@@ -93,34 +93,40 @@ const EnhancedHeroSection = memo(() => {
       <div className={`relative z-10 container mx-auto px-4 h-full ${heroHeight} flex items-center`}>
         <div className="max-w-2xl text-white">
           {/* Badge */}
-          {currentSlideData.badge && (
+          {currentSlideData.badge && !isMobile && (
             <div className="inline-flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-pulse">
               <TrendingUp size={16} />
               {currentSlideData.badge}
             </div>
           )}
-
           {/* Subtitle */}
+          {!isMobile && (
           <p className="text-gray-800 font-medium mb-2 tracking-wide uppercase text-sm">
             {currentSlideData.subtitle}
           </p>
+          )}
 
           {/* Title */}
+          {!isMobile && (
           <h1 className={`font-bold mb-4 leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent ${
             isMobile ? 'text-2xl md:text-4xl' : 'text-4xl md:text-6xl'
           }`}>
             {currentSlideData.title}
           </h1>
+          )}
 
           {/* Description */}
+          {!isMobile && (
           <p className={`mb-8 text-gray-200 leading-relaxed ${
             isMobile ? 'text-base md:text-lg' : 'text-lg md:text-xl'
           }`}>
             {currentSlideData.description}
           </p>
+          )}
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          {!isMobile && (
+          <div className="flex gap-4 mb-8">
             <Button 
               asChild 
               size={isMobile ? "default" : "lg"}
@@ -141,16 +147,19 @@ const EnhancedHeroSection = memo(() => {
               </Link>
             </Button>
           </div>
+          )}
 
           {/* Trust Indicators */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm text-gray-300">
             <div className="flex items-center gap-2">
-              <div className="flex">
+              {!isMobile && (
+                <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-gray-400 text-gray-400" />
                 ))}
               </div>
-              <span>4.8/5 Customer Rating</span>
+            )}
+              <span className="hidden sm:block">4.8/5 Customer Rating</span>
             </div>
             <div className="hidden sm:block">•</div>
             <div className="hidden sm:block">Free Delivery KES 10,000+</div>

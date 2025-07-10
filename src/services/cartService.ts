@@ -1,58 +1,78 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export const cartService = {
-  getOrCreateCart: async (userId: string | null, sessionId: string): Promise<string | null> => {
+export interface CartService {
+  getOrCreateCart: (userId?: string, sessionId?: string) => Promise<string | null>;
+  getCartWithItems: (cartId: string) => Promise<any>;
+  updateCartStatus: (cartId: string, status: string) => Promise<void>;
+  clearExpiredCarts: () => Promise<void>;
+}
+
+export const cartService: CartService = {
+  async getOrCreateCart(userId?: string, sessionId?: string) {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
-        p_user_id: userId,
-        p_session_id: userId ? null : sessionId
+        p_user_id: userId || null,
+        p_session_id: sessionId || null
       });
 
-      if (error) {
-        console.error('Error getting/creating cart:', error);
-        return null;
-      }
-
+      if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Cart service error:', error);
+      console.error('Error getting/creating cart:', error);
       return null;
     }
   },
 
-  updateCartStatus: async (cartId: string, status: 'active' | 'checkout' | 'completed' | 'abandoned'): Promise<boolean> => {
+  async getCartWithItems(cartId: string) {
     try {
-      const { error } = await supabase
+      // Get cart details
+      const { data: cart, error: cartError } = await supabase
         .from('carts')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', cartId);
+        .select('*')
+        .eq('id', cartId)
+        .single();
 
-      if (error) {
-        console.error('Error updating cart status:', error);
-        return false;
-      }
+      if (cartError) throw cartError;
 
-      return true;
+      // Get cart items
+      const { data: items, error: itemsError } = await supabase
+        .from('cart_items')
+        .select(`
+          *,
+          products!inner (*)
+        `)
+        .eq('cart_id', cartId);
+
+      if (itemsError) throw itemsError;
+
+      return { cart, items };
     } catch (error) {
-      console.error('Error updating cart status:', error);
-      return false;
+      console.error('Error fetching cart with items:', error);
+      throw error;
     }
   },
 
-  clearExpiredCarts: async (): Promise<boolean> => {
+  async updateCartStatus(cartId: string, status: string) {
+    try {
+      const { error } = await supabase
+        .from('carts')
+        .update({ status })
+        .eq('id', cartId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating cart status:', error);
+      throw error;
+    }
+  },
+
+  async clearExpiredCarts() {
     try {
       const { error } = await supabase.rpc('cleanup_expired_carts');
-
-      if (error) {
-        console.error('Error clearing expired carts:', error);
-        return false;
-      }
-
-      return true;
+      if (error) throw error;
     } catch (error) {
       console.error('Error clearing expired carts:', error);
-      return false;
     }
   }
 };

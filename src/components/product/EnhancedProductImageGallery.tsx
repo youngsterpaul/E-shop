@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Video, ZoomIn, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent, useIsMobile } from '@/hooks/use-mobile';
 import OptimizedImage from '../OptimizedImage';
 
 interface EnhancedProductImageGalleryProps {
@@ -21,7 +21,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   const mainImageRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
   
@@ -31,7 +31,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     ...(product.video ? [product.video] : [])
   ];
 
-  const minSwipeDistance = 50;
+  const minSwipeDistance = 0;
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % allMedia.length);
@@ -50,9 +50,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     // Scroll thumbnail into view
     if (thumbnailsRef.current) {
       const thumbnail = thumbnailsRef.current.children[index] as HTMLElement;
-      if (thumbnail) {
-        thumbnail.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-      }
+
     }
   };
 
@@ -98,7 +96,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
-        className="relative aspect-square bg-white rounded-lg overflow-hidden max-w-[500px] mx-auto cursor-pointer group"
+        className="relative aspect-square bg-white rounded-lg overflow-hidden max-w-[300px] mx-auto cursor-pointer group"
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
@@ -125,9 +123,9 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               width={500}
               height={500}
               aspectRatio="square"
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              //className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               priority={currentIndex === 0}
-              sizes="(max-width: 768px) 100vw, 500px"
+              //sizes="(max-width: 768px) 100vw, 500px"
             />
             
             {/* Zoom Icon Overlay */}
@@ -231,18 +229,8 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
 
       {/* Zoom Modal */}
       <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/90">
-          <div className="relative w-full h-full flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
-              onClick={() => setIsZoomOpen(false)}
-              aria-label="Close zoom view"
-            >
-              <X size={24} />
-            </Button>
-            
+        <DialogContent className="max max-h-[90vh] p-0 bg-black/90">
+          <div className="relative w-full h-full flex items-center justify-center">  
             <OptimizedImage
               src={allMedia[currentIndex]}
               alt={`${product.name} - Zoomed view`}

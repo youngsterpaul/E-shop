@@ -232,13 +232,6 @@ const AddToCartSection = ({
           <Share2 className="h-5 w-5" />
         </Button>
       </div>
-
-      {/* Additional Info */}
-      <div className="text-sm text-gray-600 space-y-1">
-        <p>✓ Free shipping on orders over KES 5,000</p>
-        <p>✓ 30-day return policy</p>
-        <p>✓ Secure payment options</p>
-      </div>
     </div>
   );
 };

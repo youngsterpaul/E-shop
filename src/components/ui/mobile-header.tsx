@@ -1,5 +1,5 @@
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -36,7 +36,7 @@ export const MobileHeader = ({ title, onBack, backTo, rightAction }: MobileHeade
           className="p-2 h-8 w-8"
           onClick={handleBack}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-lg font-semibold truncate">{title}</h1>
       </div>

@@ -1,6 +1,7 @@
 
 import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from './ProductSkeleton';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface Product {
   id: string;
@@ -20,6 +21,11 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ products, loading }: ProductGridProps) => {
+  const isMobile = isMobileUserAgent();  
+  const gridCols = isMobile
+    ? "grid-cols-2" 
+    : "grid-cols-5";
+  
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -44,7 +50,7 @@ const ProductGrid = ({ products, loading }: ProductGridProps) => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
       {products.map(product => {
         const productCardData = {
           id: product.id,

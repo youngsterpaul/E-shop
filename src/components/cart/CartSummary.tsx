@@ -24,8 +24,8 @@ const CartSummary = () => {
   const [couponError, setCouponError] = useState('');
 
   const shippingOptions = [
-    { id: 'standard', name: 'Standard Delivery', price: 500, estimatedDays: '3-5 days' },
-    { id: 'express', name: 'Express Delivery', price: 1200, estimatedDays: '1-2 days' },
+    { id: 'standard', name: 'Standard Delivery', price: 0, estimatedDays: '1-3 hours' },
+    //{ id: 'express', name: 'Express Delivery', price: 1200, estimatedDays: '4-6 hours' },
   ];
 
   const handleApplyCoupon = () => {

@@ -38,7 +38,7 @@ const VariantSelector = ({
 
   const isVariantAvailable = (variantTypeId: string, variantValueId: string) => {
     const stockKey = `${variantTypeId}-${variantValueId}`;
-    return (stockInfo[stockKey] || 10) > 10;
+    return (stockInfo[stockKey] || 10) > 0;
   };
 
   const getVariantStock = (variantTypeId: string, variantValueId: string) => {
