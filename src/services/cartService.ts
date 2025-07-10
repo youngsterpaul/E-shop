@@ -12,8 +12,8 @@ export const cartService: CartService = {
   async getOrCreateCart(userId?: string, sessionId?: string) {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
-        p_user_id: userId || null,
-        p_session_id: sessionId || null
+        p_user_id: userId || undefined,
+        p_session_id: sessionId || undefined
       });
 
       if (error) throw error;

@@ -9,7 +9,7 @@ export interface ChatMessage {
   sender: 'user' | 'support';
   timestamp: string;
   is_read: boolean;
-  user_id: string;
+  user_id?: string;
 }
 
 export const useAdminChatMessages = () => {
@@ -32,8 +32,8 @@ export const useAdminChatMessages = () => {
         text: msg.text,
         sender: msg.sender as 'user' | 'support',
         timestamp: msg.timestamp,
-        is_read: msg.is_read,
-        user_id: msg.user_id
+        is_read: msg.is_read ?? false,
+        user_id: msg.user_id || undefined
       }));
 
       setMessages(typedMessages);
