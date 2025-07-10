@@ -143,9 +143,9 @@ const AdminChatPage = () => {
         text: msg.text,
         sender: msg.sender as 'user' | 'admin',
         timestamp: msg.timestamp,
-        user_id: msg.user_id,
+        user_id: msg.user_id || undefined,
         session_id: msg.session_id,
-        is_read: msg.is_read
+        is_read: msg.is_read ?? false
       }));
 
       setMessages(typedMessages);
