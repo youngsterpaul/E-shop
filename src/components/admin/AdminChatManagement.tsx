@@ -24,7 +24,7 @@ const AdminChatManagement = () => {
         },
         (payload) => {
           loadChatSessions();
-          if (selectedUserId === payload.new.user_id) {
+          if (selectedUserId && selectedUserId === payload.new.user_id) {
             loadMessages(selectedUserId);
           }
           

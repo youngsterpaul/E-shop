@@ -35,7 +35,7 @@ export const useChatHistory = () => {
         text: msg.text,
         sender: msg.sender === 'support' ? 'support' : 'user',
         timestamp: new Date(msg.timestamp),
-        user_id: msg.user_id
+        user_id: msg.user_id || undefined
       }));
 
       setMessages(formattedMessages);
