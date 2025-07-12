@@ -1,10 +1,10 @@
 
-import { useCart } from '@/hooks/useCart';
+import { useOptimizedCart } from '@/hooks/useOptimizedCart';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
-import SelectableCartItem from '@/components/cart/SelectableCartItem';
+import OptimizedCartItem from '@/components/cart/OptimizedCartItem';
 import CartSummary from '@/components/cart/CartSummary';
 import EmptyCart from '@/components/cart/EmptyCart';
 import { Separator } from '@/components/ui/separator';
@@ -14,7 +14,7 @@ import MobileNav from '@/components/MobileNav';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 
 const CartPage = () => {
-  const { cartItems, loading } = useCart();
+  const { cartItems, loading, removeFromCart } = useOptimizedCart();
   const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
   const isMobile = isMobileUserAgent();
 
@@ -74,14 +74,35 @@ const CartPage = () => {
               />
               
               <div className="divide-y divide-gray-200">
-                {cartItems.map((item) => (
-                  <SelectableCartItem
-                    key={item.id}
-                    item={item}
-                    isSelected={selectedItems.includes(item.id)}
-                    onToggleSelect={() => toggleItemSelection(item.id)}
-                  />
-                ))}
+                {cartItems.map((item) => {
+                  // Transform the data structure for OptimizedCartItem
+                  const transformedItem = {
+                    id: item.id,
+                    product: {
+                      id: item.products.product_id,
+                      name: item.products.name,
+                      price: item.products.price,
+                      image: item.products.image_urls?.[0] || ''
+                    },
+                    quantity: item.quantity
+                  };
+                  
+                  return (
+                    <div key={item.id} className="flex items-center gap-4 p-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => toggleItemSelection(item.id)}
+                        className="rounded"
+                      />
+                      <OptimizedCartItem
+                        item={transformedItem}
+                        onRemove={() => removeFromCart(item.id)}
+                        className="flex-1"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
