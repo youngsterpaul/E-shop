@@ -60,7 +60,7 @@ export const useCategories = () => {
           id: sub.id.toString(),
           name: sub.category,
           category: sub.category,
-          parent_id: sub.parent_id?.toString() || ''
+          parent_id: sub.parent_id.toString()
         }));
         setSubcategories(formattedSubcategories);
       }

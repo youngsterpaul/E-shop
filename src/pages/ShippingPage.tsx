@@ -283,7 +283,7 @@ const ShippingPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader 
           title={'Shipping Address'}
           backTo="/"

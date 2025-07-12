@@ -32,13 +32,7 @@ const AdminNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications((data || []).map(item => ({
-        ...item,
-        is_read: item.is_read ?? false,
-        created_at: item.created_at || '',
-        updated_at: item.updated_at || '',
-        user_id: item.user_id || undefined
-      })));
+      setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.is_read).length || 0);
     } catch (error) {
       console.error('Error loading notifications:', error);

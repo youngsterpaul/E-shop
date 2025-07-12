@@ -17,7 +17,6 @@ import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
-import MobileBottomActions from '@/components/product/MobileBottomActions';
 
 const ProductDetailsPage = () => {
   const { productName, id } = useParams();
@@ -311,7 +310,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`container mx-auto py-6 ${isMobile ? 'pb-24 px-1' : 'pb-8'}`}>
+        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20 px-1' : 'pb-8'}`}>
           {/* Breadcrumb */}
           <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
           
@@ -379,21 +378,19 @@ const ProductDetailsPage = () => {
                 />
               )}
 
-              {/* Add to Cart Section - Desktop only */}
-              {!isMobile && (
-                <AddToCartSection
-                  product={{
-                    product_id: product.product_id,
-                    name: product.name,
-                    price: calculatePrice(),
-                    stock: product.stock
-                  }}
-                  selectedVariants={selectedVariants}
-                  requiredVariants={requiredVariants}
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
-                />
-              )}
+              {/* Add to Cart Section */}
+              <AddToCartSection
+                product={{
+                  product_id: product.product_id,
+                  name: product.name,
+                  price: calculatePrice(),
+                  stock: product.stock
+                }}
+                selectedVariants={selectedVariants}
+                requiredVariants={requiredVariants}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+              />
 
               {/* Additional Info */}
               <div className="text-sm text-gray-600 space-y-1">
@@ -415,36 +412,6 @@ const ProductDetailsPage = () => {
             }} 
           />
         </main>
-
-        {/* Mobile Bottom Actions */}
-        {isMobile && (
-          <MobileBottomActions
-            product={{
-              product_id: product.product_id,
-              name: product.name,
-              price: product.price,
-              originalPrice: undefined,
-              description: product.description,
-              rating: product.rating || 0,
-              reviews: (product as any).reviews || 0,
-              inStock: product.stock ? product.stock > 0 : true,
-              category: product.categories || 'general',
-              subcategory: undefined,
-              attributes: typeof product.specification === 'string' && product.specification
-                ? JSON.parse(product.specification)
-                : product.specification || {},
-              features: typeof product.features === 'string' 
-                ? [product.features] 
-                : Array.isArray(product.features) 
-                  ? product.features 
-                  : []
-            }}
-            selectedVariants={selectedVariants}
-            requiredVariants={requiredVariants}
-            onVariantChange={handleVariantChange}
-            calculatePrice={calculatePrice}
-          />
-        )}
       </div>
     </>
   );

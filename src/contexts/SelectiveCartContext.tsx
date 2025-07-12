@@ -25,16 +25,13 @@ interface SelectiveCartContextType {
 const SelectiveCartContext = createContext<SelectiveCartContextType | undefined>(undefined);
 
 export const SelectiveCartProvider = ({ children }: { children: React.ReactNode }) => {
-  const cartContext = useCartContext();
-  const { cartItems } = cartContext || { cartItems: [] };
+  const { cartItems } = useCartContext();
   const [selections, setSelections] = useState<CartItemSelection[]>([]);
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
 
   // Initialize selections when cart items change
   useEffect(() => {
-    if (!cartItems.length) return;
-    
     const newSelections = cartItems.map(item => ({
       itemId: item.id,
       selected: selections.find(s => s.itemId === item.id)?.selected || false

@@ -97,10 +97,10 @@ const WriteReviewPage = () => {
       setIsUploading(true);
 
       // Upload media files
-      const uploadedUrls: string[] = [];
+      const uploadedUrls = [];
       for (const file of mediaFiles) {
         const url = await uploadReviewMedia(file);
-        if (url) uploadedUrls.push(url);
+        uploadedUrls.push(url);
       }
 
       setIsUploading(false);
@@ -169,7 +169,7 @@ const WriteReviewPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader 
           title={'Write Review'}
           backTo="/"
