@@ -8,6 +8,7 @@ import { Loader2, CheckCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCartContext } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export const PaymentStep = () => {
   const { 
@@ -74,7 +75,7 @@ export const PaymentStep = () => {
   }, [paymentStatus.status, paymentStatus.checkoutRequestId, checkPaymentStatus, updatePaymentStatus, clearCart, setStep]);
 
   const handleMpesaPayment = async () => {
-    const orderId = `ORD-${Date.now()}`;
+    const orderId = uuidv4();
     updatePaymentStatus({ status: 'processing' });
 
     try {
