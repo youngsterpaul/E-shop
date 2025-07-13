@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, CheckCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCartContext } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const PaymentStep = () => {
   const { 
@@ -17,7 +18,7 @@ export const PaymentStep = () => {
     setStep 
   } = useCheckout();
   
-  const { calculations } = useSelectiveCart();
+  const { calculations, selectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
   const [countdown, setCountdown] = useState(30); // 5 minutes
@@ -77,6 +78,34 @@ export const PaymentStep = () => {
     updatePaymentStatus({ status: 'processing' });
 
     try {
+      // First create the order in the database
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          order_id: orderId,
+          email: customerDetails.email,
+          phone_number: customerDetails.phone,
+          status: 'pending',
+          amount: finalTotal,
+          items: selectedItems as any,
+          shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Failed to create order:', orderError);
+        updatePaymentStatus({
+          status: 'failed',
+          message: 'Failed to create order. Please try again.'
+        });
+        return;
+      }
+
+      // Then initiate M-Pesa payment
       const result = await initiatePayment({
         phone: customerDetails.phone,
         amount: finalTotal,
@@ -97,6 +126,7 @@ export const PaymentStep = () => {
         });
       }
     } catch (error) {
+      console.error('Payment error:', error);
       updatePaymentStatus({
         status: 'failed',
         message: 'Payment failed. Please try again.'

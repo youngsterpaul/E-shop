@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "SmartKenya <noreply@smartkenya.co.ke>",
+      from: "SmartKenya <onboarding@resend.dev>",
       to: [email],
       subject: `Payment Confirmation - Order #${orderId}`,
       html: `

@@ -208,9 +208,24 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // If payment was successful, send confirmation email
+    // If payment was successful, update order status and send confirmation email
     if (ResultCode === 0 && payment?.order_id) {
-      console.log('Payment successful, sending confirmation email');
+      console.log('Payment successful, updating order status and sending confirmation email');
+      
+      // Update order status to 'paid'
+      const { error: orderUpdateError } = await supabase
+        .from('orders')
+        .update({ 
+          status: 'paid',
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_id', payment.order_id);
+
+      if (orderUpdateError) {
+        console.error('Failed to update order status:', orderUpdateError);
+      }
+
+      // Send confirmation email
       await sendPaymentConfirmationEmail(payment.order_id);
     }
 
