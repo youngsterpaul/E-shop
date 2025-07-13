@@ -136,7 +136,7 @@ const AdminProductEdit = () => {
                   id: sub.id.toString(),
                   name: sub.category,
                   category: sub.category,
-                  parent_id: sub.parent_id.toString()
+                  parent_id: sub.parent_id?.toString() || ''
                 }));
                 setSubcategories(formattedSubcategories);
                 
@@ -231,7 +231,7 @@ const AdminProductEdit = () => {
           image_urls: imagePreview,
           updated_at: new Date().toISOString()
         })
-        .eq('product_id', productId);
+        .eq('product_id', productId || '');
         
       if (error) throw error;
       

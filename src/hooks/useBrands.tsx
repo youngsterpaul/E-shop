@@ -45,7 +45,16 @@ export const useBrands = () => {
 
       if (brandsError) throw brandsError;
 
-      setBrands(brandsData || []);
+      setBrands((brandsData || []).map(brand => ({
+        ...brand,
+        subcategory_id: brand.subcategory_id || 0,
+        category_id: brand.category_id || 0,
+        is_active: brand.is_active ?? true,
+        created_at: brand.created_at || '',
+        updated_at: brand.updated_at || '',
+        description: brand.description || '',
+        logo_url: brand.logo_url || ''
+      })));
     } catch (err: any) {
       setError(err.message);
       setBrands([]);
@@ -99,7 +108,16 @@ export const useBrands = () => {
 
       if (brandsError) throw brandsError;
 
-      setBrands(brandsData || []);
+      setBrands((brandsData || []).map(brand => ({
+        ...brand,
+        subcategory_id: brand.subcategory_id || 0,
+        category_id: brand.category_id || 0,
+        is_active: brand.is_active ?? true,
+        created_at: brand.created_at || '',
+        updated_at: brand.updated_at || '',
+        description: brand.description || '',
+        logo_url: brand.logo_url || ''
+      })));
     } catch (err: any) {
       setError(err.message);
       setBrands([]);
@@ -121,7 +139,16 @@ export const useBrands = () => {
 
       if (error) throw error;
 
-      setBrands(data || []);
+      setBrands((data || []).map(brand => ({
+        ...brand,
+        subcategory_id: brand.subcategory_id || 0,
+        category_id: brand.category_id || 0,
+        is_active: brand.is_active ?? true,
+        created_at: brand.created_at || '',
+        updated_at: brand.updated_at || '',
+        description: brand.description || '',
+        logo_url: brand.logo_url || ''
+      })));
     } catch (err: any) {
       setError(err.message);
       setBrands([]);

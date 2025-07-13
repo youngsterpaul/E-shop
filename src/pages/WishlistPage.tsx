@@ -47,7 +47,7 @@ const WishlistPage = () => {
       const { data: wishlistData, error: wishlistError } = await supabase
         .from('wishlists')
         .select('id, product_id')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id || '');
 
       if (wishlistError) throw wishlistError;
 
@@ -94,7 +94,7 @@ const WishlistPage = () => {
       const { error } = await supabase
         .from('wishlists')
         .delete()
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id || '')
         .eq('product_id', productId);
 
       if (error) throw error;
