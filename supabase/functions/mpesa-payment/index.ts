@@ -77,7 +77,8 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     formattedPhone = '254' + formattedPhone;
   }
 
-  const callbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`;
+  // Use the project-specific function URL for callback
+  const callbackUrl = `https://sgpjnbdrmwrupeqhjqpj.supabase.co/functions/v1/mpesa-callback`;
 
   const payload = {
     BusinessShortCode: shortcode,
@@ -206,9 +207,14 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
       if (dbError) {
-        console.error('Database error:', dbError);
-        // Don't fail the request if DB insert fails, just log it
+        console.error('Database error when creating M-Pesa payment record:', dbError);
+        throw new Error('Failed to record payment request in database');
       }
+
+      console.log('M-Pesa payment record created successfully:', {
+        checkoutRequestId: stkResponse.CheckoutRequestID,
+        orderId: orderId
+      });
 
       return new Response(
         JSON.stringify({
