@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { useMpesaPayment } from '@/hooks/useMpesaPayment';
 import Header from '@/components/Header';
+import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -238,7 +239,7 @@ const CheckoutPage = () => {
 
     try {
       // Create order in the database
-      const orderId = `ORD-${Date.now()}`;
+      const orderId = uuidv4();
       
       const { data: order, error } = await supabase
         .from('orders')
