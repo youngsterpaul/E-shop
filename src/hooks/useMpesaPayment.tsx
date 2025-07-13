@@ -122,7 +122,7 @@ export const useMpesaPayment = () => {
 
       return {
         status: data.status as 'pending' | 'success' | 'failed',
-        result_desc: data.result_desc
+        result_desc: data.result_desc ?? undefined
       };
     } catch (error) {
       console.error('Error checking payment status:', error);

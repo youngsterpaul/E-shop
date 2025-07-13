@@ -56,24 +56,16 @@ const CheckoutModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="pb-4 border-b">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+        <DialogHeader className="pb-1 border-b">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold">
+            <DialogTitle className="font-semibold">
               {step === 4 ? 'Order Complete' : 'Checkout'}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
           
           {step < 4 && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <Progress value={progressValue} className="w-full" />
               
               <div className="flex justify-between text-sm">
@@ -107,12 +99,12 @@ const CheckoutModal = () => {
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto">
           {renderStepContent()}
         </div>
 
         {step < 4 && calculations.selectedItemsCount > 0 && (
-          <div className="border-t pt-4 px-6 pb-6">
+          <div className="border-t px-6">
             <div className="flex justify-between items-center text-sm text-gray-600">
               <span>{calculations.selectedItemsCount} items selected</span>
               <span className="font-semibold text-lg">

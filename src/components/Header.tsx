@@ -15,8 +15,8 @@ import {
   ShoppingBag,
   Search
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -24,17 +24,18 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import EnhancedSearchInput from './search/EnhancedSearchInput';
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = isMobileUserAgent();
+  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Safely get cart data with fallback
   let items: any[] = [];
@@ -51,11 +52,25 @@ const Header = () => {
     totalItems = 0;
   }
   
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+   useEffect(() => {
+     // Extract search query from URL
+     const params = new URLSearchParams(location.search);
+     const queryParam = params.get('q');
+     if (queryParam) {
+       setSearchQuery(queryParam);
+     }
+   }, [location.search]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    // Update URL with search query
+    const params = new URLSearchParams();
+    if (query) {
+      params.set('q', query);
     }
+    
+    navigate(`/search?${params.toString()}`);
   };
   
   const handleLogout = async () => {
@@ -98,7 +113,7 @@ const Header = () => {
         })}
       </script>
 
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && (
         <nav className="block bg-gray-50 border-b" role="navigation" aria-label="Main Navigation">
@@ -131,22 +146,15 @@ const Header = () => {
             {/* Desktop Search */}
             {!isMobile && (
               <>
-              <form onSubmit={handleSearch} className="flex flex-1 mx-4 lg:mx-8 relative">
-                <Input
-                  type="search"
-                  placeholder="Search for products..."
+              <div className="flex flex-1 mx-4 lg:mx-8 relative">
+                <EnhancedSearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  onSearch={handleSearch}
+                  placeholder="Search for products, brands, or categories..."
                   className="w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Button 
-                  type="submit" 
-                  variant="ghost" 
-                  className="absolute right-0"
-                >
-                  <SearchIcon className="h-4 w-4" />
-                </Button>
-              </form>
+              </div>
             
             <div className="flex items-center space-x-4">
               <Link to="/cart" className="relative text-gray-700 hover:text-primary transition-colors">
@@ -165,6 +173,14 @@ const Header = () => {
               >
                 Shop Now
               </Button>
+
+              {isMobile && (
+                <Link to="/search">
+                  <Button variant="ghost" size="sm" className="p-2">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
               
               {user ? (
                 <DropdownMenu>

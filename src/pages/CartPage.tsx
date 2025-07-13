@@ -6,17 +6,17 @@ import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
 import SelectableCartItem from '@/components/cart/SelectableCartItem';
 import CartSummary from '@/components/cart/CartSummary';
-import CartSkeleton from '@/components/cart/CartSkeleton';
-import ModernEmptyCart from '@/components/cart/ModernEmptyCart';
+import EmptyCart from '@/components/cart/EmptyCart';
 import { Separator } from '@/components/ui/separator';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
 import MobileNav from '@/components/MobileNav';
+import CartSkeleton from '@/components/cart/CartSkeleton';
 
 const CartPage = () => {
   const { cartItems, loading } = useCart();
   const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   if (loading) {
     return <CartSkeleton />;
@@ -25,27 +25,15 @@ const CartPage = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex flex-col">
-        {!isMobile && <Header />}
-        <MobileHeader 
-          title="Shopping Cart"
-          backTo="/products"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>0</span>
-            </div>
-          }
-        />
-        <ModernEmptyCart />
-        <MobileNav />
+        <EmptyCart />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      <MobileHeader 
+      {isMobile && <MobileHeader 
         title="Shopping Cart"
         backTo="/products"
         rightAction={
@@ -54,7 +42,7 @@ const CartPage = () => {
             <span>{cartItems.length}</span>
           </div>
         }
-      />
+      />}
 
       <div className="container mx-auto px-4 py-6">
         {!isMobile && (

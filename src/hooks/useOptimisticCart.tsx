@@ -1,64 +1,81 @@
 
 import { useState, useCallback } from 'react';
-import { useCartContext } from '@/contexts/CartContext';
+import { useCart } from '@/hooks/useCart';
 import { useToast } from '@/hooks/use-toast';
 
-interface OptimisticUpdate {
-  type: 'quantity' | 'remove';
-  itemId: string;
-  originalQuantity?: number;
-}
-
 export const useOptimisticCart = () => {
-  const { updateCartItemQuantity, removeFromCart: removeCartItem } = useCartContext();
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, number>>(new Map());
+  const { cartItems, updateQuantity: originalUpdateQuantity, removeFromCart: originalRemoveFromCart } = useCart();
   const { toast } = useToast();
-  const [pendingUpdates, setPendingUpdates] = useState<OptimisticUpdate[]>([]);
 
   const updateQuantity = useCallback(async (itemId: string, newQuantity: number) => {
-    // Add optimistic update
-    setPendingUpdates(prev => [...prev, { type: 'quantity', itemId }]);
+    // Optimistic update
+    setOptimisticUpdates(prev => new Map(prev).set(itemId, newQuantity));
 
     try {
-      await updateCartItemQuantity(itemId, newQuantity);
+      await originalUpdateQuantity(itemId, newQuantity);
+      // Remove optimistic update on success
+      setOptimisticUpdates(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
     } catch (error) {
-      console.error('Failed to update quantity:', error);
+      // Revert optimistic update on error
+      setOptimisticUpdates(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
+      
       toast({
         title: "Error",
-        description: "Failed to update quantity",
+        description: "Failed to update quantity. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      // Remove optimistic update
-      setPendingUpdates(prev => prev.filter(update => 
-        !(update.type === 'quantity' && update.itemId === itemId)
-      ));
     }
-  }, [updateCartItemQuantity, toast]);
+  }, [originalUpdateQuantity, toast]);
 
   const removeFromCart = useCallback(async (itemId: string) => {
-    // Add optimistic update
-    setPendingUpdates(prev => [...prev, { type: 'remove', itemId }]);
+    // Optimistic update - mark as removed
+    setOptimisticUpdates(prev => new Map(prev).set(itemId, 0));
 
     try {
-      await removeCartItem(itemId);
+      await originalRemoveFromCart(itemId);
+      // Remove from optimistic updates on success
+      setOptimisticUpdates(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
     } catch (error) {
-      console.error('Failed to remove item:', error);
+      // Revert optimistic update on error
+      setOptimisticUpdates(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
+      
       toast({
         title: "Error",
-        description: "Failed to remove item",
+        description: "Failed to remove item. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      // Remove optimistic update
-      setPendingUpdates(prev => prev.filter(update => 
-        !(update.type === 'remove' && update.itemId === itemId)
-      ));
     }
-  }, [removeCartItem, toast]);
+  }, [originalRemoveFromCart, toast]);
+
+  // Merge cart items with optimistic updates
+  const optimisticCartItems = cartItems.map(item => {
+    const optimisticQuantity = optimisticUpdates.get(item.id);
+    if (optimisticQuantity !== undefined) {
+      return { ...item, quantity: optimisticQuantity };
+    }
+    return item;
+  }).filter(item => item.quantity > 0);
 
   return {
+    cartItems: optimisticCartItems,
     updateQuantity,
     removeFromCart,
-    pendingUpdates
   };
 };

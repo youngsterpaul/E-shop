@@ -24,6 +24,7 @@ interface CategoryIcon {
   icon: LucideIcon;
   searchQuery: string;
   color: string;
+  iconColor: string;
   productImage?: string;
 }
 
@@ -33,7 +34,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Phones',
     icon: Smartphone,
     searchQuery: 'phone',
-    color: 'bg-gradient-to-br from-blue-500 to-blue-600',
+    color: 'bg-blue-50',
+    iconColor: 'text-blue-600',
     productImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -41,7 +43,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Laptops',
     icon: Laptop,
     searchQuery: 'laptop',
-    color: 'bg-gradient-to-br from-green-500 to-green-600',
+    color: 'bg-green-50',
+    iconColor: 'text-green-600',
     productImage: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -49,7 +52,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Audio',
     icon: Headphones,
     searchQuery: 'headphones',
-    color: 'bg-gradient-to-br from-purple-500 to-purple-600',
+    color: 'bg-green-50',
+    iconColor: 'text-green-600',
     productImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -57,7 +61,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Cameras',
     icon: Camera,
     searchQuery: 'camera',
-    color: 'bg-gradient-to-br from-red-500 to-red-600',
+    color: 'bg-red-50',
+    iconColor: 'text-red-600',
     productImage: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -65,7 +70,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Watches',
     icon: Watch,
     searchQuery: 'watch',
-    color: 'bg-gradient-to-br from-yellow-500 to-yellow-600',
+    color: 'bg-yellow-50',
+    iconColor: 'text-yellow-600',
     productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -73,7 +79,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Gaming',
     icon: Gamepad2,
     searchQuery: 'gaming',
-    color: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+    color: 'bg-indigo-50',
+    iconColor: 'text-indigo-600',
     productImage: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -81,7 +88,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'TVs',
     icon: Tv,
     searchQuery: 'tv',
-    color: 'bg-gradient-to-br from-pink-500 to-pink-600',
+    color: 'bg-pink-50',
+    iconColor: 'text-pink-600',
     productImage: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -89,7 +97,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Speakers',
     icon: Speaker,
     searchQuery: 'speaker',
-    color: 'bg-gradient-to-br from-teal-500 to-teal-600',
+    color: 'bg-teal-50',
+    iconColor: 'text-teal-600',
     productImage: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -97,7 +106,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Monitors',
     icon: Monitor,
     searchQuery: 'monitor',
-    color: 'bg-gradient-to-br from-orange-500 to-orange-600',
+    color: 'bg-orange-50',
+    iconColor: 'text-orange-600',
     productImage: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -105,7 +115,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Tablets',
     icon: Tablet,
     searchQuery: 'tablet',
-    color: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
+    color: 'bg-cyan-50',
+    iconColor: 'text-cyan-600',
     productImage: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -113,7 +124,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Network',
     icon: Router,
     searchQuery: 'router',
-    color: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+   color: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
     productImage: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?auto=format&fit=crop&w=400&q=80'
   },
   {
@@ -121,7 +133,8 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Power',
     icon: Battery,
     searchQuery: 'battery',
-    color: 'bg-gradient-to-br from-gray-500 to-gray-600',
+    color: 'bg-gray-50',
+    iconColor: 'text-gray-600',
     productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80'
   }
 ];
@@ -129,47 +142,48 @@ const categoryIcons: CategoryIcon[] = [
 const CategoryIcons = () => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
+  const gridCols = isMobile 
+    ? "grid-cols-2" 
+    : "grid-cols-6";
 
   const handleCategoryClick = (searchQuery: string) => {
-    navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
   };
 
   if (isMobile) {
     // Mobile version with modern icons
     return (
-      <section className="py-6 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">Shop by Category</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {categoryIcons.map((category) => {
-              const IconComponent = category.icon;
-              return (
-                <div
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category.searchQuery)}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white hover:bg-gray-50 transition-all duration-300 cursor-pointer group shadow-sm hover:shadow-md border border-gray-100"
-                >
-                  <div className={`${category.color} p-4 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <IconComponent size={28} className="text-white" />
-                  </div>
-                  <span className="text-xs text-gray-700 text-center font-medium group-hover:text-gray-900 transition-colors leading-tight">
-                    {category.name}
-                  </span>
+        <div className="md:hidden grid grid-cols-4 gap-3">
+          {categoryIcons.slice(0, 8).map((category) => {
+            const IconComponent = category.icon;
+            return (
+              <div
+                key={category.id}
+                onClick={() => handleCategoryClick(category.searchQuery)}
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group border border-gray-100"
+              >
+                <div className={`${category.color} p-2.5 rounded-full mb-2 group-hover:scale-105 transition-transform duration-200`}>
+                  <IconComponent size={20} className={category.iconColor} />
                 </div>
-              );
-            })}
-          </div>
+                <span className="text-xs text-gray-700 text-center font-medium leading-tight">
+                  {category.name}
+                </span>
+              </div>
+            );
+          })}
         </div>
-      </section>
     );
   }
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="py-12 bg-gradient-to-br from-gray-50 to-white">
+    <section className="pt-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Shop by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+
+        <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+          SHOP BY CATEGORY
+        </h2>
+        <div className={`grid ${gridCols} gap-3 md:gap-4 bg-white p-4 shadow-sm`}>
           {categoryIcons.map((category) => {
             const IconComponent = category.icon;
             return (
@@ -178,7 +192,7 @@ const CategoryIcons = () => {
                 onClick={() => handleCategoryClick(category.searchQuery)}
                 className="flex flex-col items-center justify-center cursor-pointer group"
               >
-                <div className="relative w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mb-4 rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
+                <div className="relative w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
                   {category.productImage ? (
                     <>
                       <OptimizedImage
@@ -189,9 +203,6 @@ const CategoryIcons = () => {
                         priority={false}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className={`absolute top-2 right-2 ${category.color} p-2 rounded-lg opacity-90`}>
-                        <IconComponent size={16} className="text-white" />
-                      </div>
                     </>
                   ) : (
                     <div className={`w-full h-full flex items-center justify-center ${category.color}`}>

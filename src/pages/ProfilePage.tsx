@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { PhoneInput } from "@/components/ui/phone-input"
 // Import from supabase client instead
 import { supabase } from '@/integrations/supabase/client';
-import useIsMobile from '@/hooks/use-mobile';
+import useIsMobile, { isMobileUserAgent } from '@/hooks/use-mobile';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
@@ -21,7 +21,8 @@ const ProfilePage = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [filename, setFilename] = useState<string | null>(null);
-  const isMobile = useIsMobile;
+  const isMobile = isMobileUserAgent();
+
   useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name || '');
@@ -75,10 +76,13 @@ const ProfilePage = () => {
 
         setFilename(newFilename);
 
+        if (!user?.id) {
+          throw new Error("User ID is undefined");
+        }
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ avatar_url: newFilename })
-          .eq('user_id', user?.id);
+          .eq('user_id', user.id);
 
         if (updateError) {
           throw updateError;
@@ -93,7 +97,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col px-2">
       {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 

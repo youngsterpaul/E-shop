@@ -17,7 +17,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate('/contact');
     }
   }, [user, navigate]);
 
@@ -26,7 +26,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {!isMobile && <Header />}
       <MobileHeader 
         title="Customer Support"

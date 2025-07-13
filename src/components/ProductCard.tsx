@@ -51,17 +51,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-gray-200 rounded-lg overflow-hidden w-full max-w-[200px] mx-auto">
-      <CardContent className="p-0 h-full flex flex-col">
+    <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[200px] mx-auto">
+      <CardContent className="p-2 h-full flex flex-col">
         <Link to={`/product/${productSlug}/${product.id}`} className="block">
-          <div className="relative overflow-hidden bg-gray-50 aspect-square">
+          <div className="relative overflow-hidden bg-white aspect-square">
             <OptimizedImage
               src={product.image}
               alt={product.name}
               width={200}
               height={200}
               aspectRatio="square"
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover"
               sizes="200px"
             />
             
@@ -105,7 +105,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Product Info - Kilimall style compact layout */}
         <div className="p-2 flex flex-col flex-grow space-y-1">
           <Link to={`/product/${productSlug}/${product.id}`}>
-            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors text-xs leading-tight group-hover:text-blue-600 min-h-[32px]">
+            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
               {product.name}
             </h3>
           </Link>

@@ -12,16 +12,20 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Settings, Star } from 'lucide-react';
+import { Search, Settings, ShoppingBag, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from "@/components/ui/button"
+import { Link } from 'react-router-dom';
 
 const ProductDetailsPage = () => {
   const { productName, id } = useParams();
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-  
+    const gridCols = isMobile 
+    ? "grid-cols-1" 
+    : "grid-cols-2";
+
   const { data: product, isLoading: loading, error } = useProduct(id || '');
   const { variants } = useProductVariants(id || '');
   
@@ -124,6 +128,19 @@ const ProductDetailsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        {!isMobile && <Header />}
+        {isMobile && <MobileHeader 
+          title="Shopping Cart"
+          backTo="/products"
+          rightAction={
+            <Link to="/search">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+            </Link>
+          }
+        />
+      }
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-6">
@@ -280,111 +297,120 @@ const ProductDetailsPage = () => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        <MobileHeader
+        {isMobile && (<MobileHeader
           title="Product Details"
           backTo="/"
           rightAction={
+          <Link to="/search">
             <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
+              <Search className="h-4 w-4" />
             </Button>
+          </Link>
           }
-        />
-        <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
-          <div className="container mx-auto px-4 py-6">
-            {/* Breadcrumb */}
-            <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
-            
-            {/* Product Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              {/* Enhanced Image Gallery */}
+        />)}
+        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20 px-1' : 'pb-8'}`}>
+          {/* Breadcrumb */}
+          <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
+          
+          {/* Product Layout */}
+          <div className={`grid ${gridCols} p-4 max-w-7xl`}>
+            {/* Enhanced Image Gallery */}
+            <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
-              
-              {/* Product Information */}
-              <div className="space-y-6">
-                {/* Product Title and Rating */}
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                    {product.name}
-                  </h1>
-                  
-                  {product.rating && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600">({(product as any).reviews || 0} reviews)</span>
+            </div>
+
+            {/* Product Information */}
+            <div className="space-y-6">
+              {/* Product Title and Rating */}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                  {product.name}
+                </h1>
+                
+                {product.rating && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
                     </div>
+                    <span className="text-sm text-gray-600">({(product as any).reviews || 0} reviews)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl font-bold text-orange-500">
+                    {formatPrice(calculatePrice())}
+                  </span>
+                  {calculatePrice() !== product.price && (
+                    <span className="text-xl text-gray-500 line-through">
+                      {formatPrice(product.price)}
+                    </span>
                   )}
                 </div>
+                <p className="text-sm text-gray-600">Price includes VAT</p>
+              </div>
 
-                {/* Price */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl font-bold text-orange-500">
-                      {formatPrice(calculatePrice())}
-                    </span>
-                    {calculatePrice() !== product.price && (
-                      <span className="text-xl text-gray-500 line-through">
-                        {formatPrice(product.price)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600">Price includes VAT</p>
+              {/* Product Description */}
+              {product.description && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Description</h3>
+                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
                 </div>
+              )}
 
-                {/* Product Description */}
-                {product.description && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Description</h3>
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                  </div>
-                )}
-
-                {/* Variant Selector */}
-                {transformedVariants.length > 0 && (
-                  <VariantSelector
-                    variants={transformedVariants}
-                    selectedVariants={selectedVariants}
-                    onVariantChange={handleVariantChange}
-                  />
-                )}
-
-                {/* Add to Cart Section */}
-                <AddToCartSection
-                  product={{
-                    product_id: product.product_id,
-                    name: product.name,
-                    price: calculatePrice(),
-                    stock: product.stock
-                  }}
+              {/* Variant Selector */}
+              {transformedVariants.length > 0 && (
+                <VariantSelector
+                  variants={transformedVariants}
                   selectedVariants={selectedVariants}
-                  requiredVariants={requiredVariants}
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
+                  onVariantChange={handleVariantChange}
                 />
+              )}
+
+              {/* Add to Cart Section */}
+              <AddToCartSection
+                product={{
+                  product_id: product.product_id,
+                  name: product.name,
+                  price: calculatePrice(),
+                  stock: product.stock
+                }}
+                selectedVariants={selectedVariants}
+                requiredVariants={requiredVariants}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+              />
+
+              {/* Additional Info */}
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>✓ Free shipping on orders over KES 5,000</p>
+                <p>✓ 30-day return policy</p>
+                <p>✓ Secure payment options</p>
               </div>
             </div>
-            
-            {/* Tabbed Content */}
-            <ProductTabs product={productForTabs} />
-            
-            {/* Related Products */}
-            <RelatedProductsCarousel 
-              currentProduct={{ 
-                id: product.product_id, 
-                category: product.categories || 'general' 
-              }} 
-            />
           </div>
+          
+          {/* Tabbed Content */}
+          <ProductTabs product={productForTabs} />
+          
+          {/* Related Products */}
+          <RelatedProductsCarousel 
+            currentProduct={{ 
+              id: product.product_id, 
+              category: product.categories || 'general' 
+            }} 
+          />
         </main>
       </div>
     </>
