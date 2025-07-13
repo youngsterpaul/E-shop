@@ -66,7 +66,7 @@ export const useWishlist = () => {
             image: product?.image_urls?.[0] || '/placeholder.svg',
             inStock: (product?.stock || 0) > 0
           },
-          added_at: wishlistItem.added_at || new Date().toISOString()
+          added_at: wishlistItem.added_at
         };
       }).filter(item => item.product.name); // Filter out items where product wasn't found
 

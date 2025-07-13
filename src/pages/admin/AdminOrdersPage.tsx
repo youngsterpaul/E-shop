@@ -89,21 +89,7 @@ const AdminOrdersPage = () => {
         // Convert Json items to OrderItem[] type
         const typedOrders: Order[] = data.map(order => ({
           ...order,
-          items: order.items ? (order.items as unknown as OrderItem[]) : null,
-          mpesa_checkout_request_id: order.mpesa_checkout_request_id || undefined,
-          actual_delivery_date: order.actual_delivery_date || undefined,
-          amount: order.amount || 0,
-          coupon_code: order.coupon_code || undefined,
-          discount_amount: order.discount_amount || 0,
-          email: order.email || null,
-          first_name: order.first_name || undefined,
-          last_name: order.last_name || undefined,
-          phone_number: order.phone_number || null,
-          shipping_address: order.shipping_address || null,
-          tracking_number: order.tracking_number || undefined,
-          username: order.username || undefined,
-          estimated_delivery: order.estimated_delivery || undefined,
-          payment_id: order.payment_id || undefined
+          items: order.items ? (order.items as unknown as OrderItem[]) : null
         }));
         
         setOrders(typedOrders);

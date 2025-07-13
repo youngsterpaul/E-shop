@@ -22,10 +22,10 @@ interface Cart {
   user_id: string | null;
   session_id: string | null;
   status: 'active' | 'checkout' | 'completed' | 'abandoned';
-  total_amount: number | null;
-  item_count: number | null;
-  currency: string | null;
-  expires_at: string | null;
+  total_amount: number;
+  item_count: number;
+  currency: string;
+  expires_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -51,8 +51,8 @@ export const useCart = () => {
   const getOrCreateCart = async () => {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
-        p_user_id: user?.id || undefined,
-        p_session_id: user ? undefined : getSessionId()
+        p_user_id: user?.id || null,
+        p_session_id: user ? null : getSessionId()
       });
 
       if (error) throw error;
@@ -103,7 +103,7 @@ export const useCart = () => {
           product_id,
           variant_selections,
           quantity,
-          products!fk_cart_items_product_id (
+          products!cart_items_product_id_fkey (
             product_id,
             name,
             price,
@@ -116,13 +116,13 @@ export const useCart = () => {
 
       const formattedItems = itemsData?.map(item => ({
         id: item.id,
-        cart_id: item.cart_id || '',
-        product_id: item.product_id || '',
+        cart_id: item.cart_id,
+        product_id: item.product_id,
         product: {
-          id: item.products?.product_id || '',
-          name: item.products?.name || '',
-          price: item.products?.price || 0,
-          image: item.products?.image_urls?.[0] || '/placeholder.svg'
+          id: item.products.product_id,
+          name: item.products.name,
+          price: item.products.price,
+          image: item.products.image_urls?.[0] || '/placeholder.svg'
         },
         variant_selections: item.variant_selections,
         quantity: item.quantity
@@ -222,24 +222,14 @@ export const useCart = () => {
       return;
     }
 
-    // Optimistic update for immediate UI feedback
-    setCartItems(prevItems => 
-      prevItems.map(item => 
-        item.id === itemId ? { ...item, quantity } : item
-      )
-    );
-
     try {
       const { error } = await supabase
         .from('cart_items')
         .update({ quantity })
         .eq('id', itemId);
 
-      if (error) {
-        // Revert optimistic update on error
-        await fetchCart();
-        throw error;
-      }
+      if (error) throw error;
+      await fetchCart();
     } catch (error: any) {
       console.error('Error updating quantity:', error);
       toast({
@@ -251,21 +241,14 @@ export const useCart = () => {
   };
 
   const removeFromCart = async (itemId: string) => {
-    // Optimistic update for immediate UI feedback
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-
     try {
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('id', itemId);
 
-      if (error) {
-        // Revert optimistic update on error
-        await fetchCart();
-        throw error;
-      }
-      
+      if (error) throw error;
+      await fetchCart();
       toast({
         title: "Removed from cart",
         description: "Item has been removed from your cart"

@@ -1,22 +1,22 @@
 
-import { useOptimizedCart } from '@/hooks/useOptimizedCart';
+import { useCart } from '@/hooks/useCart';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
-import OptimizedCartItem from '@/components/cart/OptimizedCartItem';
+import SelectableCartItem from '@/components/cart/SelectableCartItem';
 import CartSummary from '@/components/cart/CartSummary';
-import EmptyCart from '@/components/cart/EmptyCart';
+import CartSkeleton from '@/components/cart/CartSkeleton';
+import ModernEmptyCart from '@/components/cart/ModernEmptyCart';
 import { Separator } from '@/components/ui/separator';
-import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
 import MobileNav from '@/components/MobileNav';
-import CartSkeleton from '@/components/cart/CartSkeleton';
 
 const CartPage = () => {
-  const { cartItems, loading, removeFromCart } = useOptimizedCart();
+  const { cartItems, loading } = useCart();
   const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
-  const isMobile = isMobileUserAgent();
+  const isMobile = useIsMobile();
 
   if (loading) {
     return <CartSkeleton />;
@@ -25,15 +25,27 @@ const CartPage = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex flex-col">
-        <EmptyCart />
+        {!isMobile && <Header />}
+        <MobileHeader 
+          title="Shopping Cart"
+          backTo="/products"
+          rightAction={
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <ShoppingBag className="h-4 w-4" />
+              <span>0</span>
+            </div>
+          }
+        />
+        <ModernEmptyCart />
+        <MobileNav />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className="min-h-screen bg-gray-50">
       {!isMobile && <Header />}
-      {isMobile && <MobileHeader 
+      <MobileHeader 
         title="Shopping Cart"
         backTo="/products"
         rightAction={
@@ -42,7 +54,7 @@ const CartPage = () => {
             <span>{cartItems.length}</span>
           </div>
         }
-      />}
+      />
 
       <div className="container mx-auto px-4 py-6">
         {!isMobile && (
@@ -74,35 +86,14 @@ const CartPage = () => {
               />
               
               <div className="divide-y divide-gray-200">
-                {cartItems.map((item) => {
-                  // Transform the data structure for OptimizedCartItem
-                  const transformedItem = {
-                    id: item.id,
-                    product: {
-                      id: item.products.product_id,
-                      name: item.products.name,
-                      price: item.products.price,
-                      image: item.products.image_urls?.[0] || ''
-                    },
-                    quantity: item.quantity
-                  };
-                  
-                  return (
-                    <div key={item.id} className="flex items-center gap-4 p-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => toggleItemSelection(item.id)}
-                        className="rounded"
-                      />
-                      <OptimizedCartItem
-                        item={transformedItem}
-                        onRemove={() => removeFromCart(item.id)}
-                        className="flex-1"
-                      />
-                    </div>
-                  );
-                })}
+                {cartItems.map((item) => (
+                  <SelectableCartItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedItems.includes(item.id)}
+                    onToggleSelect={() => toggleItemSelection(item.id)}
+                  />
+                ))}
               </div>
             </div>
           </div>

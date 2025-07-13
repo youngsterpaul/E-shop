@@ -32,15 +32,14 @@ export const useReviewVotes = (reviewId: string) => {
 
         // Calculate counts
         const counts = { helpful: 0, not_helpful: 0 };
-        let currentUserVote: 'helpful' | 'not_helpful' | null = null;
+        let currentUserVote = null;
 
-        votes?.forEach((vote: any) => {
-          const voteType = vote.vote_type as 'helpful' | 'not_helpful';
-          if (voteType === 'helpful') counts.helpful++;
-          if (voteType === 'not_helpful') counts.not_helpful++;
+        votes?.forEach((vote: ReviewVote) => {
+          if (vote.vote_type === 'helpful') counts.helpful++;
+          if (vote.vote_type === 'not_helpful') counts.not_helpful++;
           
           if (user && vote.user_id === user.id) {
-            currentUserVote = voteType;
+            currentUserVote = vote.vote_type;
           }
         });
 

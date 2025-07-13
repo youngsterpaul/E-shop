@@ -177,7 +177,7 @@ const SitemapPage = () => {
   return (
     <>
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader
           title={'SiteMap'}
           backTo="/"

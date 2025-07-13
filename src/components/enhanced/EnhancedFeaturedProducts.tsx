@@ -1,7 +1,7 @@
-import { memo, useState, useEffect, useCallback } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Loader2 } from 'lucide-react';
+import { ArrowRight, TrendingUp } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
 import { useFeaturedProducts } from '@/hooks/useProducts';
@@ -11,72 +11,21 @@ const EnhancedFeaturedProducts = memo(() => {
   const { data: products, isLoading } = useFeaturedProducts();
   const isMobile = isMobileUserAgent();
   
-  // State for managing visible products
-  const [visibleProductsCount, setVisibleProductsCount] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
-  // Initial product counts
-  const initialDesktopCount = 36;
-  const initialMobileCount = 30;
-  const loadMoreDesktopCount = 18; // Load 18 more products on desktop
-  const loadMoreMobileCount = 15; // Load 15 more products on mobile
-  
-  // Grid layout
-  const gridCols = isMobile ? "grid-cols-2" : "grid-cols-6";
-  
-  // Initialize visible products count
-  useEffect(() => {
-    setVisibleProductsCount(isMobile ? initialMobileCount : initialDesktopCount);
-  }, [isMobile]);
-  
-  // Desktop "Show More" handler
-  const handleShowMore = useCallback(() => {
-    setIsLoadingMore(true);
-    
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      setVisibleProductsCount(prev => prev + loadMoreDesktopCount);
-      setIsLoadingMore(false);
-    }, 500);
-  }, []);
-  
-  // Mobile infinite scroll handler
-  const handleScroll = useCallback(() => {
-    if (isMobile && products && visibleProductsCount < products.length) {
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-      
-      // Trigger when user is 200px from bottom
-      if (scrollTop + clientHeight >= scrollHeight - 200) {
-        if (!isLoadingMore) {
-          setIsLoadingMore(true);
-          
-          // Simulate loading delay
-          setTimeout(() => {
-            setVisibleProductsCount(prev => 
-              Math.min(prev + loadMoreMobileCount, products.length)
-            );
-            setIsLoadingMore(false);
-          }, 500);
-        }
-      }
-    }
-  }, [isMobile, products, visibleProductsCount, isLoadingMore]);
-  
-  // Add scroll event listener for mobile
-  useEffect(() => {
-    if (isMobile) {
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [isMobile, handleScroll]);
+  // Determine number of products and grid layout based on device
+  const productCount = isMobile ? 2 : 6;
+  const gridCols = isMobile 
+    ? "grid-cols-2" 
+    : "grid-cols-6 mx-auto px-4";
   
   const loadingSkeleton = (
-    <div className="py-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
+    <div className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        <div className={`grid ${gridCols} bg-white p-4 gap-1 shadow-sm`}>
-          {Array.from({ length: visibleProductsCount || (isMobile ? initialMobileCount : initialDesktopCount) }).map((_, i) => (
+        <div className="text-center mb-12">
+          <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse" />
+        </div>
+        <div className={`grid ${gridCols} gap-3 md:gap-4`}>
+          {Array.from({ length: productCount }).map((_, i) => (
             <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
           ))}
         </div>
@@ -88,23 +37,21 @@ const EnhancedFeaturedProducts = memo(() => {
     return loadingSkeleton;
   }
 
-  // Check if there are more products to show
-  const hasMoreProducts = products && visibleProductsCount < products.length;
-
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className="py-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container lg:px-0 md:px-0 sm:px-0 px-0 bg-white">
-          {/* Products Grid */}
-          {!isMobile && (
-            <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
-              <span className='inline-flex px-2'><TrendingUp size={16} /></span>
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+              <TrendingUp size={16} />
               HOT DEALS
-            </h2>
-          )}
-          
-          <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
-            {products?.slice(0, visibleProductsCount).map(product => {
+            </div>
+          </div>
+
+          {/* Products Grid */}
+          <div className={`grid ${gridCols} gap-3 md:gap-4 mb-12`}>
+            {products?.slice(0, productCount).map(product => {
               const productCardData = {
                 id: product.product_id,
                 name: product.name,
@@ -114,7 +61,7 @@ const EnhancedFeaturedProducts = memo(() => {
                 rating: product.rating || 4,
                 reviews: 0,
                 discount: undefined,
-                category: product.categories ?? '',
+                category: product.categories,
                 inStock: true,
               };
               return (
@@ -126,45 +73,19 @@ const EnhancedFeaturedProducts = memo(() => {
             })}
           </div>
 
-          {/* Desktop Show More Button */}
-          {!isMobile && hasMoreProducts && (
-            <div className="flex justify-center py-4">
-              <button 
-                onClick={handleShowMore}
-                disabled={isLoadingMore}
-                className='flex items-center justify-center text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors duration-200 mx-auto px-6 py-3 bg-white shadow-sm hover:shadow-md border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed'
-              >
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    Show More
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-          
-          {/* Mobile Loading Indicator */}
-          {isMobile && isLoadingMore && (
-            <div className="flex justify-center py-4">
-              <div className="flex items-center text-gray-600">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading more products...
-              </div>
-            </div>
-          )}
-          
-          {/* End of products message */}
-          {!hasMoreProducts && products && products.length > 0 && (
-            <div className="text-center py-4 text-gray-500 text-sm">
-              {isMobile ? "You've reached the end of products" : "All products displayed"}
-            </div>
-          )}
+          {/* CTA Section */}
+          <div className="text-center">
+            <Button 
+              asChild 
+              size="lg" 
+              className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg group"
+            >
+              <Link to="/products">
+                View All Products
+                <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </LazySection>

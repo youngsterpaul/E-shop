@@ -17,7 +17,7 @@ export const DeliveryStep = () => {
     city: '',
     county: '',
     deliveryMethod: 'standard' as 'standard' | 'express',
-    //specialInstructions: ''
+    specialInstructions: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -28,7 +28,7 @@ export const DeliveryStep = () => {
       city: deliveryInfo.city || '',
       county: deliveryInfo.county || '',
       deliveryMethod: deliveryInfo.deliveryMethod || 'standard',
-      //specialInstructions: deliveryInfo.specialInstructions || ''
+      specialInstructions: deliveryInfo.specialInstructions || ''
     });
   }, [deliveryInfo]);
 
@@ -36,17 +36,17 @@ export const DeliveryStep = () => {
     {
       id: 'standard',
       name: 'Standard Delivery',
-      price: 0,
-      time: '1-3 hours',
+      price: 500,
+      time: '3-5 business days',
       description: 'Regular delivery service'
-    }//,
-    //{
-      //id: 'express',
-      //name: 'Express Delivery',
-      //price: 1200,
-      //time: '1-2 business days',
-      //description: 'Fast delivery service'
-    //}
+    },
+    {
+      id: 'express',
+      name: 'Express Delivery',
+      price: 1200,
+      time: '1-2 business days',
+      description: 'Fast delivery service'
+    }
   ];
 
   const validateForm = () => {
@@ -148,7 +148,6 @@ export const DeliveryStep = () => {
             </div>
           </div>
 
-{/*
           <div>
             <Label htmlFor="specialInstructions">Special Instructions (Optional)</Label>
             <Textarea
@@ -159,8 +158,6 @@ export const DeliveryStep = () => {
               rows={2}
             />
           </div>
-
-*/}
         </CardContent>
       </Card>
 

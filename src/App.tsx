@@ -19,6 +19,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 
 // New auth pages
@@ -61,7 +62,7 @@ function App() {
   return (
     <ErrorBoundary>
       <TooltipProvider>
-      {/*<Sonner />*/}
+      <Sonner />
       <div className="min-h-screen bg-background">
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
@@ -80,6 +81,7 @@ function App() {
             
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<AccountPage />} />
@@ -93,7 +95,8 @@ function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
-                    
+            <Route path="/checkout" element={<CheckoutPage />} />
+         
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/sitemap" element={<SitemapPage />} />
@@ -119,7 +122,7 @@ function App() {
       {/* Global Checkout Modal */}
       <CheckoutModal />
         
-      {/*<Toaster />*/}
+      <Toaster />
       </div>
       </TooltipProvider>
     </ErrorBoundary>

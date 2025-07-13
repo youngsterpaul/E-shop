@@ -20,7 +20,7 @@ export const PaymentStep = () => {
   const { calculations } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
-  const [countdown, setCountdown] = useState(30); // 5 minutes
+  const [countdown, setCountdown] = useState(120); // 2 minutes
 
   // Calculate total with delivery
   const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 0;
@@ -51,20 +51,25 @@ export const PaymentStep = () => {
     let interval: NodeJS.Timeout;
     
     if (paymentStatus.status === 'waiting' && paymentStatus.checkoutRequestId) {
+      // Poll more frequently for better responsiveness
       interval = setInterval(async () => {
+        console.log('Polling payment status for:', paymentStatus.checkoutRequestId);
         const status = await checkPaymentStatus(paymentStatus.checkoutRequestId!);
+        console.log('Payment status result:', status);
         
         if (status?.status === 'success') {
+          console.log('Payment successful, updating status and clearing cart');
           updatePaymentStatus({ status: 'success' });
           clearCart();
           setStep(4);
         } else if (status?.status === 'failed') {
+          console.log('Payment failed:', status.result_desc);
           updatePaymentStatus({ 
             status: 'failed',
             message: status.result_desc || 'Payment failed'
           });
         }
-      }, 3000);
+      }, 2000); // Poll every 2 seconds for faster response
     }
     
     return () => {
@@ -89,7 +94,7 @@ export const PaymentStep = () => {
           checkoutRequestId: result.checkoutRequestId,
           message: 'Check your phone and enter your M-Pesa PIN'
         });
-        setCountdown(300); // Reset countdown
+        setCountdown(120); // Reset countdown
       } else {
         updatePaymentStatus({
           status: 'failed',
@@ -106,7 +111,7 @@ export const PaymentStep = () => {
 
   const handleRetry = () => {
     updatePaymentStatus({ status: 'idle' });
-    setCountdown(300);
+    setCountdown(120);
   };
 
   const handleBack = () => {

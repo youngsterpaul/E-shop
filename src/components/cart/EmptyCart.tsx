@@ -1,83 +1,59 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ShoppingCart, Sparkles } from 'lucide-react';
-import { useFeaturedProducts } from '@/hooks/useProducts';
-import ProductCard from '@/components/ProductCard';
-import ProductSkeleton from '@/components/products/ProductSkeleton';
-import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '../ui/mobile-header';
-import Header from '../Header';
-import MobileNav from '../MobileNav';
+import { ShoppingCart, Heart, Search } from 'lucide-react';
 
 const EmptyCart = () => {
-  const { data: products, isLoading } = useFeaturedProducts();
-  const isMobile = isMobileUserAgent();
-  const gridCols = isMobile 
-    ? "grid-cols-2" 
-    : "grid-cols-6";
-
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
-        {isMobile && <MobileHeader 
-          title="Shopping Cart"
-          backTo="/products"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>0</span>
-            </div>
-          }
-        />
-      } 
-      <MobileNav /> 
-      <div className="container mx-auto px-4 py-12">
-        {/* Empty Cart Section */}
-        <div className="text-center mb-16">
-          <div className="relative mb-8">
-            <div className="w-32 h-32 mx-auto bg-gradient-to-r from-orange-100 to-pink-100 rounded-full flex items-center justify-center relative overflow-hidden">
-              <ShoppingCart size={48} className="text-orange-500 z-10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-200/50 to-pink-200/50 animate-pulse"></div>
-            </div>
-            <div className="absolute top-4 right-1/2 transform translate-x-8">
-              <Sparkles className="text-yellow-400 animate-bounce" size={20} />
-            </div>
+    <div className="text-center py-16">
+      <div className="mb-8">
+        <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+        </p>
+      </div>
+
+      <div className="flex flex-column gap-4 justify-center">
+        <Link to="/">
+          <Button size="lg" className="flex items-center gap-2">
+            <Search size={20} />
+            Continue Shopping
+          </Button>
+        </Link>
+        
+        <Link to="/wishlist">
+          <Button variant="outline" size="lg" className="flex items-center gap-2">
+            <Heart size={20} />
+            View Wishlist
+          </Button>
+        </Link>
+      </div>
+
+      {/* Suggested Actions */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Search size={24} className="text-blue-600" />
           </div>
-
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Your cart is empty
-          </h1>
+          <h3 className="font-medium mb-1">Browse Products</h3>
+          <p className="text-sm text-gray-600">Discover our latest collections</p>
         </div>
-
-        {/* Featured Products Section */}
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
-          {isLoading ? (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
-              {Array(4).fill(null).map((_, index) => (
-                <ProductSkeleton key={index} />
-              ))}
-            </div>
-          ) : (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
-              {products?.slice(0, 4).map((product) => {
-                const productCardData = {
-                  id: product.product_id,
-                  name: product.name,
-                  price: product.price,
-                  originalPrice: undefined, // Database doesn't have original_price
-                  image: product.image_urls?.[0] || '/placeholder.svg',
-                  rating: product.rating || 4,
-                  reviews: 0, // Set to 0 since review_count doesn't exist in Product type
-                  discount: undefined,
-                  category: product.categories || 'General',
-                  inStock: (product.stock || 0) > 0,
-                };
-                return <ProductCard key={product.product_id} product={productCardData} />;
-              })}
-            </div>
-          )}
+        
+        <div className="text-center">
+          <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Heart size={24} className="text-pink-600" />
+          </div>
+          <h3 className="font-medium mb-1">Check Wishlist</h3>
+          <p className="text-sm text-gray-600">Move items from your wishlist</p>
+        </div>
+        
+        <div className="text-center">
+          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <ShoppingCart size={24} className="text-green-600" />
+          </div>
+          <h3 className="font-medium mb-1">Start Shopping</h3>
+          <p className="text-sm text-gray-600">Find what you're looking for</p>
         </div>
       </div>
     </div>

@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/hooks/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
-import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface RelatedProductsCarouselProps {
   currentProduct: {
@@ -20,10 +19,6 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const isMobile = isMobileUserAgent();
-  const gridCols = isMobile 
-    ? "grid-cols-2" 
-    : "grid-cols-6";
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -49,8 +44,8 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
 
   const itemsPerView = {
     mobile: 2,
-    tablet: 6,
-    desktop: 6
+    tablet: 3,
+    desktop: 4
   };
 
   const maxIndex = Math.max(0, products.length - itemsPerView.desktop);
@@ -73,7 +68,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
             <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         </div>
-        <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-square rounded-lg" />
@@ -119,9 +114,9 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
       </div>
 
       {/* Desktop & Tablet Carousel */}
-      <div className="hidden md:block relative overflow-hidden bg-white shadow-sm`">
+      <div className="hidden md:block relative overflow-hidden">
         <div 
-          className="flex transition-transform duration-300 ease-in-out"
+          className="flex transition-transform duration-300 ease-in-out gap-4"
           style={{ 
             transform: `translateX(-${currentIndex * (100 / itemsPerView.desktop)}%)`,
             width: `${(products.length / itemsPerView.desktop) * 100}%`
@@ -156,7 +151,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
 
       {/* Mobile Grid */}
       <div className="block md:hidden">
-        <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+        <div className="grid grid-cols-2 gap-3">
           {products.slice(0, 6).map((product) => {
             const productCardData = {
                   id: product.product_id,

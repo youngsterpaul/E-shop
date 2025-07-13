@@ -1,5 +1,5 @@
 
-project_id = "sgpjnbdrmwrupeqhjqpj"
+project_id = "vsrkmtebffntocpjapxz"
 
 [api]
 enabled = true
@@ -13,7 +13,7 @@ port = 54322
 
 [db.pooler]
 enabled = false
-port = 6543
+port = 54329
 pool_mode = "transaction"
 default_pool_size = 20
 max_client_conn = 100

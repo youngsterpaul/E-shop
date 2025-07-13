@@ -1,78 +1,58 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface CartService {
-  getOrCreateCart: (userId?: string, sessionId?: string) => Promise<string | null>;
-  getCartWithItems: (cartId: string) => Promise<any>;
-  updateCartStatus: (cartId: string, status: string) => Promise<void>;
-  clearExpiredCarts: () => Promise<void>;
-}
-
-export const cartService: CartService = {
-  async getOrCreateCart(userId?: string, sessionId?: string) {
+export const cartService = {
+  getOrCreateCart: async (userId: string | null, sessionId: string): Promise<string | null> => {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
-        p_user_id: userId || undefined,
-        p_session_id: sessionId || undefined
+        p_user_id: userId,
+        p_session_id: userId ? null : sessionId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error getting/creating cart:', error);
+        return null;
+      }
+
       return data;
     } catch (error) {
-      console.error('Error getting/creating cart:', error);
+      console.error('Cart service error:', error);
       return null;
     }
   },
 
-  async getCartWithItems(cartId: string) {
-    try {
-      // Get cart details
-      const { data: cart, error: cartError } = await supabase
-        .from('carts')
-        .select('*')
-        .eq('id', cartId)
-        .single();
-
-      if (cartError) throw cartError;
-
-      // Get cart items
-      const { data: items, error: itemsError } = await supabase
-        .from('cart_items')
-        .select(`
-          *,
-          products!inner (*)
-        `)
-        .eq('cart_id', cartId);
-
-      if (itemsError) throw itemsError;
-
-      return { cart, items };
-    } catch (error) {
-      console.error('Error fetching cart with items:', error);
-      throw error;
-    }
-  },
-
-  async updateCartStatus(cartId: string, status: string) {
+  updateCartStatus: async (cartId: string, status: 'active' | 'checkout' | 'completed' | 'abandoned'): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('carts')
-        .update({ status })
+        .update({ status, updated_at: new Date().toISOString() })
         .eq('id', cartId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating cart status:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error updating cart status:', error);
-      throw error;
+      return false;
     }
   },
 
-  async clearExpiredCarts() {
+  clearExpiredCarts: async (): Promise<boolean> => {
     try {
       const { error } = await supabase.rpc('cleanup_expired_carts');
-      if (error) throw error;
+
+      if (error) {
+        console.error('Error clearing expired carts:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error clearing expired carts:', error);
+      return false;
     }
   }
 };

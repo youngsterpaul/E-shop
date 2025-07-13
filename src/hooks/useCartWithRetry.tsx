@@ -78,8 +78,8 @@ export const useCartWithRetry = () => {
       // Get or create cart with timeout
       const cartResponse = await Promise.race([
         supabase.rpc('get_or_create_cart', {
-          p_user_id: user?.id || undefined,
-          p_session_id: user ? undefined : getSessionId()
+          p_user_id: user?.id || null,
+          p_session_id: user ? null : getSessionId()
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Cart creation timeout')), 10000)
@@ -183,7 +183,7 @@ export const useCartWithRetry = () => {
           product: {
             id: productData.product_id,
             name: productData.name,
-            price: productData.price || 0,
+            price: productData.price,
             image: productData.image_urls?.[0] || '/placeholder.svg'
           },
           variant_selections: variantSelections,
@@ -195,8 +195,8 @@ export const useCartWithRetry = () => {
 
       // Background server sync
       const cartId = await supabase.rpc('get_or_create_cart', {
-        p_user_id: user?.id || undefined,
-        p_session_id: user ? undefined : getSessionId()
+        p_user_id: user?.id || null,
+        p_session_id: user ? null : getSessionId()
       });
 
       if (cartId.data) {

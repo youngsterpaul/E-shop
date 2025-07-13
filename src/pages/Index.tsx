@@ -1,9 +1,10 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
-import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
+import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
@@ -43,18 +44,16 @@ const Index = () => {
         })}
       </script>
       
-      <div className={`min-h-screen flex flex-col`}>
+      <div className={`min-h-screen flex flex-col ${!isMobile ? 'min-width-max' : ''}`}>
         <PerformanceMonitor />
-        <main className={`flex-grow`}>
-          <div className={`${!isMobile ? 'min-w-max' : ''}`}>
-            <Header />
-            <EnhancedHeroSection />
-            <CategoryIcons />
-            <EnhancedFeaturedProducts />
-            <Footer />
-          </div>
-          <MobileNav />
+        <Header />
+        <main className={`flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
+          <EnhancedHeroSection />
+          <CategoryIcons />
+          <EnhancedFeaturedProducts />
         </main>
+        <Footer />
+        <MobileNav />
       </div>
     </>
   );
