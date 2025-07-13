@@ -706,7 +706,15 @@ export type Database = {
           old_status?: string | null
           order_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
       }
       orders: {
         Row: {

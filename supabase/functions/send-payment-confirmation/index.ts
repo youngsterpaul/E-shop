@@ -17,23 +17,42 @@ interface EmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('Payment confirmation email function called');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
+    console.log('Method not allowed:', req.method);
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
 
   try {
-    const { email, orderId, amount, customerName }: EmailRequest = await req.json();
+    // Check if RESEND_API_KEY exists
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY is not configured');
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestBody = await req.json();
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    
+    const { email, orderId, amount, customerName }: EmailRequest = requestBody;
 
     if (!email || !orderId || !amount) {
+      console.error('Missing required fields:', { email: !!email, orderId: !!orderId, amount: !!amount });
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Sending email to:', email, 'for order:', orderId);
 
     const emailResponse = await resend.emails.send({
       from: "SmartKenya <onboarding@resend.dev>",
