@@ -52,7 +52,7 @@ const OrderDetailPage = () => {
   
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate('/auth/signin');
       return;
     }
     
@@ -233,9 +233,9 @@ const OrderDetailPage = () => {
                               <h4 className="font-medium">{item.name}</h4>
                               <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                               <div className="mt-2">
-                                <p className="font-medium">Ksh {item.price.toLocaleString()}</p>
+                                <p className="font-medium">Ksh {item.price.toLocaleString() || 0}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  Total: Ksh {(item.price * item.quantity).toLocaleString()}
+                                  Total: Ksh {(item.price * item.quantity).toLocaleString() || 0}
                                 </p>
                               </div>
                             </div>
