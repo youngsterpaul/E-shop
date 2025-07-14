@@ -1,4 +1,3 @@
-
 import { format } from 'date-fns';
 
 interface OrderItem {
@@ -56,10 +55,10 @@ export const generateReceiptContent = (order: Order): string => {
   // Items section with better formatting
   if (order.items && order.items.length > 0) {
     order.items.forEach((item, index) => {
-      const itemName = item.name.length > 35 ? item.name.substring(0, 32) + '...' : item.name;
-      const unitPrice = `Ksh ${item.price.toLocaleString()}`;
-      const qty = `x${item.quantity}`;
-      const totalPrice = `Ksh ${(item.quantity * item.price).toLocaleString()}`;
+      const itemName = (item.name || 'Unknown Item').length > 35 ? (item.name || 'Unknown Item').substring(0, 32) + '...' : (item.name || 'Unknown Item');
+      const unitPrice = `Ksh ${(item.price || 0).toLocaleString()}`;
+      const qty = `x${item.quantity || 0}`;
+      const totalPrice = `Ksh ${((item.quantity || 0) * (item.price || 0)).toLocaleString()}`;
       
       receipt += `
 ║                                                              ║
