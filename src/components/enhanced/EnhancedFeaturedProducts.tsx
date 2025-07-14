@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Loader2 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
-import { useFeaturedProducts } from '@/hooks/useProducts';
+import { useOptimizedFeaturedProducts } from '@/hooks/useOptimizedFeaturedProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const EnhancedFeaturedProducts = memo(() => {
-  const { data: products, isLoading } = useFeaturedProducts();
+  const { data: products, isLoading } = useOptimizedFeaturedProducts();
   const isMobile = isMobileUserAgent();
   
   // State for managing visible products
@@ -108,7 +108,7 @@ const EnhancedFeaturedProducts = memo(() => {
               const productCardData = {
                 id: product.product_id,
                 name: product.name,
-                price: product.price,
+                price: product.price || 0,
                 originalPrice: undefined,
                 image: product.image_urls?.[0] || '/placeholder.svg',
                 rating: product.rating || 4,

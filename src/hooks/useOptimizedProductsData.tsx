@@ -48,11 +48,17 @@ export const useOptimizedProductsData = ({
       const { data: productData, error } = await supabase
         .from('products')
         .select(`
-          *,
+          product_id,
+          name,
+          price,
+          image_urls,
+          categories,
+          rating,
+          featured,
+          stock,
+          brand_id,
           brands:brand_id (
-            id,
-            name,
-            logo_url
+            name
           )
         `);
       

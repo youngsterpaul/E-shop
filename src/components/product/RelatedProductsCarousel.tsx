@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ProductCard from '@/components/ProductCard';
-import { useProducts } from '@/hooks/useProducts';
+import { useOptimizedRelatedProducts } from '@/hooks/useOptimizedRelatedProducts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -16,36 +16,15 @@ interface RelatedProductsCarouselProps {
 }
 
 const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProps) => {
-  const { fetchProducts } = useProducts();
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products = [], isLoading: loading } = useOptimizedRelatedProducts(
+    currentProduct.category, 
+    currentProduct.id
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
     : "grid-cols-6";
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const allProducts = await fetchProducts();
-        const related = allProducts
-          .filter(product => 
-            product.categories === currentProduct.category && 
-            product.product_id !== currentProduct.id
-          )
-          .slice(0, 12); // Get up to 12 related products
-        
-        setProducts(related);
-      } catch (error) {
-        console.error('Error loading related products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, [fetchProducts, currentProduct]);
 
   const itemsPerView = {
     mobile: 2,
@@ -131,13 +110,13 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
           const productCardData = {
             id: product.product_id,
             name: product.name,
-            price: product.price,
+            price: product.price || 0,
             originalPrice: undefined, // or map if available
             image: product.image_urls?.[0] || '',
             rating: product.rating || 4,
             reviews: 0, // you can set default or map if available
             discount: undefined, // map if available
-            category: product.categories,
+            category: product.categories || '',
             inStock: true,
           };
 
@@ -161,13 +140,13 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
             const productCardData = {
                   id: product.product_id,
                   name: product.name,
-                  price: product.price,
+                  price: product.price || 0,
                   originalPrice: undefined, // or map if available
                   image: product.image_urls?.[0] || '',
                   rating: product.rating || 4,
                   reviews: 0, // you can set default or map if available
                   discount: undefined, // map if available
-                  category: product.categories,
+                  category: product.categories || '',
                   inStock: true,
                 };
                 return <ProductCard key={product.product_id} product={productCardData} />;

@@ -11,14 +11,11 @@ export const useOptimizedProducts = () => {
         product_id,
         name,
         price,
-        description,
         image_urls,
         categories,
         stock,
         featured,
-        rating,
-        specification,
-        features
+        rating
       `)
       .order('created_at', { ascending: false });
       
@@ -27,12 +24,7 @@ export const useOptimizedProducts = () => {
       throw new Error(error.message);
     }
 
-    return data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    })) as Product[];
+    return data as Product[];
   };
 
   const fetchFeaturedProducts = async (): Promise<Product[]> => {
@@ -42,14 +34,11 @@ export const useOptimizedProducts = () => {
         product_id,
         name,
         price,
-        description,
         image_urls,
         categories,
         stock,
         featured,
-        rating,
-        specification,
-        features
+        rating
       `)
       .eq('featured', true)
       .limit(8);
@@ -59,12 +48,7 @@ export const useOptimizedProducts = () => {
       throw new Error(error.message);
     }
     
-    return data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    })) as Product[];
+    return data as Product[];
   };
 
   const fetchProductsByCategory = async (category: string): Promise<Product[]> => {
@@ -74,14 +58,11 @@ export const useOptimizedProducts = () => {
         product_id,
         name,
         price,
-        description,
         image_urls,
         categories,
         stock,
         featured,
-        rating,
-        specification,
-        features
+        rating
       `)
       .eq('categories', category);
       
@@ -90,12 +71,7 @@ export const useOptimizedProducts = () => {
       throw new Error(error.message);
     }
     
-    return data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    })) as Product[];
+    return data as Product[];
   };
 
   return {
