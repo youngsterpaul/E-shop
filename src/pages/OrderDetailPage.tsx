@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -233,9 +232,9 @@ const OrderDetailPage = () => {
                               <h4 className="font-medium">{item.name}</h4>
                               <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                               <div className="mt-2">
-                                <p className="font-medium">Ksh {item.price.toLocaleString() || 0}</p>
+                                <p className="font-medium">Ksh {(item.price || 0).toLocaleString()}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  Total: Ksh {(item.price * item.quantity).toLocaleString() || 0}
+                                  Total: Ksh {((item.price || 0) * (item.quantity || 0)).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -257,7 +256,7 @@ const OrderDetailPage = () => {
                     
                     <div className="border-t pt-4 flex justify-between items-center">
                       <p className="font-medium">Total Amount</p>
-                      <p className="text-xl font-bold">Ksh {order.amount?.toLocaleString() || 0}</p>
+                      <p className="text-xl font-bold">Ksh {(order.amount || 0).toLocaleString()}</p>
                     </div>
                   </div>
                 ) : (
