@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { jsPDF } from 'jspdf';
 
 interface OrderItem {
   product_id: string;
@@ -24,257 +23,120 @@ interface Order {
   payment_id?: string;
 }
 
-export const generateReceiptPDF = (order: Order): jsPDF => {
-  const doc = new jsPDF();
+export const generateReceiptContent = (order: Order): string => {
   const orderDate = format(new Date(order.created_at), 'PPP p');
   const currentDate = format(new Date(), 'PPP p');
   
-  // PDF styling constants
-  const primaryColor = [44, 62, 80] as const;
-  const accentColor = [52, 152, 219] as const;
-  const textColor = [51, 51, 51] as const;
-  const lightGray = [248, 249, 250] as const;
-  
-  // Helper function to format currency
-  const formatCurrency = (amount: number): string => {
-    return `Ksh ${amount.toLocaleString()}`;
-  };
-  
-  // Header Section
-  doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, 210, 50, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(24);
-  doc.text('SMART KENYA', 105, 20, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Online Shopping Platform', 105, 30, { align: 'center' });
-  doc.text('Official Receipt', 105, 40, { align: 'center' });
-  
-  // Reset text color
-  doc.setTextColor(...textColor);
-  
-  let y = 70;
-  
-  // Order Information Section
-  doc.setFillColor(...lightGray);
-  doc.rect(10, y - 5, 190, 30, 'F');
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('ORDER INFORMATION', 15, y + 5);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Receipt #: ${order.order_id}`, 15, y + 12);
-  doc.text(`Order Date: ${orderDate}`, 15, y + 18);
-  doc.text(`Generated: ${currentDate}`, 15, y + 24);
-  
-  // Status badge
-  const statusColors: {
-    delivered: { bg: [number, number, number], text: [number, number, number] },
-    pending: { bg: [number, number, number], text: [number, number, number] },
-    cancelled: { bg: [number, number, number], text: [number, number, number] }
-  } = {
-    delivered: { bg: [212, 237, 218], text: [21, 87, 36] },
-    pending: { bg: [255, 243, 205], text: [133, 100, 4] },
-    cancelled: { bg: [248, 215, 218], text: [114, 28, 36] }
-  };
-  
-  const statusColor = statusColors[order.status as keyof typeof statusColors] || statusColors.pending;
-  
-  doc.setFillColor(
-    statusColor.bg[0],
-    statusColor.bg[1],
-    statusColor.bg[2]
-  );
-  doc.rect(140, y + 8, 35, 8, 'F');
-  doc.setTextColor(...statusColor.text);
-  doc.setFont('helvetica', 'bold');
-  doc.text(order.status.toUpperCase(), 157.5, y + 13, { align: 'center' });
-  doc.setTextColor(...textColor);
-  
-  y += 45;
-  
-  // Customer Details Section
-  doc.setFillColor(...lightGray);
-  doc.rect(10, y - 5, 190, 35, 'F');
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('CUSTOMER DETAILS', 15, y + 5);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Email: ${order.email || 'Not provided'}`, 15, y + 12);
-  doc.text(`Phone: ${order.phone_number || 'Not provided'}`, 15, y + 18);
-  
-  if (order.shipping_address) {
-    doc.text('Shipping Address:', 15, y + 24);
-    // Handle long addresses by wrapping text
-    const addressLines = doc.splitTextToSize(order.shipping_address, 180);
-    doc.text(addressLines, 15, y + 30);
-    y += (addressLines.length - 1) * 4;
-  }
-  
-  y += 50;
-  
-  // Items Section Header
-  doc.setFillColor(...accentColor);
-  doc.rect(10, y - 5, 190, 12, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('ORDER ITEMS', 15, y + 3);
-  
-  doc.setTextColor(...textColor);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  y += 15;
-  doc.text('ITEM', 15, y);
-  doc.text('QTY', 120, y);
-  doc.text('UNIT PRICE', 140, y);
-  doc.text('TOTAL', 170, y);
-  
-  // Items List
-  doc.setFont('helvetica', 'normal');
-  y += 8;
-  
+  // Modern receipt with better formatting
+  let receipt = `
+╔══════════════════════════════════════════════════════════════╗
+║                    SMART KENYA RECEIPT                       ║
+║                  Online Shopping Platform                    ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  Receipt #: ${order.order_id.padEnd(45)}║
+║  Order Date: ${orderDate.padEnd(43)}║
+║  Generated: ${currentDate.padEnd(44)}║
+║  Status: ${order.status.toUpperCase().padEnd(49)}║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  CUSTOMER DETAILS                                            ║
+║                                                              ║
+║  ${(order.email || 'Email: Not provided').padEnd(58)}║
+║  ${(order.phone_number || 'Phone: Not provided').padEnd(58)}║
+║                                                              ║
+║  SHIPPING ADDRESS:                                           ║
+║  ${(order.shipping_address || 'No address provided').substring(0, 58).padEnd(58)}║${order.shipping_address && order.shipping_address.length > 58 ? '\n║  ' + order.shipping_address.substring(58, 116).padEnd(58) + '║' : ''}
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  ORDER ITEMS                                                 ║
+╠══════════════════════════════════════════════════════════════╣`;
+
+  // Items section with better formatting
   if (order.items && order.items.length > 0) {
     order.items.forEach((item, index) => {
-      const itemName = item.name.length > 25 ? item.name.substring(0, 22) + '...' : item.name;
-      const itemTotal = item.quantity * item.price;
+      const itemName = (item.name || 'Unknown Item').length > 35 ? (item.name || 'Unknown Item').substring(0, 32) + '...' : (item.name || 'Unknown Item');
+      const unitPrice = `Ksh ${(item.price || 0).toLocaleString()}`;
+      const qty = `x${item.quantity || 0}`;
+      const totalPrice = `Ksh ${((item.quantity || 0) * (item.price || 0)).toLocaleString()}`;
       
-      doc.text(`${index + 1}. ${itemName}`, 15, y);
-      doc.text(item.quantity.toString(), 120, y);
-      doc.text(formatCurrency(item.price), 140, y);
-      doc.text(formatCurrency(itemTotal), 170, y);
-      y += 6;
+      receipt += `
+║                                                              ║
+║  ${(index + 1 + '. ' + itemName).padEnd(58)}║
+║     Qty: ${qty.padEnd(8)} Unit: ${unitPrice.padEnd(15)} Total: ${totalPrice.padEnd(15)}║`;
     });
   } else {
-    doc.text('No items found in this order', 15, y);
-    y += 6;
+    receipt += `
+║                                                              ║
+║  No items found in this order                                ║`;
   }
-  
-  // Totals Section
-  y += 10;
-  doc.setLineWidth(0.5);
-  doc.line(10, y, 200, y);
-  y += 10;
-  
+
+  // Calculate subtotal, taxes, etc.
   const subtotal = order.amount || 0;
-  const tax = 0;
-  const shipping = 0;
+  const tax = 0; // Assuming no tax for now
+  const shipping = 0; // Assuming free shipping
   const total = subtotal + tax + shipping;
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Subtotal:', 140, y);
-  doc.text(formatCurrency(subtotal), 170, y);
-  y += 6;
-  
-  doc.text('Tax:', 140, y);
-  doc.text(formatCurrency(tax), 170, y);
-  y += 6;
-  
-  doc.text('Shipping:', 140, y);
-  doc.text(formatCurrency(shipping), 170, y);
-  y += 8;
-  
-  doc.setLineWidth(1);
-  doc.line(135, y, 200, y);
-  y += 8;
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('TOTAL:', 140, y);
-  doc.text(formatCurrency(total), 170, y);
-  
-  // Payment Information Section
-  y += 20;
-  doc.setFillColor(...lightGray);
-  doc.rect(10, y - 5, 190, 25, 'F');
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('PAYMENT INFORMATION', 15, y + 5);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Payment Method: M-Pesa', 15, y + 12);
-  
-  if (order.mpesa_checkout_request_id) {
-    doc.text(`Transaction ID: ${order.mpesa_checkout_request_id}`, 15, y + 18);
-  }
-  
-  if (order.payment_id) {
-    doc.text(`Payment ID: ${order.payment_id}`, 100, y + 18);
-  }
-  
-  const paymentStatus = order.status === 'delivered' ? 'COMPLETED' : 'PENDING';
-  doc.text(`Status: ${paymentStatus}`, 15, y + 24);
-  
-  // Important Notes Section
-  y += 35;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('IMPORTANT NOTES', 15, y);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  y += 8;
-  doc.text('• Keep this receipt for your records', 15, y);
-  y += 4;
-  doc.text('• For returns, present this receipt within 30 days', 15, y);
-  y += 4;
-  doc.text('• Digital products are non-refundable', 15, y);
-  y += 4;
-  doc.text('• Contact support for any issues', 15, y);
-  
-  // Footer Section
-  y += 15;
-  doc.setFillColor(...primaryColor);
-  doc.rect(10, y, 190, 30, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('CONTACT INFORMATION', 15, y + 8);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('📧 Email: support@smartkenya.co.ke', 15, y + 15);
-  doc.text('📞 Phone: +254 798 229783', 15, y + 18);
-  doc.text('🌐 Website: www.smartkenya.co.ke', 15, y + 21);
-  doc.text('🕒 Support Hours: Mon-Fri 8AM-6PM EAT', 15, y + 24);
-  
-  doc.text('Thank you for choosing Smart Kenya!', 105, y + 18, { align: 'center' });
-  
-  // Add generation timestamp
-  doc.setFontSize(7);
-  doc.text(`Generated by Smart Kenya Receipt System v2.0 - ${new Date().toISOString()}`, 15, y + 27);
-  
-  return doc;
+
+  receipt += `
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  ORDER SUMMARY                                               ║
+║                                                              ║
+║  Subtotal:                                   Ksh ${subtotal.toLocaleString().padStart(12)}║
+║  Tax:                                        Ksh ${tax.toLocaleString().padStart(12)}║
+║  Shipping:                                   Ksh ${shipping.toLocaleString().padStart(12)}║
+║  ─────────────────────────────────────────────────────────── ║
+║  TOTAL:                                      Ksh ${total.toLocaleString().padStart(12)}║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  PAYMENT INFORMATION                                         ║
+║                                                              ║
+║  Payment Method: M-Pesa                                      ║${order.mpesa_checkout_request_id ? `
+║  Transaction ID: ${order.mpesa_checkout_request_id.padEnd(38)}║` : ''}
+║  Status: ${(order.status === 'delivered' ? 'COMPLETED' : 'PENDING').padEnd(51)}║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  IMPORTANT NOTES                                             ║
+║                                                              ║
+║  • Keep this receipt for your records                        ║
+║  • For returns, present this receipt within 30 days         ║
+║  • Digital products are non-refundable                       ║
+║  • Contact support for any issues                            ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║  CONTACT INFORMATION                                         ║
+║                                                              ║
+║  📧 Email: support@smartkenya.co.ke                          ║
+║  📞 Phone: +254 798 229783                                   ║
+║  🌐 Website: www.smartkenya.co.ke                            ║
+║  🕒 Support Hours: Mon-Fri 8AM-6PM EAT                       ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+Thank you for choosing Smart Kenya!
+Your business is greatly appreciated.
+
+Generated by Smart Kenya Receipt System v2.0
+${new Date().toISOString()}
+`;
+
+  return receipt;
 };
 
-export const downloadReceiptPDF = (order: Order): void => {
-  const doc = generateReceiptPDF(order);
-  const fileName = `receipt-${order.order_id}.pdf`;
-  doc.save(fileName);
-};
-
-// Alternative function to get PDF as blob (useful for email attachments, etc.)
-export const getReceiptPDFBlob = (order: Order): Blob => {
-  const doc = generateReceiptPDF(order);
-  return doc.output('blob');
-};
-
-// Function to get PDF as base64 string
-export const getReceiptPDFBase64 = (order: Order): string => {
-  const doc = generateReceiptPDF(order);
-  return doc.output('datauristring');
+export const downloadReceipt = (order: Order) => {
+  const receiptContent = generateReceiptContent(order);
+  const fileName = `receipt-${order.order_id}.txt`;
+  
+  // Create a blob from the receipt content
+  const blob = new Blob([receiptContent], { type: 'text/plain' });
+  
+  // Create a download link
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  
+  // Append to the document, click, and remove
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
