@@ -34,16 +34,16 @@ export const generateReceiptContent = (order: Order): string => {
 ║                  Online Shopping Platform                    ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║  Receipt #: ${order.order_id.padEnd(45)}║
-║  Order Date: ${orderDate.padEnd(43)}║
-║  Generated: ${currentDate.padEnd(44)}║
-║  Status: ${order.status.toUpperCase().padEnd(49)}║
+║  Receipt #: ${order.order_id.padEnd(45)}                     ║
+║  Order Date: ${orderDate.padEnd(43)}                         ║
+║  Generated: ${currentDate.padEnd(44)}                        ║
+║  Status: ${order.status.toUpperCase().padEnd(49)}            ║
 ║                                                              ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  CUSTOMER DETAILS                                            ║
 ║                                                              ║
-║  ${(order.email || 'Email: Not provided').padEnd(58)}║
-║  ${(order.phone_number || 'Phone: Not provided').padEnd(58)}║
+║  ${(order.email || 'Email: Not provided').padEnd(58)}        ║
+║  ${(order.phone_number || 'Phone: Not provided').padEnd(58)} ║
 ║                                                              ║
 ║  SHIPPING ADDRESS:                                           ║
 ║  ${(order.shipping_address || 'No address provided').substring(0, 58).padEnd(58)}║${order.shipping_address && order.shipping_address.length > 58 ? '\n║  ' + order.shipping_address.substring(58, 116).padEnd(58) + '║' : ''}
@@ -62,7 +62,7 @@ export const generateReceiptContent = (order: Order): string => {
       
       receipt += `
 ║                                                              ║
-║  ${(index + 1 + '. ' + itemName).padEnd(58)}║
+║  ${(index + 1 + '. ' + itemName).padEnd(58)}                 ║
 ║     Qty: ${qty.padEnd(8)} Unit: ${unitPrice.padEnd(15)} Total: ${totalPrice.padEnd(15)}║`;
     });
   } else {
@@ -99,7 +99,7 @@ export const generateReceiptContent = (order: Order): string => {
 ║  IMPORTANT NOTES                                             ║
 ║                                                              ║
 ║  • Keep this receipt for your records                        ║
-║  • For returns, present this receipt within 30 days         ║
+║  • For returns, present this receipt within 30 days          ║
 ║  • Digital products are non-refundable                       ║
 ║  • Contact support for any issues                            ║
 ║                                                              ║
