@@ -38,7 +38,7 @@ interface Order {
   payment_id?: string;
 }
 
-const orderStatuses = ["all", "pending", "processing", "shipped", "delivered", "cancelled"];
+const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
