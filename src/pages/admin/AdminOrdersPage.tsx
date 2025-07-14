@@ -225,17 +225,17 @@ const AdminOrdersPage = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-500';
+        return 'bg-warning text-warning-foreground';
       case 'processing':
-        return 'bg-blue-500';
+        return 'bg-primary text-primary-foreground';
       case 'shipped':
-        return 'bg-purple-500';
+        return 'bg-secondary text-secondary-foreground';
       case 'delivered':
-        return 'bg-green-500';
+        return 'bg-success text-success-foreground';
       case 'cancelled':
-        return 'bg-red-500';
+        return 'bg-destructive text-destructive-foreground';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -530,7 +530,7 @@ const AdminOrdersPage = () => {
               Cancel
             </Button>
             <Button 
-              className="bg-orange-500 hover:bg-orange-600" 
+              className="bg-primary hover:bg-primary/90" 
               onClick={handleStatusUpdate}
               disabled={isUpdating || !selectedOrder || selectedOrder.status === updatedStatus}
             >

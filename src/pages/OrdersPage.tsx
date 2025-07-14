@@ -109,17 +109,17 @@ const OrdersPage = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-yellow-500';
+        return 'bg-warning text-warning-foreground';
       case 'processing':
-        return 'bg-blue-500';
+        return 'bg-primary text-primary-foreground';
       case 'shipped':
-        return 'bg-purple-500';
+        return 'bg-secondary text-secondary-foreground';
       case 'delivered':
-        return 'bg-green-500';
+        return 'bg-success text-success-foreground';
       case 'cancelled':
-        return 'bg-red-500';
+        return 'bg-destructive text-destructive-foreground';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -129,7 +129,7 @@ const OrdersPage = () => {
         
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4">Loading your orders...</p>
           </div>
         </main>
@@ -159,7 +159,7 @@ const OrdersPage = () => {
             <h2 className="text-xl font-medium mb-4">No orders yet</h2>
             <p className="text-gray-500 mb-6">When you place an order, you'll be able to track it here.</p>
             <Button 
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-primary hover:bg-primary/90"
               onClick={() => navigate('/products')}
             >
               Browse Products
@@ -209,7 +209,7 @@ const OrdersPage = () => {
                           e.stopPropagation();
                           navigate(`/order/${order.order_id}`);
                         }}
-                        className="bg-orange-500 hover:bg-orange-600"
+                        className="bg-primary hover:bg-primary/90"
                       >
                         View Details
                       </Button>
