@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -490,7 +491,7 @@ const AdminOrdersPage = () => {
                         <p className="font-medium">{item.name}</p>
                         <div className="flex justify-between text-sm text-muted-foreground">
                           <p>Qty: {item.quantity}</p>
-                          <p>Ksh {item.price.toLocaleString() || 0}</p>
+                          <p>Ksh {(item.price || 0).toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
