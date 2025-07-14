@@ -490,7 +490,7 @@ const AdminOrdersPage = () => {
                         <p className="font-medium">{item.name}</p>
                         <div className="flex justify-between text-sm text-muted-foreground">
                           <p>Qty: {item.quantity}</p>
-                          <p>Ksh {item.price.toLocaleString()}</p>
+                          <p>Ksh {item.price.toLocaleString() || 0}</p>
                         </div>
                       </div>
                     </div>
