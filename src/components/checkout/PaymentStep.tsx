@@ -1,4 +1,3 @@
-
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import { useMpesaPayment } from '@/hooks/useMpesaPayment';
@@ -21,57 +20,97 @@ export const PaymentStep = () => {
   const { calculations, selectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
-  const [countdown, setCountdown] = useState(30); // 5 minutes
+  const [timeoutTimer, setTimeoutTimer] = useState<NodeJS.Timeout | null>(null);
+  const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Calculate total with delivery
   const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 0;
   const finalTotal = calculations.total + deliveryCost;
 
+  // Cleanup function
+  const cleanup = () => {
+    if (timeoutTimer) {
+      clearTimeout(timeoutTimer);
+      setTimeoutTimer(null);
+    }
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      setPollInterval(null);
+    }
+  };
+
+  // Set timeout for payment (2 minutes instead of 5)
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (paymentStatus.status === 'waiting' && countdown > 0) {
-      interval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            updatePaymentStatus({ status: 'timeout' });
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (paymentStatus.status === 'waiting') {
+      const timer = setTimeout(() => {
+        updatePaymentStatus({ status: 'timeout' });
+        cleanup();
+      }, 120000); // 2 minutes
+      
+      setTimeoutTimer(timer);
+    } else {
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer);
+        setTimeoutTimer(null);
+      }
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (timeoutTimer) clearTimeout(timeoutTimer);
     };
-  }, [paymentStatus.status, countdown, updatePaymentStatus]);
+  }, [paymentStatus.status, updatePaymentStatus]);
 
   // Poll payment status
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
     if (paymentStatus.status === 'waiting' && paymentStatus.checkoutRequestId) {
-      interval = setInterval(async () => {
-        const status = await checkPaymentStatus(paymentStatus.checkoutRequestId!);
-        
-        if (status?.status === 'success') {
-          updatePaymentStatus({ status: 'success' });
-          clearCart();
-          setStep(4);
-        } else if (status?.status === 'failed') {
-          updatePaymentStatus({ 
-            status: 'failed',
-            message: status.result_desc || 'Payment failed'
-          });
+      const interval = setInterval(async () => {
+        try {
+          const status = await checkPaymentStatus(paymentStatus.checkoutRequestId!);
+          
+          if (status?.status === 'success') {
+            updatePaymentStatus({ status: 'success' });
+            clearCart();
+            cleanup();
+            // Add a small delay to show success message before moving to next step
+            setTimeout(() => {
+              setStep(4);
+            }, 2000);
+          } else if (status?.status === 'failed') {
+            updatePaymentStatus({ 
+              status: 'failed',
+              message: status.result_desc || 'Payment failed'
+            });
+            cleanup();
+          } else if (status?.status === 'cancelled') {
+            updatePaymentStatus({ 
+              status: 'failed',
+              message: 'Payment was cancelled'
+            });
+            cleanup();
+          }
+        } catch (error) {
+          console.error('Error checking payment status:', error);
+          // Don't update status on polling errors, just log them
         }
-      }, 3000);
+      }, 2000); // Check every 2 seconds
+      
+      setPollInterval(interval);
+    } else {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        setPollInterval(null);
+      }
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      if (pollInterval) clearInterval(pollInterval);
     };
   }, [paymentStatus.status, paymentStatus.checkoutRequestId, checkPaymentStatus, updatePaymentStatus, clearCart, setStep]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return cleanup;
+  }, []);
 
   const handleMpesaPayment = async () => {
     const orderId = `ORD-${Date.now()}`;
@@ -118,7 +157,6 @@ export const PaymentStep = () => {
           checkoutRequestId: result.checkoutRequestId,
           message: 'Check your phone and enter your M-Pesa PIN'
         });
-        setCountdown(300); // Reset countdown
       } else {
         updatePaymentStatus({
           status: 'failed',
@@ -135,25 +173,20 @@ export const PaymentStep = () => {
   };
 
   const handleRetry = () => {
+    cleanup();
     updatePaymentStatus({ status: 'idle' });
-    setCountdown(300);
   };
 
   const handleBack = () => {
     if (paymentStatus.status === 'processing' || paymentStatus.status === 'waiting') {
       if (window.confirm('Payment is in progress. Are you sure you want to go back?')) {
+        cleanup();
         updatePaymentStatus({ status: 'idle' });
         setStep(2);
       }
     } else {
       setStep(2);
     }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const renderPaymentContent = () => {
@@ -177,18 +210,28 @@ export const PaymentStep = () => {
         return (
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-6 text-center">
-              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📱</span>
+              <div className="relative">
+                <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">📱</span>
+                </div>
+                {/* Loading spinner similar to Kilimall */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
               </div>
               <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                Check Your Phone
+                Waiting for Payment
               </h3>
               <p className="text-blue-700 mb-4">
-                Enter your M-Pesa PIN to complete the payment
+                Check your phone and enter your M-Pesa PIN to complete the payment
               </p>
               <div className="bg-white p-4 rounded-lg border">
                 <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Time remaining: {formatTime(countdown)}</p>
+                <p className="text-sm text-gray-600">Phone: {customerDetails.phone}</p>
+                <div className="flex items-center justify-center mt-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600 mr-2" />
+                  <span className="text-sm text-blue-600">Processing...</span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -224,9 +267,13 @@ export const PaymentStep = () => {
               <h3 className="text-lg font-semibold text-green-900 mb-2">
                 Payment Successful!
               </h3>
-              <p className="text-green-700">
+              <p className="text-green-700 mb-4">
                 Your payment has been processed successfully.
               </p>
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin text-green-600 mr-2" />
+                <span className="text-sm text-green-600">Redirecting...</span>
+              </div>
             </CardContent>
           </Card>
         );
@@ -324,7 +371,7 @@ export const PaymentStep = () => {
         <Button 
           variant="outline" 
           onClick={handleBack}
-          disabled={paymentStatus.status === 'processing'}
+          disabled={paymentStatus.status === 'processing' || paymentStatus.status === 'waiting'}
         >
           Back
         </Button>
