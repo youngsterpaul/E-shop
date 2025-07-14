@@ -74,7 +74,11 @@ export const generateReceiptPDF = (order: Order): jsPDF => {
   doc.text(`Generated: ${currentDate}`, 15, y + 24);
   
   // Status badge
-  const statusColors = {
+  const statusColors: {
+    delivered: { bg: [number, number, number], text: [number, number, number] },
+    pending: { bg: [number, number, number], text: [number, number, number] },
+    cancelled: { bg: [number, number, number], text: [number, number, number] }
+  } = {
     delivered: { bg: [212, 237, 218], text: [21, 87, 36] },
     pending: { bg: [255, 243, 205], text: [133, 100, 4] },
     cancelled: { bg: [248, 215, 218], text: [114, 28, 36] }
@@ -82,7 +86,11 @@ export const generateReceiptPDF = (order: Order): jsPDF => {
   
   const statusColor = statusColors[order.status as keyof typeof statusColors] || statusColors.pending;
   
-  doc.setFillColor(...statusColor.bg);
+  doc.setFillColor(
+    statusColor.bg[0],
+    statusColor.bg[1],
+    statusColor.bg[2]
+  );
   doc.rect(140, y + 8, 35, 8, 'F');
   doc.setTextColor(...statusColor.text);
   doc.setFont('helvetica', 'bold');
