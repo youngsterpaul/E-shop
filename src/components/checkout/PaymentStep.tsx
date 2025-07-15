@@ -39,13 +39,13 @@ export const PaymentStep = () => {
     }
   };
 
-  // Set timeout for payment (2 minutes instead of 5)
+  // Set timeout for payment (30 seconds for production)
   useEffect(() => {
     if (paymentStatus.status === 'waiting') {
       const timer = setTimeout(() => {
         updatePaymentStatus({ status: 'timeout' });
         cleanup();
-      }, 120000); // 2 minutes
+      }, 30000); // 30 seconds
       
       setTimeoutTimer(timer);
     } else {
@@ -81,10 +81,10 @@ export const PaymentStep = () => {
               message: status.result_desc || 'Payment failed'
             });
             cleanup();
-          } else if (status?.status === 'cancelled') {
+          } else if (status?.result_desc?.includes('cancelled') || status?.result_desc?.includes('timeout')) {
             updatePaymentStatus({ 
               status: 'failed',
-              message: 'Payment was cancelled'
+              message: 'Payment was cancelled or timed out'
             });
             cleanup();
           }
@@ -92,7 +92,7 @@ export const PaymentStep = () => {
           console.error('Error checking payment status:', error);
           // Don't update status on polling errors, just log them
         }
-      }, 2000); // Check every 2 seconds
+      }, 1500); // Check every 1.5 seconds for faster response
       
       setPollInterval(interval);
     } else {
@@ -117,57 +117,61 @@ export const PaymentStep = () => {
     updatePaymentStatus({ status: 'processing' });
 
     try {
-      // First create the order in the database
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          order_id: orderId,
-          email: customerDetails.email,
-          phone_number: customerDetails.phone,
-          status: 'pending',
+      // Use Promise.race to enforce 30-second timeout on the entire process
+      const paymentProcess = async () => {
+        // First create the order in the database (optimized query)
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            order_id: orderId,
+            email: customerDetails.email,
+            phone_number: customerDetails.phone,
+            status: 'pending',
+            amount: finalTotal,
+            items: selectedItems as any,
+            shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
+            first_name: customerDetails.firstName,
+            last_name: customerDetails.lastName,
+          })
+          .select('order_id')
+          .single();
+
+        if (orderError) {
+          throw new Error('Failed to create order. Please try again.');
+        }
+
+        // Then initiate M-Pesa payment with timeout
+        const result = await initiatePayment({
+          phone: customerDetails.phone,
           amount: finalTotal,
-          items: selectedItems as any,
-          shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
-          first_name: customerDetails.firstName,
-          last_name: customerDetails.lastName,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Failed to create order:', orderError);
-        updatePaymentStatus({
-          status: 'failed',
-          message: 'Failed to create order. Please try again.'
+          orderId
         });
-        return;
-      }
 
-      // Then initiate M-Pesa payment
-      const result = await initiatePayment({
-        phone: customerDetails.phone,
-        amount: finalTotal,
-        orderId
+        if (!result.success) {
+          throw new Error(result.error || 'Payment initiation failed');
+        }
+
+        return result;
+      };
+
+      // Race between payment process and timeout
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Payment process timed out')), 30000)
+      );
+
+      const result = await Promise.race([paymentProcess(), timeout]) as any;
+
+      updatePaymentStatus({
+        status: 'waiting',
+        checkoutRequestId: result.checkoutRequestId,
+        message: 'Check your phone and enter your M-Pesa PIN'
       });
 
-      if (result.success) {
-        updatePaymentStatus({
-          status: 'waiting',
-          checkoutRequestId: result.checkoutRequestId,
-          message: 'Check your phone and enter your M-Pesa PIN'
-        });
-      } else {
-        updatePaymentStatus({
-          status: 'failed',
-          message: result.error || 'Payment initiation failed'
-        });
-      }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
       updatePaymentStatus({
         status: 'failed',
-        message: 'Payment failed. Please try again.'
+        message: error.message || 'Payment failed. Please try again.'
       });
     }
   };
