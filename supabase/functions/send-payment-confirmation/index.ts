@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Sending email to:', email, 'for order:', orderId);
 
     const emailResponse = await resend.emails.send({
-      from: "SmartKenya <onboarding@resend.dev>",
+      from: "SmartKenya <info@smartkenya.co.ke>",
       to: [email],
       subject: `Payment Confirmation - Order #${orderId}`,
       html: `
