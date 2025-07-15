@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import Header from '@/components/Header';
@@ -17,6 +18,16 @@ const CartPage = () => {
   const { cartItems, loading } = useCart();
   const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
   const isMobile = isMobileUserAgent();
+
+  // Auto-select all items when cart loads (only once)
+  useEffect(() => {
+    if (!loading && cartItems.length > 0 && selectedItems.length === 0) {
+      // Only auto-select if no items are currently selected
+      cartItems.forEach(item => {
+        toggleItemSelection(item.id);
+      });
+    }
+  }, [cartItems, loading, toggleItemSelection]); // Removed selectedItems from dependencies
 
   if (loading) {
     return <CartSkeleton />;

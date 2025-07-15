@@ -13,7 +13,6 @@ interface ProductTabsProps {
   product: {
     product_id: string;
     name: string;
-    description?: string;
     features?: string[] | string;
     attributes?: Record<string, any>;
     specification?: Record<string, any>;
@@ -21,7 +20,7 @@ interface ProductTabsProps {
 }
 
 const ProductTabs = ({ product }: ProductTabsProps) => {
-  const [activeTab, setActiveTab] = useState('description');
+  const [activeTab, setActiveTab] = useState('specifications');
   const [reviewFilter, setReviewFilter] = useState('all');
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
 
@@ -89,26 +88,32 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   return (
     <div className="mt-12">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
-          <TabsTrigger value="description" className="text-sm">Description</TabsTrigger>
-          <TabsTrigger value="features" className="text-sm">Features</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="specifications" className="text-sm">Specifications</TabsTrigger>
+          <TabsTrigger value="features" className="text-sm">Features</TabsTrigger>
           <TabsTrigger value="reviews" className="text-sm">
             Reviews ({totalReviews})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="description" className="animate-fade-in">
+        <TabsContent value="specifications" className="animate-fade-in">
           <Card>
             <CardContent className="p-6">
-              {product.description ? (
-                <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-base">
-                    {product.description}
-                  </p>
+              {Object.keys(specifications).length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(specifications).map(([key, value]) => (
+                    <div key={key} className="border-b border-gray-200 pb-3">
+                      <dl><dt className="font-medium text-gray-900 capitalize mb-1">
+                        {key.replace(/[_-]/g, ' ')}
+                      </dt>
+                      <dd className="text-gray-700">
+                        {Array.isArray(value) ? value.join(', ') : String(value)}
+                      </dd></dl>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No description available for this product.</p>
+                <p className="text-gray-500 italic">No specifications available for this product.</p>
               )}
             </CardContent>
           </Card>
@@ -128,29 +133,6 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                 </ul>
               ) : (
                 <p className="text-gray-500 italic">No features listed for this product.</p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="specifications" className="animate-fade-in">
-          <Card>
-            <CardContent className="p-6">
-              {Object.keys(specifications).length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(specifications).map(([key, value]) => (
-                    <div key={key} className="border-b border-gray-200 pb-3">
-                      <dt className="font-medium text-gray-900 capitalize mb-1">
-                        {key.replace(/[_-]/g, ' ')}
-                      </dt>
-                      <dd className="text-gray-700">
-                        {Array.isArray(value) ? value.join(', ') : String(value)}
-                      </dd>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">No specifications available for this product.</p>
               )}
             </CardContent>
           </Card>

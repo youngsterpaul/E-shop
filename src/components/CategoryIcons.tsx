@@ -153,7 +153,7 @@ const CategoryIcons = () => {
   if (isMobile) {
     // Mobile version with modern icons
     return (
-        <div className="md:hidden grid grid-cols-4 gap-3">
+        <div className="md:hidden grid grid-cols-4 gap-3 mx-2 my-4">
           {categoryIcons.slice(0, 8).map((category) => {
             const IconComponent = category.icon;
             return (

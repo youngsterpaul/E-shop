@@ -45,7 +45,7 @@ export const PaymentStep = () => {
       const timer = setTimeout(() => {
         updatePaymentStatus({ status: 'timeout' });
         cleanup();
-      }, 30000); // 30 seconds
+      }, 60000); // 60 seconds
       
       setTimeoutTimer(timer);
     } else {
@@ -92,7 +92,7 @@ export const PaymentStep = () => {
           console.error('Error checking payment status:', error);
           // Don't update status on polling errors, just log them
         }
-      }, 1500); // Check every 1.5 seconds for faster response
+      }, 1000); // Check every 1 seconds for faster response
       
       setPollInterval(interval);
     } else {
@@ -232,10 +232,6 @@ export const PaymentStep = () => {
               <div className="bg-white p-4 rounded-lg border">
                 <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
                 <p className="text-sm text-gray-600">Phone: {customerDetails.phone}</p>
-                <div className="flex items-center justify-center mt-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-600 mr-2" />
-                  <span className="text-sm text-blue-600">Processing...</span>
-                </div>
               </div>
             </CardContent>
           </Card>

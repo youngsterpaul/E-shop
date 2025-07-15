@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useState, useCallback } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,18 +20,39 @@ interface SelectableCartItemProps {
   };
   isSelected: boolean;
   onToggleSelect: () => void;
+  onRemove?: (itemId: string) => void;
+  className?: string;
 }
 
-const SelectableCartItem = ({ item, isSelected, onToggleSelect }: SelectableCartItemProps) => {
+const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, className = '' }: SelectableCartItemProps) => {
   const { updateQuantity, removeFromCart } = useCart();
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(item.id);
-    } else {
-      updateQuantity(item.id, newQuantity);
+  const handleQuantityChange = useCallback(async (newQuantity: number) => {
+    if (newQuantity < 1) {
+      handleRemove();
+      return;
     }
-  };
+
+    setIsUpdating(true);
+    try {
+      await updateQuantity(item.id, newQuantity);
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [item.id, updateQuantity]);
+
+  const handleRemove = useCallback(async () => {
+    try {
+      await removeFromCart(item.id);
+      onRemove?.(item.id);
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
+  }, [item.id, removeFromCart, onRemove]);
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-KE', {
@@ -78,34 +100,36 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect }: SelectableCart
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => removeFromCart(item.id)}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={handleRemove}
+          className="text-red-500 hover:text-red-700 hover:bg-red-50"
         >
-          <Trash2 size={16} />
+          <Trash2 className="h-4 w-4" />
         </Button>
         
         <div className="flex items-center border rounded-md">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleQuantityChange(item.quantity - 1)}
-            className="h-8 w-8 p-0"
-          >
-            <Minus size={14} />
-          </Button>
-          
-          <span className="px-3 py-1 text-sm font-medium min-w-[2rem] text-center">
-            {item.quantity}
-          </span>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleQuantityChange(item.quantity + 1)}
-            className="h-8 w-8 p-0"
-          >
-            <Plus size={14} />
-          </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleQuantityChange(item.quantity - 1)}
+          disabled={isUpdating || item.quantity <= 1}
+          className="h-8 w-8 p-0"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        
+        <span className="w-8 text-center font-medium">
+          {item.quantity}
+        </span>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleQuantityChange(item.quantity + 1)}
+          disabled={isUpdating}
+          className="h-8 w-8 p-0"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
         </div>
       </div>
     </div>

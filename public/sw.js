@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
 
 // Network-first strategy for API calls
 const API_URLS = [
-  'https://uxrtbpdmgypzpbghhthf.supabase.co'
+  'https://sgpjnbdrmwrupeqhjqpj.supabase.co'
 ];
 
 // Cache-first strategy for static assets

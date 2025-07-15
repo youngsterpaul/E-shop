@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 import { useCategories } from '@/hooks/useCategories';
 import { MobileHeader } from "@/components/ui/mobile-header";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
@@ -15,6 +15,7 @@ import MobileFiltersModal from "@/components/products/MobileFiltersModal";
 import { useProductFilters } from "@/hooks/useProductFilters";
 import { useOptimizedProductsData } from "@/hooks/useOptimizedProductsData";
 import { usePagination } from "@/hooks/usePagination";
+import { Link } from 'react-router-dom';
 
 const OptimizedProductsPage = () => {
   const { categories, subcategories, fetchSubcategories, setSubcategories } = useCategories();
@@ -128,26 +129,28 @@ const OptimizedProductsPage = () => {
         {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 
-            title={'Products'}
-            backTo="/"
+            title={'Product Category'}
             rightAction={
+            <Link to="/search">
               <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
+                <Search className="h-4 w-4" />
               </Button>
+            </Link>
             }
-          />
-        )}
+        />)}
 
         <main className="flex-grow pt-6 pb-16">
           <div className="container mx-auto px-4">
             {/* Breadcrumb */}
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Products' }
-              ]}
-              className="mb-6"
-            />
+            {!isMobile && (
+              <SiteBreadcrumb 
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Products' }
+                ]}
+                className="mb-6"
+              />
+            )}
 
             {/* Header with sort and mobile filter toggle */}
             <ProductHeader
@@ -221,7 +224,7 @@ const OptimizedProductsPage = () => {
             </div>
           </div>
         </main>
-        <MobileNav/>
+        {!mobileFiltersOpen && <MobileNav/>}
       </div>
     </>
   );

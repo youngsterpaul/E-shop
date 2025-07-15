@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { useProductSearch } from '@/hooks/useProducts';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
@@ -12,16 +12,18 @@ import { Button } from '@/components/ui/button';
 
 const SearchPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { data: products, isLoading, isError } = useProductSearch(searchQuery);
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
     : "grid-cols-6";
-
-  const handleBack = () => {
-    window.history.back();
-  };
+ 
+   const handleBack = () => {
+       navigate(-1);
+     
+   };
 
   const handleSubmit = () => {
     if (searchQuery.trim()) {
@@ -54,8 +56,8 @@ const SearchPage = () => {
     <main className={`w-full min-h-screen flex flex-col bg-gray-50 flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
-        {!isMobile && (
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 //px-4 py-2 //flex //items-center //justify-between">
+        {isMobile && (
+        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 //px-4 py-2 //flex //items-center //justify-between">
           <div className="flex w-full items-center gap-3">
             <Button
               variant="ghost"

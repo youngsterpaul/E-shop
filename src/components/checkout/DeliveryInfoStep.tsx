@@ -48,13 +48,13 @@ export const DeliveryInfoStep = () => {
       price: 500,
       icon: Truck
     },
-    {
-      id: 'express',
-      title: 'Express Delivery',
-      description: '1-2 business days',
-      price: 1200,
-      icon: Clock
-    }
+    //{
+      //id: 'express',
+      //name: 'Express Delivery',
+      //price: 1200,
+      //time: '1-2 business days',
+      //description: 'Fast delivery service'
+    //}
   ];
 
   return (
@@ -150,7 +150,7 @@ export const DeliveryInfoStep = () => {
         </RadioGroup>
       </div>
 
-      {/* Special Instructions */}
+      {/* Special Instructions 
       <div className="space-y-2">
         <Label htmlFor="instructions">Special Delivery Instructions (Optional)</Label>
         <Textarea
@@ -160,7 +160,7 @@ export const DeliveryInfoStep = () => {
           placeholder="Any special instructions for delivery (e.g., gate code, preferred time)"
           rows={2}
         />
-      </div>
+      </div>*/}
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={handleBack}>

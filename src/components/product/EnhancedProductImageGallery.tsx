@@ -96,7 +96,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
-        className="relative aspect-square bg-white rounded-lg overflow-hidden max-w-[300px] mx-auto cursor-pointer group"
+        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'max-w-[320px]'}`}
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
@@ -128,14 +128,15 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               //sizes="(max-width: 768px) 100vw, 500px"
             />
             
-            {/* Zoom Icon Overlay */}
+            {/* Zoom Icon Overlay 
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
               <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={32} />
             </div>
+            */}
           </div>
         )}
         
-        {/* Navigation Arrows */}
+        {/* Navigation Arrows 
         {allMedia.length > 1 && (
           <>
             <Button
@@ -164,6 +165,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             </Button>
           </>
         )}
+*/}
       </div>
 
       {/* Image Indicators for Mobile */}
@@ -227,7 +229,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
         </div>
       )}
 
-      {/* Zoom Modal */}
+      {/* Zoom Modal 
       <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
         <DialogContent className="max max-h-[90vh] p-0 bg-black/90">
           <div className="relative w-full h-full flex items-center justify-center">  
@@ -263,7 +265,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             )}
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 };

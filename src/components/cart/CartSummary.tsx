@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const CartSummary = () => {
   const { 
@@ -27,6 +27,13 @@ const CartSummary = () => {
     { id: 'standard', name: 'Standard Delivery', price: 0, estimatedDays: '1-3 hours' },
     //{ id: 'express', name: 'Express Delivery', price: 1200, estimatedDays: '4-6 hours' },
   ];
+
+  // Auto-select first shipping option if none is selected
+  useEffect(() => {
+    if (!shippingOption && shippingOptions.length > 0) {
+      setShippingOption(shippingOptions[0]);
+    }
+  }, [shippingOption, setShippingOption]);
 
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;
@@ -135,7 +142,7 @@ const CartSummary = () => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal ({calculations.selectedItemsCount} items)</span>
-            <span>KES {calculations.subtotal.toLocaleString()}</span>
+            <span>KES {((calculations.subtotal)-(calculations.tax)).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>Shipping</span>
@@ -159,7 +166,7 @@ const CartSummary = () => {
 
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>KES {calculations.total.toLocaleString()}</span>
+          <span>KES {((calculations.total)-(calculations.tax)).toLocaleString()}</span>
         </div>
 
         <Button

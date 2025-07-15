@@ -136,9 +136,6 @@ export const CustomerDetailsStep = () => {
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
-            <p className="text-gray-500 text-xs mt-1">
-              We'll send order updates to this email
-            </p>
           </div>
 
           <div>
@@ -156,9 +153,6 @@ export const CustomerDetailsStep = () => {
             {errors.phone && (
               <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
             )}
-            <p className="text-gray-500 text-xs mt-1">
-              This number will be used for M-Pesa payment and delivery updates
-            </p>
           </div>
         </CardContent>
       </Card>

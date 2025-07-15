@@ -243,10 +243,18 @@ const Header = () => {
                 </Button>
               )}
             </div>  
-             </>
-            )}          
+          </>
+        )}
+          {isMobile && (
+          <div className="flex items-center space-x-4">
+            <Link to="/search">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
-         
+        )}           
+          </div>
         </div>     
       </header>
     </>
