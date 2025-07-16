@@ -54,7 +54,7 @@ const SearchPage = () => {
     <main className={`w-full min-h-screen flex flex-col bg-gray-50 flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
-        {!isMobile && (
+        {isMobile && (
         <div className="sticky top-0 z-40 bg-white border-b border-gray-200 //px-4 py-2 //flex //items-center //justify-between">
           <div className="flex w-full items-center gap-3">
             <Button
@@ -133,7 +133,7 @@ const SearchPage = () => {
               {/* Future filter options can go here */}
             </div>
             
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {products.map((product) => {
                 const productData = {
                   id: product.product_id,
