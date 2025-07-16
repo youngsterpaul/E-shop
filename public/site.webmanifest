@@ -1,0 +1,33 @@
+{
+  "name": "SmartKenya - Online Shopping",
+  "short_name": "SmartKenya",
+  "description": "Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["shopping", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}
