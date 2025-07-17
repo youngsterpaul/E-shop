@@ -301,7 +301,7 @@ const ProductDetailsPage = () => {
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
-          title={`${product.name}` || "Product Details"}
+          title={"Product Details"}
           rightAction={
           <Link to="/search">
             <Button variant="ghost" size="sm" className="p-2">
