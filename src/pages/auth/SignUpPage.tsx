@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, User, Check, X } from 'lucide-react';
-import AuthLayout from '@/components/auth/AuthLayout';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 import { useState, useEffect, useCallback } from 'react';
@@ -151,59 +150,51 @@ const SignUpPage = () => {
       setIsSubmitting(false);
     }
   };
-
-  const passwordRequirements = validatePassword(formData.password).requirements;
   
   return (
-    <AuthLayout
-      title="Create your account"
-      subtitle="Join SmartKenya and start shopping today"
-    >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name Fields */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-              First name
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                id="firstName"
-                type="text"
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className={`pl-10 ${errors.firstName ? 'border-red-500' : ''}`}
-                autoComplete="given-name"
-                autoFocus
-              />
-            </div>
-            {errors.firstName && (
-              <p className="text-sm text-red-600">{errors.firstName}</p>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+            First name
+          </Label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="First name"
+              value={formData.firstName}
+              onChange={(e) => handleInputChange('firstName', e.target.value)}
+              className={`pl-10 ${errors.firstName ? 'border-red-500' : ''}`}
+              autoComplete="given-name"
+              autoFocus
+            />
           </div>
+          {errors.firstName && (
+            <p className="text-sm text-red-600">{errors.firstName}</p>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-              Last name
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                id="lastName"
-                type="text"
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className={`pl-10 ${errors.lastName ? 'border-red-500' : ''}`}
-                autoComplete="family-name"
-              />
-            </div>
-            {errors.lastName && (
-              <p className="text-sm text-red-600">{errors.lastName}</p>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+            Last name
+          </Label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={(e) => handleInputChange('lastName', e.target.value)}
+              className={`pl-10 ${errors.lastName ? 'border-red-500' : ''}`}
+              autoComplete="family-name"
+            />
           </div>
+          {errors.lastName && (
+            <p className="text-sm text-red-600">{errors.lastName}</p>
+          )}
         </div>
 
         {/* Email Field */}
@@ -259,27 +250,6 @@ const SignUpPage = () => {
             <p className="text-sm text-red-600">{errors.password}</p>
           )}
         </div>
-
-        {/* Password Requirements */}
-        {formData.password && passwordRequirements && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">Password requirements:</p>
-            <div className="grid grid-cols-1 gap-1 text-xs">
-              {Object.entries({
-                'At least 8 characters': passwordRequirements.length,
-                'One lowercase letter': passwordRequirements.lowercase,
-                'One uppercase letter': passwordRequirements.uppercase,
-                'One number': passwordRequirements.number,
-                'One special character': passwordRequirements.special
-              }).map(([requirement, met]) => (
-                <div key={requirement} className={`flex items-center ${met ? 'text-green-600' : 'text-gray-400'}`}>
-                  {met ? <Check className="h-3 w-3 mr-1" /> : <X className="h-3 w-3 mr-1" />}
-                  {requirement}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Confirm Password Field */}
         <div className="space-y-2">
@@ -377,7 +347,6 @@ const SignUpPage = () => {
           </p>
         </div>
       </form>
-    </AuthLayout>
   );
 };
 

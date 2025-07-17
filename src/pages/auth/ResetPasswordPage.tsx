@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Lock, Check, X, ArrowLeft, CheckCircle } from 'lucide-react';
-import AuthLayout from '@/components/auth/AuthLayout';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 import { PasswordResetHandler } from '@/components/auth/PasswordResetHandler';
 import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
@@ -128,30 +127,19 @@ const ResetPasswordPage = () => {
     }
   };
 
-  const passwordRequirements = password ? validatePassword(password).requirements : null;
-
   return (
     <PasswordResetHandler>
       {({ isValidToken, isLoading, errorMessage }) => {
         if (isLoading) {
           return (
-            <AuthLayout
-              title="Verifying reset link..."
-              subtitle="Please wait while we verify your password reset link"
-            >
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-              </div>
-            </AuthLayout>
+            <div className="flex items-center justify-center h-screen">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-600"></div>
+            </div>  
           );
         }
 
         if (!isValidToken || errorMessage) {
           return (
-            <AuthLayout
-              title="Invalid Reset Link"
-              subtitle="This password reset link is invalid or has expired"
-            >
               <div className="space-y-6">
                 <EnhancedAuthError 
                   error={errorMessage || "Invalid reset link"} 
@@ -172,16 +160,11 @@ const ResetPasswordPage = () => {
                   </Button>
                 </div>
               </div>
-            </AuthLayout>
           );
         }
 
         if (isSuccess) {
           return (
-            <AuthLayout
-              title="Password Reset Successful"
-              subtitle="Your password has been successfully updated"
-            >
               <div className="text-center space-y-6">
                 <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
                   <CheckCircle className="h-8 w-8 text-green-600" />
@@ -208,15 +191,10 @@ const ResetPasswordPage = () => {
                   </Link>
                 </Button>
               </div>
-            </AuthLayout>
           );
         }
 
         return (
-          <AuthLayout
-            title="Reset your password"
-            subtitle="Enter your new password below"
-          >
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
@@ -249,26 +227,6 @@ const ResetPasswordPage = () => {
                   <p className="text-sm text-red-600">{errors.password}</p>
                 )}
               </div>
-
-              {password && passwordRequirements && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Password requirements:</p>
-                  <div className="grid grid-cols-1 gap-1 text-xs">
-                    {Object.entries({
-                      'At least 8 characters': passwordRequirements.length,
-                      'One lowercase letter': passwordRequirements.lowercase,
-                      'One uppercase letter': passwordRequirements.uppercase,
-                      'One number': passwordRequirements.number,
-                      'One special character': passwordRequirements.special
-                    }).map(([requirement, met]) => (
-                      <div key={requirement} className={`flex items-center ${met ? 'text-green-600' : 'text-gray-400'}`}>
-                        {met ? <Check className="h-3 w-3 mr-1" /> : <X className="h-3 w-3 mr-1" />}
-                        {requirement}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
@@ -323,7 +281,6 @@ const ResetPasswordPage = () => {
                 </Link>
               </div>
             </form>
-          </AuthLayout>
         );
       }}
     </PasswordResetHandler>

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import AuthLayout from '@/components/auth/AuthLayout';
 import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
 
 const ForgotPasswordPage = () => {
@@ -89,10 +88,6 @@ const ForgotPasswordPage = () => {
   
   if (isSubmitted) {
     return (
-      <AuthLayout
-        title="Check your email"
-        subtitle="We've sent you a password reset link"
-      >
         <div className="text-center space-y-6">
           <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
             <CheckCircle className="h-8 w-8 text-green-600" />
@@ -134,74 +129,68 @@ const ForgotPasswordPage = () => {
             </Button>
           </div>
         </div>
-      </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout
-      title="Forgot your password?"
-      subtitle="No worries! Enter your email and we'll send you a reset link"
-    >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Enhanced Error Display */}
-        {authError && (
-          <EnhancedAuthError 
-            error={authError} 
-            type="reset" 
-            onRetry={handleRetry}
-            className="mb-4"
-          />
-        )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Enhanced Error Display */}
+      {authError && (
+        <EnhancedAuthError 
+          error={authError} 
+          type="reset" 
+          onRetry={handleRetry}
+          className="mb-4"
+        />
+      )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email address
-          </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={email}
-              onChange={handleEmailChange}
-              className={`pl-10 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
-              autoComplete="email"
-              autoFocus
-            />
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+          Email address
+        </Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="Enter your email address"
+            value={email}
+            onChange={handleEmailChange}
+            className={`pl-10 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+            autoComplete="email"
+            autoFocus
+          />
+        </div>
+        {errors.email && (
+          <p className="text-sm text-red-600">{errors.email}</p>
+        )}
+      </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-medium transition-colors"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Sending reset link...
           </div>
-          {errors.email && (
-            <p className="text-sm text-red-600">{errors.email}</p>
-          )}
-        </div>
-        
-        <Button 
-          type="submit" 
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-medium transition-colors"
-          disabled={isSubmitting}
+        ) : (
+          'Send reset link'
+        )}
+      </Button>
+      
+      <div className="text-center">
+        <Link 
+          to="/auth/signin" 
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700 transition-colors"
         >
-          {isSubmitting ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Sending reset link...
-            </div>
-          ) : (
-            'Send reset link'
-          )}
-        </Button>
-        
-        <div className="text-center">
-          <Link 
-            to="/auth/signin" 
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700 transition-colors"
-          >
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to sign in
-          </Link>
-        </div>
-      </form>
-    </AuthLayout>
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to sign in
+        </Link>
+      </div>
+    </form>
   );
 };
 
