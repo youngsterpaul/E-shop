@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -29,7 +28,7 @@ const FloatingChatButton = () => {
 
       {/* Chat Area */}
       {isOpen && (
-        <Card className="fixed bottom-40 right-6 z-50 w-80 h-[420px] shadow-xl border">
+        <Card className="fixed bottom-20 right-6 z-50 w-80 h-96 shadow-xl border">
           <div className="flex items-center justify-between p-3 border-b">
             <h3 className="font-medium text-sm">Customer Support</h3>
             <Button
