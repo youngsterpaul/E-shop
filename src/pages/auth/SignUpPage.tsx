@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, User, Check, X } from 'lucide-react';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 import { useState, useEffect, useCallback } from 'react';
 
 const SignUpPage = () => {
