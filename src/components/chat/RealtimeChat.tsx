@@ -144,7 +144,7 @@ const RealtimeChat = () => {
         </div>
       </CardContent>
     </Card>
-    {!isTyping && <MobileNav />}
+    {isTyping && <MobileNav />}
     </div>
   );
 };
