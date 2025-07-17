@@ -90,8 +90,14 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.setFont('helvetica', 'normal');
     if (order.items && order.items.length > 0) {
       order.items.forEach((item, idx) => {
+        // Add null checks and default values
+        const itemPrice = item.price || 0;
+        const itemQuantity = item.quantity || 0;
+        const itemName = item.name || 'Unknown Item';
+        const lineTotal = itemPrice * itemQuantity;
+        
         doc.text(
-          `${item.quantity} × ${item.name} @ KES ${item.price.toLocaleString()} = KES ${(item.price * item.quantity).toLocaleString()}`,
+          `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`,
           6,
           y,
           { maxWidth: receiptWidth - 8 }
