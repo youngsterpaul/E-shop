@@ -3,17 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-//import MobileNav from '@/components/MobileNav';
+import { Skeleton } from '@/components/ui/skeleton';
 import ReviewButton from '@/components/ReviewButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, ArrowLeft, Clock, Download, Settings } from 'lucide-react';
+import { FileText, ArrowLeft, Clock, Download, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
-import useIsMobile from '@/hooks/use-mobile';
+import useIsMobile, { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 interface OrderItem {
@@ -39,8 +38,81 @@ interface Order {
   payment_id?: string;
 }
 
+// Loading skeleton for order items
+const OrderItemSkeleton = () => (
+  <div className="flex py-4 items-center justify-between first:pt-0">
+    <div className="flex items-center flex-1">
+      <Skeleton className="w-16 h-16 rounded-md" />
+      <div className="ml-4 flex-1">
+        <Skeleton className="h-5 w-48 mb-2" />
+        <Skeleton className="h-4 w-24 mb-2" />
+        <Skeleton className="h-4 w-32 mb-1" />
+        <Skeleton className="h-4 w-36" />
+      </div>
+    </div>
+    <Skeleton className="h-8 w-20 ml-4" />
+  </div>
+);
+
+// Loading skeleton for the entire page
+const OrderDetailLoadingSkeleton = () => (
+  <div className="min-h-screen flex flex-col bg-gray-50/50">
+    <main className="flex-grow container py-8 px-4">
+      <div className="space-y-6">
+        {/* Order Summary Skeleton */}
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+            <div className="flex-1">
+              <Skeleton className="h-7 w-48 mb-2" />
+              <Skeleton className="h-4 w-56" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-8 w-24" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-full mb-1" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+              <div>
+                <Skeleton className="h-5 w-36 mb-2" />
+                <Skeleton className="h-4 w-48 mb-1" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Order Items Skeleton */}
+        <Card className="shadow-sm">
+          <CardHeader className="border-b pb-4">
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="divide-y">
+                {[...Array(2)].map((_, i) => (
+                  <OrderItemSkeleton key={i} />
+                ))}
+              </div>
+              <div className="border-t pt-4 flex justify-between items-center">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-6 w-32" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  </div>
+);
+
 const OrderDetailPage = () => {
-  const isMobile = useIsMobile;
+  const isMobile = isMobileUserAgent();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -101,17 +173,34 @@ const OrderDetailPage = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-warning text-warning-foreground';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'processing':
-        return 'bg-primary text-primary-foreground';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'shipped':
-        return 'bg-secondary text-secondary-foreground';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered':
-        return 'bg-success text-success-foreground';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'cancelled':
-        return 'bg-destructive text-destructive-foreground';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return '⏳';
+      case 'processing':
+        return '⚙️';
+      case 'shipped':
+        return '🚚';
+      case 'delivered':
+        return '✅';
+      case 'cancelled':
+        return '❌';
+      default:
+        return '📦';
     }
   };
   
@@ -133,107 +222,171 @@ const OrderDetailPage = () => {
     }
   };
 
+  // Show loading skeleton
+  if (loading) {
+    return <OrderDetailLoadingSkeleton />;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      
-      <main className="flex-grow container py-8">
+    <div className="min-h-screen flex flex-col bg-gray-50/50">
       {!isMobile && <Header />}
+      {isMobile && (
         <MobileHeader
           title="Order Details"
-          backTo="/"
+          backTo="/orders"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
         />
+      )}
+      
+      <main className="flex-grow container py-8 px-4">
+        {/* Back Button for Desktop */}
+        {!isMobile && (
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/orders')}
+            className="mb-6 -ml-4 hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Orders
+          </Button>
+        )}
         
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-lg text-red-500 mb-4">{error}</p>
-              <Button onClick={() => navigate('/orders')}>Return to Orders</Button>
+        {error ? (
+          <Card className="shadow-sm">
+            <CardContent className="py-16 text-center">
+              <div className="p-4 bg-red-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Package className="h-8 w-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Not Found</h3>
+              <p className="text-gray-500 mb-6">{error}</p>
+              <Button 
+                onClick={() => navigate('/orders')}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Return to Orders
+              </Button>
             </CardContent>
           </Card>
         ) : order ? (
           <div className="space-y-6">
             {/* Order Summary */}
-            <Card className="shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-                <div>
-                  <CardTitle className="text-xl">Order #{order.order_id}</CardTitle>
-                  <p className="text-sm text-muted-foreground flex items-center mt-1">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Placed on {format(new Date(order.created_at), 'PPP')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getStatusColor(order.status)}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Badge>
-                  <div className="flex gap-2">
+            <Card className="shadow-sm bg-white/80 backdrop-blur-sm">
+              <CardHeader className="border-b pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <Package className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-bold text-gray-900">
+                        Order #{order.order_id.slice(-8).toUpperCase()}
+                      </CardTitle>
+                      <p className="text-gray-500 flex items-center mt-1">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Placed on {format(new Date(order.created_at), 'PPP')}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Badge className={`${getStatusColor(order.status)} border px-4 py-2 font-medium`}>
+                      <span className="mr-2">{getStatusIcon(order.status)}</span>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="flex items-center gap-1" 
+                      className="flex items-center gap-2 hover:bg-gray-50 border-gray-200" 
                       onClick={handleDownloadReceipt}
                     >
                       <FileText className="h-4 w-4" />
-                      <span className="hidden sm:inline">Text Receipt</span>
+                      <span className="hidden sm:inline">Receipt</span>
                     </Button>
                   </div>
                 </div>
               </CardHeader>
+              
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-medium mb-2">Shipping Address</h3>
-                    <p className="text-muted-foreground whitespace-pre-line">
-                      {order.shipping_address || 'No shipping address provided'}
-                    </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <h3 className="font-semibold text-gray-900">Shipping Address</h3>
+                    </div>
+                    <div className="pl-8">
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {order.shipping_address || 'No shipping address provided'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium mb-2">Contact Information</h3>
-                    {order.email && <p className="text-muted-foreground">{order.email}</p>}
-                    {order.phone_number && <p className="text-muted-foreground">{order.phone_number}</p>}
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                      <h3 className="font-semibold text-gray-900">Contact Information</h3>
+                    </div>
+                    <div className="pl-8 space-y-2">
+                      {order.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-400" />
+                          <p className="text-gray-700">{order.email}</p>
+                        </div>
+                      )}
+                      {order.phone_number && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-400" />
+                          <p className="text-gray-700">{order.phone_number}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             {/* Order Items */}
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-white/80 backdrop-blur-sm">
               <CardHeader className="border-b pb-4">
-                <CardTitle>Order Items</CardTitle>
+                <div className="flex items-center gap-3">
+                  <ShoppingBag className="h-5 w-5 text-gray-400" />
+                  <CardTitle className="text-xl font-semibold text-gray-900">Order Items</CardTitle>
+                  <Badge variant="secondary" className="ml-auto">
+                    {order.items?.length || 0} items
+                  </Badge>
+                </div>
               </CardHeader>
+              
               <CardContent className="pt-6">
                 {order.items && order.items.length > 0 ? (
                   <div className="space-y-6">
-                    <div className="divide-y">
+                    <div className="divide-y divide-gray-100">
                       {order.items.map((item, i) => (
-                        <div key={i} className="flex py-4 items-center justify-between first:pt-0">
-                          <div className="flex items-center">
+                        <div key={i} className="flex py-6 items-center justify-between first:pt-0 last:pb-0">
+                          <div className="flex items-center flex-1">
                             {item.image ? (
                               <img 
                                 src={item.image} 
                                 alt={item.name}
-                                className="w-16 h-16 object-cover rounded-md"
+                                className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                               />
                             ) : (
-                              <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
-                                No image
+                              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                                <Package className="h-8 w-8 text-gray-400" />
                               </div>
                             )}
-                            <div className="ml-4 flex-1">
-                              <h4 className="font-medium">{item.name}</h4>
-                              <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                              <div className="mt-2">
-                                <p className="font-medium">Ksh {(item.price || 0).toLocaleString()}</p>
-                                <p className="text-sm text-muted-foreground">
+                            
+                            <div className="ml-6 flex-1">
+                              <h4 className="font-semibold text-gray-900 text-lg mb-1">{item.name}</h4>
+                              <p className="text-gray-500 mb-3">Quantity: {item.quantity}</p>
+                              <div className="space-y-1">
+                                <p className="font-semibold text-gray-900">
+                                  Ksh {(item.price || 0).toLocaleString()} each
+                                </p>
+                                <p className="text-lg font-bold text-primary">
                                   Total: Ksh {((item.price || 0) * (item.quantity || 0)).toLocaleString()}
                                 </p>
                               </div>
@@ -242,7 +395,7 @@ const OrderDetailPage = () => {
                           
                           {/* Review Button - Only show for delivered orders */}
                           {order.status === 'delivered' && (
-                            <div className="ml-4">
+                            <div className="ml-6">
                               <ReviewButton 
                                 productId={item.product_id}
                                 productName={item.name}
@@ -254,28 +407,51 @@ const OrderDetailPage = () => {
                       ))}
                     </div>
                     
-                    <div className="border-t pt-4 flex justify-between items-center">
-                      <p className="font-medium">Total Amount</p>
-                      <p className="text-xl font-bold">Ksh {(order.amount || 0).toLocaleString()}</p>
+                    {/* Total Section */}
+                    <div className="border-t border-gray-200 pt-6">
+                      <div className="flex justify-between items-center bg-gray-50 rounded-lg p-4">
+                        <div>
+                          <p className="text-gray-500 mb-1">Total Amount</p>
+                          <p className="text-sm text-gray-500">
+                            {order.items?.length || 0} items
+                          </p>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-900">
+                          Ksh {(order.amount || 0).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center py-6 text-muted-foreground">No items found in this order</p>
+                  <div className="text-center py-16">
+                    <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <ShoppingBag className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Items Found</h3>
+                    <p className="text-gray-500">No items found in this order</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </div>
         ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-lg text-muted-foreground">Order not found</p>
-              <Button onClick={() => navigate('/orders')} className="mt-4">Return to Orders</Button>
+          <Card className="shadow-sm">
+            <CardContent className="py-16 text-center">
+              <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Package className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Not Found</h3>
+              <p className="text-gray-500 mb-6">The order you're looking for doesn't exist</p>
+              <Button 
+                onClick={() => navigate('/orders')} 
+                className="bg-primary hover:bg-primary/90"
+              >
+                Return to Orders
+              </Button>
             </CardContent>
           </Card>
         )}
       </main>
-
-      
     </div>
   );
 };

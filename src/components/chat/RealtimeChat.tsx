@@ -8,6 +8,7 @@ import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { formatWhatsAppDate, shouldShowDateSeparator } from '@/utils/dateFormatting';
+import MobileNav from '../MobileNav';
 
 const RealtimeChat = () => {
   const [message, setMessage] = useState('');
@@ -48,7 +49,7 @@ const RealtimeChat = () => {
         <CardContent className="text-center">
           <h3 className="text-lg font-semibold mb-4">Please sign in to start chatting</h3>
           <p className="text-gray-600 mb-6">You need to be logged in to access customer support chat.</p>
-          <Link to="/auth">
+          <Link to="/auth/signin">
             <Button className="bg-primary hover:bg-primary/90">
               Sign In
             </Button>
@@ -59,6 +60,7 @@ const RealtimeChat = () => {
   }
 
   return (
+    <div>
     <Card className="h-[600px] flex flex-col">
       <CardHeader>
         <CardTitle className="text-lg">Live Chat Support</CardTitle>
@@ -142,6 +144,8 @@ const RealtimeChat = () => {
         </div>
       </CardContent>
     </Card>
+    {!isTyping && <MobileNav />}
+    </div>
   );
 };
 
