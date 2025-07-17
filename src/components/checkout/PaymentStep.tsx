@@ -338,7 +338,7 @@ export const PaymentStep = () => {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Items ({calculations.selectedItemsCount})</span>
-                <span>KES {calculations.subtotal.toLocaleString()}</span>
+                <span>KES {((calculations.subtotal)-(calculations.tax)).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery ({deliveryInfo.deliveryMethod})</span>
@@ -358,7 +358,7 @@ export const PaymentStep = () => {
               )}
               <div className="border-t pt-2 flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>KES {finalTotal.toLocaleString()}</span>
+                <span>KES {((finalTotal)-(calculations.tax)).toLocaleString()}</span>
               </div>
             </div>
           </CardContent>

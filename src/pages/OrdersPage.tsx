@@ -187,9 +187,26 @@ const OrdersPage = () => {
   };
 
   // Show loading skeleton while auth is loading or orders are loading
-  if (authLoading || loading) {
-    return <PageLoadingSkeleton />;
-  }
+if (authLoading || loading) {
+  return (
+    <>
+      {!isMobile && <Header />}
+      {isMobile && (
+        <MobileHeader
+          title="My Orders"
+          backTo="/"
+          rightAction={
+            <Button variant="ghost" size="sm" className="p-2">
+              <Settings className="h-4 w-4" />
+            </Button>
+          }
+        />
+      )}
+      <PageLoadingSkeleton />
+    </>
+  );
+}
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
