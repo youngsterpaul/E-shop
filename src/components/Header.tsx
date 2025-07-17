@@ -136,7 +136,7 @@ const Header = () => {
         )}
 
 
-        <div className={`container px-4 mx-auto ${isMobile ? 'py-2 ' : 'py-4'}`}>
+        <div className={`container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
