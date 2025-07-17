@@ -1,4 +1,3 @@
-
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 import { MapPin, Truck, Clock } from 'lucide-react';
 
@@ -21,6 +21,24 @@ export const DeliveryStep = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // County and city mapping
+  const countyOptions = [
+    { value: 'embu', label: 'Embu' },
+    { value: 'murangaa', label: 'Murang\'a' }
+  ];
+
+  const cityOptions = {
+    embu: [
+      { value: 'runyenjes', label: 'Runyenjes' },
+      { value: 'manyatta', label: 'Manyatta' },
+      { value: 'embu-town', label: 'Embu Town' }
+    ],
+    murangaa: [
+      { value: 'kiharu', label: 'Kiharu' },
+      { value: 'mukuyu', label: 'Mukuyu' }
+    ]
+  };
 
   useEffect(() => {
     setFormData({
@@ -75,6 +93,20 @@ export const DeliveryStep = () => {
     }
   };
 
+  const handleCountyChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      county: value,
+      city: '' // Reset city when county changes
+    }));
+    if (errors.county) {
+      setErrors(prev => ({ ...prev, county: '' }));
+    }
+    if (errors.city) {
+      setErrors(prev => ({ ...prev, city: '' }));
+    }
+  };
+
   const handleNext = () => {
     if (validateForm()) {
       updateDeliveryInfo(formData);
@@ -84,6 +116,12 @@ export const DeliveryStep = () => {
 
   const handleBack = () => {
     setStep(1);
+  };
+
+  // Get available cities based on selected county
+  const getAvailableCities = () => {
+    if (!formData.county) return [];
+    return cityOptions[formData.county as keyof typeof cityOptions] || [];
   };
 
   return (
@@ -104,46 +142,62 @@ export const DeliveryStep = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="address">Street Address</Label>
-            <Textarea
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Enter your full street address"
-              className={errors.address ? 'border-red-500' : ''}
-              rows={3}
-            />
-            {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="city">City/Town</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="Enter your city"
-                className={errors.city ? 'border-red-500' : ''}
-              />
-              {errors.city && (
-                <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="county">County</Label>
+                <Select value={formData.county} onValueChange={handleCountyChange}>
+                  <SelectTrigger className={errors.county ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select county" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countyOptions.map((county) => (
+                      <SelectItem key={county.value} value={county.value}>
+                        {county.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.county && (
+                  <p className="text-red-500 text-sm mt-1">{errors.county}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="city">City/Town</Label>
+                <Select 
+                  value={formData.city} 
+                  onValueChange={(value) => handleInputChange('city', value)}
+                  disabled={!formData.county}
+                >
+                  <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
+                    <SelectValue placeholder={formData.county ? "Select city" : "Select county first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableCities().map((city) => (
+                      <SelectItem key={city.value} value={city.value}>
+                        {city.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.city && (
+                  <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                )}
+              </div>
             </div>
-            
+
             <div>
-              <Label htmlFor="county">County</Label>
-              <Input
-                id="county"
-                value={formData.county}
-                onChange={(e) => handleInputChange('county', e.target.value)}
-                placeholder="Enter your county"
-                className={errors.county ? 'border-red-500' : ''}
+              <Label htmlFor="address">Street Address</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="Enter your full street address"
+                className={errors.address ? 'border-red-500' : ''}
+                rows={3}
               />
-              {errors.county && (
-                <p className="text-red-500 text-sm mt-1">{errors.county}</p>
+              {errors.address && (
+                <p className="text-red-500 text-sm mt-1">{errors.address}</p>
               )}
             </div>
           </div>
