@@ -116,7 +116,7 @@ const ProductDetailsPage = () => {
   const generateMetaData = () => {
     if (!product) return {};
     
-    const title = `${product.name} - ${product.categories || 'Products'} | Your Store`;
+    const title = `${product.name} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
     const description = `${product.description || product.name} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
     const image = product.image_urls?.[0] || '/placeholder.svg';
     
@@ -310,7 +310,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20 px-1' : 'pb-8'}`}>
+        <main className={`container mx-auto py-6 pb-8 ${isMobile ? 'px-1' : ''}`}>
           {/* Breadcrumb */}
           {!isMobile && (
             <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />

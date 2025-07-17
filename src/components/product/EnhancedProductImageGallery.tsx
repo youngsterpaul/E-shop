@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Video, ZoomIn, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const isMobile = isMobileUserAgent();
   const mainImageRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
@@ -31,14 +31,20 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     ...(product.video ? [product.video] : [])
   ];
 
-  const minSwipeDistance = 0;
+  const minSwipeDistance = 50; // Increased for better swipe detection
 
   const nextImage = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setCurrentIndex((prev) => (prev + 1) % allMedia.length);
+    setTimeout(() => setIsTransitioning(false), 300);
   };
 
   const prevImage = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setCurrentIndex((prev) => (prev - 1 + allMedia.length) % allMedia.length);
+    setTimeout(() => setIsTransitioning(false), 300);
   };
 
   const isVideo = (url: string) => {
@@ -46,11 +52,15 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   };
 
   const handleThumbnailClick = (index: number) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setCurrentIndex(index);
+    setTimeout(() => setIsTransitioning(false), 300);
+    
     // Scroll thumbnail into view
     if (thumbnailsRef.current) {
       const thumbnail = thumbnailsRef.current.children[index] as HTMLElement;
-
+      thumbnail?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   };
 
@@ -69,8 +79,8 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
     
-    if (isLeftSwipe && currentIndex < allMedia.length - 1) nextImage();
-    if (isRightSwipe && currentIndex > 0) prevImage();
+    if (isLeftSwipe) nextImage();
+    if (isRightSwipe) prevImage();
   };
 
   const handleImageClick = () => {
@@ -109,7 +119,9 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           <video
             src={allMedia[currentIndex]}
             controls
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-transform duration-300 ${
+              isTransitioning ? 'scale-105' : 'scale-100'
+            }`}
             poster={product.image}
             preload="metadata"
           >
@@ -123,21 +135,30 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               width={500}
               height={500}
               aspectRatio="square"
-              //className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`w-full h-full object-cover transition-all duration-300 ${
+                isTransitioning ? 'scale-105 opacity-90' : 'scale-100 opacity-100'
+              }`}
               priority={currentIndex === 0}
-              //sizes="(max-width: 768px) 100vw, 500px"
             />
             
-            {/* Zoom Icon Overlay 
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-              <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={32} />
-            </div>
-            */}
+            {/* Zoom Icon Overlay - Hidden on Mobile */}
+            {!isMobile && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={32} />
+              </div>
+            )}
           </div>
         )}
         
-        {/* Navigation Arrows 
+        {/* Kilimall-style Image Counter - Inside Image */}
         {allMedia.length > 1 && (
+          <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+            {currentIndex + 1}/{allMedia.length}
+          </div>
+        )}
+        
+        {/* Navigation Arrows - Desktop Only */}
+        {!isMobile && allMedia.length > 1 && (
           <>
             <Button
               variant="outline"
@@ -148,6 +169,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
                 prevImage();
               }}
               aria-label="Previous image"
+              disabled={isTransitioning}
             >
               <ChevronLeft size={20} />
             </Button>
@@ -160,31 +182,15 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
                 nextImage();
               }}
               aria-label="Next image"
+              disabled={isTransitioning}
             >
               <ChevronRight size={20} />
             </Button>
           </>
         )}
-*/}
       </div>
 
-      {/* Image Indicators for Mobile */}
-      {isMobile && allMedia.length > 1 && (
-        <div className="flex justify-center gap-2">
-          {allMedia.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                currentIndex === index ? 'bg-primary' : 'bg-gray-300'
-              }`}
-              aria-label={`Go to image ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Thumbnail Strip */}
+      {/* Thumbnail Strip - Desktop Only */}
       {!isMobile && allMedia.length > 1 && (
         <div 
           ref={thumbnailsRef}
@@ -195,11 +201,12 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             <button
               key={index}
               onClick={() => handleThumbnailClick(index)}
+              disabled={isTransitioning}
               className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden border-2 transition-all duration-200 ${
                 currentIndex === index 
                   ? 'border-primary ring-2 ring-primary/20' 
                   : 'border-gray-200 hover:border-gray-300'
-              }`}
+              } ${isTransitioning ? 'opacity-50' : ''}`}
               aria-label={`View ${isVideo(media) ? 'video' : `image ${index + 1}`}`}
             >
               {isVideo(media) ? (
@@ -229,43 +236,45 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
         </div>
       )}
 
-      {/* Zoom Modal 
-      <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-        <DialogContent className="max max-h-[90vh] p-0 bg-black/90">
-          <div className="relative w-full h-full flex items-center justify-center">  
-            <OptimizedImage
-              src={allMedia[currentIndex]}
-              alt={`${product.name} - Zoomed view`}
-              className="max-w-full max-h-full object-contain"
-              width={800}
-              height={800}
-            />
-            
-            {allMedia.length > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
-                  onClick={prevImage}
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft size={32} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
-                  onClick={nextImage}
-                  aria-label="Next image"
-                >
-                  <ChevronRight size={32} />
-                </Button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog> */}
+      {/* Zoom Modal - Desktop Only 
+      {!isMobile && (
+        <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
+          <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/90">
+            <div className="relative w-full h-full flex items-center justify-center">  
+              <OptimizedImage
+                src={allMedia[currentIndex]}
+                alt={`${product.name} - Zoomed view`}
+                className="max-w-full max-h-full object-contain"
+                width={800}
+                height={800}
+              />
+              
+              {allMedia.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
+                    onClick={prevImage}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={32} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
+                    onClick={nextImage}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={32} />
+                  </Button>
+                </>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}  */}
     </div>
   );
 };
