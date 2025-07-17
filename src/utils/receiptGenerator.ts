@@ -138,3 +138,9 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     throw error;
   }
 };
+
+export const downloadReceipt = (order: Order) => {
+  generatePDFReceipt(order).catch((error) => {
+    console.error('Failed to generate PDF receipt:', error);
+  });
+};
