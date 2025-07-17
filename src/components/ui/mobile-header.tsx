@@ -38,7 +38,7 @@ export const MobileHeader = ({ title, onBack, backTo, rightAction }: MobileHeade
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold truncate">{title}</h1>
+        <h1 className="text-lg font-semibold truncate overflow-hidden">{title}</h1>
       </div>
       {rightAction && (
         <div className="flex-shrink-0">

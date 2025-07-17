@@ -22,7 +22,6 @@ const SearchPage = () => {
  
    const handleBack = () => {
        navigate(-1);
-     
    };
 
   const handleSubmit = () => {

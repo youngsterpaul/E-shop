@@ -131,7 +131,7 @@ const ProductDetailsPage = () => {
       <div className="min-h-screen bg-gray-50">
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
-          title="Shopping Cart"
+          title="Product Details"
           backTo="/products"
           rightAction={
             <Link to="/search">
@@ -302,7 +302,6 @@ const ProductDetailsPage = () => {
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={`${product.name}` || "Product Details"}
-          backTo="/"
           rightAction={
           <Link to="/search">
             <Button variant="ghost" size="sm" className="p-2">

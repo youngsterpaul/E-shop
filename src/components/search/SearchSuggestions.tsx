@@ -204,17 +204,6 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
           </p>
         </div>
       )}
-
-      {/* Mobile: Add backdrop overlay effect */}
-      {isMobile && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-20 -z-10"
-          onClick={() => {
-            // Handle backdrop click to close suggestions
-            // You might want to add a prop for this callback
-          }}
-        />
-      )}
     </div>
   );
 };
