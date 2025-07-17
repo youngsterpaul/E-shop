@@ -26,8 +26,12 @@ const ChatPage = () => {
     return null;
   }
 
+  if (!isMobile) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 pb-14">
       {!isMobile && <Header />}
       <MobileHeader 
         title="Customer Support"
@@ -43,6 +47,7 @@ const ChatPage = () => {
       <div className="flex-1 flex flex-col min-h-0">
         <RealtimeChat />
       </div>
+      {<MobileNav />}
     </div>
   );
 };

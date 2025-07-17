@@ -8,7 +8,6 @@ import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { formatWhatsAppDate, shouldShowDateSeparator } from '@/utils/dateFormatting';
-import MobileNav from '../MobileNav';
 
 const RealtimeChat = () => {
   const [message, setMessage] = useState('');
@@ -144,7 +143,6 @@ const RealtimeChat = () => {
         </div>
       </CardContent>
     </Card>
-    {isTyping && <MobileNav />}
     </div>
   );
 };
