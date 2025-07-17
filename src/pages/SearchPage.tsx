@@ -76,7 +76,7 @@ const SearchPage = () => {
             <Button
               type="button"
               onClick={() => handleSubmit()}
-              className="h-8 bg-orange-500 hover:bg-orange-600 px-3"
+              className="h-8 bg-muted hover:bg-muted px-3"
             >
               <SearchIcon className="h-4 w-4" />
             </Button>
