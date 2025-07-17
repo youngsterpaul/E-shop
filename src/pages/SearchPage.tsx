@@ -95,7 +95,7 @@ const SearchPage = () => {
               <span className="ml-3 text-gray-600">Searching products...</span>
             </div>
             
-            <div className={`grid ${gridCols} bg-white p-4 gap-1 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
