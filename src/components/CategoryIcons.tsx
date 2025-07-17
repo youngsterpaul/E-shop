@@ -153,25 +153,25 @@ const CategoryIcons = () => {
   if (isMobile) {
     // Mobile version with modern icons
     return (
-        <div className="md:hidden grid grid-cols-4 gap-3 mx-2 my-4">
-          {categoryIcons.slice(0, 8).map((category) => {
-            const IconComponent = category.icon;
-            return (
-              <div
-                key={category.id}
-                onClick={() => handleCategoryClick(category.searchQuery)}
-                className="flex flex-col items-center justify-center p-3 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group border border-gray-100"
-              >
-                <div className={`${category.color} p-2.5 rounded-full mb-2 group-hover:scale-105 transition-transform duration-200`}>
-                  <IconComponent size={20} className={category.iconColor} />
-                </div>
-                <span className="text-xs text-gray-700 text-center font-medium leading-tight">
-                  {category.name}
-                </span>
+      <div className="md:hidden grid grid-cols-4 gap-3 mx-2 my-4">
+        {categoryIcons.slice(0, 8).map((category) => {
+          const IconComponent = category.icon;
+          return (
+            <div
+              key={category.id}
+              onClick={() => handleCategoryClick(category.searchQuery)}
+              className="flex flex-col items-center justify-center p-3 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group border border-gray-100"
+            >
+              <div className={`${category.color} p-2.5 rounded-full mb-2 group-hover:scale-105 transition-transform duration-200`}>
+                <IconComponent size={20} className={category.iconColor} />
               </div>
-            );
-          })}
-        </div>
+              <span className="text-xs text-gray-700 text-center font-medium leading-tight">
+                {category.name}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     );
   }
 
