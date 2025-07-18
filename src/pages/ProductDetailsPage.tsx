@@ -422,7 +422,7 @@ const ProductDetailsPage = () => {
           <MobileBottomActions
             product={{
               product_id: product.product_id,
-              name: product.name,
+              name: product.name.split('(')[0].trim(),
               price: product.price,
               originalPrice: undefined,
               description: product.description,
