@@ -60,7 +60,7 @@ const EmptyCart = () => {
               ))}
             </div>
           ) : (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {products?.slice(0, 4).map((product) => {
                 const productCardData = {
                   id: product.product_id,
