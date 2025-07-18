@@ -44,7 +44,7 @@ const ProductDetailsPage = () => {
   // Redirect to correct URL if product name doesn't match
   useEffect(() => {
     if (product && productName && id) {
-      const correctSlug = generateSlug(product.name.split('(')[0].trim());
+      const correctSlug = generateSlug(product.name);
       
       if (productName !== correctSlug) {
         navigate(`/products/${product.categories || 'general'}/${correctSlug}/${id}`, { replace: true });
@@ -116,8 +116,8 @@ const ProductDetailsPage = () => {
   const generateMetaData = () => {
     if (!product) return {};
     
-    const title = `${(product.name.split('(')[0].trim())} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
-    const description = `${product.description || (product.name.split('(')[0].trim())} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
+    const title = `${product.name} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
+    const description = `${product.description || product.name} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
     const image = product.image_urls?.[0] || '/placeholder.svg';
     
     return { title, description, image };
@@ -225,13 +225,13 @@ const ProductDetailsPage = () => {
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
-    { label: (product.name.split('(')[0].trim()) }
+    { label: product.name }
   ];
 
   // Transform product for components
   const productWithImages = {
     id: product.product_id,
-    name: (product.name.split('(')[0].trim()),
+    name: product.name,
     image: product.image_urls?.[0] || '/placeholder.svg',
     images: product.image_urls || [],
     video: (product as any).video,
@@ -254,7 +254,7 @@ const ProductDetailsPage = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": (product.name.split('(')[0].trim()),
+    "name": product.name,
     "description": product.description,
     "image": product.image_urls || [],
     "brand": {
@@ -385,7 +385,7 @@ const ProductDetailsPage = () => {
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
-                    name: (product.name.split('(')[0].trim()),
+                    name: product.name,
                     price: calculatePrice(),
                     stock: product.stock
                   }}
@@ -422,7 +422,7 @@ const ProductDetailsPage = () => {
           <MobileBottomActions
             product={{
               product_id: product.product_id,
-              name: (product.name.split('(')[0].trim()),
+              name: product.name,
               price: product.price,
               originalPrice: undefined,
               description: product.description,
