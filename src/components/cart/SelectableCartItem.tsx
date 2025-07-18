@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useState, useCallback } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
@@ -24,8 +25,24 @@ interface SelectableCartItemProps {
 }
 
 const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, className = '' }: SelectableCartItemProps) => {
-  const { removeFromCart, updateQuantity } = useCart(); // Add updateQuantity here
+  const { updateQuantity, removeFromCart } = useCart();
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleQuantityChange = useCallback(async (newQuantity: number) => {
+    if (newQuantity < 1) {
+      handleRemove();
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateQuantity(item.id, newQuantity);
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [item.id, updateQuantity]);
 
   const handleRemove = useCallback(async () => {
     try {
@@ -36,18 +53,6 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
     }
   }, [item.id, removeFromCart, onRemove]);
 
-  const handleQuantityChange = useCallback(async (newQuantity: number) => {
-    if (newQuantity < 1) return; // Prevent negative quantities
-    
-    setIsUpdating(true);
-    try {
-      await updateQuantity(item.id, newQuantity);
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [item.id, updateQuantity]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-KE', {
@@ -97,33 +102,34 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
           size="sm"
           onClick={handleRemove}
           className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          disabled={isUpdating}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
         
         <div className="flex items-center border rounded-md">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleQuantityChange(Math.max(1, item.quantity - 1))}
-            className="h-10 w-10 p-0 hover:bg-gray-100"
-            disabled={item.quantity <= 1 || isUpdating}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="h-10 px-4 flex items-center justify-center border-x min-w-[3rem]">
-            {item.quantity}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleQuantityChange(item.quantity + 1)}
-            className="h-10 w-10 p-0 hover:bg-gray-100"
-            disabled={isUpdating}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleQuantityChange(item.quantity - 1)}
+          disabled={isUpdating || item.quantity <= 1}
+          className="h-8 w-8 p-0"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        
+        <span className="w-8 text-center font-medium">
+          {item.quantity}
+        </span>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleQuantityChange(item.quantity + 1)}
+          disabled={isUpdating}
+          className="h-8 w-8 p-0"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
         </div>
       </div>
     </div>
