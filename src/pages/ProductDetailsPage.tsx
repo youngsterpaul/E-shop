@@ -225,13 +225,13 @@ const ProductDetailsPage = () => {
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
-    { label: product.name }
+    { label: product.name.split('(')[0].trim(), }
   ];
 
   // Transform product for components
   const productWithImages = {
     id: product.product_id,
-    name: product.name,
+    name: product.name.split('(')[0].trim(),
     image: product.image_urls?.[0] || '/placeholder.svg',
     images: product.image_urls || [],
     video: (product as any).video,
