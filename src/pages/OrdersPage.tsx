@@ -12,7 +12,7 @@ import { FileText, Download, Settings, Package, ShoppingBag } from 'lucide-react
 import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import useIsMobile, { isMobileUserAgent } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface OrderItem {
   product_id: string;

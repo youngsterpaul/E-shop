@@ -177,7 +177,7 @@ const CategoryIcons = () => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="pt-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
+    <section className={`mx-0 lg:mx-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'mt-4' : ''}`}>
       <div className="container mx-auto px-4">
 
         <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">

@@ -12,7 +12,7 @@ import { FileText, ArrowLeft, Clock, Download, Settings, Package, MapPin, Phone,
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
-import useIsMobile, { isMobileUserAgent } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 interface OrderItem {

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 //import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const ContactPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',

@@ -2,11 +2,11 @@
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { Button } from '@/components/ui/button';
 import { X, ArrowLeft } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 export const CheckoutHeader = () => {
   const { step, setStep, closeCheckout, paymentStatus } = useCheckout();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   const steps = [
     { id: 1, title: 'Details', description: 'Customer info' },

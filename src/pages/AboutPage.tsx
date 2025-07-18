@@ -4,13 +4,13 @@ import Header from '@/components/Header';
 //import Footer from '@/components/Footer';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AboutPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   return (
     <>

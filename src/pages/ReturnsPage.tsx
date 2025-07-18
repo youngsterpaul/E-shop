@@ -3,14 +3,14 @@ import React from 'react';
 import Header from '@/components/Header';
 //import Footer from '@/components/Footer';
 //import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, AlertTriangle, HelpCircle, Settings } from 'lucide-react';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const ReturnsPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   return (
     <div className="min-h-screen flex flex-col">

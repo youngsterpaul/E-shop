@@ -87,7 +87,7 @@ const SearchPage = () => {
       </div>
 
       {/* Search Results */}
-      <div className={`w-full lg:px-16 px-4 mx-auto ${isMobile ? 'px-2' : ''}`}>
+      <div className={`w-full px-0 lg:px-16 mx-auto`}>
         {isLoading ? (
           <div className="space-y-6 //mx-auto">
             <div className="flex items-center justify-center py-8">
@@ -134,7 +134,7 @@ const SearchPage = () => {
               {/* Future filter options can go here */}
             </div>
             
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {products.map((product) => {
                 const productData = {
                   id: product.product_id,

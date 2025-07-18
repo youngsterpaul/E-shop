@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { PhoneInput } from "@/components/ui/phone-input"
 // Import from supabase client instead
 import { supabase } from '@/integrations/supabase/client';
-import useIsMobile, { isMobileUserAgent } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';

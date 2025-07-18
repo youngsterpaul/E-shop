@@ -86,7 +86,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   };
 
   return (
-    <div className="mt-12">
+    <div className="mt-12 mx-auto px-2">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="specifications" className="text-sm">Specifications</TabsTrigger>

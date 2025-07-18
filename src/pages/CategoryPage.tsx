@@ -19,12 +19,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const CategoryPage = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);

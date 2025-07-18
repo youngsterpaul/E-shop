@@ -23,7 +23,7 @@ import {
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import useIsMobile from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface SitemapItem {
   title: string;
@@ -36,7 +36,7 @@ interface SitemapItem {
 const SitemapPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSections, setExpandedSections] = useState<string[]>(['home', 'products']);
-  const isMobile = useIsMobile;
+  const isMobile = isMobileUserAgent();
   const sitemapData: SitemapItem[] = [
     {
       title: 'Home',
@@ -177,7 +177,7 @@ const SitemapPage = () => {
   return (
     <>
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader
           title={'SiteMap'}
           backTo="/"

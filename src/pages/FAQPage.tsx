@@ -1,8 +1,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-//import MobileNav from '@/components/MobileNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Accordion,

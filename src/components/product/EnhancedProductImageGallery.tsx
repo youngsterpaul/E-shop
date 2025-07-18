@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Video, ZoomIn, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { isMobileUserAgent, useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import OptimizedImage from '../OptimizedImage';
 
 interface EnhancedProductImageGalleryProps {
@@ -102,11 +102,11 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-lg">
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
-        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'max-w-[320px]'}`}
+        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'max-w-[350px]'}`}
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
@@ -157,7 +157,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           </div>
         )}
         
-        {/* Navigation Arrows - Desktop Only */}
+        {/* Navigation Arrows - Desktop Only 
         {!isMobile && allMedia.length > 1 && (
           <>
             <Button
@@ -187,7 +187,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               <ChevronRight size={20} />
             </Button>
           </>
-        )}
+        )}  */}
       </div>
 
       {/* Thumbnail Strip - Desktop Only */}

@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Star, Upload, X, ArrowLeft, Settings } from 'lucide-react';
 import Header from '@/components/Header';
-import useIsMobile from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const WriteReviewPage = () => {
@@ -23,7 +23,7 @@ const WriteReviewPage = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const isMobile = useIsMobile;
+  const isMobile = isMobileUserAgent;
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);

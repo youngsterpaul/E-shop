@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
@@ -67,7 +67,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/products" element={<OptimizedProductsPage />} />
+            <Route path="/category" element={<OptimizedProductsPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             

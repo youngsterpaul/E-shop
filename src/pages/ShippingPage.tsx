@@ -16,7 +16,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Home, Plus, Edit, Trash2, Check, Settings } from 'lucide-react';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import useIsMobile from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface ShippingAddress {
   id: string;
@@ -33,7 +33,7 @@ const ShippingPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const isMobile = useIsMobile;
+  const isMobile = isMobileUserAgent();
   
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +52,7 @@ const ShippingPage = () => {
   
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate('/auth/signin');
       return;
     }
     
@@ -283,7 +283,7 @@ const ShippingPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader 
           title={'Shipping Address'}
           backTo="/"

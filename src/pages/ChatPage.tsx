@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import RealtimeChat from '@/components/chat/RealtimeChat';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Phone, Video } from 'lucide-react';
 import MobileNav from '@/components/MobileNav';
@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 const ChatPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     if (!user) {
@@ -36,7 +36,7 @@ const ChatPage = () => {
       <MobileHeader 
         title="Customer Support"
         rightAction={
-          <Link to="/faqs">
+          <Link to="/faq">
             <Button variant="ghost" size="sm" className="p-2">
               FAQs
             </Button>

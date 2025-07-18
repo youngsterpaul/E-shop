@@ -19,13 +19,13 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     if (!user) {

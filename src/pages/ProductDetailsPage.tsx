@@ -310,7 +310,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20 px-1' : 'pb-8'}`}>
+        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20' : 'pb-8'}`}>
           {/* Breadcrumb */}
           {!isMobile && (
             <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
@@ -324,7 +324,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Product Information */}
-            <div className="space-y-6">
+            <div className="space-y-6 mx-auto px-2">
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -407,7 +407,7 @@ const ProductDetailsPage = () => {
           
           {/* Tabbed Content */}
           <ProductTabs product={productForTabs} />
-          
+
           {/* Related Products */}
           <RelatedProductsCarousel 
             currentProduct={{ 

@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import ProductCard from './ProductCard';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface Product {
   id: string;
@@ -23,7 +23,7 @@ interface VirtualizedProductGridProps {
 }
 
 const VirtualizedProductGrid = ({ products, loading }: VirtualizedProductGridProps) => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   
   const { columnCount, columnWidth, rowHeight } = useMemo(() => {
     if (isMobile) {

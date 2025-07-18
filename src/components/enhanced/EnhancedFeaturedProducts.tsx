@@ -81,7 +81,7 @@ const EnhancedFeaturedProducts = memo(() => {
           HOT DEALS
         </h2>
       )}
-      <div className={`grid ${gridCols} bg-white p-4 gap-1 shadow-sm`}>
+      <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
         {Array.from({ length: visibleProductsCount || (isMobile ? initialMobileCount : initialDesktopCount) }).map((_, i) => (
           <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
         ))}
@@ -98,7 +98,7 @@ const EnhancedFeaturedProducts = memo(() => {
 
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className="pb-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
+      <section className={`mx-0 lg:mx-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'mt-4' : ''}`}>
         <div className="lg:px-0 md:px-0 sm:px-0 px-0 bg-white container">
           {/* Products Grid */}
           {!isMobile && (
