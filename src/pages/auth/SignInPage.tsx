@@ -266,7 +266,7 @@ const SignInPage = () => {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
-            © 2024 SmartKenya. All rights reserved.
+            © 2025 SmartKenya. All rights reserved.
           </p>
         </div>
       </div>

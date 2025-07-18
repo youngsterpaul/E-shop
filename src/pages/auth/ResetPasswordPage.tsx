@@ -94,38 +94,36 @@ const ResetPasswordPage = () => {
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="text-center space-y-6">
-        <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-          <CheckCircle className="h-8 w-8 text-green-600" />
-        </div>
-        
-        <div className="space-y-2">
-          <p className="text-gray-600">
-            Your password has been successfully reset. You can now sign in with your new password.
-          </p>
-        </div>
-        
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
-          <p className="font-medium mb-1">What's next:</p>
-          <ul className="space-y-1 text-left">
-            <li>• You'll be redirected to the sign-in page shortly</li>
-            <li>• Use your email and new password to sign in</li>
-            <li>• Consider updating your password manager</li>
-          </ul>
-        </div>
-        
-        <Button asChild className="w-full bg-orange-600 hover:bg-orange-700">
-          <Link to="/auth/signin">
-            Continue to Sign In
-          </Link>
-        </Button>
+  const SuccessContent = () => (
+    <div className="text-center space-y-6">
+      <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+        <CheckCircle className="h-8 w-8 text-green-600" />
       </div>
-    );
-  }
+      
+      <div className="space-y-2">
+        <p className="text-gray-600">
+          Your password has been successfully reset. You can now sign in with your new password.
+        </p>
+      </div>
+      
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
+        <p className="font-medium mb-1">What's next:</p>
+        <ul className="space-y-1 text-left">
+          <li>• You'll be redirected to the sign-in page shortly</li>
+          <li>• Use your email and new password to sign in</li>
+          <li>• Consider updating your password manager</li>
+        </ul>
+      </div>
+      
+      <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors">
+        <Link to="/auth/signin">
+          Continue to Sign In
+        </Link>
+      </Button>
+    </div>
+  );
 
-  return (
+  const ResetForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium text-gray-700">
@@ -139,7 +137,7 @@ const ResetPasswordPage = () => {
             placeholder="Enter your new password"
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
-            className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+            className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
             autoComplete="new-password"
             autoFocus
           />
@@ -168,7 +166,7 @@ const ResetPasswordPage = () => {
             placeholder="Confirm your new password"
             value={confirmPassword}
             onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-            className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+            className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
             autoComplete="new-password"
           />
           <button
@@ -186,7 +184,7 @@ const ResetPasswordPage = () => {
 
       <Button
         type="submit"
-        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-medium transition-colors"
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors"
         disabled={isSubmitting}
       >
         {isSubmitting ? (
@@ -199,7 +197,7 @@ const ResetPasswordPage = () => {
         )}
       </Button>
 
-      <div className="text-center">
+      <div className="text-center pt-4">
         <Link
           to="/auth/signin"
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700"
@@ -209,6 +207,44 @@ const ResetPasswordPage = () => {
         </Link>
       </div>
     </form>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* SmartKenya Logo/Brand */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Your smart shopping destination
+          </p>
+        </div>
+
+        {/* Reset Password Card */}
+        <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 text-center">
+              {isSuccess ? 'Password Reset Complete' : 'Reset your password'}
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 text-center">
+              {isSuccess 
+                ? 'Your password has been successfully updated' 
+                : 'Enter your new password below'
+              }
+            </p>
+          </div>
+
+          {isSuccess ? <SuccessContent /> : <ResetForm />}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
+            © 2025 SmartKenya. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

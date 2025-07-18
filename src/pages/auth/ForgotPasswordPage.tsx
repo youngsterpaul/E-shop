@@ -86,53 +86,51 @@ const ForgotPasswordPage = () => {
     setErrors({});
   };
   
-  if (isSubmitted) {
-    return (
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-gray-600">
-              We've sent a password reset link to:
-            </p>
-            <p className="font-semibold text-gray-900">{email}</p>
-          </div>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-            <p className="font-medium mb-1">Next steps:</p>
-            <ul className="space-y-1 text-left">
-              <li>• Check your email inbox for the reset link</li>
-              <li>• Click the link to reset your password</li>
-              <li>• If you don't see it, check your spam folder</li>
-              <li>• The link will expire in 1 hour for security</li>
-            </ul>
-          </div>
-          
-          <div className="space-y-3">
-            <Button
-              onClick={() => {
-                setIsSubmitted(false);
-                setEmail('');
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              Send another link
-            </Button>
-            
-            <Button asChild className="w-full bg-orange-600 hover:bg-orange-700">
-              <Link to="/auth/signin">
-                Return to sign in
-              </Link>
-            </Button>
-          </div>
-        </div>
-    );
-  }
+  const SuccessContent = () => (
+    <div className="text-center space-y-6">
+      <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+        <CheckCircle className="h-8 w-8 text-green-600" />
+      </div>
+      
+      <div className="space-y-2">
+        <p className="text-gray-600">
+          We've sent a password reset link to:
+        </p>
+        <p className="font-semibold text-gray-900">{email}</p>
+      </div>
+      
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <p className="font-medium mb-1">Next steps:</p>
+        <ul className="space-y-1 text-left">
+          <li>• Check your email inbox for the reset link</li>
+          <li>• Click the link to reset your password</li>
+          <li>• If you don't see it, check your spam folder</li>
+          <li>• The link will expire in 1 hour for security</li>
+        </ul>
+      </div>
+      
+      <div className="space-y-3">
+        <Button
+          onClick={() => {
+            setIsSubmitted(false);
+            setEmail('');
+          }}
+          variant="outline"
+          className="w-full h-12 rounded-lg font-medium"
+        >
+          Send another link
+        </Button>
+        
+        <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors">
+          <Link to="/auth/signin">
+            Return to sign in
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
 
-  return (
+  const ForgotPasswordForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Enhanced Error Display */}
       {authError && (
@@ -156,7 +154,7 @@ const ForgotPasswordPage = () => {
             placeholder="Enter your email address"
             value={email}
             onChange={handleEmailChange}
-            className={`pl-10 ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+            className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
             autoComplete="email"
             autoFocus
           />
@@ -168,7 +166,7 @@ const ForgotPasswordPage = () => {
       
       <Button 
         type="submit" 
-        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-medium transition-colors"
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors"
         disabled={isSubmitting}
       >
         {isSubmitting ? (
@@ -181,16 +179,54 @@ const ForgotPasswordPage = () => {
         )}
       </Button>
       
-      <div className="text-center">
+      <div className="text-center pt-4">
         <Link 
           to="/auth/signin" 
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700 transition-colors"
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back to sign in
         </Link>
       </div>
     </form>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* SmartKenya Logo/Brand */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Your smart shopping destination
+          </p>
+        </div>
+
+        {/* Forgot Password Card */}
+        <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 text-center">
+              {isSubmitted ? 'Reset Link Sent' : 'Forgot your password?'}
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 text-center">
+              {isSubmitted 
+                ? 'Check your email for reset instructions' 
+                : 'Enter your email address and we\'ll send you a reset link'
+              }
+            </p>
+          </div>
+
+          {isSubmitted ? <SuccessContent /> : <ForgotPasswordForm />}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
+            © 2025 SmartKenya. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 
