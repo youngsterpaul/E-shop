@@ -116,8 +116,8 @@ const ProductDetailsPage = () => {
   const generateMetaData = () => {
     if (!product) return {};
     
-    const title = `${product.name} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
-    const description = `${product.description || product.name} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
+    const title = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
+    const description = `${product.description || product.name.split('(')[0].trim()} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
     const image = product.image_urls?.[0] || '/placeholder.svg';
     
     return { title, description, image };

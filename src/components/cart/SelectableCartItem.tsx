@@ -17,6 +17,7 @@ interface SelectableCartItemProps {
     };
     variant_selections?: Record<string, string>;
     quantity: number;
+    onQuantityChange: (quantity: number) => void;
   };
   isSelected: boolean;
   onToggleSelect: () => void;
@@ -25,24 +26,8 @@ interface SelectableCartItemProps {
 }
 
 const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, className = '' }: SelectableCartItemProps) => {
-  const { updateQuantity, removeFromCart } = useCart();
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { removeFromCart } = useCart();
 
-  const handleQuantityChange = useCallback(async (newQuantity: number) => {
-    if (newQuantity < 1) {
-      handleRemove();
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      await updateQuantity(item.id, newQuantity);
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [item.id, updateQuantity]);
 
   const handleRemove = useCallback(async () => {
     try {
@@ -107,29 +92,26 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
         </Button>
         
         <div className="flex items-center border rounded-md">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity - 1)}
-          disabled={isUpdating || item.quantity <= 1}
-          className="h-8 w-8 p-0"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        
-        <span className="w-8 text-center font-medium">
-          {item.quantity}
-        </span>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity + 1)}
-          disabled={isUpdating}
-          className="h-8 w-8 p-0"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => item.onQuantityChange(Math.max(1, item.quantity - 1))}
+            className="h-10 w-10 p-0 hover:bg-gray-100"
+            disabled={item.quantity <= 1}
+          >
+            -
+          </Button>
+          <span className="h-10 px-4 flex items-center justify-center border-x min-w-[3rem]">
+            {item.quantity}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => item.onQuantityChange(item.quantity + 1)}
+            className="h-10 w-10 p-0 hover:bg-gray-100"
+          >
+            +
+          </Button>
         </div>
       </div>
     </div>
