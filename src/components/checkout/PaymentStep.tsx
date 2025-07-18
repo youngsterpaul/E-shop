@@ -124,6 +124,7 @@ export const PaymentStep = () => {
           .from('orders')
           .insert({
             order_id: orderId,
+            user_id: customerDetails.user_id,
             email: customerDetails.email,
             phone_number: customerDetails.phone,
             status: 'pending',

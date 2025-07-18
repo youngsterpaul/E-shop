@@ -15,6 +15,7 @@ export const CustomerDetailsStep = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    user_id: '',
     email: '',
     phone: ''
   });
@@ -27,6 +28,7 @@ export const CustomerDetailsStep = () => {
       firstName: customerDetails.firstName || profile?.first_name || '',
       lastName: customerDetails.lastName || profile?.last_name || '',
       email: customerDetails.email || user?.email || '',
+      user_id: customerDetails.user_id || profile?.user_id || '',
       phone: customerDetails.phone || profile?.phone || ''
     });
   }, [customerDetails, profile, user]);
@@ -147,7 +149,7 @@ export const CustomerDetailsStep = () => {
               id="phone"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="+254712345678 or 0712345678"
+              placeholder="0712345678"
               className={errors.phone ? 'border-red-500' : ''}
             />
             {errors.phone && (
