@@ -107,7 +107,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="p-2 flex flex-col flex-grow space-y-1">
           <Link to={`/product/${productSlug}/${product.id}`}>
             <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
-              {product.name}
+              {product.name.split('(')[0].trim()}
             </h3>
           </Link>
 

@@ -39,7 +39,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     let y = 8;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('SMART KENYA', receiptWidth / 2, y, { align: 'center' });
+    doc.text('SMARTKENYA', receiptWidth / 2, y, { align: 'center' });
     y += 6;
 
     doc.setFontSize(10);
@@ -119,7 +119,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     y += 7;
 
     // Generate the QR code as a data URL (encode order ID or payment link, etc)
-    const qrValue = order.order_id; // You may encode a url or payment statement instead.
+    const qrValue = `https://www.smartkenya.co.ke/order/${order.order_id}`; // You may encode a url or payment statement instead.
     const qrDataUrl = await QRCode.toDataURL(qrValue, { width: 80, margin: 1 });
 
     // Insert QR code image (centered)
@@ -131,7 +131,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.setFontSize(7);
     doc.text('Thank you for shopping with us!', receiptWidth / 2, y, { align: 'center' });
     y += 4;
-    doc.text('🌐 www.smartkenya.co.ke', receiptWidth / 2, y, { align: 'center' });
+    doc.text('www.smartkenya.co.ke', receiptWidth / 2, y, { align: 'center' });
 
     // Optionally, set a taller page if your content goes beyond initial 160mm
     // doc.internal.pageSize.setHeight(y + 10);

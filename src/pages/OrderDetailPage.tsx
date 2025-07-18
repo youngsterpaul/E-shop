@@ -223,25 +223,25 @@ const OrderDetailPage = () => {
   };
 
   // Show loading skeleton
-if (loading) {
-  return (
-    <>
-      {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader
-          title="Order Details"
-          backTo="/orders"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      <OrderDetailLoadingSkeleton />
-    </>
-  );
-}
+  if (loading) {
+    return (
+      <>
+        {!isMobile && <Header />}
+        {isMobile && (
+          <MobileHeader
+            title="Order Details"
+            backTo="/orders"
+            rightAction={
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            }
+          />
+        )}
+        <OrderDetailLoadingSkeleton />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
