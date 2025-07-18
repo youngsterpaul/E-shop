@@ -317,7 +317,7 @@ const ProductDetailsPage = () => {
           )}
 
           {/* Product Layout */}
-          <div className={`grid ${gridCols} p-4 max-w-7xl`}>
+          <div className={`grid ${gridCols} gap-1 max-w-7xl`}>
             {/* Enhanced Image Gallery */}
             <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
