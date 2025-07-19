@@ -26,6 +26,7 @@ export const PaymentStep = () => {
   // Calculate total with delivery
   const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 0;
   const finalTotal = calculations.total + deliveryCost;
+  const total = (finalTotal)-(calculations.tax);
 
   // Cleanup function
   const cleanup = () => {
@@ -128,7 +129,7 @@ export const PaymentStep = () => {
             email: customerDetails.email,
             phone_number: customerDetails.phone,
             status: 'pending',
-            amount: finalTotal,
+            amount: total,
             items: selectedItems as any,
             shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
             first_name: customerDetails.firstName,
@@ -231,7 +232,7 @@ export const PaymentStep = () => {
                 Check your phone and enter your M-Pesa PIN to complete the payment
               </p>
               <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Amount: KES {((finalTotal)-(calculations.tax)).toLocaleString()}</p>
                 <p className="text-sm text-gray-600">Phone: {customerDetails.phone}</p>
               </div>
             </CardContent>
@@ -295,7 +296,7 @@ export const PaymentStep = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-green-900">KES {finalTotal.toLocaleString()}</p>
+                    <p className="font-semibold text-green-900">KES {((finalTotal)-(calculations.tax)).toLocaleString()}</p>
                     <p className="text-sm text-green-700">{customerDetails.phone}</p>
                   </div>
                 </div>
