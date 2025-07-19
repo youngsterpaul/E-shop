@@ -52,7 +52,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
             <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         </div>
-        <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+        <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-square rounded-lg" />
@@ -97,44 +97,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
       </div>
 
-      {/* Desktop & Tablet Carousel */}
-      <div className="hidden md:block relative overflow-hidden bg-white shadow-sm`">
-        <div 
-          className="flex transition-transform duration-300 ease-in-out"
-          style={{ 
-            transform: `translateX(-${currentIndex * (100 / itemsPerView.desktop)}%)`,
-            width: `${(products.length / itemsPerView.desktop) * 100}%`
-          }}
-        >
-        {products.map((product) => {
-          const productCardData = {
-            id: product.product_id,
-            name: product.name,
-            price: product.price || 0,
-            originalPrice: undefined, // or map if available
-            image: product.image_urls?.[0] || '',
-            rating: product.rating || 4,
-            reviews: 0, // you can set default or map if available
-            discount: undefined, // map if available
-            category: product.categories || '',
-            inStock: true,
-          };
-
-          return (
-            <div
-              key={product.product_id}
-              className="flex-shrink-0"
-              style={{ width: `${100 / products.length}%` }}
-            >
-              <ProductCard product={productCardData} />
-            </div>
-          );
-        })}
-        </div>
-      </div>
-
-      {/* Mobile Grid */}
-      <div className="block md:hidden">
+      <div className="block">
         <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
