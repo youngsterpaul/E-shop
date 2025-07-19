@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";

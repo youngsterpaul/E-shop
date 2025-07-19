@@ -127,7 +127,7 @@ const SearchPage = () => {
                 <span className="font-semibold text-gray-900">{products.length}</span> 
                 {' '}product{products.length !== 1 ? 's' : ''} found
                 {searchQuery && (
-                  <span> for "<span className="font-medium text-orange-600">{searchQuery}</span>"</span>
+                  <span> for "<span className="font-medium text-orange-600">{searchQuery.split('(')[0].trim()}</span>"</span>
                 )}
               </p>
               
