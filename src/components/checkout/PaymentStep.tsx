@@ -17,7 +17,8 @@ export const PaymentStep = () => {
     setStep 
   } = useCheckout();
   
-  const { calculations, selectedItems } = useSelectiveCart();
+  // Use getSelectedItems() instead of selectedItems to get full item objects
+  const { calculations, getSelectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
   const [timeoutTimer, setTimeoutTimer] = useState<NodeJS.Timeout | null>(null);
@@ -120,6 +121,22 @@ export const PaymentStep = () => {
     try {
       // Use Promise.race to enforce 30-second timeout on the entire process
       const paymentProcess = async () => {
+        // Get the full selected items with all details
+        const selectedItemsWithDetails = getSelectedItems();
+        
+        // Transform items to match your expected structure
+        const orderItems = selectedItemsWithDetails.map(item => ({
+          id: item.id,
+          product: {
+            id: item.product.id,
+            name: item.product.name,
+            price: item.product.price,
+            image: item.product.image
+          },
+          variant_selections: item.variant_selections || {},
+          quantity: item.quantity
+        }));
+
         // First create the order in the database (optimized query)
         const { data: order, error: orderError } = await supabase
           .from('orders')
@@ -130,7 +147,7 @@ export const PaymentStep = () => {
             phone_number: customerDetails.phone,
             status: 'pending',
             amount: total,
-            items: selectedItems as any,
+            items: orderItems, // Use the properly formatted items
             shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
             first_name: customerDetails.firstName,
             last_name: customerDetails.lastName,
