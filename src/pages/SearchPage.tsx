@@ -87,7 +87,7 @@ const SearchPage = () => {
       </div>
 
       {/* Search Results */}
-      <div className={`w-full px-0 lg:px-16 mx-auto`}>
+      <div className={`w-full mx-0 lg:mx-16 mx-auto`}>
         {isLoading ? (
           <div className="space-y-6 //mx-auto">
             <div className="flex items-center justify-center py-8">
@@ -138,7 +138,7 @@ const SearchPage = () => {
               {products.map((product) => {
                 const productData = {
                   id: product.product_id,
-                  name: product.name,
+                  name: product.name.split('(')[0].trim(),
                   price: product.price,
                   originalPrice: product.price * 1.2, // Example discount calculation
                   image: product.image_urls?.[0] || '',
