@@ -4,6 +4,7 @@ import Header from '../Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '../ui/mobile-header';
 import { ShoppingBag } from 'lucide-react';
+import MobileNav from '../MobileNav';
 
 const CartSkeleton = () => {
   const isMobile = isMobileUserAgent();
@@ -118,6 +119,7 @@ const CartSkeleton = () => {
           </div>
         </div>
       </div>
+      <MobileNav />
     </div>
   );
 };
