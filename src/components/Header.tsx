@@ -167,7 +167,7 @@ const Header = () => {
               </Link>
 
               <Button 
-                onClick={() => navigate('/products')}
+                onClick={() => navigate('/category')}
                 variant="ghost" 
                 className="px-2 flex"
               >
