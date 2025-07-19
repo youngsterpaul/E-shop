@@ -57,7 +57,7 @@ const OptimizedProductsPage = () => {
         )}
 
         <main className="flex-grow pt-6 pb-16">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto">
             {/* Breadcrumb */}
             {!isMobile && (
               <SiteBreadcrumb 
