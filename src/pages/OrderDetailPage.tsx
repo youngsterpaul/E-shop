@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,7 +16,21 @@ import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
+// Updated interface to match the structure you're saving
 interface OrderItem {
+  id: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+  };
+  variant_selections?: Record<string, any>;
+  quantity: number;
+}
+
+// Legacy interface for receipt generation (if needed)
+interface LegacyOrderItem {
   product_id: string;
   quantity: number;
   name: string;
@@ -34,6 +49,8 @@ interface Order {
   shipping_address: string | null;
   created_at: string;
   updated_at: string;
+  first_name?: string;
+  last_name?: string;
   mpesa_checkout_request_id?: string;
   payment_id?: string;
 }
@@ -207,7 +224,18 @@ const OrderDetailPage = () => {
   const handleDownloadReceipt = () => {
     if (order) {
       try {
-        downloadReceipt(order);
+        // Transform the order to match the expected structure for downloadReceipt
+        const transformedOrder = {
+          ...order,
+          items: order.items?.map(item => ({
+            product_id: item.product.id,
+            quantity: item.quantity,
+            name: item.product.name,
+            price: item.product.price,
+            image: item.product.image
+          })) || null
+        };
+        downloadReceipt(transformedOrder);
         toast({
           title: "Receipt downloaded",
           description: "The receipt has been downloaded successfully.",
@@ -220,6 +248,24 @@ const OrderDetailPage = () => {
         });
       }
     }
+  };
+
+  // Function to display variant selections
+  const renderVariantSelections = (variant_selections?: Record<string, any>) => {
+    if (!variant_selections || Object.keys(variant_selections).length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="text-sm text-gray-500 mb-2">
+        {Object.entries(variant_selections).map(([key, value], index) => (
+          <span key={key}>
+            {key}: {value}
+            {index < Object.entries(variant_selections).length - 1 && ', '}
+          </span>
+        ))}
+      </div>
+    );
   };
 
   // Show loading skeleton
@@ -346,6 +392,12 @@ const OrderDetailPage = () => {
                       <h3 className="font-semibold text-gray-900">Contact Information</h3>
                     </div>
                     <div className="pl-8 space-y-2">
+                      {order.first_name && order.last_name && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400">👤</span>
+                          <p className="text-gray-700">{order.first_name} {order.last_name}</p>
+                        </div>
+                      )}
                       {order.email && (
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-gray-400" />
@@ -383,10 +435,10 @@ const OrderDetailPage = () => {
                       {order.items.map((item, i) => (
                         <div key={i} className="flex py-6 items-center justify-between first:pt-0 last:pb-0">
                           <div className="flex items-center flex-1">
-                            {item.image ? (
+                            {item.product.image ? (
                               <img 
-                                src={item.image} 
-                                alt={item.name}
+                                src={item.product.image} 
+                                alt={item.product.name}
                                 className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                               />
                             ) : (
@@ -396,14 +448,15 @@ const OrderDetailPage = () => {
                             )}
                             
                             <div className="ml-6 flex-1">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-1">{item.name}</h4>
+                              <h4 className="font-semibold text-gray-900 text-lg mb-1">{item.product.name}</h4>
+                              {renderVariantSelections(item.variant_selections)}
                               <p className="text-gray-500 mb-3">Quantity: {item.quantity}</p>
                               <div className="space-y-1">
                                 <p className="font-semibold text-gray-900">
-                                  Ksh {(item.price || 0).toLocaleString()} each
+                                  Ksh {(item.product.price || 0).toLocaleString()} each
                                 </p>
                                 <p className="text-lg font-bold text-primary">
-                                  Total: Ksh {((item.price || 0) * (item.quantity || 0)).toLocaleString()}
+                                  Total: Ksh {((item.product.price || 0) * (item.quantity || 0)).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -413,8 +466,8 @@ const OrderDetailPage = () => {
                           {order.status === 'delivered' && (
                             <div className="ml-6">
                               <ReviewButton 
-                                productId={item.product_id}
-                                productName={item.name}
+                                productId={item.product.id}
+                                productName={item.product.name}
                                 size="sm"
                               />
                             </div>
