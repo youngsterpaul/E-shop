@@ -74,7 +74,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
     // Add product-based suggestions
     const productSuggestions: SearchSuggestion[] = products
       ? products.slice(0, 4).map(product => ({
-          text: product.name.split('(')[0].trim(),
+          text: product.name,
           category: 'product' as const
         }))
       : [];
