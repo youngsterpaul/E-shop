@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import {
   Accordion,
   AccordionContent,
@@ -14,7 +14,7 @@ import { Search, Settings } from 'lucide-react';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const FAQPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   const faqCategories = [
     {
@@ -106,15 +106,15 @@ const FAQPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
         {!isMobile && <Header />}
-        <MobileHeader
+        {!isMobile && ( <MobileHeader
           title="FAQs"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
         /> 
+        )}
       <main className="flex-grow container py-8">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
