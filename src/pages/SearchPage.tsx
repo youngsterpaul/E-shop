@@ -87,7 +87,7 @@ const SearchPage = () => {
       </div>
 
       {/* Search Results */}
-      <div className={`w-full mx-0 lg:mx-16 mx-auto`}>
+      <div className={`w-full px-0 lg:px-16 mx-auto`}>
         {isLoading ? (
           <div className="space-y-6 //mx-auto">
             <div className="flex items-center justify-center py-8">
