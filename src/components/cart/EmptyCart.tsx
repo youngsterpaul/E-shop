@@ -32,7 +32,7 @@ const EmptyCart = () => {
         />
       } 
       <MobileNav /> 
-      <div className="container mx-auto py-12">
+      <div className="py-12">
         {/* Empty Cart Section */}
         <div className="text-center mb-16">
           <div className="relative mb-8">
@@ -51,10 +51,10 @@ const EmptyCart = () => {
         </div>
 
         {/* Featured Products Section */}
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
           {isLoading ? (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (
                 <ProductSkeleton key={index} />
               ))}
