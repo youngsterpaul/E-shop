@@ -82,8 +82,6 @@ export const loadComponentOnDemand = async (componentName: string) => {
       return import('../pages/ProductDetailsPage');
     case 'CartPage':
       return import('../pages/CartPage');
-    case 'CheckoutPage':
-      return import('../pages/CheckoutPage');
     default:
       throw new Error(`Component ${componentName} not found`);
   }
