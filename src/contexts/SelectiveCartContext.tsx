@@ -100,13 +100,13 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   // Calculate totals
   const calculations = React.useMemo((): CartCalculations => {
     const selectedItems = getSelectedItems();
-    const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity) - tax, 0);
+    const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
     const shipping = shippingOption ? shippingOption.price : 0;
     const discount = appliedCoupons.reduce((total, coupon) => {
       return total + (coupon.type === 'percentage' ? subtotal * coupon.discount / 100 : coupon.discount);
     }, 0);
     const tax = subtotal * 0.16; // 16% tax
-    const total = subtotal + shipping - discount;
+    const total = subtotal + shipping + tax - discount;
 
     return {
       subtotal,
