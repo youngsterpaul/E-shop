@@ -100,7 +100,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
       {/* Desktop & Tablet Carousel */}
       <div className="hidden md:block relative overflow-hidden bg-white shadow-sm`">
         <div 
-          className={`grid ${gridCols} bg-white gap-1 shadow-sm transition-transform duration-300 ease-in-out`}
+          className={`transition-transform duration-300 ease-in-out`}
           style={{ 
             transform: `translateX(-${currentIndex * (100 / itemsPerView.desktop)}%)`,
             width: `${(products.length / itemsPerView.desktop) * 100}%`
@@ -124,7 +124,6 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
             <div
               key={product.product_id}
               className="flex-shrink-0"
-              style={{ width: `${100 / products.length}%` }}
             >
               <ProductCard product={productCardData} />
             </div>
