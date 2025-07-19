@@ -2,7 +2,7 @@
 import { ArrowLeft, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface MobileHeaderProps {
   title: string;
@@ -13,7 +13,7 @@ interface MobileHeaderProps {
 
 export const MobileHeader = ({ title, onBack, backTo, rightAction }: MobileHeaderProps) => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   const handleBack = () => {
     if (onBack) {
