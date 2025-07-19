@@ -105,6 +105,7 @@ const FAQPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <main className="flex-grow container py-8">
         {!isMobile && <Header />}
         {!isMobile && ( <MobileHeader
           title="FAQs"
@@ -115,8 +116,7 @@ const FAQPage = () => {
           }
         /> 
         )}
-      <main className="flex-grow container py-8">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">
             Find answers to commonly asked questions about our products, ordering, shipping, and more.
