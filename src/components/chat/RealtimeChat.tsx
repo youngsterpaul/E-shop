@@ -1,136 +1,92 @@
-import { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import { MessageCircle, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Send } from 'lucide-react';
-import { useRealtimeChat } from '@/hooks/useRealtimeChat';
-import { useAuth } from '@/hooks/useAuth';
-import { Link } from 'react-router-dom';
-import { formatWhatsAppDate, shouldShowDateSeparator } from '@/utils/dateFormatting';
 
 const RealtimeChat = () => {
-  const [message, setMessage] = useState('');
-  const { messages, sendMessage, isTyping, markMessagesAsRead } = useRealtimeChat();
-  const { user } = useAuth();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const phoneNumber = "+254798229783";
+  const email = "support@smartkenya.co.ke";
+  
+  const handleWhatsAppClick = () => {
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=Hello, I need support with my account`;
+    window.open(whatsappUrl, '_blank');
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Mark messages as read when component mounts or user opens chat
-  useEffect(() => {
-    if (user) {
-      markMessagesAsRead();
-    }
-  }, [user, markMessagesAsRead]);
-
-  const handleSendMessage = () => {
-    if (!message.trim() || !user) return;
-    sendMessage(message);
-    setMessage('');
+  const handleCallClick = () => {
+    window.location.href = `tel:${phoneNumber}`;
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
+  const handleEmailClick = () => {
+    window.location.href = `mailto:${email}?subject=Support Request`;
   };
-
-  if (!user) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-4">
-        <h3 className="text-lg font-semibold mb-4">Please sign in to start chatting</h3>
-        <p className="text-gray-600 mb-6 text-center">You need to be logged in to access customer support chat.</p>
-        <Link to="/auth/signin">
-          <Button className="bg-primary hover:bg-primary/90">
-            Sign In
-          </Button>
-        </Link>
-      </div>
-    );
-  }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Messages with overflow scrolling */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50">
-        {messages.map((msg, index) => {
-          const showDateSeparator = shouldShowDateSeparator(
-            msg.timestamp, 
-            index > 0 ? messages[index - 1].timestamp : undefined
-          );
-
-          return (
-            <div key={msg.id}>
-              {/* Date Separator */}
-              {showDateSeparator && (
-                <div className="flex justify-center my-4">
-                  <div className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
-                    {formatWhatsAppDate(msg.timestamp)}
-                  </div>
-                </div>
-              )}
-              
-              {/* Message */}
-              <div className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    msg.sender === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-white border border-gray-200'
-                  }`}
-                >
-                  <p className="text-sm">{msg.text}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {msg.timestamp.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
+    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gray-50">
+      <div className="w-full max-w-md space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <MessageCircle className="w-8 h-8 text-blue-600" />
           </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+          <h2 className="text-2xl font-bold text-gray-900">Get in Touch</h2>
+          <p className="text-gray-600">
+            We're here to help! Choose your preferred way to contact us.
+          </p>
+        </div>
 
-      {/* Message Input - Fixed at bottom */}
-      <div className="p-4 bg-white border-t">
-        <div className="flex gap-3">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1"
-            disabled={isTyping}
-          />
-          <Button 
-            onClick={handleSendMessage}
-            className="bg-primary hover:bg-primary/90"
-            size="icon"
-            disabled={isTyping || !message.trim()}
+        {/* Contact Options */}
+        <div className="space-y-4">
+          {/* WhatsApp */}
+          <Button
+            onClick={handleWhatsAppClick}
+            className="w-full bg-green-500 hover:bg-green-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
           >
-            <Send size={20} />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-lg">Chat us on WhatsApp</div>
+                <div className="text-sm opacity-90">{phoneNumber}</div>
+              </div>
+            </div>
           </Button>
+
+          {/* Phone Call */}
+          <Button
+            onClick={handleCallClick}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                <Phone className="w-6 h-6 text-blue-500" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-lg">Call Us</div>
+                <div className="text-sm opacity-90">{phoneNumber}</div>
+              </div>
+            </div>
+          </Button>
+
+          {/* Email */}
+          <Button
+            onClick={handleEmailClick}
+            className="w-full bg-purple-500 hover:bg-purple-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                <Mail className="w-6 h-6 text-purple-500" />
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-lg">Email Us</div>
+                <div className="text-sm opacity-90">{email}</div>
+              </div>
+            </div>
+          </Button>
+        </div>
+
+        {/* Additional Info */}
+        <div className="text-center text-sm text-gray-500 mt-6">
+          <p>Our support team is available 24/7 to assist you</p>
         </div>
       </div>
     </div>
