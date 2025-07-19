@@ -98,7 +98,7 @@ const EnhancedFeaturedProducts = memo(() => {
 
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`mx-0 lg:mx-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'mt-4' : ''}`}>
+      <section className={`px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'pt-4' : ''}`}>
         <div className="lg:px-0 md:px-0 sm:px-0 px-0 bg-white container">
           {/* Products Grid */}
           {!isMobile && (

@@ -75,7 +75,7 @@ const [products, setProducts] = useState([]);
       .from('products')
       .select('*')
       .eq('featured', true)
-      .limit(8);
+      .limit(1000);
       
     if (error) {
       console.error('Error fetching featured products:', error);
