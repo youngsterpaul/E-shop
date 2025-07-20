@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,8 +50,9 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
+      {!isMobile && ( 
         <MobileHeader
           title="Contact Us"
           backTo="/"
@@ -62,7 +61,7 @@ const ContactPage = () => {
               <Settings className="h-4 w-4" />
             </Button>
           }
-        />
+        />)}
       <main className="flex-grow container py-8">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold mb-2">Contact Us</h1>

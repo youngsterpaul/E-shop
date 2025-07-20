@@ -42,7 +42,7 @@ const AboutPage = () => {
         })}
       </script>
           
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       <MobileHeader 
         title="About SmartKenya"

@@ -185,9 +185,10 @@ const CareersPage = () => {
         <meta name="description" content="Explore exciting career opportunities at our company. Join our team and help shape the future of digital commerce." />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        <MobileHeader
+        {isMobile && ( 
+          <MobileHeader
           title="Careers"
           backTo="/"
           rightAction={
@@ -196,6 +197,7 @@ const CareersPage = () => {
             </Button>
           }
         />
+        )}
          {/* Hero Section */}
         <section className="relative py-20 px-4 text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>

@@ -40,9 +40,10 @@ const PrivacyPage = () => {
         })}
       </script>
 
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        <MobileHeader
+        {isMobile && ( 
+          <MobileHeader
           title="Privacy Policy"
           backTo="/"
           rightAction={
@@ -50,17 +51,16 @@ const PrivacyPage = () => {
               <Settings className="h-4 w-4" />
             </Button>
           }
-        />
+        /> 
+        )}
       <main className="flex-grow container py-8">
-          <div className="container mx-auto px-4">
-            {/* Breadcrumb */}
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Privacy Policy' }
-              ]}
-              className="mb-6"
-            />
+        <SiteBreadcrumb 
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Privacy Policy' }
+          ]}
+          className="mb-6"
+        />
 
           <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
           <div className="bg-white rounded-lg shadow-md p-6 prose prose-orange max-w-none">
@@ -197,7 +197,6 @@ const PrivacyPage = () => {
               </p>
             </section>
           </div>
-        </div>
       </main>
       
       

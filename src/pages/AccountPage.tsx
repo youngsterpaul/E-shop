@@ -56,12 +56,6 @@ const AccountPage = () => {
       href: '/orders',
     },
     {
-      icon: MapPin,
-      title: 'Shipping Addresses',
-      description: 'Manage delivery addresses',
-      href: '/shipping',
-    },
-    {
       icon: Heart,
       title: 'Wishlist',
       description: 'Your saved items',
@@ -94,7 +88,7 @@ const AccountPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       <MobileHeader 
         title="My Account"

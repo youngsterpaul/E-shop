@@ -146,7 +146,7 @@ const WriteReviewPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 
@@ -215,7 +215,7 @@ const WriteReviewPage = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         
         <main className="flex-grow container py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
@@ -247,7 +247,7 @@ const WriteReviewPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 

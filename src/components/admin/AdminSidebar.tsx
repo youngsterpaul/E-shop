@@ -56,16 +56,6 @@ const AdminSidebar = () => {
       path: '/admin/orders',
     },
     {
-      name: 'Chat Management',
-      icon: MessageSquare,
-      path: '/admin/chat',
-    },
-    {
-      name: 'Notifications',
-      icon: Bell,
-      path: '/admin/notifications',
-    },
-    {
       name: 'Users',
       icon: Users,
       path: '/admin/users',

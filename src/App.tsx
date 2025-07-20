@@ -26,7 +26,6 @@ const SignInPage = lazy(() => import("./pages/auth/SignInPage"));
 const SignUpPage = lazy(() => import("./pages/auth/SignUpPage"));
 const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
 
-const ShippingPage = lazy(() => import("./pages/ShippingPage"));
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
 
 const AboutPage = lazy(() => import("./pages/AboutPage"));
@@ -51,8 +50,6 @@ const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
-
-const AdminNotificationsPage = lazy(() => import("./pages/admin/AdminNotificationsPage"));
 
 // Add the lazy import for OptimizedProductsPage
 const OptimizedProductsPage = lazy(() => import("./pages/OptimizedProductsPage"));
@@ -85,7 +82,6 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order/:id" element={<OrderDetailPage />} />
-            <Route path="/shipping" element={<ShippingPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -108,8 +104,6 @@ function App() {
             <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
-
-            <Route path="/admin/notifications" element={<AdminRoute><AdminNotificationsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

@@ -104,10 +104,11 @@ const FAQPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       <main className="flex-grow container py-8">
         {!isMobile && <Header />}
-        {!isMobile && ( <MobileHeader
+        {isMobile && ( 
+         <MobileHeader
           title="FAQs"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
@@ -116,7 +117,6 @@ const FAQPage = () => {
           }
         /> 
         )}
-        <div className="container mx-auto">
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">
             Find answers to commonly asked questions about our products, ordering, shipping, and more.
@@ -164,10 +164,7 @@ const FAQPage = () => {
               Contact Support
             </Button>
           </div>
-        </div>
       </main>
-      
-    
     </div>
   );
 };

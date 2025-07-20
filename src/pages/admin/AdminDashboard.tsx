@@ -18,19 +18,9 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { supabase } from '@/integrations/supabase/client';
-
-interface ChatSession {
-  session_id: string;
-  user_email?: string;
-  last_message: string;
-  last_timestamp: string;
-  unread_count: number;
-}
 
 const AdminDashboard = () => {
   const { toast } = useToast();
-  const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   
   const {
     useSummaryMetrics,
@@ -46,78 +36,6 @@ const AdminDashboard = () => {
   const { data: productsByCategory, isLoading: categoryLoading } = useProductsByCategory();
   const { data: lowStockProducts, isLoading: stockLoading } = useLowStockProducts();
 
-  // Fetch recent chat sessions
-  useEffect(() => {
-    fetchRecentChats();
-    setupRealtimeSubscription();
-  }, []);
-
-  const fetchRecentChats = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select(`
-          session_id,
-          user_id,
-          text,
-          timestamp,
-          is_read,
-          sender,
-          profiles(email)
-        `)
-        .order('timestamp', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      // Group by session and get session info
-      const sessionMap = new Map<string, ChatSession>();
-      
-      data?.forEach((msg: any) => {
-        const sessionId = msg.session_id;
-        if (!sessionMap.has(sessionId)) {
-          sessionMap.set(sessionId, {
-            session_id: sessionId,
-            user_email: msg.profiles?.email || 'Guest User',
-            last_message: msg.text,
-            last_timestamp: msg.timestamp,
-            unread_count: 0,
-          });
-        }
-        
-        // Count unread messages from users
-        if (!msg.is_read && msg.sender === 'user') {
-          const session = sessionMap.get(sessionId)!;
-          session.unread_count++;
-        }
-      });
-
-      setRecentChats(Array.from(sessionMap.values()).slice(0, 5));
-    } catch (error) {
-      console.error('Error fetching recent chats:', error);
-    }
-  };
-
-  const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('dashboard_chat_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-        },
-        () => {
-          fetchRecentChats();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -201,50 +119,6 @@ const AdminDashboard = () => {
                     <Line type="monotone" dataKey="total_revenue" stroke="#8884d8" />
                   </LineChart>
                 </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Chats */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Recent Chats
-              </CardTitle>
-              <Link to="/admin/chat">
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  View All
-                </Button>
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recentChats.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No recent chats</p>
-              ) : (
-                recentChats.map((chat) => (
-                  <Link
-                    key={chat.session_id}
-                    to={`/admin/chat?session=${chat.session_id}`}
-                    className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm">{chat.user_email}</span>
-                      {chat.unread_count > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {chat.unread_count}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {chat.last_message}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(chat.last_timestamp).toLocaleString()}
-                    </p>
-                  </Link>
-                ))
               )}
             </CardContent>
           </Card>

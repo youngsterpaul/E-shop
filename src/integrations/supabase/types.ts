@@ -266,136 +266,6 @@ export type Database = {
           },
         ]
       }
-      chat_messages: {
-        Row: {
-          id: string
-          is_read: boolean | null
-          profile_id: string | null
-          sender: string
-          session_id: string
-          text: string
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          id?: string
-          is_read?: boolean | null
-          profile_id?: string | null
-          sender: string
-          session_id: string
-          text: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          id?: string
-          is_read?: boolean | null
-          profile_id?: string | null
-          sender?: string
-          session_id?: string
-          text?: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      constituencies: {
-        Row: {
-          constituency_id: number
-          county_id: number
-          name: string
-        }
-        Insert: {
-          constituency_id?: number
-          county_id: number
-          name: string
-        }
-        Update: {
-          constituency_id?: number
-          county_id?: number
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_county"
-            columns: ["county_id"]
-            isOneToOne: false
-            referencedRelation: "counties"
-            referencedColumns: ["county_id"]
-          },
-        ]
-      }
-      counties: {
-        Row: {
-          county_id: number
-          name: string
-        }
-        Insert: {
-          county_id?: number
-          name: string
-        }
-        Update: {
-          county_id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      coupons: {
-        Row: {
-          code: string
-          created_at: string | null
-          description: string | null
-          discount_type: string
-          discount_value: number
-          id: string
-          is_active: boolean | null
-          max_uses: number | null
-          min_order_amount: number | null
-          updated_at: string | null
-          used_count: number | null
-          valid_from: string | null
-          valid_until: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          description?: string | null
-          discount_type: string
-          discount_value: number
-          id?: string
-          is_active?: boolean | null
-          max_uses?: number | null
-          min_order_amount?: number | null
-          updated_at?: string | null
-          used_count?: number | null
-          valid_from?: string | null
-          valid_until?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          description?: string | null
-          discount_type?: string
-          discount_value?: number
-          id?: string
-          is_active?: boolean | null
-          max_uses?: number | null
-          min_order_amount?: number | null
-          updated_at?: string | null
-          used_count?: number | null
-          valid_from?: string | null
-          valid_until?: string | null
-        }
-        Relationships: []
-      }
       daily_sales: {
         Row: {
           created_at: string | null
@@ -422,65 +292,6 @@ export type Database = {
           total_revenue?: number | null
         }
         Relationships: []
-      }
-      inventory_movements: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          movement_type: string
-          product_id: string
-          quantity: number
-          reason: string | null
-          reference_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          movement_type: string
-          product_id: string
-          quantity: number
-          reason?: string | null
-          reference_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          movement_type?: string
-          product_id?: string
-          quantity?: number
-          reason?: string | null
-          reference_id?: string | null
-        }
-        Relationships: []
-      }
-      locations: {
-        Row: {
-          constituency_id: number
-          location_id: number
-          name: string
-        }
-        Insert: {
-          constituency_id: number
-          location_id?: number
-          name: string
-        }
-        Update: {
-          constituency_id?: number
-          location_id?: number
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_constituency"
-            columns: ["constituency_id"]
-            isOneToOne: false
-            referencedRelation: "constituencies"
-            referencedColumns: ["constituency_id"]
-          },
-        ]
       }
       mpesa_payments: {
         Row: {
@@ -534,181 +345,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mpesa_payments_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["order_id"]
-          },
-        ]
-      }
-      mpesa_transactions: {
-        Row: {
-          amount: number
-          checkout_request_id: string
-          created_at: string | null
-          id: string
-          merchant_request_id: string | null
-          mpesa_receipt_number: string | null
-          order_id: string | null
-          phone_number: string
-          result_code: number | null
-          result_description: string | null
-          status: string | null
-          transaction_date: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          checkout_request_id: string
-          created_at?: string | null
-          id?: string
-          merchant_request_id?: string | null
-          mpesa_receipt_number?: string | null
-          order_id?: string | null
-          phone_number: string
-          result_code?: number | null
-          result_description?: string | null
-          status?: string | null
-          transaction_date?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          checkout_request_id?: string
-          created_at?: string | null
-          id?: string
-          merchant_request_id?: string | null
-          mpesa_receipt_number?: string | null
-          order_id?: string | null
-          phone_number?: string
-          result_code?: number | null
-          result_description?: string | null
-          status?: string | null
-          transaction_date?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mpesa_transactions_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["order_id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_read: boolean | null
-          message: string
-          title: string
-          type: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          message: string
-          title: string
-          type: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          message?: string
-          title?: string
-          type?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      order_items: {
-        Row: {
-          created_at: string | null
-          id: string
-          order_id: string | null
-          product_id: string | null
-          quantity: number
-          total_price: number
-          unit_price: number
-          variant_selections: Json | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          order_id?: string | null
-          product_id?: string | null
-          quantity: number
-          total_price: number
-          unit_price: number
-          variant_selections?: Json | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          order_id?: string | null
-          product_id?: string | null
-          quantity?: number
-          total_price?: number
-          unit_price?: number
-          variant_selections?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["order_id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-        ]
-      }
-      order_status_history: {
-        Row: {
-          changed_at: string | null
-          changed_by: string | null
-          id: string
-          new_status: string
-          notes: string | null
-          old_status: string | null
-          order_id: string
-        }
-        Insert: {
-          changed_at?: string | null
-          changed_by?: string | null
-          id?: string
-          new_status: string
-          notes?: string | null
-          old_status?: string | null
-          order_id: string
-        }
-        Update: {
-          changed_at?: string | null
-          changed_by?: string | null
-          id?: string
-          new_status?: string
-          notes?: string | null
-          old_status?: string | null
-          order_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_status_history_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
@@ -799,48 +435,6 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
-      }
-      payments: {
-        Row: {
-          amount: number | null
-          created_at: string
-          email: string
-          id: string
-          metadata: Json | null
-          mpesa_checkout_request_id: string | null
-          mpesa_code: string | null
-          phone_number: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          amount?: number | null
-          created_at?: string
-          email: string
-          id?: string
-          metadata?: Json | null
-          mpesa_checkout_request_id?: string | null
-          mpesa_code?: string | null
-          phone_number?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number | null
-          created_at?: string
-          email?: string
-          id?: string
-          metadata?: Json | null
-          mpesa_checkout_request_id?: string | null
-          mpesa_code?: string | null
-          phone_number?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       product_variants: {
         Row: {
@@ -1059,38 +653,6 @@ export type Database = {
           },
         ]
       }
-      review_votes: {
-        Row: {
-          created_at: string
-          id: string
-          review_id: string
-          user_id: string
-          vote_type: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          review_id: string
-          user_id: string
-          vote_type: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          review_id?: string
-          user_id?: string
-          vote_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "review_votes_review_id_fkey"
-            columns: ["review_id"]
-            isOneToOne: false
-            referencedRelation: "reviews"
-            referencedColumns: ["review_id"]
-          },
-        ]
-      }
       reviews: {
         Row: {
           comment: string
@@ -1132,48 +694,6 @@ export type Database = {
           },
         ]
       }
-      user_shipping_addresses: {
-        Row: {
-          city: string
-          country: string
-          created_at: string | null
-          id: string
-          is_default: boolean | null
-          phone_number: string
-          postal_code: string | null
-          recipient_name: string
-          street_address: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          city: string
-          country?: string
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          phone_number: string
-          postal_code?: string | null
-          recipient_name: string
-          street_address: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          city?: string
-          country?: string
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          phone_number?: string
-          postal_code?: string | null
-          recipient_name?: string
-          street_address?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       wishlists: {
         Row: {
           added_at: string | null
@@ -1212,10 +732,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      get_auto_reply_response: {
-        Args: { message_text: string }
-        Returns: string
-      }
       get_or_create_cart: {
         Args: { p_user_id?: string; p_session_id?: string }
         Returns: string
@@ -1223,10 +739,6 @@ export type Database = {
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
-      }
-      notify_admin_no_reply: {
-        Args: { user_message_id: string; user_id: string; message_text: string }
-        Returns: undefined
       }
       update_order_first_name: {
         Args: { order_id: number; first_name: string }

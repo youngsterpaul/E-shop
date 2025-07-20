@@ -41,7 +41,7 @@ const OptimizedProductsPage = () => {
         })}
       </script>
       
-      <div className={`flex flex-col min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
@@ -57,7 +57,6 @@ const OptimizedProductsPage = () => {
         )}
 
         <main className="flex-grow pt-6 pb-16">
-          <div className="container mx-auto">
             {/* Breadcrumb */}
             {!isMobile && (
               <SiteBreadcrumb 
@@ -70,7 +69,6 @@ const OptimizedProductsPage = () => {
             )}
 
         <CategoryIcons />
-        </div>
         <MobileNav />
         </main>
       </div>

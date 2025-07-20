@@ -5,7 +5,6 @@ import ProductCard from '@/components/ProductCard';
 import { useProductSearch } from '@/hooks/useProducts';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { ArrowLeft, ChevronLeft, SearchIcon, Settings } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';

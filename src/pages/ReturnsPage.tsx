@@ -1,8 +1,6 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-//import MobileNav from '@/components/MobileNav';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +11,7 @@ const ReturnsPage = () => {
   const isMobile = isMobileUserAgent();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 

@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
-import { PasswordResetHandler } from '@/components/auth/PasswordResetHandler';
-import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();

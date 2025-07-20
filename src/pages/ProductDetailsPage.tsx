@@ -128,7 +128,7 @@ const ProductDetailsPage = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Product Details"

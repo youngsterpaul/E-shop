@@ -290,7 +290,7 @@ const OrderDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/50">
+    <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader

@@ -210,11 +210,6 @@ const Header = () => {
                         <ShoppingBag className="mr-2 h-4 w-4" /> My Orders
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/shipping" className="cursor-pointer flex items-center">
-                        <MapPin className="mr-2 h-4 w-4" /> Shipping Addresses
-                      </Link>
-                    </DropdownMenuItem>
                     {profile?.is_admin && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="cursor-pointer flex items-center">
