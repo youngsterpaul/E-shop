@@ -1,9 +1,7 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
 import SiteBreadcrumb from '@/components/Breadcrumb';
-import MobileNav from '@/components/MobileNav';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
@@ -44,7 +42,8 @@ const AboutPage = () => {
           
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      <MobileHeader 
+      {isMobile && ( 
+        <MobileHeader 
         title="About SmartKenya"
         backTo="/"
         rightAction={
@@ -53,6 +52,7 @@ const AboutPage = () => {
           </Button>
         }
       />
+      )}
       <main className="flex-grow container py-8">
         <div className="container mx-auto px-4">
             {/* Breadcrumb */}

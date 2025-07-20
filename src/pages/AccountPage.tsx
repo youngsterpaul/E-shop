@@ -16,7 +16,10 @@ import {
   Bell,
   CreditCard,
   Shield,
-  HelpCircle
+  HelpCircle,
+  FileQuestion,
+  Info,
+  LucideMessageCircleQuestion
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -62,21 +65,21 @@ const AccountPage = () => {
       href: '/wishlist',
     },
     {
-      icon: CreditCard,
-      title: 'Payment Methods',
-      description: 'Manage payment options',
-      href: '/payment-methods',
+      icon: Info,
+      title: 'About SmartKenya',
+      description: 'Know more about SmartKenya',
+      href: '/about',
     },
     {
-      icon: Bell,
-      title: 'Notifications',
-      description: 'Email and push preferences',
-      href: '/notifications',
+      icon: LucideMessageCircleQuestion,
+      title: 'FAQs',
+      description: 'Get answers to common questions',
+      href: '/faq',
     },
     {
       icon: Shield,
       title: 'Privacy & Security',
-      description: 'Password and security settings',
+      description: 'Know how we protect your data',
       href: '/privacy',
     },
     {
@@ -90,7 +93,8 @@ const AccountPage = () => {
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      <MobileHeader 
+      {isMobile && (
+        <MobileHeader 
         title="My Account"
         backTo="/"
         rightAction={
@@ -99,6 +103,7 @@ const AccountPage = () => {
           </Button>
         }
       />
+      )}
 
       <div className={`container mx-auto px-4 py-6 ${isMobile ? 'pb-14' : ''}`}>
         {!isMobile && (
