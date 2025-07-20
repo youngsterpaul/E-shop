@@ -147,12 +147,68 @@ const WriteReviewPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+        {!isMobile && <Header />}
+        {isMobile && (
+          <MobileHeader 
+            title={'Write Review'}
+            backTo="/"
+            rightAction={
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            }
+          />
+        )}
         
-        <main className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        <main className="flex-grow container py-8">
+          <div className="mb-6">
+            <Skeleton className="h-10 w-40" />
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-8 w-48 mb-4" />
+                <div className="flex items-center gap-4">
+                  <Skeleton className="w-16 h-16 rounded-md" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Rating Skeleton */}
+                <div>
+                  <Skeleton className="h-5 w-16 mb-2" />
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Skeleton key={star} className="h-8 w-8 rounded" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comment Skeleton */}
+                <div>
+                  <Skeleton className="h-5 w-24 mb-2" />
+                  <Skeleton className="h-32 w-full rounded-md" />
+                </div>
+
+                {/* Media Upload Skeleton */}
+                <div>
+                  <Skeleton className="h-5 w-48 mb-2" />
+                  <Skeleton className="h-40 w-full rounded-lg" />
+                </div>
+
+                {/* Buttons Skeleton */}
+                <div className="flex gap-3">
+                  <Skeleton className="h-10 flex-1" />
+                  <Skeleton className="h-10 flex-1" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </main>
-        
-        
       </div>
     );
   }
