@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import CheckoutModal from '@/components/checkout/CheckoutModal';
+import Header from './components/Header';
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -60,7 +61,12 @@ function App() {
       <TooltipProvider>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
-        <Suspense fallback={<LoadingSpinner />}>
+        <Suspense fallback={
+          <>
+            <Header />
+            <LoadingSpinner />
+          </>
+        }>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />

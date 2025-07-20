@@ -125,7 +125,7 @@ const WriteReviewPage = () => {
 
     const productSlug = generateSlug(product.name || '');
 
-      navigate(`/products/${productSlug}/${productId}`);
+      navigate(`/product/${productSlug}/${productId}`);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       toast({
@@ -232,7 +232,7 @@ const WriteReviewPage = () => {
               };
               const productSlug = generateSlug((product as any).name);
 
-              navigate(`/products/${productSlug}/${productId}`);
+              navigate(`/product/${productSlug}/${productId}`);
             }}
             className="flex items-center gap-2"
           >
