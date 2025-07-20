@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
@@ -539,7 +539,7 @@ const AdminOrdersPage = () => {
                               onClick={(e) => handleDownloadReceipt(order, e)}
                               title="Download Receipt"
                             >
-                              <FileText className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 

@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProduct } from '@/hooks/useProducts';
 import { useReviews } from '@/hooks/useReviews';
-import MobileNav from '@/components/MobileNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +20,7 @@ const WriteReviewPage = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const isMobile = isMobileUserAgent;
+  const isMobile = isMobileUserAgent();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -167,7 +166,7 @@ const WriteReviewPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isMobile && <Header />}
-      {isMobile && isMobile() && (
+      {isMobile && (
         <MobileHeader 
           title={'Write Review'}
           backTo="/"
@@ -335,8 +334,6 @@ const WriteReviewPage = () => {
           </Card>
         </div>
       </main>
-      
-      <MobileNav />
     </div>
   );
 };

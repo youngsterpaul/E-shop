@@ -365,7 +365,7 @@ const OrderDetailPage = () => {
                       className="flex items-center gap-2 hover:bg-gray-50 border-gray-200" 
                       onClick={handleDownloadReceipt}
                     >
-                      <FileText className="h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       <span className="hidden sm:inline">Receipt</span>
                     </Button>
                   </div>

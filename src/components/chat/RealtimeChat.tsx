@@ -46,7 +46,6 @@ const RealtimeChat = () => {
               </div>
               <div className="text-left">
                 <div className="font-semibold text-lg">Chat us on WhatsApp</div>
-                <div className="text-sm opacity-90">{phoneNumber}</div>
               </div>
             </div>
           </Button>
@@ -62,7 +61,6 @@ const RealtimeChat = () => {
               </div>
               <div className="text-left">
                 <div className="font-semibold text-lg">Call Us</div>
-                <div className="text-sm opacity-90">{phoneNumber}</div>
               </div>
             </div>
           </Button>
@@ -78,7 +76,6 @@ const RealtimeChat = () => {
               </div>
               <div className="text-left">
                 <div className="font-semibold text-lg">Email Us</div>
-                <div className="text-sm opacity-90">{email}</div>
               </div>
             </div>
           </Button>
