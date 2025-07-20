@@ -54,7 +54,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
 
     doc.setLineWidth(0.2);
     doc.line(4, y, receiptWidth - 4, y);
-    y += 2;
+    y += 4;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
@@ -64,7 +64,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
 
     doc.setLineWidth(0.1);
     doc.line(4, y, receiptWidth - 4, y);
-    y += 2;
+    y += 4;
 
     doc.setFont('helvetica', 'bold');
     doc.text('Customer:', 4, y); y += 4;
@@ -72,17 +72,11 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.setFont('helvetica', 'normal');
     doc.text(`Email: ${order.email || 'N/A'}`, 4, y); y += 4;
     doc.text(`Phone: ${order.phone_number || 'N/A'}`, 4, y); y += 4;
-    doc.text(`Address:`, 4, y); y += 4;
-    if (order.shipping_address) {
-      doc.text(order.shipping_address, 7, y, { maxWidth: receiptWidth - 10 });
-      y += 6;
-    } else {
-      y += 4;
-    }
+    doc.text(`Address: ${order.shipping_address || 'N/A'}`, 4, y); y += 4;
 
     doc.setLineWidth(0.1);
     doc.line(4, y, receiptWidth - 4, y);
-    y += 2;
+    y += 4;
 
     doc.setFont('helvetica', 'bold');
     doc.text('Items:', 4, y); y += 4;
@@ -108,9 +102,9 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
       doc.text('No items in order.', 6, y); y += 4;
     }
 
-    y += 2;
+    y += 4;
     doc.line(4, y, receiptWidth - 4, y);
-    y += 2;
+    y += 4;
 
     const subtotal = order.amount || 0;
     const total = subtotal;
