@@ -14,7 +14,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const WriteReviewPage = () => {
-  const { productId } = useParams<{ productId: string }>();
+  const { productName, id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -28,7 +28,7 @@ const WriteReviewPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { data: product, isLoading } = useProduct(productId || '');
+  const { data: product, isLoading } = useProduct(id || '');
   const { submitReview, uploadReviewMedia } = useReviews();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +71,7 @@ const WriteReviewPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user || !productId) return;
+    if (!user || !id) return;
     
     if (rating === 0) {
       toast({
@@ -104,7 +104,7 @@ const WriteReviewPage = () => {
 
       // Submit review
       await submitReview({
-        product_id: productId,
+        product_id: id,
         rating,
         comment: comment.trim(),
         media_urls: uploadedUrls
@@ -115,7 +115,7 @@ const WriteReviewPage = () => {
         description: "Thank you for your feedback!"
       });
 
-      navigate(`/products/${productId}`);
+      navigate(`/products/${id}`);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       toast({
@@ -181,7 +181,7 @@ const WriteReviewPage = () => {
         <div className="mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate(`/products/${productId}`)}
+            onClick={() => navigate(`/products/${productName}/${id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -312,7 +312,7 @@ const WriteReviewPage = () => {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/products/${productId}`)}
+                  onClick={() => navigate(`/products/${productName}/${id}`)}
                   disabled={isSubmitting}
                   className="flex-1"
                 >
