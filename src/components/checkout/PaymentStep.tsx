@@ -47,7 +47,7 @@ export const PaymentStep = () => {
       const timer = setTimeout(() => {
         updatePaymentStatus({ status: 'timeout' });
         cleanup();
-      }, 60000); // 60 seconds
+      }, 30000); // 30 seconds
       
       setTimeoutTimer(timer);
     } else {
@@ -73,10 +73,7 @@ export const PaymentStep = () => {
             updatePaymentStatus({ status: 'success' });
             clearCart();
             cleanup();
-            // Add a small delay to show success message before moving to next step
-            setTimeout(() => {
-              setStep(4);
-            }, 2000);
+            setStep(4);
           } else if (status?.status === 'failed') {
             updatePaymentStatus({ 
               status: 'failed',
