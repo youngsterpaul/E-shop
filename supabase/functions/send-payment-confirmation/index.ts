@@ -91,13 +91,13 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '') || 'https://smartkenya.co.ke'}/orders" 
+              <a href="https://smartkenya.co.ke/orders/${orderId}" 
                  style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order Status
               </a>
             </div>
             
-            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
+            <hr style="border: none; border-top: 1px solid #291f1fff; margin: 30px 0;">
             
             <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
               Need help? Contact our customer support:

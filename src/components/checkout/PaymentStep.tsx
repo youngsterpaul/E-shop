@@ -145,7 +145,7 @@ export const PaymentStep = () => {
             status: 'pending',
             amount: total,
             items: orderItems, // Use the properly formatted items
-            shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
+            shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
             first_name: customerDetails.firstName,
             last_name: customerDetails.lastName,
           })

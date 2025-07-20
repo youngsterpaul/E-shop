@@ -24,19 +24,19 @@ export const DeliveryStep = () => {
 
   // County and city mapping
   const countyOptions = [
-    { value: 'embu', label: 'Embu' },
-    { value: 'murangaa', label: 'Murang\'a' }
+    { value: 'Embu County', label: 'Embu' },
+    { value: 'Murang\'a County', label: 'Murang\'a' }
   ];
 
   const cityOptions = {
     embu: [
-      { value: 'runyenjes', label: 'Runyenjes' },
-      { value: 'manyatta', label: 'Manyatta' },
-      { value: 'embu-town', label: 'Embu Town' }
+      { value: 'Runyenjes', label: 'Runyenjes' },
+      { value: 'Manyatta', label: 'Manyatta' },
+      { value: 'Embu-town', label: 'Embu Town' }
     ],
     murangaa: [
-      { value: 'kiharu', label: 'Kiharu' },
-      { value: 'mukuyu', label: 'Mukuyu' }
+      { value: 'Kiharu', label: 'Kiharu' },
+      { value: 'Mukuyu', label: 'Mukuyu' }
     ]
   };
 
