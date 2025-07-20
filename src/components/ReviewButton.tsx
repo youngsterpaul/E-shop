@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,16 +18,27 @@ const ReviewButton = ({ productId, productName, size = 'default' }: ReviewButton
   const [canReview, setCanReview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Add debugging
+  console.log('ReviewButton rendered for product:', productId);
+  console.log('User:', user);
+  console.log('isLoading:', isLoading);
+  console.log('canReview:', canReview);
+
   useEffect(() => {
     const checkReviewEligibility = async () => {
+      console.log('Checking review eligibility...');
+      
       if (!user) {
+        console.log('No user found');
         setCanReview(false);
         setIsLoading(false);
         return;
       }
 
       try {
+        console.log('Calling canUserReviewProduct...');
         const eligible = await canUserReviewProduct(productId);
+        console.log('Review eligible result:', eligible);
         setCanReview(eligible);
       } catch (error) {
         console.error('Error checking review eligibility:', error);
@@ -41,10 +51,18 @@ const ReviewButton = ({ productId, productName, size = 'default' }: ReviewButton
     checkReviewEligibility();
   }, [user, productId, canUserReviewProduct]);
 
-  if (isLoading || !canReview) {
-    return null;
+  // Show loading state for debugging
+  if (isLoading) {
+    console.log('ReviewButton: Still loading...');
+    return <div>Loading review button...</div>; // Temporary for debugging
   }
 
+  if (!canReview) {
+    console.log('ReviewButton: Cannot review');
+    return <div>Cannot review this product</div>; // Temporary for debugging
+  }
+
+  console.log('ReviewButton: Rendering button');
   return (
     <Button
       size={size}

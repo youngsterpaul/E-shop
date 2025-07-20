@@ -463,7 +463,7 @@ const OrderDetailPage = () => {
                           </div>
                           
                           {/* Review Button - Only show for delivered orders */}
-
+                          {order.status === 'delivered' && (
                             <div className="ml-6">
                               <ReviewButton 
                                 productId={item.product.id}
@@ -471,7 +471,7 @@ const OrderDetailPage = () => {
                                 size="sm"
                               />
                             </div>
-                      
+                          )}
                         </div>
                       ))}
                     </div>
