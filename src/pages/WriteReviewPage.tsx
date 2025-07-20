@@ -71,7 +71,7 @@ const WriteReviewPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user || !productId) return;
+    if (!user || !productId || !product) return;
     
     if (rating === 0) {
       toast({
@@ -115,7 +115,16 @@ const WriteReviewPage = () => {
         description: "Thank you for your feedback!"
       });
 
-      navigate(`/products/${productId}`);
+          const generateSlug = (name: string) => {
+      return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    };
+
+    const productSlug = generateSlug(product.name || '');
+
+      navigate(`/products/${productSlug}/${productId}`);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       toast({
@@ -130,7 +139,7 @@ const WriteReviewPage = () => {
   };
 
   if (!user) {
-    navigate('/auth');
+    navigate('/auth/signin');
     return null;
   }
 
@@ -153,8 +162,25 @@ const WriteReviewPage = () => {
         
         <main className="flex-grow container py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-          <Button onClick={() => navigate('/orders')} className="bg-orange-500 hover:bg-orange-600">
-            Back to Orders
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              if (!product) return;
+              
+              const generateSlug = (name: string) => {
+                return name
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)/g, '');
+              };
+              const productSlug = generateSlug((product as any).name);
+
+              navigate(`/products/${productSlug}/${productId}`);
+            }}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Product
           </Button>
         </main>
         
