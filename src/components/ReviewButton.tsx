@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
 
 interface ReviewButtonProps {
-  id: string;
+  productId: string;
   productName: string;
   size?: 'sm' | 'default';
 }
 
-const ReviewButton = ({ id, productName, size = 'default' }: ReviewButtonProps) => {
+const ReviewButton = ({ productId, productName, size = 'default' }: ReviewButtonProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { canUserReviewProduct } = useReviews();
@@ -19,7 +19,7 @@ const ReviewButton = ({ id, productName, size = 'default' }: ReviewButtonProps) 
   const [isLoading, setIsLoading] = useState(true);
 
   // Add debugging
-  console.log('ReviewButton rendered for product:', id);
+  console.log('ReviewButton rendered for product:', productId);
   console.log('User:', user);
   console.log('isLoading:', isLoading);
   console.log('canReview:', canReview);
@@ -37,7 +37,7 @@ const ReviewButton = ({ id, productName, size = 'default' }: ReviewButtonProps) 
 
       try {
         console.log('Calling canUserReviewProduct...');
-        const eligible = await canUserReviewProduct(id);
+        const eligible = await canUserReviewProduct(productId);
         console.log('Review eligible result:', eligible);
         setCanReview(eligible || true);
       } catch (error) {
@@ -49,7 +49,7 @@ const ReviewButton = ({ id, productName, size = 'default' }: ReviewButtonProps) 
     };
 
     checkReviewEligibility();
-  }, [user, id, canUserReviewProduct]);
+  }, [user, productId, canUserReviewProduct]);
 
   // Show loading state for debugging
   if (isLoading) {
@@ -67,7 +67,7 @@ const ReviewButton = ({ id, productName, size = 'default' }: ReviewButtonProps) 
     <Button
       size={size}
       variant="outline"
-      onClick={() => navigate(`/products/${id}/review`)}
+      onClick={() => navigate(`/products/${productId}/review`)}
       className="flex items-center gap-2 border-orange-500 text-orange-500 hover:bg-orange-50"
     >
       <Star className="h-4 w-4" />
