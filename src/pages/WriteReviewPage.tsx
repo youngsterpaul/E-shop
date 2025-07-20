@@ -12,6 +12,7 @@ import { Star, Upload, X, ArrowLeft, Settings } from 'lucide-react';
 import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const WriteReviewPage = () => {
   const { productId } = useParams<{ productId: string }>();
