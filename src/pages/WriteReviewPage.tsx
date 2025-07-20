@@ -4,8 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProduct } from '@/hooks/useProducts';
 import { useReviews } from '@/hooks/useReviews';
-//import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

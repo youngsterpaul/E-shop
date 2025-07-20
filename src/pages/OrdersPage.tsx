@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { FileText, Download, Settings, Package, ShoppingBag } from 'lucide-react';
-import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -133,24 +132,6 @@ const OrdersPage = () => {
       fetchOrders();
     }
   }, [user, toast]);
-
-  const handleDownloadReceipt = async (order: Order, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      downloadReceipt(order);
-      toast({
-        title: "Receipt downloaded",
-        description: "The receipt has been downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error downloading receipt:', error);
-      toast({
-        title: "Failed to download receipt",
-        description: "There was an error generating the receipt.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -300,15 +281,6 @@ if (authLoading || loading) {
                     </div>
                     
                     <div className="flex gap-2 flex-wrap">
-                      <Button 
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2 hover:bg-gray-50 border-gray-200"
-                        onClick={(e) => handleDownloadReceipt(order, e)}
-                      >
-                        <FileText className="h-4 w-4" />
-                        Receipt
-                      </Button>
                       <Button 
                         variant="default"
                         size="sm"

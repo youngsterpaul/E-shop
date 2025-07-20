@@ -78,7 +78,8 @@ const AdminOrdersPage = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [orderCount, setOrderCount] = useState({ 
     total: 0, 
-    pending: 0, 
+    pending: 0,
+    paid: 0, 
     processing: 0, 
     shipped: 0,
     delivered: 0,
@@ -174,6 +175,7 @@ const AdminOrdersPage = () => {
         const counts = {
           total: typedOrders.length,
           pending: typedOrders.filter(order => order.status === 'pending').length,
+          paid: typedOrders.filter(order => order.status === 'paid').length,
           processing: typedOrders.filter(order => order.status === 'processing').length,
           shipped: typedOrders.filter(order => order.status === 'shipped').length,
           delivered: typedOrders.filter(order => order.status === 'delivered').length,
@@ -303,7 +305,9 @@ const AdminOrdersPage = () => {
     switch (status.toLowerCase()) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'processing':
+      case 'paid':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+        case 'processing':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'shipped':
         return 'bg-purple-100 text-purple-800 border-purple-200';
@@ -320,6 +324,8 @@ const AdminOrdersPage = () => {
     switch (status.toLowerCase()) {
       case 'pending':
         return '⏳';
+      case 'paid':
+        return '📦';
       case 'processing':
         return '⚙️';
       case 'shipped':
@@ -375,6 +381,15 @@ const AdminOrdersPage = () => {
             </CardContent>
           </Card>
           
+          <Card className="bg-white shadow-sm">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Paid</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{orderCount.paid}</p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white shadow-sm">
             <CardHeader className="pb-2 pt-4">
               <CardTitle className="text-sm font-medium text-muted-foreground">Processing</CardTitle>
@@ -705,6 +720,7 @@ const AdminOrdersPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
