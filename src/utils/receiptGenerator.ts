@@ -27,9 +27,37 @@ interface Order {
 
 export const generatePDFReceipt = async (order: Order): Promise<void> => {
   try {
-    // Standard receipt width: 80mm, height: variable or fixed
+    // Standard receipt width: 80mm
     const receiptWidth = 80;
-    let receiptHeight = 220; // increase if needed
+    
+    // Calculate dynamic height based on content
+    const baseHeight = 100; // Base height for header, customer info, footer, etc.
+    const itemHeight = 4; // Height per item line
+    const itemCount = order.items?.length || 0;
+    
+    // Calculate additional height needed for long item names (if text wraps)
+    let additionalWrappingHeight = 0;
+    if (order.items && order.items.length > 0) {
+      order.items.forEach((item) => {
+        const itemName = item.name || 'Unknown Item';
+        const itemPrice = item.price || 0;
+        const itemQuantity = item.quantity || 0;
+        const lineTotal = itemPrice * itemQuantity;
+        const fullText = `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`;
+        
+        // Rough estimation: if text is longer than ~60 characters, it might wrap
+        // This is a simple estimation - you might need to adjust based on testing
+        const estimatedCharsPerLine = 60;
+        if (fullText.length > estimatedCharsPerLine) {
+          const extraLines = Math.ceil(fullText.length / estimatedCharsPerLine) - 1;
+          additionalWrappingHeight += extraLines * 4; // 4mm per extra line
+        }
+      });
+    }
+    
+    // Calculate total height needed
+    const calculatedHeight = baseHeight + (itemCount * itemHeight) + additionalWrappingHeight;
+    const receiptHeight = Math.max(160, calculatedHeight); // Minimum 160mm, or calculated height
 
     const doc = new jsPDF({
       format: [receiptWidth, receiptHeight],
@@ -90,13 +118,15 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
         const itemName = item.name || 'Unknown Item';
         const lineTotal = itemPrice * itemQuantity;
         
-        doc.text(
-          `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`,
-          6,
-          y,
-          { maxWidth: receiptWidth - 8 }
-        );
-        y += 4;
+        // Get the text dimensions to calculate how many lines it will take
+        const fullText = `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`;
+        const splitText = doc.splitTextToSize(fullText, receiptWidth - 8);
+        
+        // Add text (this handles wrapping automatically)
+        doc.text(splitText, 6, y);
+        
+        // Adjust y position based on how many lines the text actually took
+        y += splitText.length * 4; // 4mm per line
       });
     } else {
       doc.text('No items in order.', 6, y); y += 4;
@@ -126,10 +156,6 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.text('Thank you for shopping with us!', receiptWidth / 2, y, { align: 'center' });
     y += 4;
     doc.text('www.smartkenya.co.ke', receiptWidth / 2, y, { align: 'center' });
-
-    // Optionally, set a taller page if your content goes beyond initial 160mm
-    // doc.internal.pageSize.setHeight(y + 10);
-    // ^ jsPDF v2.5.0+ only
 
     const fileName = `receipt-${order.order_id}.pdf`;
     doc.save(fileName);
