@@ -137,7 +137,7 @@ const SearchPage = () => {
               {products.map((product) => {
                 const productData = {
                   id: product.product_id,
-                  name: product.name.split('(')[0].trim(),
+                  name: product.name,
                   price: product.price,
                   originalPrice: product.price * 1.2, // Example discount calculation
                   image: product.image_urls?.[0] || '',

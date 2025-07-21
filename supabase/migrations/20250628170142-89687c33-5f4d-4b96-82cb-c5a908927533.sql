@@ -1,13 +1,4 @@
 
--- Add missing RLS policies for security
-ALTER TABLE public.brands ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Everyone can view active brands" ON public.brands 
-  FOR SELECT USING (is_active = true);
-
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Everyone can view categories" ON public.categories 
-  FOR SELECT USING (true);
-
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Everyone can view products" ON public.products 
   FOR SELECT USING (true);
