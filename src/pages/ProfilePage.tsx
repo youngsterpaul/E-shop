@@ -109,8 +109,7 @@ const ProfilePage = () => {
           }
         />
       )}
-      <div className="grid gap-10 md:grid-cols-2">
-        <div className="md:order-2">
+      <div className="flex-grow mx-auto px-4 container py-8">
           <div className="mb-4">
             <Avatar className="w-32 h-32">
               {avatarUrl ? (
@@ -167,7 +166,6 @@ const ProfilePage = () => {
             </Button>
           </div>
         </div>
-      </div>
     </div>
   );
 };

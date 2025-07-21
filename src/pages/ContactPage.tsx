@@ -61,8 +61,7 @@ const ContactPage = () => {
             </Button>
           }
         />)}
-      <main className="flex-grow container py-8">
-        <div className="container mx-auto px-4">
+        <main className="flex-grow mx-auto px-4 container py-8">
           <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
           <p className="text-gray-600 mb-8">
             Have a question, suggestion, or concern? We're here to help!
@@ -202,7 +201,6 @@ const ContactPage = () => {
               </div>
             </div>
           </div>
-        </div>
       </main>
 
     </div>

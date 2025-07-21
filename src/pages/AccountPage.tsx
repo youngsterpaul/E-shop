@@ -19,7 +19,8 @@ import {
   HelpCircle,
   FileQuestion,
   Info,
-  LucideMessageCircleQuestion
+  LucideMessageCircleQuestion,
+  CarTaxiFront
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -75,6 +76,12 @@ const AccountPage = () => {
       title: 'FAQs',
       description: 'Get answers to common questions',
       href: '/faq',
+    },
+    {
+      icon: CarTaxiFront,
+      title: 'Returns & Refunds',
+      description: 'Know our return policy',
+      href: '/returns',
     },
     {
       icon: Shield,

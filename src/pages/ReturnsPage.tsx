@@ -24,7 +24,7 @@ const ReturnsPage = () => {
           }
         />
       )}
-      <main className="flex-grow container py-8">
+      <main className="flex-grow mx-auto px-4 container py-8">
         <div className="max-w-3xl mx-auto px-4">
           <h1 className="text-3xl font-bold mb-6">Returns Policy</h1>
           

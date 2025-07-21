@@ -53,7 +53,7 @@ const PrivacyPage = () => {
           }
         /> 
         )}
-      <main className="flex-grow container py-8">
+              <main className="flex-grow mx-auto px-4 container py-8">
         <SiteBreadcrumb 
           items={[
             { label: 'Home', href: '/' },
