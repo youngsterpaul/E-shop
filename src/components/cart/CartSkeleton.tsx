@@ -14,7 +14,6 @@ const CartSkeleton = () => {
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Shopping Cart"
-          backTo="/products"
           rightAction={
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <ShoppingBag className="h-4 w-4" />
