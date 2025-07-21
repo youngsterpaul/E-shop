@@ -52,10 +52,9 @@ const ContactPage = () => {
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      {!isMobile && ( 
+      {isMobile && ( 
         <MobileHeader
           title="Contact Us"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
