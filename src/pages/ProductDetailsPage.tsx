@@ -323,7 +323,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Product Information */}
-            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : ''}`}>
+            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-2/3'}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -422,6 +422,7 @@ const ProductDetailsPage = () => {
             product={{
               product_id: product.product_id,
               name: product.name.split('(')[0].trim(),
+              image: (product as any).image_urls || null,
               price: product.price,
               originalPrice: undefined,
               description: product.description,

@@ -12,12 +12,14 @@ import { useCart } from '@/hooks/useCart';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { getCartDisplayAttributes } from '@/data/categoryAttributes';
 import DynamicAttributeSelector from './DynamicAttributeSelector';
+import OptimizedImage from '../OptimizedImage';
 
 interface MobileAddToCartModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: {
     product_id: string;
+    image: string;
     name: string;
     price: number;
     originalPrice?: number;
@@ -141,7 +143,14 @@ const MobileAddToCartModal = ({
           {/* Product Info */}
           <div className="flex items-start gap-3 pb-4 border-b">
             <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6 text-gray-400" />
+              <OptimizedImage
+                  src={product.image[0]}
+                  alt={`${product.name}`}
+                  width={80}
+                  height={80}
+                  aspectRatio="square"
+                  className="w-full h-full object-cover"
+                />
             </div>
             <div className="flex-1">
               <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
@@ -282,7 +291,7 @@ const MobileAddToCartModal = ({
               size="lg"
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              {isAddingToCart ? 'Added' : `Add to Cart - ${formatPrice(calculatePrice() * quantity)}`}
+              {isAddingToCart ? 'Adding' : `Add to Cart - ${formatPrice(calculatePrice() * quantity)}`}
             </Button>
           </div>
         </div>

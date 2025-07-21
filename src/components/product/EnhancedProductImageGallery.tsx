@@ -106,7 +106,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
-        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'w-1/2'}`}
+        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'w-1/3'}`}
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
@@ -140,13 +140,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               }`}
               priority={currentIndex === 0}
             />
-            
-            {/* Zoom Icon Overlay - Hidden on Mobile */}
-            {!isMobile && (
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={32} />
-              </div>
-            )}
           </div>
         )}
         
@@ -157,37 +150,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           </div>
         )}
         
-        {/* Navigation Arrows - Desktop Only 
-        {!isMobile && allMedia.length > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                prevImage();
-              }}
-              aria-label="Previous image"
-              disabled={isTransitioning}
-            >
-              <ChevronLeft size={20} />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                nextImage();
-              }}
-              aria-label="Next image"
-              disabled={isTransitioning}
-            >
-              <ChevronRight size={20} />
-            </Button>
-          </>
-        )}  */}
       </div>
 
       {/* Thumbnail Strip - Desktop Only */}
@@ -235,46 +197,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           ))}
         </div>
       )}
-
-      {/* Zoom Modal - Desktop Only 
-      {!isMobile && (
-        <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-          <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/90">
-            <div className="relative w-full h-full flex items-center justify-center">  
-              <OptimizedImage
-                src={allMedia[currentIndex]}
-                alt={`${product.name} - Zoomed view`}
-                className="max-w-full max-h-full object-contain"
-                width={800}
-                height={800}
-              />
-              
-              {allMedia.length > 1 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
-                    onClick={prevImage}
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft size={32} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
-                    onClick={nextImage}
-                    aria-label="Next image"
-                  >
-                    <ChevronRight size={32} />
-                  </Button>
-                </>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}  */}
     </div>
   );
 };

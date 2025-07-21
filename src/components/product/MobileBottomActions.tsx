@@ -10,6 +10,7 @@ interface MobileBottomActionsProps {
   product: {
     product_id: string;
     name: string;
+    image: string;
     price: number;
     originalPrice?: number;
     description?: string;
