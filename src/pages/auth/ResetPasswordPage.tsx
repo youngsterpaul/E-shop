@@ -135,7 +135,7 @@ const ResetPasswordPage = () => {
             placeholder="Enter your new password"
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
-            className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+            className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
             autoComplete="new-password"
             autoFocus
           />
@@ -164,7 +164,7 @@ const ResetPasswordPage = () => {
             placeholder="Confirm your new password"
             value={confirmPassword}
             onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-            className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+            className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
             autoComplete="new-password"
           />
           <button

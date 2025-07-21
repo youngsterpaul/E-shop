@@ -184,7 +184,7 @@ const SignUpPage = () => {
                   placeholder="First name"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`pl-10 h-12 ${errors.firstName ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 h-12 ${errors.firstName ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="given-name"
                   autoFocus
                 />
@@ -206,7 +206,7 @@ const SignUpPage = () => {
                   placeholder="Last name"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`pl-10 h-12 ${errors.lastName ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 h-12 ${errors.lastName ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="family-name"
                 />
               </div>
@@ -228,7 +228,7 @@ const SignUpPage = () => {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="email"
                 />
               </div>
@@ -250,7 +250,7 @@ const SignUpPage = () => {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="new-password"
                 />
                 <button
@@ -279,7 +279,7 @@ const SignUpPage = () => {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="new-password"
                 />
                 <button

@@ -157,7 +157,7 @@ const SignInPage = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={handleEmailChange}
-                  className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="email"
                   autoFocus
                 />
@@ -180,7 +180,7 @@ const SignInPage = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={handlePasswordChange}
-                  className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-orange-500'}`}
+                  className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="current-password"
                 />
                 <button

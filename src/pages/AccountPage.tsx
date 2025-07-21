@@ -20,7 +20,8 @@ import {
   FileQuestion,
   Info,
   LucideMessageCircleQuestion,
-  CarTaxiFront
+  CarTaxiFront,
+  GraduationCap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -82,6 +83,12 @@ const AccountPage = () => {
       title: 'Returns & Refunds',
       description: 'Know our return policy',
       href: '/returns',
+    },
+    {
+      icon: GraduationCap,
+      title: 'Careers',
+      description: 'Explore Careers at SmartKenya',
+      href: '/careers',
     },
     {
       icon: Shield,

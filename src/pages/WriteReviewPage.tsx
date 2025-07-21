@@ -239,9 +239,7 @@ const WriteReviewPage = () => {
             <ArrowLeft className="h-4 w-4" />
             Back to Product
           </Button>
-        </main>
-        
-        
+        </main>      
       </div>
     );
   }
@@ -252,7 +250,6 @@ const WriteReviewPage = () => {
       {isMobile && (
         <MobileHeader 
           title={'Write Review'}
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
@@ -260,7 +257,7 @@ const WriteReviewPage = () => {
           }
         />
       )}
-      <main className="flex-grow container py-8">
+      <main className="flex-grow mx-auto px-4 container py-8">
         <div className="mb-6">
           <Button 
             variant="ghost" 

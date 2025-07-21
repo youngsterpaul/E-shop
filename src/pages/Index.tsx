@@ -10,7 +10,6 @@ import CriticalCSS from '@/components/performance/CriticalCSS';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import FloatingChatButton from '@/components/FloatingChatButton';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -61,7 +60,6 @@ const Index = () => {
             <EnhancedHeroSection />
             <CategoryIcons />
             <EnhancedFeaturedProducts />
-            <FloatingChatButton />
             <Footer />
           </div>
           <MobileNav />

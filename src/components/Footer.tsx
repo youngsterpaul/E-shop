@@ -19,9 +19,9 @@ const Footer = ({ className }: FooterProps) => {
       links: [
         { label: 'All Products', href: '/products' },
         { label: 'Categories', href: '/categories' },
-        { label: 'Best Sellers', href: '/bestsellers' },
-        { label: 'Featured Deals', href: '/deals' },
-        { label: 'Brands', href: '/brands' },
+        { label: 'Best Sellers', href: '/categories' },
+        { label: 'Featured Deals', href: '/categories' },
+        { label: 'Brands', href: '/categories' },
       ]
     },
     {
@@ -51,7 +51,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Careers', href: '/careers' },
         { label: 'Privacy Policy', href: '/privacy' },
         { label: 'Terms & Conditions', href: '/terms' },
-        { label: 'Sitemap', href: '/sitemap' },
       ]
     }
   ];

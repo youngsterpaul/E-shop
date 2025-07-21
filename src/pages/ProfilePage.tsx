@@ -35,7 +35,7 @@ const ProfilePage = () => {
   useEffect(() => {
     // Replace SUPABASE_URL with the actual URL from client
     const avatarUrl = profile?.avatar_url 
-      ? `https://vsrkmtebffntocpjapxz.supabase.co/storage/v1/object/public/avatars/${filename}`
+      ? `https://sgpjnbdrmwrupeqhjqpj.supabase.co/storage/v1/object/public/avatars/${filename}`
       : null;
     setAvatarUrl(avatarUrl);
   }, [filename, profile]);

@@ -39,7 +39,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // New pages
 const CareersPage = lazy(() => import("./pages/CareersPage"));
-const SitemapPage = lazy(() => import("./pages/SitemapPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -59,7 +58,7 @@ function App() {
   return (
     <ErrorBoundary>
       <TooltipProvider>
-      {/*<Sonner />*/}
+      <Sonner />
       <div className="min-h-screen bg-background">
         <Suspense fallback={
           <>
@@ -98,7 +97,6 @@ function App() {
                     
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />
-            <Route path="/sitemap" element={<SitemapPage />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -119,7 +117,7 @@ function App() {
       {/* Global Checkout Modal */}
       <CheckoutModal />
         
-      {/*<Toaster />*/}
+      <Toaster />
       </div>
       </TooltipProvider>
     </ErrorBoundary>

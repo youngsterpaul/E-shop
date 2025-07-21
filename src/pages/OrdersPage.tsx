@@ -31,6 +31,8 @@ interface Order {
   updated_at: string;
   items: OrderItem[];
   amount: number;
+  first_name?: string;
+  last_name?: string;
   shipping_address: string | null;
 }
 
