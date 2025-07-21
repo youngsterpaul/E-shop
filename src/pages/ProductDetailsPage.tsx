@@ -297,7 +297,7 @@ const ProductDetailsPage = () => {
         </script>
       </Helmet>
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
@@ -309,7 +309,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`${isMobile ? '' : 'pb-8 container mx-auto'}`}>
+        <main className={`pb-8 ${isMobile ? '' : 'min-w-max pt-6 container mx-auto'}`}>
           {/* Breadcrumb */}
           {!isMobile && (
             <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
@@ -323,7 +323,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Product Information */}
-            <div className={`space-y-6 ${isMobile ? 'container mx-auto px-2' : ''}`}>
+            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : ''}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
