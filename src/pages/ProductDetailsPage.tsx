@@ -132,7 +132,6 @@ const ProductDetailsPage = () => {
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Product Details"
-          backTo="/products"
           rightAction={
             <Link to="/search">
               <Button variant="ghost" size="sm" className="p-2">
