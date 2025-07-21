@@ -310,7 +310,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`py-6 ${isMobile ? 'pb-20' : 'pb-8 container mx-auto'}`}>
+        <main className={`${isMobile ? '' : 'pb-8 container mx-auto'}`}>
           {/* Breadcrumb */}
           {!isMobile && (
             <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />

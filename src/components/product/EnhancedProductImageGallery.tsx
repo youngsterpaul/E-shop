@@ -102,7 +102,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   }, []);
 
   return (
-    <div className="space-y-4 rounded-lg">
+    <div className="space-y-4">
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
