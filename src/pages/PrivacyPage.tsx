@@ -45,7 +45,6 @@ const PrivacyPage = () => {
         {isMobile && ( 
           <MobileHeader
           title="Privacy Policy"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
@@ -53,7 +52,7 @@ const PrivacyPage = () => {
           }
         /> 
         )}
-              <main className="flex-grow mx-auto px-4 container py-8">
+      <main className="flex-grow mx-auto px-4 container py-8">
         <SiteBreadcrumb 
           items={[
             { label: 'Home', href: '/' },

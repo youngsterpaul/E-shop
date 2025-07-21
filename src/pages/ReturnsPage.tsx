@@ -16,7 +16,6 @@ const ReturnsPage = () => {
       {isMobile && (
         <MobileHeader 
           title={'Returns'}
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
