@@ -48,28 +48,20 @@ export const useCart = () => {
   };
 
   // Get or create cart
-const getOrCreateCart = async () => {
-  try {
-    // Don't pass undefined values - PostgreSQL can't handle them
-    const params: any = {};
-    
-    if (user?.id) {
-      params.p_user_id = user.id;
-    }
-    
-    if (!user) {
-      params.p_session_id = getSessionId();
-    }
+  const getOrCreateCart = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_or_create_cart', {
+        p_user_id: user?.id || undefined,
+        p_session_id: user ? undefined : getSessionId()
+      });
 
-    const { data, error } = await supabase.rpc('get_or_create_cart', params);
-
-    if (error) throw error;
-    return data;
-  } catch (error: any) {
-    console.error('Error getting/creating cart:', error);
-    return null;
-  }
-};
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting/creating cart:', error);
+      return null;
+    }
+  };
 
   // Fetch cart and cart items
   const fetchCart = async () => {
