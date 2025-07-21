@@ -81,7 +81,7 @@ const EnhancedFeaturedProducts = memo(() => {
           HOT DEALS
         </h2>
       )}
-      <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+      <div className={`grid ${gridCols} bg-white gap-1 shadow-sm space-x-1`}>
         {Array.from({ length: visibleProductsCount || (isMobile ? initialMobileCount : initialDesktopCount) }).map((_, i) => (
           <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
         ))}
@@ -108,7 +108,7 @@ const EnhancedFeaturedProducts = memo(() => {
             </h2>
           )}
           
-          <div className={`grid ${gridCols} bg-white shadow-sm gap-1`}>
+          <div className={`grid ${gridCols} bg-white shadow-sm gap-1 space-x-1`}>
             {products?.slice(0, visibleProductsCount).map(product => {
               const productCardData = {
                 id: product.product_id,

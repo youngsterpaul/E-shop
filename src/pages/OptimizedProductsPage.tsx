@@ -56,7 +56,7 @@ const OptimizedProductsPage = () => {
           />
         )}
 
-        <main className="flex-grow pt-6 pb-16">
+        <main className="flex-grow pb-16">
             {/* Breadcrumb */}
             {!isMobile && (
               <SiteBreadcrumb 
