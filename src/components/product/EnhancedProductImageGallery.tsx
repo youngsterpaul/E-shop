@@ -106,7 +106,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       {/* Main Image Container */}
       <div 
         ref={mainImageRef}
-        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'max-w-[350px]'}`}
+        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'w-1/2'}`}
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
