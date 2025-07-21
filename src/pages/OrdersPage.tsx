@@ -234,7 +234,6 @@ if (authLoading || loading) {
               <Card 
                 key={order.order_id} 
                 className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white" 
-
               >
                 <CardHeader className="pb-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
