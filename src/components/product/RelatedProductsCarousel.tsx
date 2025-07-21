@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import { useOptimizedRelatedProducts } from '@/hooks/useOptimizedRelatedProducts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import ProductSkeleton from '../products/ProductSkeleton';
 
 interface RelatedProductsCarouselProps {
   currentProduct: {
@@ -45,20 +46,9 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
   if (loading) {
     return (
       <div className="mt-12">
-        <div className="flex items-center justify-between mb-6">
-          <Skeleton className="h-8 w-48" />
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-10 w-10 rounded-full" />
-          </div>
-        </div>
         <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="aspect-square rounded-lg" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-            </div>
+          {Array(4).fill(null).map((_, index) => (
+            <ProductSkeleton key={index} />
           ))}
         </div>
       </div>
@@ -69,75 +59,75 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
     return null;
   }
 
+
   return (
     <div className="mt-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={prevSlide}
-            disabled={currentIndex === 0}
-            className="rounded-full"
-            aria-label="Previous products"
-          >
-            <ChevronLeft size={20} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={nextSlide}
-            disabled={currentIndex >= maxIndex}
-            className="rounded-full"
-            aria-label="Next products"
-          >
-            <ChevronRight size={20} />
-          </Button>
+      <div className="max-w-7xl mx-auto">
+        {/* Header with title and navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
+          
+          {products.length > itemsPerView.desktop && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={prevSlide}
+                disabled={currentIndex === 0}
+                className="rounded-full"
+                aria-label="Previous products"
+              >
+                <ChevronLeft size={20} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={nextSlide}
+                disabled={currentIndex >= maxIndex}
+                className="rounded-full"
+                aria-label="Next products"
+              >
+                <ChevronRight size={20} />
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
 
+        {/* Products Grid */}
         <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
-                  id: product.product_id,
-                  name: product.name,
-                  price: product.price || 0,
-                  originalPrice: undefined, // or map if available
-                  image: product.image_urls?.[0] || '',
-                  rating: product.rating || 4,
-                  reviews: 0, // you can set default or map if available
-                  discount: undefined, // map if available
-                  category: product.categories || '',
-                  inStock: true,
-                };
-                return <ProductCard key={product.product_id} product={productCardData} />;
-              })}
-              
-        {products.length > 6 && (
-          <div className="text-center mt-6">
-            <Button variant="outline" className="w-full">
-              View All Related Products
-            </Button>
+              id: product.product_id,
+              name: product.name,
+              price: product.price || 0,
+              originalPrice: undefined, // or map if available
+              image: product.image_urls?.[0] || '',
+              rating: product.rating || 4,
+              reviews: 0, // you can set default or map if available
+              discount: undefined, // map if available
+              category: product.categories || '',
+              inStock: true,
+            };
+            return <ProductCard key={product.product_id} product={productCardData} />;
+          })}
+        </div>
+
+        {/* Dots Indicator */}
+        {products.length > itemsPerView.desktop && (
+          <div className="hidden md:flex justify-center gap-2 mt-6">
+            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index)}
+                className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                  currentIndex === index ? 'bg-primary' : 'bg-gray-300'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         )}
       </div>
-
-      {/* Dots Indicator */}
-      {products.length > itemsPerView.desktop && (
-        <div className="hidden md:flex justify-center gap-2 mt-6">
-          {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                currentIndex === index ? 'bg-primary' : 'bg-gray-300'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 };

@@ -324,7 +324,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Product Information */}
-            <div className="space-y-6">
+            <div className={`space-y-6 ${isMobile ? 'container mx-auto px-2' : ''}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
