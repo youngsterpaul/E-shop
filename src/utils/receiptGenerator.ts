@@ -29,7 +29,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
   try {
     // Standard receipt width: 80mm, height: variable or fixed
     const receiptWidth = 80;
-    let receiptHeight = 160; // increase if needed
+    let receiptHeight = 220; // increase if needed
 
     const doc = new jsPDF({
       format: [receiptWidth, receiptHeight],
