@@ -297,7 +297,7 @@ const ProductDetailsPage = () => {
         </script>
       </Helmet>
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
@@ -309,7 +309,7 @@ const ProductDetailsPage = () => {
           </Link>
           }
         />)}
-        <main className={`pb-8 ${isMobile ? '' : 'min-w-max pt-6 container mx-auto'}`}>
+        <main className={`${isMobile ? 'pb-10' : 'py-6 container mx-auto'}`}>
           {/* Breadcrumb */}
           {!isMobile && (
             <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
