@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations, CartState } from '@/types/cart';
 import { useCartContext } from './CartContext';
@@ -20,6 +19,7 @@ interface SelectiveCartContextType {
   removeCoupon: (couponId: string) => void;
   getSelectedItems: () => any[];
   hasSelectedItems: () => boolean;
+  forceRecalculate: () => void;  // Added this function
 }
 
 const SelectiveCartContext = createContext<SelectiveCartContextType | undefined>(undefined);
@@ -30,6 +30,12 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   const [selections, setSelections] = useState<CartItemSelection[]>([]);
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
+  const [recalculationTrigger, setRecalculationTrigger] = useState(0); // Added this state
+
+  // Force recalculation function
+  const forceRecalculate = useCallback(() => {
+    setRecalculationTrigger(prev => prev + 1);
+  }, []);
 
   // Initialize selections when cart items change - optimized to prevent unnecessary updates
   useEffect(() => {
@@ -110,6 +116,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   const isIndeterminate = selectedCount > 0 && selectedCount < cartItems.length;
 
   // Memoize calculations to prevent unnecessary recalculations
+  // Added recalculationTrigger to dependencies to force updates
   const calculations = useMemo((): CartCalculations => {
     const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
     const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -128,7 +135,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
       total: Math.max(0, total),
       selectedItemsCount: selectedItems.length
     };
-  }, [cartItems, selectedItemIds, shippingOption, appliedCoupons]);
+  }, [cartItems, selectedItemIds, shippingOption, appliedCoupons, recalculationTrigger]);
 
   const value = useMemo(() => ({
     selections,
@@ -146,7 +153,8 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     applyCoupon,
     removeCoupon,
     getSelectedItems,
-    hasSelectedItems
+    hasSelectedItems,
+    forceRecalculate
   }), [
     selections,
     selectedItemIds,
@@ -163,7 +171,8 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     applyCoupon,
     removeCoupon,
     getSelectedItems,
-    hasSelectedItems
+    hasSelectedItems,
+    forceRecalculate
   ]);
 
   return (

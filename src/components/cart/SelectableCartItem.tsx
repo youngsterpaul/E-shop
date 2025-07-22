@@ -3,6 +3,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useCart } from '@/hooks/useCart';
+import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
 interface SelectableCartItemProps {
   item: {
@@ -30,6 +31,7 @@ const SelectableCartItem = memo(({
   className = '' 
 }: SelectableCartItemProps) => {
   const { updateQuantity, removeFromCart } = useCart();
+  const { forceRecalculate } = useSelectiveCart();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
@@ -67,6 +69,10 @@ const SelectableCartItem = memo(({
       setIsUpdating(true);
       try {
         await updateQuantity(itemId, quantity);
+        // Force recalculate after successful update
+        if (mountedRef.current) {
+          forceRecalculate();
+        }
       } catch (error) {
         // Revert on error
         if (mountedRef.current) {
@@ -79,7 +85,7 @@ const SelectableCartItem = memo(({
         }
       }
     }, 300);
-  }, [updateQuantity, item.quantity]);
+  }, [updateQuantity, item.quantity, forceRecalculate]);
 
   // Handle quantity changes with immediate UI feedback
   const handleQuantityChange = useCallback((newQuantity: number) => {
@@ -103,13 +109,15 @@ const SelectableCartItem = memo(({
     try {
       await removeFromCart(item.id);
       onRemove?.(item.id);
+      // Force recalculate after successful removal
+      forceRecalculate();
     } catch (error) {
       console.error('Failed to remove item:', error);
       if (mountedRef.current) {
         setIsRemoving(false);
       }
     }
-  }, [item.id, removeFromCart, onRemove, isRemoving]);
+  }, [item.id, removeFromCart, onRemove, isRemoving, forceRecalculate]);
 
   // Increment quantity
   const handleIncrement = useCallback(() => {
