@@ -38,23 +38,23 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   }, []);
 
   // Initialize selections when cart items change - optimized to prevent unnecessary updates
-  useEffect(() => {
-    if (!cartItems.length) {
-      setSelections([]);
-      return;
-    }
-    
+useEffect(() => {
+  if (!cartItems.length) {
+    setSelections([]);
+  } else {
     setSelections(prevSelections => {
       const existingSelectionMap = new Map(
         prevSelections.map(s => [s.itemId, s.selected])
       );
-      
       return cartItems.map(item => ({
         itemId: item.id,
         selected: existingSelectionMap.get(item.id) || false
       }));
     });
-  }, [cartItems]);
+  }
+  forceRecalculate(); // Force recalculation every time cartItems change
+}, [cartItems, forceRecalculate]);
+
 
   // Memoize callbacks to prevent unnecessary re-renders
   const toggleItemSelection = useCallback((itemId: string) => {
@@ -135,7 +135,7 @@ const calculations = useMemo((): CartCalculations => {
     total: Math.max(0, total),
     selectedItemsCount: selectedItems.length
   };
-}, [JSON.stringify(cartItems), selectedItemIds, shippingOption, appliedCoupons, recalculationTrigger]);
+}, [cartItems, selectedItemIds, shippingOption, appliedCoupons, recalculationTrigger]);
 
   const value = useMemo(() => ({
     selections,
