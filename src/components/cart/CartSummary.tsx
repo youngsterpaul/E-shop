@@ -142,7 +142,7 @@ const CartSummary = () => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal ({calculations.selectedItemsCount} items)</span>
-            <span>KES {((calculations.subtotal)-(calculations.tax)).toLocaleString()}</span>
+            <span>KES {calculations.subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>Shipping</span>
@@ -166,7 +166,7 @@ const CartSummary = () => {
 
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>KES {((calculations.total)-(calculations.tax)).toLocaleString()}</span>
+          <span>KES {calculations.total.toLocaleString()}</span>
         </div>
 
         <Button
