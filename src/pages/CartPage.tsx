@@ -6,7 +6,6 @@ import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
 import SelectableCartItem from '@/components/cart/SelectableCartItem';
-import VirtualizedCartItems from '@/components/cart/VirtualizedCartItems';
 import CartSummary from '@/components/cart/CartSummary';
 import EmptyCart from '@/components/cart/EmptyCart';
 import { Separator } from '@/components/ui/separator';
@@ -92,27 +91,16 @@ const CartPage = () => {
                 allSelected={selectedItems.length === cartItems.length}
               />
               
-              {/* Use virtualized list for large carts (20+ items) or regular rendering for smaller carts */}
-              {cartItems.length >= 20 ? (
-                <VirtualizedCartItems
-                  cartItems={cartItems}
-                  selectedItems={selectedItems}
-                  toggleItemSelection={toggleItemSelection}
-                  height={600}
-                  itemHeight={140}
-                />
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {cartItems.map((item) => (
-                    <SelectableCartItem
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedItems.includes(item.id)}
-                      onToggleSelect={() => toggleItemSelection(item.id)}
-                    />
-                  ))}
-                </div>
-              )}
+              <div className="divide-y divide-gray-200">
+                {cartItems.map((item) => (
+                  <SelectableCartItem
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedItems.includes(item.id)}
+                    onToggleSelect={() => toggleItemSelection(item.id)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
