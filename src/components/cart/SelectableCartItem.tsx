@@ -1,9 +1,11 @@
+
 import React, { memo } from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useCart } from '@/hooks/useCart';
+import { debounce } from 'lodash';
 
 interface SelectableCartItemProps {
   item: {
@@ -29,6 +31,30 @@ const SelectableCartItem = memo(({ item, isSelected, onToggleSelect, onRemove, c
   const [isRemoving, setIsRemoving] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
 
+  // Debounce quantity updates to prevent spam clicking
+  const debouncedUpdateQuantity = useMemo(
+    () => debounce(async (itemId: string, quantity: number) => {
+      setIsUpdating(true);
+      try {
+        await updateQuantity(itemId, quantity);
+      } catch (error) {
+        // Revert on error
+        setLocalQuantity(item.quantity);
+        console.error('Failed to update quantity:', error);
+      } finally {
+        setIsUpdating(false);
+      }
+    }, 300),
+    [updateQuantity, item.quantity]
+  );
+
+  // Cleanup debounce on unmount
+  React.useEffect(() => {
+    return () => {
+      debouncedUpdateQuantity.cancel();
+    };
+  }, [debouncedUpdateQuantity]);
+
   // Debounced quantity update
   const handleQuantityChange = useCallback(async (newQuantity: number) => {
     if (newQuantity < 1) {
@@ -38,18 +64,10 @@ const SelectableCartItem = memo(({ item, isSelected, onToggleSelect, onRemove, c
 
     // Immediate UI update
     setLocalQuantity(newQuantity);
-    setIsUpdating(true);
-
-    try {
-      await updateQuantity(item.id, newQuantity);
-    } catch (error) {
-      // Revert on error
-      setLocalQuantity(item.quantity);
-      console.error('Failed to update quantity:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [item.id, item.quantity, updateQuantity]);
+    
+    // Debounced backend update
+    debouncedUpdateQuantity(item.id, newQuantity);
+  }, [item.id, debouncedUpdateQuantity]);
 
   const handleRemove = useCallback(async () => {
     setIsRemoving(true);
