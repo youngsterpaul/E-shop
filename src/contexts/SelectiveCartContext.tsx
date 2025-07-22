@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations, CartState } from '@/types/cart';
-import { useCartContext } from './CartContext';
+import { useCart } from '@/hooks/useCart'; // Import useCart directly
 
 interface SelectiveCartContextType {
   selections: CartItemSelection[];
@@ -19,25 +19,25 @@ interface SelectiveCartContextType {
   removeCoupon: (couponId: string) => void;
   getSelectedItems: () => any[];
   hasSelectedItems: () => boolean;
-  forceRecalculate: () => void;  // Added this function
+  forceRecalculate: () => void;
 }
 
 const SelectiveCartContext = createContext<SelectiveCartContextType | undefined>(undefined);
 
 export const SelectiveCartProvider = ({ children }: { children: React.ReactNode }) => {
-  const cartContext = useCartContext();
-  const { cartItems } = cartContext || { cartItems: [] };
+  // Use useCart hook directly instead of useCartContext
+  const { cartItems } = useCart();
   const [selections, setSelections] = useState<CartItemSelection[]>([]);
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
-  const [recalculationTrigger, setRecalculationTrigger] = useState(0); // Added this state
+  const [recalculationTrigger, setRecalculationTrigger] = useState(0);
 
   // Force recalculation function
   const forceRecalculate = useCallback(() => {
     setRecalculationTrigger(prev => prev + 1);
   }, []);
 
-  // Initialize selections when cart items change - optimized to prevent unnecessary updates
+  // Initialize selections when cart items change
   useEffect(() => {
     if (!cartItems.length) {
       setSelections([]);
@@ -56,7 +56,13 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     });
   }, [cartItems]);
 
-  // Memoize callbacks to prevent unnecessary re-renders
+  // Clear selections when cart is empty
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      setSelections([]);
+    }
+  }, [cartItems.length]);
+
   const toggleItemSelection = useCallback((itemId: string) => {
     setSelections(prev => 
       prev.map(selection => 
@@ -96,7 +102,6 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     setAppliedCoupons(prev => prev.filter(coupon => coupon.id !== couponId));
   }, []);
 
-  // Memoize expensive computations
   const selectedItemIds = useMemo(() => 
     selections.filter(s => s.selected).map(s => s.itemId), 
     [selections]
@@ -110,32 +115,38 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     return selectedItemIds.length > 0;
   }, [selectedItemIds]);
 
-  // Calculate selection states
   const selectedCount = selectedItemIds.length;
   const isAllSelected = selectedCount === cartItems.length && cartItems.length > 0;
   const isIndeterminate = selectedCount > 0 && selectedCount < cartItems.length;
 
-  // Memoize calculations to prevent unnecessary recalculations
-  // Added recalculationTrigger to dependencies to force updates
-const calculations = useMemo((): CartCalculations => {
-  const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
-  const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-  const shipping = shippingOption ? shippingOption.price : 0;
-  const discount = appliedCoupons.reduce((total, coupon) => {
-    return total + (coupon.type === 'percentage' ? subtotal * coupon.discount / 100 : coupon.discount);
-  }, 0);
-  const tax = subtotal * 0.16; // 16% tax
-  const total = subtotal + shipping + tax - discount;
+  // Improved calculations with better change detection
+  const calculations = useMemo((): CartCalculations => {
+    const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
+    const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    const shipping = shippingOption ? shippingOption.price : 0;
+    const discount = appliedCoupons.reduce((total, coupon) => {
+      return total + (coupon.type === 'percentage' ? subtotal * coupon.discount / 100 : coupon.discount);
+    }, 0);
+    const tax = subtotal * 0.16;
+    const total = subtotal + shipping + tax - discount;
 
-  return {
-    subtotal,
-    shipping,
-    discount,
-    tax,
-    total: Math.max(0, total),
-    selectedItemsCount: selectedItems.length
-  };
-}, [JSON.stringify(cartItems), selectedItemIds, shippingOption, appliedCoupons, recalculationTrigger]);
+    return {
+      subtotal,
+      shipping,
+      discount,
+      tax,
+      total: Math.max(0, total),
+      selectedItemsCount: selectedItems.length
+    };
+  }, [
+    // Create a more reliable dependency that changes when cart items change
+    cartItems.map(item => `${item.id}-${item.quantity}`).join(','),
+    selectedItemIds.join(','),
+    shippingOption?.id,
+    shippingOption?.price,
+    appliedCoupons.map(c => `${c.id}-${c.discount}`).join(','),
+    recalculationTrigger
+  ]);
 
   const value = useMemo(() => ({
     selections,
