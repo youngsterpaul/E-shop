@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations, CartState } from '@/types/cart';
 import { useCartContext } from './CartContext';
 
@@ -31,18 +31,27 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
 
-  // Initialize selections when cart items change
+  // Initialize selections when cart items change - optimized to prevent unnecessary updates
   useEffect(() => {
-    if (!cartItems.length) return;
+    if (!cartItems.length) {
+      setSelections([]);
+      return;
+    }
     
-    const newSelections = cartItems.map(item => ({
-      itemId: item.id,
-      selected: selections.find(s => s.itemId === item.id)?.selected || false
-    }));
-    setSelections(newSelections);
+    setSelections(prevSelections => {
+      const existingSelectionMap = new Map(
+        prevSelections.map(s => [s.itemId, s.selected])
+      );
+      
+      return cartItems.map(item => ({
+        itemId: item.id,
+        selected: existingSelectionMap.get(item.id) || false
+      }));
+    });
   }, [cartItems]);
 
-  const toggleItemSelection = (itemId: string) => {
+  // Memoize callbacks to prevent unnecessary re-renders
+  const toggleItemSelection = useCallback((itemId: string) => {
     setSelections(prev => 
       prev.map(selection => 
         selection.itemId === itemId 
@@ -50,56 +59,59 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
           : selection
       )
     );
-  };
+  }, []);
 
-  const selectAllItems = () => {
+  const selectAllItems = useCallback(() => {
     setSelections(prev => prev.map(selection => ({ ...selection, selected: true })));
-  };
+  }, []);
 
-  const clearAllSelections = () => {
+  const clearAllSelections = useCallback(() => {
     setSelections(prev => prev.map(selection => ({ ...selection, selected: false })));
-  };
+  }, []);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     const selectedCount = selections.filter(s => s.selected).length;
     if (selectedCount === cartItems.length) {
       clearAllSelections();
     } else {
       selectAllItems();
     }
-  };
+  }, [selections, cartItems.length, clearAllSelections, selectAllItems]);
 
-  const setShippingOption = (option: ShippingOption | null) => {
+  const setShippingOption = useCallback((option: ShippingOption | null) => {
     setShippingOptionState(option);
-  };
+  }, []);
 
-  const applyCoupon = (coupon: Coupon) => {
+  const applyCoupon = useCallback((coupon: Coupon) => {
     setAppliedCoupons(prev => [...prev, coupon]);
-  };
+  }, []);
 
-  const removeCoupon = (couponId: string) => {
+  const removeCoupon = useCallback((couponId: string) => {
     setAppliedCoupons(prev => prev.filter(coupon => coupon.id !== couponId));
-  };
+  }, []);
 
-  const getSelectedItems = () => {
-    return cartItems.filter(item => 
-      selections.find(s => s.itemId === item.id && s.selected)
-    );
-  };
+  // Memoize expensive computations
+  const selectedItemIds = useMemo(() => 
+    selections.filter(s => s.selected).map(s => s.itemId), 
+    [selections]
+  );
 
-  const hasSelectedItems = () => {
-    return selections.some(s => s.selected);
-  };
+  const getSelectedItems = useCallback(() => {
+    return cartItems.filter(item => selectedItemIds.includes(item.id));
+  }, [cartItems, selectedItemIds]);
+
+  const hasSelectedItems = useCallback(() => {
+    return selectedItemIds.length > 0;
+  }, [selectedItemIds]);
 
   // Calculate selection states
-  const selectedCount = selections.filter(s => s.selected).length;
-  const selectedItems = selections.filter(s => s.selected).map(s => s.itemId);
+  const selectedCount = selectedItemIds.length;
   const isAllSelected = selectedCount === cartItems.length && cartItems.length > 0;
   const isIndeterminate = selectedCount > 0 && selectedCount < cartItems.length;
 
-  // Calculate totals
-  const calculations = React.useMemo((): CartCalculations => {
-    const selectedItems = getSelectedItems();
+  // Memoize calculations to prevent unnecessary recalculations
+  const calculations = useMemo((): CartCalculations => {
+    const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
     const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
     const shipping = shippingOption ? shippingOption.price : 0;
     const discount = appliedCoupons.reduce((total, coupon) => {
@@ -116,11 +128,11 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
       total: Math.max(0, total),
       selectedItemsCount: selectedItems.length
     };
-  }, [selections, cartItems, shippingOption, appliedCoupons]);
+  }, [cartItems, selectedItemIds, shippingOption, appliedCoupons]);
 
-  const value = {
+  const value = useMemo(() => ({
     selections,
-    selectedItems,
+    selectedItems: selectedItemIds,
     shippingOption,
     appliedCoupons,
     calculations,
@@ -135,7 +147,24 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     removeCoupon,
     getSelectedItems,
     hasSelectedItems
-  };
+  }), [
+    selections,
+    selectedItemIds,
+    shippingOption,
+    appliedCoupons,
+    calculations,
+    isAllSelected,
+    isIndeterminate,
+    toggleItemSelection,
+    selectAllItems,
+    clearAllSelections,
+    toggleSelectAll,
+    setShippingOption,
+    applyCoupon,
+    removeCoupon,
+    getSelectedItems,
+    hasSelectedItems
+  ]);
 
   return (
     <SelectiveCartContext.Provider value={value}>

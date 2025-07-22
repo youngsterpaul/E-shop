@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import Header from '@/components/Header';
@@ -16,18 +16,34 @@ import CartSkeleton from '@/components/cart/CartSkeleton';
 
 const CartPage = () => {
   const { cartItems, loading } = useCart();
-  const { selectedItems, toggleItemSelection, calculations } = useSelectiveCart();
+  const { selectedItems, toggleItemSelection, selectAllItems, calculations } = useSelectiveCart();
   const isMobile = isMobileUserAgent();
+
+  // Memoize the auto-select function to prevent unnecessary re-renders
+  const autoSelectItems = useCallback(() => {
+    if (!loading && cartItems.length > 0 && selectedItems.length === 0) {
+      // Use selectAllItems instead of individual toggles for better performance
+      selectAllItems();
+    }
+  }, [loading, cartItems.length, selectedItems.length, selectAllItems]);
 
   // Auto-select all items when cart loads (only once)
   useEffect(() => {
-    if (!loading && cartItems.length > 0 && selectedItems.length === 0) {
-      // Only auto-select if no items are currently selected
+    autoSelectItems();
+  }, [autoSelectItems]);
+
+  // Memoize the select all handler
+  const handleSelectAll = useCallback((selectAll) => {
+    if (selectAll) {
+      selectAllItems();
+    } else {
       cartItems.forEach(item => {
-        toggleItemSelection(item.id);
+        if (selectedItems.includes(item.id)) {
+          toggleItemSelection(item.id);
+        }
       });
     }
-  }, [cartItems, loading, toggleItemSelection]); // Removed selectedItems from dependencies
+  }, [cartItems, selectedItems, selectAllItems, toggleItemSelection]);
 
   if (loading) {
     return <CartSkeleton />;
@@ -71,15 +87,7 @@ const CartPage = () => {
               <CartHeader
                 totalItems={cartItems.length}
                 selectedCount={selectedItems.length}
-                onSelectAll={(selectAll) => {
-                  cartItems.forEach(item => {
-                    if (selectAll && !selectedItems.includes(item.id)) {
-                      toggleItemSelection(item.id);
-                    } else if (!selectAll && selectedItems.includes(item.id)) {
-                      toggleItemSelection(item.id);
-                    }
-                  });
-                }}
+                onSelectAll={handleSelectAll}
                 allSelected={selectedItems.length === cartItems.length}
               />
               

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { memo } from 'react';
 import { useState, useCallback } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,42 +23,57 @@ interface SelectableCartItemProps {
   className?: string;
 }
 
-const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, className = '' }: SelectableCartItemProps) => {
+const SelectableCartItem = memo(({ item, isSelected, onToggleSelect, onRemove, className = '' }: SelectableCartItemProps) => {
   const { updateQuantity, removeFromCart } = useCart();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [localQuantity, setLocalQuantity] = useState(item.quantity);
 
+  // Debounced quantity update
   const handleQuantityChange = useCallback(async (newQuantity: number) => {
     if (newQuantity < 1) {
       handleRemove();
       return;
     }
 
+    // Immediate UI update
+    setLocalQuantity(newQuantity);
     setIsUpdating(true);
+
     try {
       await updateQuantity(item.id, newQuantity);
     } catch (error) {
+      // Revert on error
+      setLocalQuantity(item.quantity);
       console.error('Failed to update quantity:', error);
     } finally {
       setIsUpdating(false);
     }
-  }, [item.id, updateQuantity]);
+  }, [item.id, item.quantity, updateQuantity]);
 
   const handleRemove = useCallback(async () => {
+    setIsRemoving(true);
     try {
       await removeFromCart(item.id);
       onRemove?.(item.id);
     } catch (error) {
       console.error('Failed to remove item:', error);
+      setIsRemoving(false);
     }
   }, [item.id, removeFromCart, onRemove]);
 
-
-  const formatPrice = (price: number) => {
+  // Memoize price formatting
+  const formattedPrice = React.useMemo(() => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES'
-    }).format(price);
-  };
+    }).format(item.product.price);
+  }, [item.product.price]);
+
+  // Don't render if item is being removed
+  if (isRemoving) {
+    return null;
+  }
 
   return (
     <div className="flex items-start gap-4 p-4 bg-white rounded-lg border">
@@ -67,12 +81,14 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
         checked={isSelected}
         onCheckedChange={onToggleSelect}
         className="mt-2"
+        disabled={isRemoving}
       />
       
       <img
         src={item.product.image}
         alt={item.product.name}
         className="w-20 h-20 object-cover rounded-md"
+        loading="lazy"
       />
       
       <div className="flex-1 min-w-0">
@@ -92,7 +108,7 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
         )}
         
         <p className="text-lg font-semibold text-primary mt-2">
-          {formatPrice(item.product.price)}
+          {formattedPrice}
         </p>
       </div>
       
@@ -101,39 +117,42 @@ const SelectableCartItem = ({ item, isSelected, onToggleSelect, onRemove, classN
           variant="ghost"
           size="sm"
           onClick={handleRemove}
+          disabled={isRemoving}
           className="text-red-500 hover:text-red-700 hover:bg-red-50"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
         
         <div className="flex items-center border rounded-md">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity - 1)}
-          disabled={isUpdating || item.quantity <= 1}
-          className="h-8 w-8 p-0"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        
-        <span className="w-8 text-center font-medium">
-          {item.quantity}
-        </span>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity + 1)}
-          disabled={isUpdating}
-          className="h-8 w-8 p-0"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuantityChange(localQuantity - 1)}
+            disabled={isUpdating || localQuantity <= 1 || isRemoving}
+            className="h-8 w-8 p-0"
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          
+          <span className="w-8 text-center font-medium">
+            {localQuantity}
+          </span>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuantityChange(localQuantity + 1)}
+            disabled={isUpdating || isRemoving}
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
   );
-};
+});
+
+SelectableCartItem.displayName = 'SelectableCartItem';
 
 export default SelectableCartItem;
