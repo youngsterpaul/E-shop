@@ -1,4 +1,3 @@
-
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
+import { useAutoRefreshCart } from '@/hooks/useAutoRefreshCart'; // Add this import
 
 const CartSummary = () => {
   const { 
@@ -22,6 +22,9 @@ const CartSummary = () => {
   const { openCheckout } = useCheckout();
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
+
+  // Add auto-refresh functionality (refreshes every 2 seconds)
+  const { manualRefresh } = useAutoRefreshCart(2000);
 
   const shippingOptions = [
     { id: 'standard', name: 'Standard Delivery', price: 0, estimatedDays: '1-3 hours' },
@@ -70,7 +73,19 @@ const CartSummary = () => {
   return (
     <Card className="sticky top-20">
       <CardHeader>
-        <CardTitle>Order Summary</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          Order Summary
+          {/* Optional: Add a manual refresh button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={manualRefresh}
+            className="text-xs opacity-50 hover:opacity-100"
+            title="Refresh cart"
+          >
+            ↻
+          </Button>
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Shipping Options */}
@@ -142,7 +157,7 @@ const CartSummary = () => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal ({calculations.selectedItemsCount} items)</span>
-            <span>KES {((calculations.subtotal)-(calculations.tax)).toLocaleString()}</span>
+            <span>KES {calculations.subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>Shipping</span>
@@ -166,7 +181,7 @@ const CartSummary = () => {
 
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>KES {((calculations.total)-(calculations.tax)).toLocaleString()}</span>
+          <span>KES {calculations.total.toLocaleString()}</span>
         </div>
 
         <Button
