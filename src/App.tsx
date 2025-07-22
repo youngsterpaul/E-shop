@@ -60,12 +60,7 @@ function App() {
       <TooltipProvider>
       <Sonner />
       <div className="min-h-screen bg-background">
-        <Suspense fallback={
-          <>
-            <Header />
-            <LoadingSpinner />
-          </>
-        }>
+        <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
