@@ -58,7 +58,7 @@ function App() {
   return (
     <ErrorBoundary>
       <TooltipProvider>
-      <Sonner />
+      {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
@@ -112,7 +112,7 @@ function App() {
       {/* Global Checkout Modal */}
       <CheckoutModal />
         
-      <Toaster />
+      {/*<Toaster />*/}
       </div>
       </TooltipProvider>
     </ErrorBoundary>
