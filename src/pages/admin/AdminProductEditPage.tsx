@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -8,7 +7,7 @@ import ProductCategorySelect from '@/components/admin/ProductCategorySelect';
 import ProductImageUpload from '@/components/admin/ProductImageUpload';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -45,7 +44,16 @@ const AdminProductEdit = () => {
   });
 
   const { categories, subcategories, setSubcategories, fetchSubcategories } = useCategories();
-  const { images, imagePreview, setImagePreview, handleImageUpload, removeImage } = useImageUpload();
+  const { 
+    images, 
+    imageUrls, 
+    uploadProgress,
+    isUploading,
+    handleImageUpload, 
+    uploadImagesToStorage,
+    removeImage, 
+    clearImages 
+  } = useImageUpload();
   
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState('');
@@ -53,6 +61,7 @@ const AdminProductEdit = () => {
   const [subcategoryName, setSubcategoryName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     if (productId) {
@@ -153,9 +162,9 @@ const AdminProductEdit = () => {
           }
         }
 
-        // Handle images
+        // Handle images - store existing images separately
         if (data.image_urls && Array.isArray(data.image_urls)) {
-          setImagePreview(data.image_urls);
+          setExistingImageUrls(data.image_urls);
         }
       }
     } catch (error) {
@@ -186,8 +195,23 @@ const AdminProductEdit = () => {
     const subcategory = subcategories.find(sub => sub.id === value);
     if (subcategory) {
       setSubcategoryName(subcategory.category);
-      const categoryToStore = `${categoryName} > ${subcategory.category}`;
-      form.setValue('categories', categoryToStore);
+    }
+  };
+
+  const handleUploadImages = async () => {
+    if (images.length === 0) {
+      toast({
+        title: "No new images selected",
+        description: "Please select some images to upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await uploadImagesToStorage();
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
   };
   
@@ -196,6 +220,16 @@ const AdminProductEdit = () => {
       toast({
         title: "Missing information",
         description: "Please select a category.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if we have new images but haven't uploaded them yet
+    if (images.length > 0 && imageUrls.length === 0) {
+      toast({
+        title: "Images not uploaded",
+        description: "Please upload your new images first before saving the product.",
         variant: "destructive"
       });
       return;
@@ -217,6 +251,9 @@ const AdminProductEdit = () => {
 
       const categoryToStore = subcategoryName ? `${categoryName} > ${subcategoryName}` : categoryName;
       
+      // Combine existing images (that weren't removed) with newly uploaded images
+      const allImageUrls = [...existingImageUrls, ...imageUrls];
+      
       const { error } = await supabase
         .from('products')
         .update({
@@ -228,7 +265,7 @@ const AdminProductEdit = () => {
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
           specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: imagePreview,
+          image_urls: allImageUrls,
           updated_at: new Date().toISOString()
         })
         .eq('product_id', productId || '');
@@ -237,7 +274,7 @@ const AdminProductEdit = () => {
       
       toast({
         title: "Product updated successfully",
-        description: `"${data.name}" has been updated.`,
+        description: `"${data.name}" has been updated with ${allImageUrls.length} image(s).`,
       });
       
       navigate('/admin/products');
@@ -254,13 +291,19 @@ const AdminProductEdit = () => {
     }
   };
 
+  const canSaveProduct = (imageUrls.length > 0 || images.length === 0) && (existingImageUrls.length > 0 || imageUrls.length > 0);
+  const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <AdminSidebar />
         <div className="ml-0 md:ml-64 p-4 md:p-6">
           <div className="flex justify-center items-center h-64">
-            <div className="text-lg">Loading product...</div>
+            <div className="text-lg flex items-center">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Loading product...
+            </div>
           </div>
         </div>
       </div>
@@ -302,30 +345,58 @@ const AdminProductEdit = () => {
             
             <ProductImageUpload
               images={images}
-              imagePreview={imagePreview}
+              uploadProgress={uploadProgress}
+              isUploading={isUploading}
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
             />
-            
-            <div className="flex justify-end">
-              <Button 
-                type="submit" 
-                className="bg-orange-500 hover:bg-orange-600" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Update Product
-                  </>
-                )}
-              </Button>
-            </div>
+
+            {/* Upload New Images Button */}
+            {hasUnuploadedImages && (
+              <div className="flex justify-center">
+                <Button 
+                  type="button"
+                  onClick={handleUploadImages}
+                  disabled={isUploading}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading New Images...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload New Images ({images.length})
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Update Product Button */}
+            {canSaveProduct && (
+              <div className="flex justify-center">
+                <Button 
+                  type="submit" 
+                  className="bg-orange-500 hover:bg-orange-600" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Product...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Update Product
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </form>
         </Form>
       </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -8,7 +7,7 @@ import ProductCategorySelect from '@/components/admin/ProductCategorySelect';
 import ProductImageUpload from '@/components/admin/ProductImageUpload';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -44,7 +43,16 @@ const AdminProductAdd = () => {
   });
 
   const { categories, subcategories, setSubcategories, fetchSubcategories } = useCategories();
-  const { images, imagePreview, handleImageUpload, removeImage, clearImages } = useImageUpload();
+  const { 
+    images, 
+    imageUrls, 
+    uploadProgress,
+    isUploading,
+    handleImageUpload, 
+    uploadImagesToStorage,
+    removeImage, 
+    clearImages 
+  } = useImageUpload();
   
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState('');
@@ -80,6 +88,23 @@ const AdminProductAdd = () => {
       setSubcategoryName(subcategory.category);
     }
   };
+
+  const handleUploadImages = async () => {
+    if (images.length === 0) {
+      toast({
+        title: "No images selected",
+        description: "Please select some images to upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await uploadImagesToStorage();
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+  };
   
   const onSubmit = async (data: ProductFormData) => {
     if (!selectedCategory) {
@@ -90,11 +115,19 @@ const AdminProductAdd = () => {
       });
       return;
     }
+
+    // Check if we have images but haven't uploaded them yet
+    if (images.length > 0 && imageUrls.length === 0) {
+      toast({
+        title: "Images not uploaded",
+        description: "Please upload your images first before saving the product.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsSubmitting(true);
-      
-      const imageUrls = imagePreview;
 
       let specificationToStore = data.specification || '';
       
@@ -120,14 +153,14 @@ const AdminProductAdd = () => {
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
           specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: imageUrls
+          image_urls: imageUrls // CDN-optimized URLs
         });
         
       if (error) throw error;
       
       toast({
         title: "Product added successfully",
-        description: `"${data.name}" has been added to your inventory.`,
+        description: `"${data.name}" has been added to your inventory with ${imageUrls.length} optimized image(s).`,
       });
       
       form.reset();
@@ -146,6 +179,9 @@ const AdminProductAdd = () => {
       setIsSubmitting(false);
     }
   };
+
+  const canSaveProduct = imageUrls.length > 0 || images.length === 0;
+  const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -182,30 +218,58 @@ const AdminProductAdd = () => {
             
             <ProductImageUpload
               images={images}
-              imagePreview={imagePreview}
+              uploadProgress={uploadProgress}
+              isUploading={isUploading}
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
             />
-            
-            <div className="flex justify-end">
-              <Button 
-                type="submit" 
-                className="bg-orange-500 hover:bg-orange-600" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Save Product
-                  </>
-                )}
-              </Button>
-            </div>
+
+            {/* Upload Images Button */}
+            {images.length > 0 && imageUrls.length === 0 && (
+              <div className="flex justify-center">
+                <Button 
+                  type="button"
+                  onClick={handleUploadImages}
+                  disabled={isUploading}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading Images...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Images
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Save Product Button */}
+            {canSaveProduct && (
+              <div className="flex justify-center">
+                <Button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving Product...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Save Product
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </form>
         </Form>
       </div>
