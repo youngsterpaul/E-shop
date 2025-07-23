@@ -93,7 +93,7 @@ const Footer = ({ className }: FooterProps) => {
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>
-              <p className="text-center text-gray-800 text-xs leading-relaxed">
+              <p className="text-center text-gray-900 text-xs leading-relaxed">
                 SmartKenya Your one-stop shop for quality electronics and gadgets. We deliver …
               </p>
             </div>

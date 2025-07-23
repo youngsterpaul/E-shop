@@ -101,7 +101,7 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Sales Chart */}
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Sales Overview</CardTitle>
             </CardHeader>
