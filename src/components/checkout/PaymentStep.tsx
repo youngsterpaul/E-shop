@@ -27,7 +27,6 @@ export const PaymentStep = () => {
   // Calculate total with delivery
   const deliveryCost = deliveryInfo.deliveryMethod === 'express' ? 1200 : 0;
   const finalTotal = calculations.total + deliveryCost;
-  const total = (finalTotal)-(calculations.tax);
 
   // Cleanup function
   const cleanup = () => {
@@ -143,7 +142,7 @@ export const PaymentStep = () => {
             email: customerDetails.email,
             phone_number: customerDetails.phone,
             status: 'pending',
-            amount: total,
+            amount: finalTotal,
             items: orderItems, // Use the properly formatted items
             shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
             first_name: customerDetails.firstName,

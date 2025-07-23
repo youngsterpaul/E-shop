@@ -127,7 +127,6 @@ const calculations = useMemo((): CartCalculations => {
   const subtotal = total * 0.84;
   const tax = total - subtotal;
 
-
   return {
     subtotal,
     shipping,
