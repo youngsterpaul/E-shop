@@ -1,18 +1,18 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProduct } from '@/hooks/useProducts';
-import { useReviews } from '@/hooks/useReviews';
+import { useReviews, UploadProgress } from '@/hooks/useReviews';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Star, Upload, X, ArrowLeft, Settings } from 'lucide-react';
+import { Star, Upload, X, ArrowLeft, Settings, CheckCircle, AlertCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 
 const WriteReviewPage = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -25,50 +25,83 @@ const WriteReviewPage = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
 
   const { data: product, isLoading } = useProduct(productId || '');
-  const { submitReview, uploadReviewMedia } = useReviews();
+  const { submitReview, uploadMultipleMedia, validateFile } = useReviews();
+
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     
-    // Validate file types and sizes
-    const validFiles = files.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isVideo = file.type.startsWith('video/');
-      
-      if (!isImage && !isVideo) {
+    // Check if adding these files would exceed the limit
+    if (mediaFiles.length + files.length > 5) {
+      toast({
+        title: "Too many files",
+        description: `You can only upload up to 5 files. Currently selected: ${mediaFiles.length}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const validFiles: File[] = [];
+    const newPreviewUrls: string[] = [];
+
+    files.forEach(file => {
+      // Check for duplicates
+      const isDuplicate = mediaFiles.some(existingFile => 
+        existingFile.name === file.name && existingFile.size === file.size
+      );
+
+      if (isDuplicate) {
         toast({
-          title: "Invalid file type",
-          description: "Only images and videos are allowed",
+          title: "Duplicate file",
+          description: `${file.name} is already selected`,
           variant: "destructive"
         });
-        return false;
+        return;
       }
-      
-      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for images
-      if (file.size > maxSize) {
+
+      // Validate file
+      const validation = validateFile(file);
+      if (!validation.isValid) {
         toast({
-          title: "File too large",
-          description: `${file.name} exceeds ${isVideo ? '50MB' : '10MB'} limit`,
+          title: "Invalid file",
+          description: `${file.name}: ${validation.error}`,
           variant: "destructive"
         });
-        return false;
+        return;
       }
-      
-      return true;
+
+      validFiles.push(file);
+      newPreviewUrls.push(URL.createObjectURL(file));
     });
 
     if (validFiles.length > 0) {
-      setMediaFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Limit to 5 files
+      setMediaFiles(prev => [...prev, ...validFiles]);
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const removeFile = (index: number) => {
+    // Revoke the preview URL to free memory
+    URL.revokeObjectURL(previewUrls[index]);
+    
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -92,16 +125,12 @@ const WriteReviewPage = () => {
 
     try {
       setIsSubmitting(true);
-      setIsUploading(true);
 
-      // Upload media files
-      const uploadedUrls: string[] = [];
-      for (const file of mediaFiles) {
-        const url = await uploadReviewMedia(file);
-        if (url) uploadedUrls.push(url);
+      // Upload media files with progress tracking
+      let uploadedUrls: string[] = [];
+      if (mediaFiles.length > 0) {
+        uploadedUrls = await uploadMultipleMedia(mediaFiles, setUploadProgress);
       }
-
-      setIsUploading(false);
 
       // Submit review
       await submitReview({
@@ -116,16 +145,16 @@ const WriteReviewPage = () => {
         description: "Thank you for your feedback!"
       });
 
-          const generateSlug = (name: string) => {
-      return name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-    };
+      const generateSlug = (name: string) => {
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      };
 
-    const productSlug = generateSlug(product.name || '');
-
+      const productSlug = generateSlug(product.name || '');
       navigate(`/product/${productSlug}/${productId}`);
+      
     } catch (error: any) {
       console.error('Error submitting review:', error);
       toast({
@@ -135,7 +164,7 @@ const WriteReviewPage = () => {
       });
     } finally {
       setIsSubmitting(false);
-      setIsUploading(false);
+      setUploadProgress([]);
     }
   };
 
@@ -178,7 +207,6 @@ const WriteReviewPage = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Rating Skeleton */}
                 <div>
                   <Skeleton className="h-5 w-16 mb-2" />
                   <div className="flex gap-1">
@@ -187,20 +215,14 @@ const WriteReviewPage = () => {
                     ))}
                   </div>
                 </div>
-
-                {/* Comment Skeleton */}
                 <div>
                   <Skeleton className="h-5 w-24 mb-2" />
                   <Skeleton className="h-32 w-full rounded-md" />
                 </div>
-
-                {/* Media Upload Skeleton */}
                 <div>
                   <Skeleton className="h-5 w-48 mb-2" />
                   <Skeleton className="h-40 w-full rounded-lg" />
                 </div>
-
-                {/* Buttons Skeleton */}
                 <div className="flex gap-3">
                   <Skeleton className="h-10 flex-1" />
                   <Skeleton className="h-10 flex-1" />
@@ -216,28 +238,15 @@ const WriteReviewPage = () => {
   if (!product) {
     return (
       <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        
         <main className="flex-grow container py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
           <Button 
             variant="ghost" 
-            onClick={() => {
-              if (!product) return;
-              
-              const generateSlug = (name: string) => {
-                return name
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, '-')
-                  .replace(/(^-|-$)/g, '');
-              };
-              const productSlug = generateSlug((product as any).name);
-
-              navigate(`/product/${productSlug}/${productId}`);
-            }}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Product
+            Back to Home
           </Button>
         </main>      
       </div>
@@ -261,7 +270,16 @@ const WriteReviewPage = () => {
         <div className="mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate(`/products/${productId}`)}
+            onClick={() => {
+              const generateSlug = (name: string) => {
+                return name
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)/g, '');
+              };
+              const productSlug = generateSlug(product.name || '');
+              navigate(`/product/${productSlug}/${productId}`);
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -297,10 +315,13 @@ const WriteReviewPage = () => {
                       key={star}
                       type="button"
                       onClick={() => setRating(star)}
-                      className="p-1"
+                      className="p-1 transition-transform hover:scale-110"
+                      disabled={isSubmitting}
                     >
                       <Star 
-                        className={`h-8 w-8 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                        className={`h-8 w-8 transition-colors ${
+                          star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                        }`}
                       />
                     </button>
                   ))}
@@ -316,7 +337,11 @@ const WriteReviewPage = () => {
                   placeholder="Share your experience with this product..."
                   rows={5}
                   className="resize-none"
+                  disabled={isSubmitting}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {comment.length}/500 characters
+                </p>
               </div>
 
               {/* Media Upload */}
@@ -332,12 +357,12 @@ const WriteReviewPage = () => {
                       type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={mediaFiles.length >= 5}
+                      disabled={mediaFiles.length >= 5 || isSubmitting}
                     >
                       Choose Files
                     </Button>
                     <p className="text-xs text-gray-400 mt-1">
-                      Maximum 5 files
+                      {mediaFiles.length}/5 files selected
                     </p>
                   </div>
                   <input
@@ -348,34 +373,61 @@ const WriteReviewPage = () => {
                     onChange={handleFileSelect}
                     className="hidden"
                     title="Upload images or videos"
-                    placeholder="Choose images or videos to upload"
                   />
                 </div>
 
+                {/* Upload Progress */}
+                {uploadProgress.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="text-sm font-medium">Upload Progress</h4>
+                    {uploadProgress.map((progress, index) => (
+                      <div key={index} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="truncate flex-1 mr-2">{progress.fileName}</span>
+                          {progress.status === 'completed' && (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          )}
+                          {progress.status === 'error' && (
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                        {progress.status === 'uploading' && (
+                          <Progress value={progress.progress} className="h-2" />
+                        )}
+                        {progress.status === 'error' && (
+                          <p className="text-xs text-red-500">{progress.error}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Preview selected files */}
-                {mediaFiles.length > 0 && (
+                {mediaFiles.length > 0 && uploadProgress.length === 0 && (
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {mediaFiles.map((file, index) => (
                       <div key={index} className="relative">
                         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                           {file.type.startsWith('image/') ? (
                             <img
-                              src={URL.createObjectURL(file)}
+                              src={previewUrls[index]}
                               alt={`Preview ${index + 1}`}
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <video
-                              src={URL.createObjectURL(file)}
+                              src={previewUrls[index]}
                               className="w-full h-full object-cover"
                               controls={false}
+                              muted
                             />
                           )}
                         </div>
                         <button
                           type="button"
                           onClick={() => removeFile(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          disabled={isSubmitting}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -392,7 +444,16 @@ const WriteReviewPage = () => {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/products/${productId}`)}
+                  onClick={() => {
+                    const generateSlug = (name: string) => {
+                      return name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/(^-|-$)/g, '');
+                    };
+                    const productSlug = generateSlug(product.name || '');
+                    navigate(`/product/${productSlug}/${productId}`);
+                  }}
                   disabled={isSubmitting}
                   className="flex-1"
                 >
@@ -404,7 +465,7 @@ const WriteReviewPage = () => {
                   className="flex-1 bg-orange-500 hover:bg-orange-600"
                 >
                   {isSubmitting ? (
-                    isUploading ? "Uploading..." : "Submitting..."
+                    uploadProgress.length > 0 ? "Uploading..." : "Submitting..."
                   ) : (
                     "Submit Review"
                   )}
