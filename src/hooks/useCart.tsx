@@ -122,7 +122,7 @@ export const useCart = () => {
           id: item.products?.product_id || '',
           name: item.products?.name || '',
           price: item.products?.price || 0,
-          image: item.products?.image_urls?.[0] || '/placeholder.svg'
+          image: item.products?.image_urls?.[0] || ''
         },
         variant_selections: item.variant_selections,
         quantity: item.quantity

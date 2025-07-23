@@ -108,7 +108,7 @@ const CheckoutModal = () => {
             <div className="flex justify-between items-center text-sm text-gray-600">
               <span>{calculations.selectedItemsCount} items selected</span>
               <span className="font-semibold text-lg">
-                Total: KES {((calculations.total)-(calculations.tax)).toLocaleString()}
+                Total: KES {calculations.total.toLocaleString()}
               </span>
             </div>
           </div>

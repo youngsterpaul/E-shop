@@ -38,22 +38,22 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   }, []);
 
   // Initialize selections when cart items change - optimized to prevent unnecessary updates
-useEffect(() => {
-  if (!cartItems.length) {
-    setSelections([]);
-  } else {
-    setSelections(prevSelections => {
-      const existingSelectionMap = new Map(
-        prevSelections.map(s => [s.itemId, s.selected])
-      );
-      return cartItems.map(item => ({
-        itemId: item.id,
-        selected: existingSelectionMap.get(item.id) || false
-      }));
-    });
-  }
-  forceRecalculate(); // Force recalculation every time cartItems change
-}, [cartItems, forceRecalculate]);
+  useEffect(() => {
+    if (!cartItems.length) {
+      setSelections([]);
+    } else {
+      setSelections(prevSelections => {
+        const existingSelectionMap = new Map(
+          prevSelections.map(s => [s.itemId, s.selected])
+        );
+        return cartItems.map(item => ({
+          itemId: item.id,
+          selected: existingSelectionMap.get(item.id) || false
+        }));
+      });
+    }
+    forceRecalculate(); // Force recalculation every time cartItems change
+  }, [cartItems, forceRecalculate]);
 
 
   // Memoize callbacks to prevent unnecessary re-renders
@@ -119,13 +119,14 @@ useEffect(() => {
   // Added recalculationTrigger to dependencies to force updates
 const calculations = useMemo((): CartCalculations => {
   const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
-  const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  const total = selectedItems.reduce((total, item) => total + ((item.product.price * item.quantity) + shipping - discount), 0);
   const shipping = shippingOption ? shippingOption.price : 0;
   const discount = appliedCoupons.reduce((total, coupon) => {
-    return total + (coupon.type === 'percentage' ? subtotal * coupon.discount / 100 : coupon.discount);
+    return total + (coupon.type === 'percentage' ? total * coupon.discount / 100 : coupon.discount);
   }, 0);
-  const tax = subtotal * 0.16; // 16% tax
-  const total = subtotal + shipping + tax - discount;
+  const subtotal = total * 0.84;
+  const tax = total - subtotal;
+
 
   return {
     subtotal,
