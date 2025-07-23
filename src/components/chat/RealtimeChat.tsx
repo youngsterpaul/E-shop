@@ -38,14 +38,14 @@ const RealtimeChat = () => {
           {/* WhatsApp */}
           <Button
             onClick={handleWhatsAppClick}
-            className="w-full bg-green-500 hover:bg-green-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-green-500 hover:bg-green-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <MessageCircle className="w-6 h-6 text-green-500" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-lg">Chat us on WhatsApp</div>
+                <div className="font-semibold text-md">Chat us on WhatsApp</div>
               </div>
             </div>
           </Button>
@@ -53,14 +53,14 @@ const RealtimeChat = () => {
           {/* Phone Call */}
           <Button
             onClick={handleCallClick}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <Phone className="w-6 h-6 text-blue-500" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-lg">Call Us</div>
+                <div className="font-semibold text-md">Call Us</div>
               </div>
             </div>
           </Button>
@@ -68,14 +68,14 @@ const RealtimeChat = () => {
           {/* Email */}
           <Button
             onClick={handleEmailClick}
-            className="w-full bg-purple-500 hover:bg-purple-600 text-white p-4 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-purple-500 hover:bg-purple-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
           >
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <Mail className="w-6 h-6 text-purple-500" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-lg">Email Us</div>
+                <div className="font-semibold text-md">Email Us</div>
               </div>
             </div>
           </Button>
