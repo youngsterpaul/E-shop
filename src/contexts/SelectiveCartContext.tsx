@@ -120,10 +120,10 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
 const calculations = useMemo((): CartCalculations => {
   const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
   const shipping = shippingOption ? shippingOption.price : 0;
-  const total = selectedItems.reduce((total, item) => total + ((item.product.price * item.quantity) + shipping - discount), 0);
   const discount = appliedCoupons.reduce((total, coupon) => {
     return total + (coupon.type === 'percentage' ? total * coupon.discount / 100 : coupon.discount);
   }, 0);
+  const total = selectedItems.reduce((total, item) => total + ((item.product.price * item.quantity) + shipping - discount), 0);
   const subtotal = total * 0.84;
   const tax = total - subtotal;
 
