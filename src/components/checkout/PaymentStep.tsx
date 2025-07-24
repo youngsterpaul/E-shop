@@ -90,7 +90,7 @@ export const PaymentStep = () => {
           console.error('Error checking payment status:', error);
           // Don't update status on polling errors, just log them
         }
-      }, 1); // Check every 1 milliseconds for faster response
+      }, 1000); // Check every 1 second for faster response
       
       setPollInterval(interval);
     } else {
@@ -145,9 +145,8 @@ export const PaymentStep = () => {
             amount: finalTotal,
             items: orderItems, // Use the properly formatted items
             shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
-            first_name: customerDetails.firstName,
-            last_name: customerDetails.lastName,
             username: `${customerDetails.firstName} ${customerDetails.lastName}`,
+            discount_amount: calculations.discount,
           })
           .select('order_id')
           .single();
