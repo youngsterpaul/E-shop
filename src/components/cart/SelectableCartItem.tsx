@@ -186,14 +186,14 @@ const SelectableCartItem = memo(({
           alt={item.product.name}
           className="w-full h-full object-cover rounded-md bg-gray-100"
           loading="lazy"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/placeholder.svg';
-          }}
+          //onError={(e) => {
+            //const target = e.target as HTMLImageElement;
+            //target.src = '/placeholder.svg';
+          //}}
         />
       </div>
       
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 //min-w-0 overflow-hidden">
         <h3 className="font-medium text-gray-900 truncate text-sm md:text-base">
           {item.product.name}
         </h3>

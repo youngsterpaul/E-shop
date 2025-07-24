@@ -33,7 +33,8 @@ const ChatPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 pb-14">
       {!isMobile && <Header />}
-      <MobileHeader 
+      {isMobile && (
+        <MobileHeader 
         title="Customer Support"
         rightAction={
           <Link to="/faq">
@@ -43,6 +44,7 @@ const ChatPage = () => {
           </Link>
         }
       />
+      )}
       
       <div className="flex-1 flex flex-col min-h-0">
         <RealtimeChat />
