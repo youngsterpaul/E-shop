@@ -94,46 +94,13 @@ export const CustomerDetailsStep = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                placeholder="Enter your first name"
-                className={errors.firstName ? 'border-red-500' : ''}
-              />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                placeholder="Enter your last name"
-                className={errors.lastName ? 'border-red-500' : ''}
-              />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-              )}
-            </div>
-          </div>
-
           <div>
-            <Label htmlFor="Full Name" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Full Name
-            </Label>
+            <Label htmlFor="Full Name">Full Name</Label>
             <Input
               id="userName"
               value={formData.userName}
               onChange={(e) => handleInputChange('useName', e.target.value)}
-              placeholder="Enter your email address"
+              placeholder="Enter your full name"
               className={errors.useName ? 'border-red-500' : ''}
             />
             {errors.useName && (

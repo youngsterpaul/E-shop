@@ -107,6 +107,7 @@ export const DeliveryInfoStep = () => {
       </div>
 
       {/* Delivery Method */}
+      {/*
       <div className="space-y-4">
         <Label>Delivery Method *</Label>
         <RadioGroup
@@ -148,7 +149,7 @@ export const DeliveryInfoStep = () => {
             })}
           </div>
         </RadioGroup>
-      </div>
+      </div> */}
 
       {/* Special Instructions 
       <div className="space-y-2">
