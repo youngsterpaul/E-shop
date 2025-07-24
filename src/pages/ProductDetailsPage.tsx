@@ -362,14 +362,6 @@ const ProductDetailsPage = () => {
                 <p className="text-sm text-gray-600">Price includes VAT</p>
               </div>
 
-              {/* Product Description */}
-              {product.description && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                </div>
-              )}
-
               {/* Variant Selector */}
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector

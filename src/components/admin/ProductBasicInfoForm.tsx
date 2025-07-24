@@ -85,7 +85,7 @@ const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => 
           )}
         />
         
-        <FormField
+        {/*<FormField
           control={form.control}
           name="description"
           render={({ field }) => (
@@ -97,7 +97,7 @@ const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => 
               <FormMessage />
             </FormItem>
           )}
-        />
+        />*/}
       </CardContent>
     </Card>
   );
