@@ -21,6 +21,7 @@ const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 
 // New auth pages
 const SignInPage = lazy(() => import("./pages/auth/SignInPage"));
@@ -76,6 +77,7 @@ function App() {
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
