@@ -360,12 +360,12 @@ export const PaymentStep = () => {
                 <span>Delivery ({deliveryInfo.deliveryMethod})</span>
                 <span>KES {deliveryCost.toLocaleString()}</span>
               </div>
-              {calculations.tax > 0 && (
+              {/*{calculations.tax > 0 && (
                 <div className="flex justify-between">
                   <span>Tax (16%)</span>
                   <span>KES {calculations.tax.toLocaleString()}</span>
                 </div>
-              )}
+              )} */}
               {calculations.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
