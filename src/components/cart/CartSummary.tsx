@@ -153,13 +153,14 @@ const CartSummary = () => {
               <span>Tax (16%)</span>
               <span>KES {calculations.tax.toLocaleString()}</span>
             </div>
-          )}
+          )} */}
+          
           {calculations.discount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
               <span>Discount</span>
               <span>-KES {calculations.discount.toLocaleString()}</span>
             </div>
-          )} */}
+          )} 
         </div>
 
         <Separator />
