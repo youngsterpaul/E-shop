@@ -217,7 +217,7 @@ export const DeliveryStep = () => {
 */}
         </CardContent>
       </Card>
-
+    {/* 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -256,7 +256,7 @@ export const DeliveryStep = () => {
             ))}
           </RadioGroup>
         </CardContent>
-      </Card>
+      </Card>  */}
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={handleBack}>
