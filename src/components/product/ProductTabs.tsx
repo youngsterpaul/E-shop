@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useProductReviews } from '@/hooks/useReviews';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import OptimizedImage from '../OptimizedImage';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface ProductTabsProps {
   product: {
@@ -23,6 +24,8 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const [activeTab, setActiveTab] = useState('specifications');
   const [reviewFilter, setReviewFilter] = useState('all');
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
+
+  const isMobile = isMobileUserAgent();
 
   // Parse features if it's a string
   const getFeatures = () => {
@@ -86,7 +89,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   };
 
   return (
-    <div className="mt-12 mx-auto px-2">
+    <div className={`mt-12 mx-auto px-2 ${isMobile ? 'pb-16' : ''}`}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="specifications" className="text-sm">Specifications</TabsTrigger>

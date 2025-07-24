@@ -21,9 +21,14 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  
   const isMobile = isMobileUserAgent();
   const mainImageRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
+  const magnifierRef = useRef<HTMLDivElement>(null);
   
   const allMedia = [
     product.image,
@@ -31,7 +36,9 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     ...(product.video ? [product.video] : [])
   ];
 
-  const minSwipeDistance = 50; // Increased for better swipe detection
+  const minSwipeDistance = 50;
+  const magnifierSize = 200; // Size of the magnifier lens
+  const zoomLevel = 2.5; // Zoom level for magnification
 
   const nextImage = () => {
     if (isTransitioning) return;
@@ -57,7 +64,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     setCurrentIndex(index);
     setTimeout(() => setIsTransitioning(false), 300);
     
-    // Scroll thumbnail into view
     if (thumbnailsRef.current) {
       const thumbnail = thumbnailsRef.current.children[index] as HTMLElement;
       thumbnail?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -84,9 +90,39 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   };
 
   const handleImageClick = () => {
-    if (!isVideo(allMedia[currentIndex])) {
+    if (!isVideo(allMedia[currentIndex]) && !showMagnifier) {
       setIsZoomOpen(true);
     }
+  };
+
+  // Handle mouse movement for magnifier
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!mainImageRef.current || isVideo(allMedia[currentIndex]) || isMobile) return;
+
+    const rect = mainImageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Calculate magnifier position (center it on cursor)
+    const magnifierX = Math.max(magnifierSize / 2, Math.min(rect.width - magnifierSize / 2, x));
+    const magnifierY = Math.max(magnifierSize / 2, Math.min(rect.height - magnifierSize / 2, y));
+
+    // Calculate the position in the zoomed image
+    const imageX = (x / rect.width) * 100;
+    const imageY = (y / rect.height) * 100;
+
+    setMagnifierPosition({ x: magnifierX, y: magnifierY });
+    setImagePosition({ x: imageX, y: imageY });
+  };
+
+  const handleMouseEnter = () => {
+    if (!isVideo(allMedia[currentIndex]) && !isMobile) {
+      setShowMagnifier(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setShowMagnifier(false);
   };
 
   // Keyboard navigation
@@ -110,6 +146,9 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
         onTouchStart={isMobile ? onTouchStart : undefined}
         onTouchMove={isMobile ? onTouchMove : undefined}
         onTouchEnd={isMobile ? onTouchEnd : undefined}
+        onMouseMove={!isMobile ? handleMouseMove : undefined}
+        onMouseEnter={!isMobile ? handleMouseEnter : undefined}
+        onMouseLeave={!isMobile ? handleMouseLeave : undefined}
         onClick={handleImageClick}
         role="button"
         aria-label="View image in full screen"
@@ -140,6 +179,51 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               }`}
               priority={currentIndex === 0}
             />
+
+            {/* Magnifier Lens - Desktop Only */}
+            {!isMobile && showMagnifier && (
+              <>
+                {/* Magnifier Lens Overlay */}
+                <div
+                  className="absolute pointer-events-none border-2 border-white shadow-lg rounded-full bg-white/20 backdrop-blur-sm z-10"
+                  style={{
+                    width: `${magnifierSize}px`,
+                    height: `${magnifierSize}px`,
+                    left: `${magnifierPosition.x - magnifierSize / 2}px`,
+                    top: `${magnifierPosition.y - magnifierSize / 2}px`,
+                    boxShadow: '0 0 0 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.2)',
+                  }}
+                />
+
+                {/* Magnified Image */}
+                <div
+                  ref={magnifierRef}
+                  className="absolute pointer-events-none border-2 border-white shadow-xl rounded-full overflow-hidden z-20 bg-white"
+                  style={{
+                    width: `${magnifierSize}px`,
+                    height: `${magnifierSize}px`,
+                    left: `${magnifierPosition.x - magnifierSize / 2}px`,
+                    top: `${magnifierPosition.y - magnifierSize / 2}px`,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.8)',
+                  }}
+                >
+                  <OptimizedImage
+                    src={allMedia[currentIndex]}
+                    alt={`${product.name} - Magnified view`}
+                    width={500 * zoomLevel}
+                    height={500 * zoomLevel}
+                    aspectRatio="square"
+                    className="absolute object-cover"
+                    style={{
+                      width: `${magnifierSize * zoomLevel}px`,
+                      height: `${magnifierSize * zoomLevel}px`,
+                      left: `-${(imagePosition.x / 100) * magnifierSize * zoomLevel - magnifierSize / 2}px`,
+                      top: `-${(imagePosition.y / 100) * magnifierSize * zoomLevel - magnifierSize / 2}px`,
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
         
@@ -149,7 +233,13 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             {currentIndex + 1}/{allMedia.length}
           </div>
         )}
-        
+
+        {/* Magnify Icon Indicator - Desktop Only */}
+        {!isMobile && !isVideo(allMedia[currentIndex]) && !showMagnifier && (
+          <div className="absolute bottom-3 right-3 bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <ZoomIn size={16} />
+          </div>
+        )}
       </div>
 
       {/* Thumbnail Strip - Desktop Only */}
