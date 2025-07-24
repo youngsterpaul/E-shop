@@ -119,13 +119,26 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
   // Added recalculationTrigger to dependencies to force updates
 const calculations = useMemo((): CartCalculations => {
   const selectedItems = cartItems.filter(item => selectedItemIds.includes(item.id));
-  const subtotal = selectedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-  const shipping = shippingOption ? shippingOption.price : 0;
-  const discount = appliedCoupons.reduce((total, coupon) => {
-    return total + (coupon.type === 'percentage' ? total * coupon.discount / 100 : coupon.discount);
+  const subtotal = selectedItems.reduce((total, item) => {
+    return total + (item.product.price * item.quantity);
   }, 0);
-  const total = subtotal + shipping - discount;
-  const tax = 0;
+  const discount = appliedCoupons.reduce((total, coupon) => {
+  const baseAmount = subtotal; // Use subtotal as base for discount calculation
+  const couponDiscount = coupon.type === 'percentage' 
+      ? baseAmount * coupon.discount / 100 
+      : coupon.discount;
+    return total + couponDiscount;
+  }, 0);
+    const discountedSubtotal = Math.max(0, subtotal - discount);
+  
+  // Add shipping to get pre-tax total
+  const shipping = shippingOption ? shippingOption.price : 0;
+  const preTaxTotal = discountedSubtotal + shipping;
+  
+  // Calculate tax (assuming 16% tax rate based on your 0.84 multiplier)
+  const taxRate = 0;
+  const tax = preTaxTotal * taxRate;
+  const total = preTaxTotal + tax;
 
   return {
     subtotal,
