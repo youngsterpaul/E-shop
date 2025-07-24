@@ -147,6 +147,7 @@ export const PaymentStep = () => {
             shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
             username: `${customerDetails.firstName} ${customerDetails.lastName}`,
             discount_amount: calculations.discount,
+            tracking_number: orderId.slice(-8).toLocaleUpperCase(),
           })
           .select('order_id')
           .single();
