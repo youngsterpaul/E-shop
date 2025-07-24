@@ -28,7 +28,7 @@ export const CustomerDetailsStep = () => {
     setFormData({
       firstName: customerDetails.firstName || profile?.first_name || '',
       lastName: customerDetails.lastName || profile?.last_name || '',
-      userName: `${customerDetails.firstName || profile?.first_name || ''} ${customerDetails.lastName || profile?.last_name || ''}`.trim(),
+      userName: `${customerDetails.firstName || profile?.first_name || ''} ${customerDetails.lastName || profile?.last_name || ''}`.trim() || '',
       email: customerDetails.email || user?.email || '',
       user_id: customerDetails.user_id || profile?.user_id || '',
       phone: customerDetails.phone || profile?.phone || ''

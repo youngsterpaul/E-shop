@@ -193,7 +193,7 @@ const SelectableCartItem = memo(({
         />
       </div>
       
-      <div className="flex-1 //min-w-0 overflow-hidden">
+      <div className="flex-1 min-w-0">
         <h3 className="font-medium text-gray-900 truncate text-sm md:text-base">
           {item.product.name}
         </h3>
