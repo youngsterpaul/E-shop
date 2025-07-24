@@ -38,13 +38,13 @@ export const CustomerDetailsStep = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.userName.trim()) {
+      newErrors.userName = 'Full Name is required';
     }
     
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
+    //if (!formData.lastName.trim()) {
+      //newErrors.lastName = 'Last name is required';
+    //}
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -99,7 +99,7 @@ export const CustomerDetailsStep = () => {
             <Input
               id="userName"
               value={formData.userName}
-              onChange={(e) => handleInputChange('useName', e.target.value)}
+              onChange={(e) => handleInputChange('userName', e.target.value)}
               placeholder="Enter your full name"
               className={errors.useName ? 'border-red-500' : ''}
             />
