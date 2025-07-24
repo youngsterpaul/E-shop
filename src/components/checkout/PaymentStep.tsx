@@ -138,7 +138,7 @@ export const PaymentStep = () => {
           .from('orders')
           .insert({
             order_id: orderId,
-            user_id: customerDetails.user_id,
+            user_id: customerDetails.user_id || null,
             email: customerDetails.email,
             phone_number: customerDetails.phone,
             status: 'pending',
@@ -353,7 +353,7 @@ export const PaymentStep = () => {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Items ({calculations.selectedItemsCount})</span>
-                <span>KES {((calculations.subtotal)-(calculations.tax)).toLocaleString()}</span>
+                <span>KES {calculations.subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery ({deliveryInfo.deliveryMethod})</span>
