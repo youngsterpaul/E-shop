@@ -15,6 +15,7 @@ export const CustomerDetailsStep = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    userName: '',
     user_id: '',
     email: '',
     phone: ''
@@ -27,6 +28,7 @@ export const CustomerDetailsStep = () => {
     setFormData({
       firstName: customerDetails.firstName || profile?.first_name || '',
       lastName: customerDetails.lastName || profile?.last_name || '',
+      userName: `${customerDetails.firstName || profile?.first_name || ''} ${customerDetails.lastName || profile?.last_name || ''}`.trim(),
       email: customerDetails.email || user?.email || '',
       user_id: customerDetails.user_id || profile?.user_id || '',
       phone: customerDetails.phone || profile?.phone || ''
@@ -120,6 +122,23 @@ export const CustomerDetailsStep = () => {
                 <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
               )}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="Full Name" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Full Name
+            </Label>
+            <Input
+              id="userName"
+              value={formData.userName}
+              onChange={(e) => handleInputChange('useName', e.target.value)}
+              placeholder="Enter your email address"
+              className={errors.useName ? 'border-red-500' : ''}
+            />
+            {errors.useName && (
+              <p className="text-red-500 text-sm mt-1">{errors.userName}</p>
+            )}
           </div>
 
           <div>

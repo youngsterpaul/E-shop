@@ -19,6 +19,7 @@ const initialState: CheckoutState = {
   customerDetails: {
     firstName: '',
     lastName: '',
+    userName: '',
     user_id: '',
     email: '',
     phone: '',

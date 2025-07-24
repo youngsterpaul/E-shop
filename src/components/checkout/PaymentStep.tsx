@@ -147,6 +147,7 @@ export const PaymentStep = () => {
             shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
             first_name: customerDetails.firstName,
             last_name: customerDetails.lastName,
+            username: `${customerDetails.firstName} ${customerDetails.lastName}`,
           })
           .select('order_id')
           .single();
@@ -373,7 +374,7 @@ export const PaymentStep = () => {
               )}
               <div className="border-t pt-2 flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>KES {((finalTotal)-(calculations.tax)).toLocaleString()}</span>
+                <span>KES {finalTotal.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>

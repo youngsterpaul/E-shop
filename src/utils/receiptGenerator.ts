@@ -16,6 +16,7 @@ interface Order {
   email: string | null;
   first_name?: string;
   last_name?: string;
+  username?: string;
   phone_number: string | null;
   status: string;
   amount: number | null;
@@ -100,7 +101,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.text('Customer:', 4, y); y += 4;
 
     doc.setFont('helvetica', 'normal');
-    doc.text(`Name: ${order.first_name && ' ' && order.last_name || 'N/A'}`, 4, y); y += 4;
+    doc.text(`Name: ${order.username || 'N/A'}`, 4, y); y += 4;
     doc.text(`Email: ${order.email || 'N/A'}`, 4, y); y += 4;
     doc.text(`Phone: ${order.phone_number || 'N/A'}`, 4, y); y += 4;
     doc.text(`Address: ${order.shipping_address || 'N/A'}`, 4, y); y += 4;
