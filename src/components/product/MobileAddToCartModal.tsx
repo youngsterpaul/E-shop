@@ -350,16 +350,6 @@ const MobileAddToCartModal = ({
           {/* Fixed Bottom Actions */}
           <div className="border-t border-gray-100 p-6 bg-white">
             <div className="flex items-center gap-3">
-              {/* Secondary Actions */}
-              <div className="flex gap-2">
-                <button className="p-3 border-2 border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                  <Heart className="h-5 w-5 text-gray-600" />
-                </button>
-                <button className="p-3 border-2 border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                  <Share2 className="h-5 w-5 text-gray-600" />
-                </button>
-              </div>
-
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}

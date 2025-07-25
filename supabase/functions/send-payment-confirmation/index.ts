@@ -13,7 +13,7 @@ interface EmailRequest {
   email: string;
   orderId: string;
   amount: number;
-  customerName?: string;
+  userName?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
     
-    const { email, orderId, amount, customerName }: EmailRequest = requestBody;
+    const { email, orderId, amount, userName }: EmailRequest = requestBody;
 
     if (!email || !orderId || !amount) {
       console.error('Missing required fields:', { email: !!email, orderId: !!orderId, amount: !!amount });
@@ -66,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="background: #fff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px;">
             <p style="font-size: 18px; margin-bottom: 20px;">
-              Hello ${customerName || 'Valued Customer'},
+              Hello ${userName || 'Valued Customer'},
             </p>
             
             <p style="font-size: 16px; margin-bottom: 25px;">

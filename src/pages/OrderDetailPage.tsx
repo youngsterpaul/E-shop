@@ -51,6 +51,7 @@ interface Order {
   updated_at: string;
   first_name?: string;
   last_name?: string;
+  userName?: string;
   mpesa_checkout_request_id?: string;
   payment_id?: string;
 }
@@ -392,10 +393,10 @@ const OrderDetailPage = () => {
                       <h3 className="font-semibold text-gray-900">Contact Information</h3>
                     </div>
                     <div className="pl-8 space-y-2">
-                      {order.first_name && order.last_name && (
+                      {order.userName && (
                         <div className="flex items-center gap-2">
                           <span className="text-gray-400">👤</span>
-                          <p className="text-gray-700">{order.first_name} {order.last_name}</p>
+                          <p className="text-gray-700">{order.userName}</p>
                         </div>
                       )}
                       {order.email && (
