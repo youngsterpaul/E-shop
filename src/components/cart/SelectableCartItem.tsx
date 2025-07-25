@@ -1,8 +1,9 @@
+
 import React, { memo, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCart } from '@/hooks/useCart';
+import { useCartContext } from '@/contexts/CartContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
 interface SelectableCartItemProps {
@@ -16,34 +17,23 @@ interface SelectableCartItemProps {
     };
     variant_selections?: Record<string, string>;
     quantity: number;
+    added_at?: string;
+    updated_at?: string;
   };
-  isSelected: boolean;
-  onToggleSelect: () => void;
-  onRemove?: (itemId: string) => void;
   className?: string;
 }
 
-const SelectableCartItem = memo(({ 
-  item, 
-  isSelected, 
-  onToggleSelect, 
-  onRemove, 
-  className = '' 
-}: SelectableCartItemProps) => {
-  const { updateQuantity, removeFromCart } = useCart();
-  const { forceRecalculate } = useSelectiveCart();
+const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemProps) => {
+  const { updateQuantity, removeFromCart } = useCartContext();
+  const { isItemSelected, toggleItemSelection, forceRecalculate } = useSelectiveCart();
+  
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
   
-  // Use refs to manage debouncing without causing re-renders
+  // Refs for cleanup and debouncing
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
   const mountedRef = useRef(true);
-
-  // Sync local quantity with prop changes
-  useEffect(() => {
-    setLocalQuantity(item.quantity);
-  }, [item.quantity]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -55,28 +45,34 @@ const SelectableCartItem = memo(({
     };
   }, []);
 
-  // Debounced quantity update with better error handling
+  // Sync local quantity with prop changes
+  useEffect(() => {
+    if (item.quantity !== localQuantity) {
+      setLocalQuantity(item.quantity);
+    }
+  }, [item.quantity]);
+
+  // Memoize selection state
+  const isSelected = useMemo(() => isItemSelected(item.id), [isItemSelected, item.id]);
+
+  // Debounced quantity update
   const debouncedUpdate = useCallback((itemId: string, quantity: number) => {
-    // Clear previous timeout
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
 
-    // Set new timeout
     updateTimeoutRef.current = setTimeout(async () => {
       if (!mountedRef.current) return;
       
       setIsUpdating(true);
       try {
         await updateQuantity(itemId, quantity);
-        // Force recalculate after successful update
         if (mountedRef.current) {
           forceRecalculate();
         }
       } catch (error) {
-        // Revert on error
         if (mountedRef.current) {
-          setLocalQuantity(item.quantity);
+          setLocalQuantity(item.quantity); // Revert on error
         }
         console.error('Failed to update quantity:', error);
       } finally {
@@ -84,20 +80,17 @@ const SelectableCartItem = memo(({
           setIsUpdating(false);
         }
       }
-    }, 300);
+    }, 500); // Increased debounce time for better UX
   }, [updateQuantity, item.quantity, forceRecalculate]);
 
-  // Handle quantity changes with immediate UI feedback
+  // Handle quantity changes
   const handleQuantityChange = useCallback((newQuantity: number) => {
     if (newQuantity < 1) {
       handleRemove();
       return;
     }
 
-    // Immediate UI update
     setLocalQuantity(newQuantity);
-    
-    // Debounced backend update
     debouncedUpdate(item.id, newQuantity);
   }, [item.id, debouncedUpdate]);
 
@@ -108,8 +101,6 @@ const SelectableCartItem = memo(({
     setIsRemoving(true);
     try {
       await removeFromCart(item.id);
-      onRemove?.(item.id);
-      // Force recalculate after successful removal
       forceRecalculate();
     } catch (error) {
       console.error('Failed to remove item:', error);
@@ -117,19 +108,23 @@ const SelectableCartItem = memo(({
         setIsRemoving(false);
       }
     }
-  }, [item.id, removeFromCart, onRemove, isRemoving, forceRecalculate]);
+  }, [item.id, removeFromCart, isRemoving, forceRecalculate]);
 
-  // Increment quantity
+  // Quantity control handlers
   const handleIncrement = useCallback(() => {
     handleQuantityChange(localQuantity + 1);
   }, [localQuantity, handleQuantityChange]);
 
-  // Decrement quantity
   const handleDecrement = useCallback(() => {
-    handleQuantityChange(localQuantity - 1);
+    handleQuantityChange(Math.max(1, localQuantity - 1));
   }, [localQuantity, handleQuantityChange]);
 
-  // Memoize price formatting to prevent recalculation
+  // Toggle selection handler
+  const handleToggleSelect = useCallback(() => {
+    toggleItemSelection(item.id);
+  }, [toggleItemSelection, item.id]);
+
+  // Memoized price formatting
   const formattedPrice = useMemo(() => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
@@ -139,7 +134,6 @@ const SelectableCartItem = memo(({
     }).format(item.product.price);
   }, [item.product.price]);
 
-  // Memoize total price calculation
   const totalPrice = useMemo(() => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
@@ -149,7 +143,7 @@ const SelectableCartItem = memo(({
     }).format(item.product.price * localQuantity);
   }, [item.product.price, localQuantity]);
 
-  // Memoize variant display
+  // Memoized variant display
   const variantDisplay = useMemo(() => {
     if (!item.variant_selections || Object.keys(item.variant_selections).length === 0) {
       return null;
@@ -166,16 +160,18 @@ const SelectableCartItem = memo(({
     );
   }, [item.variant_selections]);
 
-  // Don't render if item is being removed
+  // Don't render if removing
   if (isRemoving) {
     return null;
   }
 
   return (
-    <div className={`flex items-start gap-4 p-4 bg-white transition-opacity ${isRemoving ? 'opacity-50' : ''} ${className}`}>
+    <div className={`flex items-start gap-4 p-4 bg-white transition-all duration-200 ${
+      isSelected ? 'ring-2 ring-primary/20 bg-primary/5' : ''
+    } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
       <Checkbox
         checked={isSelected}
-        onCheckedChange={onToggleSelect}
+        onCheckedChange={handleToggleSelect}
         className="mt-2 flex-shrink-0"
         disabled={isRemoving || isUpdating}
       />
@@ -186,10 +182,6 @@ const SelectableCartItem = memo(({
           alt={item.product.name}
           className="w-full h-full object-cover rounded-md bg-gray-100"
           loading="lazy"
-          //onError={(e) => {
-            //const target = e.target as HTMLImageElement;
-            //target.src = '/placeholder.svg';
-          //}}
         />
       </div>
       

@@ -190,7 +190,6 @@ const CareersPage = () => {
         {isMobile && ( 
           <MobileHeader
           title="Careers"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
@@ -203,13 +202,15 @@ const CareersPage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
           <div className="relative max-w-4xl mx-auto">
             {/* Breadcrumb */}
-            <SiteBreadcrumb 
+            {!isMobile && (
+              <SiteBreadcrumb 
               items={[
                 { label: 'Home', href: '/' },
                 { label: 'Careers' }
               ]}
               className="mb-6"
             />
+            )}
 
           <h1 className="text-3xl font-bold mb-6">Careers at SmartKenya</h1>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in">

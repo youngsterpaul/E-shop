@@ -204,7 +204,6 @@ export type Database = {
       carts: {
         Row: {
           created_at: string
-          currency: string | null
           expires_at: string | null
           id: string
           item_count: number | null
@@ -216,7 +215,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          currency?: string | null
           expires_at?: string | null
           id?: string
           item_count?: number | null
@@ -228,7 +226,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          currency?: string | null
           expires_at?: string | null
           id?: string
           item_count?: number | null

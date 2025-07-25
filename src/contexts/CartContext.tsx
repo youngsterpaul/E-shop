@@ -1,20 +1,23 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { useCart } from '@/hooks/useCart';
 
 interface CartContextType {
   cart: any;
   cartItems: any[];
   loading: boolean;
-  addToCart: (productId: string, variantSelections?: any, quantity?: number) => Promise<void>;
+  addToCart: (productId: string, variantSelections?: any, quantity?: number, itemMetadata?: any) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
-  updateCartItemQuantity: (itemId: string, quantity: number) => Promise<void>;
   removeFromCart: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   updateCartStatus: (status: 'active' | 'checkout' | 'completed' | 'abandoned') => Promise<void>;
   totalItems: number;
   totalPrice: number;
   refetch: () => Promise<void>;
+  // Helper methods
+  getCartItemById: (itemId: string) => any | null;
+  isCartEmpty: boolean;
+  hasItems: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,14 +25,24 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const cartData = useCart();
 
-  // Add updateCartItemQuantity as an alias to updateQuantity
-  const cartDataWithAlias = {
-    ...cartData,
-    updateCartItemQuantity: cartData.updateQuantity
-  };
+  // Memoize enhanced cart data to prevent unnecessary re-renders
+  const enhancedCartData = useMemo(() => {
+    const getCartItemById = (itemId: string) => 
+      cartData.cartItems.find(item => item.id === itemId) || null;
+    
+    const isCartEmpty = cartData.cartItems.length === 0;
+    const hasItems = cartData.cartItems.length > 0;
+
+    return {
+      ...cartData,
+      getCartItemById,
+      isCartEmpty,
+      hasItems
+    };
+  }, [cartData]);
 
   return (
-    <CartContext.Provider value={cartDataWithAlias}>
+    <CartContext.Provider value={enhancedCartData}>
       {children}
     </CartContext.Provider>
   );

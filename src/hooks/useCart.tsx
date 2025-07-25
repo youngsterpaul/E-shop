@@ -13,8 +13,11 @@ interface CartItem {
     price: number;
     image: string;
   };
+  items: any; // Additional item data/metadata
   variant_selections: any;
   quantity: number;
+  added_at: string;
+  updated_at: string;
 }
 
 interface Cart {
@@ -22,9 +25,8 @@ interface Cart {
   user_id: string | null;
   session_id: string | null;
   status: 'active' | 'checkout' | 'completed' | 'abandoned';
-  total_amount: number | null;
-  item_count: number | null;
-  currency: string | null;
+  total_amount: number;
+  item_count: number;
   expires_at: string | null;
   created_at: string;
   updated_at: string;
@@ -63,6 +65,42 @@ export const useCart = () => {
     }
   };
 
+  // Update cart totals - centralized function
+  const updateCartTotals = async (cartId: string) => {
+    try {
+      // Calculate totals from cart items
+      const { data: items, error: itemsError } = await supabase
+        .from('cart_items')
+        .select('quantity, products!fk_cart_items_product_id(price)')
+        .eq('cart_id', cartId);
+
+      if (itemsError) throw itemsError;
+
+      const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
+      const totalAmount = items?.reduce((total, item) => {
+        const price = item.products?.price || 0;
+        return total + (price * item.quantity);
+      }, 0) || 0;
+
+      // Update cart with calculated totals
+      const { error: updateError } = await supabase
+        .from('carts')
+        .update({ 
+          item_count: itemCount,
+          total_amount: totalAmount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cartId);
+
+      if (updateError) throw updateError;
+
+      return { itemCount, totalAmount };
+    } catch (error) {
+      console.error('Error updating cart totals:', error);
+      return { itemCount: 0, totalAmount: 0 };
+    }
+  };
+
   // Fetch cart and cart items
   const fetchCart = async () => {
     if (!user && !getSessionId()) {
@@ -87,22 +125,26 @@ export const useCart = () => {
 
       if (cartError) throw cartError;
       
-      // Type the cart data properly
       const typedCartData: Cart = {
         ...cartData,
-        status: cartData.status as 'active' | 'checkout' | 'completed' | 'abandoned'
+        status: cartData.status as 'active' | 'checkout' | 'completed' | 'abandoned',
+        total_amount: cartData.total_amount || 0,
+        item_count: cartData.item_count || 0
       };
       setCart(typedCartData);
 
-      // Fetch cart items with product details - fix the relationship hint
+      // Fetch cart items with all fields including timestamps
       const { data: itemsData, error: itemsError } = await supabase
         .from('cart_items')
         .select(`
           id,
           cart_id,
           product_id,
+          items,
           variant_selections,
           quantity,
+          added_at,
+          updated_at,
           products!fk_cart_items_product_id (
             product_id,
             name,
@@ -110,11 +152,12 @@ export const useCart = () => {
             image_urls
           )
         `)
-        .eq('cart_id', cartId);
+        .eq('cart_id', cartId)
+        .order('added_at', { ascending: false }); // Most recent first
 
       if (itemsError) throw itemsError;
 
-      const formattedItems = itemsData?.map(item => ({
+      const formattedItems: CartItem[] = itemsData?.map(item => ({
         id: item.id,
         cart_id: item.cart_id || '',
         product_id: item.product_id || '',
@@ -124,8 +167,11 @@ export const useCart = () => {
           price: item.products?.price || 0,
           image: item.products?.image_urls?.[0] || ''
         },
+        items: item.items,
         variant_selections: item.variant_selections,
-        quantity: item.quantity
+        quantity: item.quantity,
+        added_at: item.added_at || '',
+        updated_at: item.updated_at || ''
       })) || [];
 
       setCartItems(formattedItems);
@@ -141,7 +187,12 @@ export const useCart = () => {
     }
   };
 
-  const addToCart = async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
+  const addToCart = async (
+    productId: string, 
+    variantSelections: any = {}, 
+    quantity: number = 1,
+    itemMetadata: any = null // Additional item data
+  ) => {
     if (!user && !getSessionId()) {
       toast({
         title: "Please sign in",
@@ -163,7 +214,9 @@ export const useCart = () => {
         return;
       }
 
-      // Check if item already exists in cart
+      const now = new Date().toISOString();
+
+      // Check if item already exists in cart with same variants
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
         .select('*')
@@ -177,29 +230,38 @@ export const useCart = () => {
       }
 
       if (existingItem) {
-        // Update existing item quantity
+        // Update existing item quantity and timestamp
         const { error: updateError } = await supabase
           .from('cart_items')
-          .update({ quantity: existingItem.quantity + quantity })
+          .update({ 
+            quantity: existingItem.quantity + quantity,
+            updated_at: now
+          })
           .eq('id', existingItem.id);
 
         if (updateError) throw updateError;
       } else {
-        // Add new item to cart
+        // Add new item to cart with all required fields
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert({
             cart_id: cartId,
             product_id: productId,
+            items: itemMetadata,
             variant_selections: variantSelections,
             quantity: quantity,
-            user_id: user?.id || null
+            user_id: user?.id || null,
+            added_at: now,
+            updated_at: now
           });
 
         if (insertError) throw insertError;
       }
 
-      // Immediately update local state for instant feedback
+      // Update cart totals
+      await updateCartTotals(cartId);
+      
+      // Refresh cart data
       await fetchCart();
       
       toast({
@@ -222,6 +284,10 @@ export const useCart = () => {
       return;
     }
 
+    // Find the item to get cart_id
+    const item = cartItems.find(item => item.id === itemId);
+    if (!item) return;
+
     // Optimistic update for immediate UI feedback
     setCartItems(prevItems => 
       prevItems.map(item => 
@@ -232,13 +298,25 @@ export const useCart = () => {
     try {
       const { error } = await supabase
         .from('cart_items')
-        .update({ quantity })
+        .update({ 
+          quantity,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', itemId);
 
       if (error) {
         // Revert optimistic update on error
         await fetchCart();
         throw error;
+      }
+
+      // Update cart totals
+      await updateCartTotals(item.cart_id);
+      
+      // Update local cart state
+      if (cart) {
+        const totals = await updateCartTotals(cart.id);
+        setCart({ ...cart, ...totals });
       }
     } catch (error: any) {
       console.error('Error updating quantity:', error);
@@ -251,6 +329,10 @@ export const useCart = () => {
   };
 
   const removeFromCart = async (itemId: string) => {
+    // Find the item to get cart_id before removing
+    const item = cartItems.find(item => item.id === itemId);
+    if (!item) return;
+
     // Optimistic update for immediate UI feedback
     setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
 
@@ -264,6 +346,15 @@ export const useCart = () => {
         // Revert optimistic update on error
         await fetchCart();
         throw error;
+      }
+
+      // Update cart totals
+      await updateCartTotals(item.cart_id);
+      
+      // Update local cart state
+      if (cart) {
+        const totals = await updateCartTotals(cart.id);
+        setCart({ ...cart, ...totals });
       }
       
       toast({
@@ -290,6 +381,19 @@ export const useCart = () => {
         .eq('cart_id', cart.id);
 
       if (error) throw error;
+
+      // Reset cart totals
+      const { error: updateError } = await supabase
+        .from('carts')
+        .update({ 
+          item_count: 0,
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cart.id);
+
+      if (updateError) throw updateError;
+
       await fetchCart();
     } catch (error: any) {
       console.error('Error clearing cart:', error);
@@ -302,7 +406,10 @@ export const useCart = () => {
     try {
       const { error } = await supabase
         .from('carts')
-        .update({ status })
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cart.id);
 
       if (error) throw error;
@@ -316,9 +423,9 @@ export const useCart = () => {
     fetchCart();
   }, [user]);
 
-  // Calculate totals directly from cart items for immediate updates
-  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  // Use cart totals from database instead of calculating in frontend
+  const totalItems = cart?.item_count || 0;
+  const totalPrice = cart?.total_amount || 0;
 
   return {
     cart,
