@@ -86,6 +86,9 @@ const CheckoutPage = () => {
 
   const [errors, setErrors] = useState<ErrorsType>({});
 
+  const freeDeliveryThreshold = 2000;
+  const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
+
   // Initialize form data
   useEffect(() => {
     setCustomerData({
@@ -797,21 +800,31 @@ const CheckoutPage = () => {
                 <Separator />
 
                 {/* Price Breakdown */}
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span>Items ({calculations.selectedItemsCount})</span>
-                    <span>KES {calculations.subtotal.toLocaleString()}</span>
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
                   </div>
-                  
+
                   <div className="flex justify-between">
-                    <span>Delivery (Standard)</span>
-                    <span>KES {deliveryCost.toLocaleString()}</span>
+                    <span className="text-gray-600">Delivery</span>
+                    <span className={`font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
+                      {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
+                      isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
+                    </span>
                   </div>
+
+                  {calculations.tax > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tax</span>
+                      <span className="font-medium">KES {calculations.tax.toLocaleString()}</span>
+                    </div>
+                  )}
 
                   {calculations.discount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-KES {calculations.discount.toLocaleString()}</span>
+                      <span className="font-medium">-KES {calculations.discount.toLocaleString()}</span>
                     </div>
                   )}
                 </div>

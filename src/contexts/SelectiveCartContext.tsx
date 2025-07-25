@@ -180,7 +180,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     const preTaxTotal = discountedSubtotal + shipping;
     
     // Calculate tax (adjust rate as needed)
-    const taxRate = 0.16; // 16% tax rate - adjust as needed
+    const taxRate = 0; // 0% tax rate - adjust as needed
     const tax = preTaxTotal * taxRate;
     
     const total = preTaxTotal + tax;
