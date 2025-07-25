@@ -1,4 +1,3 @@
-
 import React, { memo, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -152,7 +151,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
     return (
       <div className="mt-1 space-y-1">
         {Object.entries(item.variant_selections).map(([type, value]) => (
-          <p key={`${type}-${value}`} className="text-sm text-gray-600">
+          <p key={`${type}-${value}`} className="text-xs sm:text-sm text-gray-600">
             <span className="capitalize font-medium">{type}:</span> {value}
           </p>
         ))}
@@ -166,85 +165,179 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   }
 
   return (
-    <div className={`flex items-start gap-4 p-4 bg-white transition-all duration-200 ${
-      isSelected ? 'ring-2 ring-primary/20 bg-primary/5' : ''
+    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ${
+      isSelected ? 'ring-2 ring-primary/20 bg-primary/5 border-primary/30' : ''
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
-      <Checkbox
-        checked={isSelected}
-        onCheckedChange={handleToggleSelect}
-        className="mt-2 flex-shrink-0"
-        disabled={isRemoving || isUpdating}
-      />
       
-      <div className="w-20 h-20 flex-shrink-0">
-        <img
-          src={item.product.image}
-          alt={item.product.name}
-          className="w-full h-full object-cover rounded-md bg-gray-100"
-          loading="lazy"
-        />
-      </div>
-      
-      <div className="flex-1">
-        <h3 className="font-medium text-gray-900 line-clamp-2 text-sm md:text-base">
-          {item.product.name}
-        </h3>
-        
-        {variantDisplay}
-        
-        <div className="mt-2 space-y-1">
-          <p className="text-sm text-gray-600">
-            Unit Price: {formattedPrice}
-          </p>
-          <p className="text-base font-semibold text-primary">
-            Total: {totalPrice}
-          </p>
+      {/* Mobile Layout */}
+      <div className="block sm:hidden">
+        <div className="p-3">
+          {/* Header with checkbox and remove button */}
+          <div className="flex items-center justify-between mb-3">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={handleToggleSelect}
+              className="flex-shrink-0"
+              disabled={isRemoving || isUpdating}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRemove}
+              disabled={isRemoving || isUpdating}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
+              title="Remove item"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Product image and basic info */}
+          <div className="flex gap-3 mb-3">
+            <div className="w-16 h-16 flex-shrink-0">
+              <img
+                src={item.product.image}
+                alt={item.product.name}
+                className="w-full h-full object-cover rounded-md bg-gray-100"
+                loading="lazy"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1">
+                {item.product.name}
+              </h3>
+              <p className="text-xs text-gray-600">
+                {formattedPrice} each
+              </p>
+            </div>
+          </div>
+
+          {/* Variants */}
+          {variantDisplay}
+
+          {/* Quantity and total price */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center border rounded-md bg-white">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDecrement}
+                disabled={isUpdating || localQuantity <= 1 || isRemoving}
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+                title="Decrease quantity"
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+              
+              <div className="w-10 text-center">
+                <span className={`font-medium text-sm ${isUpdating ? 'opacity-50' : ''}`}>
+                  {localQuantity}
+                </span>
+                {isUpdating && (
+                  <div className="text-xs text-blue-500 leading-none">...</div>
+                )}
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleIncrement}
+                disabled={isUpdating || isRemoving}
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+                title="Increase quantity"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+
+            <div className="text-right">
+              <p className="text-base font-semibold text-primary">
+                {totalPrice}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <div className="flex flex-col items-end gap-3 flex-shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRemove}
+
+      {/* Desktop/Tablet Layout */}
+      <div className="hidden sm:flex items-start gap-4 p-4">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={handleToggleSelect}
+          className="mt-2 flex-shrink-0"
           disabled={isRemoving || isUpdating}
-          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1"
-          title="Remove item"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        />
         
-        <div className="flex items-center border rounded-md bg-white">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDecrement}
-            disabled={isUpdating || localQuantity <= 1 || isRemoving}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
-            title="Decrease quantity"
-          >
-            <Minus className="h-3 w-3" />
-          </Button>
+        <div className="w-20 h-20 flex-shrink-0">
+          <img
+            src={item.product.image}
+            alt={item.product.name}
+            className="w-full h-full object-cover rounded-md bg-gray-100"
+            loading="lazy"
+          />
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-gray-900 text-sm md:text-base mb-1">
+            {item.product.name}
+          </h3>
           
-          <div className="w-12 text-center">
-            <span className={`font-medium text-sm ${isUpdating ? 'opacity-50' : ''}`}>
-              {localQuantity}
-            </span>
-            {isUpdating && (
-              <div className="text-xs text-blue-500 leading-none">...</div>
-            )}
+          {variantDisplay}
+          
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-gray-600">
+              Unit Price: {formattedPrice}
+            </p>
+            <p className="text-lg font-semibold text-primary">
+              Total: {totalPrice}
+            </p>
           </div>
-          
+        </div>
+        
+        <div className="flex flex-col items-end gap-3 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleIncrement}
-            disabled={isUpdating || isRemoving}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
-            title="Increase quantity"
+            onClick={handleRemove}
+            disabled={isRemoving || isUpdating}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1"
+            title="Remove item"
           >
-            <Plus className="h-3 w-3" />
+            <Trash2 className="h-4 w-4" />
           </Button>
+          
+          <div className="flex items-center border rounded-md bg-white">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDecrement}
+              disabled={isUpdating || localQuantity <= 1 || isRemoving}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+              title="Decrease quantity"
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            
+            <div className="w-12 text-center">
+              <span className={`font-medium text-sm ${isUpdating ? 'opacity-50' : ''}`}>
+                {localQuantity}
+              </span>
+              {isUpdating && (
+                <div className="text-xs text-blue-500 leading-none">...</div>
+              )}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleIncrement}
+              disabled={isUpdating || isRemoving}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+              title="Increase quantity"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
