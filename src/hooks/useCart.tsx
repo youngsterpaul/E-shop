@@ -6,14 +6,13 @@ import { useToast } from '@/hooks/use-toast';
 interface CartItem {
   id: string;
   cart_id: string;
-  product_id: string;
-  product: {
+  items: {
     id: string;
     name: string;
     price: number;
     image: string;
+    [key: string]: any; // Additional item properties
   };
-  items: any; // Additional item data/metadata
   variant_selections: any;
   quantity: number;
   added_at: string;
@@ -71,14 +70,14 @@ export const useCart = () => {
       // Calculate totals from cart items
       const { data: items, error: itemsError } = await supabase
         .from('cart_items')
-        .select('quantity, products!fk_cart_items_product_id(price)')
+        .select('quantity, items')
         .eq('cart_id', cartId);
 
       if (itemsError) throw itemsError;
 
       const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
       const totalAmount = items?.reduce((total, item) => {
-        const price = item.products?.price || 0;
+        const price = item.items?.price || 0;
         return total + (price * item.quantity);
       }, 0) || 0;
 
@@ -139,18 +138,11 @@ export const useCart = () => {
         .select(`
           id,
           cart_id,
-          product_id,
           items,
           variant_selections,
           quantity,
           added_at,
-          updated_at,
-          products!fk_cart_items_product_id (
-            product_id,
-            name,
-            price,
-            image_urls
-          )
+          updated_at
         `)
         .eq('cart_id', cartId)
         .order('added_at', { ascending: false }); // Most recent first
@@ -160,14 +152,7 @@ export const useCart = () => {
       const formattedItems: CartItem[] = itemsData?.map(item => ({
         id: item.id,
         cart_id: item.cart_id || '',
-        product_id: item.product_id || '',
-        product: {
-          id: item.products?.product_id || '',
-          name: item.products?.name || '',
-          price: item.products?.price || 0,
-          image: item.products?.image_urls?.[0] || ''
-        },
-        items: item.items,
+        items: item.items || {},
         variant_selections: item.variant_selections,
         quantity: item.quantity,
         added_at: item.added_at || '',
@@ -188,10 +173,15 @@ export const useCart = () => {
   };
 
   const addToCart = async (
-    productId: string, 
+    itemData: {
+      id: string;
+      name: string;
+      price: number;
+      image: string;
+      [key: string]: any; // Additional item properties
+    },
     variantSelections: any = {}, 
-    quantity: number = 1,
-    itemMetadata: any = null // Additional item data
+    quantity: number = 1
   ) => {
     if (!user && !getSessionId()) {
       toast({
@@ -221,7 +211,7 @@ export const useCart = () => {
         .from('cart_items')
         .select('*')
         .eq('cart_id', cartId)
-        .eq('product_id', productId)
+        .eq('items->>id', itemData.id) // Check item ID within JSONB
         .eq('variant_selections', JSON.stringify(variantSelections))
         .maybeSingle();
 
@@ -246,8 +236,7 @@ export const useCart = () => {
           .from('cart_items')
           .insert({
             cart_id: cartId,
-            product_id: productId,
-            items: itemMetadata,
+            items: itemData,
             variant_selections: variantSelections,
             quantity: quantity,
             user_id: user?.id || null,
