@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 interface CartItem {
   id: string;
   cart_id: string;
+  product_id: string;
   items: {
     id: string;
     name: string;
@@ -137,7 +138,8 @@ export const useCart = () => {
         .from('cart_items')
         .select(`
           id,
-          cart_id,
+          cart_id, 
+          product_, id, 
           items,
           variant_selections,
           quantity,
@@ -152,6 +154,7 @@ export const useCart = () => {
       const formattedItems: CartItem[] = itemsData?.map(item => ({
         id: item.id,
         cart_id: item.cart_id || '',
+        product_id: item.product_id || '', 
         items: item.items || {},
         variant_selections: item.variant_selections,
         quantity: item.quantity,
@@ -173,6 +176,7 @@ export const useCart = () => {
   };
 
   const addToCart = async (
+    product_id: string,
     itemData: {
       id: string;
       name: string;
@@ -235,7 +239,8 @@ export const useCart = () => {
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert({
-            cart_id: cartId,
+            cart_id: cartId, 
+            product_id: productId, 
             items: itemData,
             variant_selections: variantSelections,
             quantity: quantity,
