@@ -7,13 +7,6 @@ interface CartItem {
   id: string;
   cart_id: string;
   product_id: string;
-  items: {
-    id: string;
-    name: string;
-    price: number;
-    image: string;
-    [key: string]: any;
-  };
   variant_selections: any;
   quantity: number;
   added_at: string;
@@ -106,14 +99,13 @@ export const useCart = () => {
       };
       setCart(typedCartData);
 
-      // Fetch cart items
+      // Fetch cart items (without items field)
       const { data: itemsData, error: itemsError } = await supabase
         .from('cart_items')
         .select(`
           id,
           cart_id, 
           product_id, 
-          items,
           variant_selections,
           quantity,
           added_at,
@@ -133,8 +125,7 @@ export const useCart = () => {
         id: item.id,
         cart_id: item.cart_id || '',
         product_id: item.product_id || '', 
-        items: item.items || {},
-        variant_selections: item.variant_selections || {},
+        variant_selections: item.variant_selections,
         quantity: item.quantity,
         added_at: item.added_at || '',
         updated_at: item.updated_at || ''
@@ -155,13 +146,6 @@ export const useCart = () => {
 
   const addToCart = async (
     product_id: string,
-    itemData: {
-      id: string;
-      name: string;
-      price: number;
-      image: string;
-      [key: string]: any;
-    },
     variantSelections: any = {}, 
     quantity: number = 1
   ) => {
@@ -175,7 +159,7 @@ export const useCart = () => {
     }
 
     try {
-      console.log('Adding to cart:', { product_id, itemData, variantSelections, quantity });
+      console.log('Adding to cart:', { product_id, variantSelections, quantity });
 
       // Get or create cart
       const cartId = await getOrCreateCart();
@@ -190,32 +174,24 @@ export const useCart = () => {
 
       console.log('Using cart ID:', cartId);
 
-      // Ensure price is a number and properly formatted
-      const sanitizedItemData = {
-        ...itemData,
-        price: Number(itemData.price)
-      };
-
-      console.log('Sanitized item data:', sanitizedItemData);
-
       const now = new Date().toISOString();
 
       // Check if item already exists in cart with same variants
-      const variantSelectionsString = JSON.stringify(variantSelections || {});
+      const variantSelectionsString = JSON.stringify(variantSelections);
       
-      const { data: existingItem, error: checkError } = await supabase
+      const { data: existingItems, error: checkError } = await supabase
         .from('cart_items')
         .select('*')
         .eq('cart_id', cartId)
         .eq('product_id', product_id)
-        .eq('variant_selections', variantSelectionsString)
-        .maybeSingle();
+        .eq('variant_selections', variantSelectionsString);
 
-      if (checkError && checkError.code !== 'PGRST116') {
+      if (checkError) {
         console.error('Check existing item error:', checkError);
         throw checkError;
       }
 
+      const existingItem = existingItems?.[0];
       console.log('Existing item check:', existingItem);
 
       if (existingItem) {
@@ -238,12 +214,11 @@ export const useCart = () => {
         console.log('Update result:', updateData);
       } else {
         console.log('Inserting new cart item');
-        // Add new item to cart
+        // Add new item to cart - REMOVED items field, keeping only necessary data
         const insertData = {
           cart_id: cartId, 
           product_id: product_id,
-          items: sanitizedItemData,
-          variant_selections: variantSelections || {},
+          variant_selections: variantSelections, // This should contain the actual selected variants
           quantity: quantity,
           added_at: now,
           updated_at: now
@@ -265,7 +240,7 @@ export const useCart = () => {
       }
 
       // Wait a moment for trigger to fire
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       // Refresh cart data
       await fetchCart();
@@ -296,7 +271,10 @@ export const useCart = () => {
     // Optimistic update
     setCartItems(prevItems => 
       prevItems.map(item => 
-        item.id === itemId ? { ...item, quantity } : item
+        item.id === itemId ? { 
+          ...item, 
+          quantity
+        } : item
       )
     );
 
@@ -315,7 +293,7 @@ export const useCart = () => {
       }
 
       // Wait for trigger to fire and refresh
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       await fetchCart();
     } catch (error: any) {
       console.error('Error updating quantity:', error);
@@ -346,7 +324,7 @@ export const useCart = () => {
       }
 
       // Wait for trigger to fire and refresh
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       await fetchCart();
       
       toast({
@@ -375,7 +353,7 @@ export const useCart = () => {
       if (error) throw error;
 
       // Wait for trigger and refresh
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       await fetchCart();
     } catch (error: any) {
       console.error('Error clearing cart:', error);
@@ -425,18 +403,6 @@ export const useCart = () => {
     }
   };
 
-  // Debug function to manually update totals
-  const debugUpdateTotals = async () => {
-    try {
-      const { data, error } = await supabase.rpc('manual_update_all_cart_totals');
-      if (error) throw error;
-      console.log('Manual update result:', data);
-      await fetchCart();
-    } catch (error) {
-      console.error('Debug update error:', error);
-    }
-  };
-
   useEffect(() => {
     if (user) {
       migrateGuestCart().then(() => fetchCart());
@@ -459,7 +425,6 @@ export const useCart = () => {
     updateCartStatus,
     totalItems,
     totalPrice,
-    refetch: fetchCart,
-    debugUpdateTotals // Add this for debugging
+    refetch: fetchCart
   };
 };
