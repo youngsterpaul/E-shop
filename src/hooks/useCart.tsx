@@ -41,7 +41,7 @@ export const useCart = () => {
 
   // Generate session ID for guest users only
   const getSessionId = () => {
-    if (user) return null; // Logged-in users don't need session ID
+    if (user) return null;
     
     let sessionId = localStorage.getItem('cart_session_id');
     if (!sessionId) {
@@ -51,85 +51,36 @@ export const useCart = () => {
     return sessionId;
   };
 
-  // Get or create cart - simplified logic
+  // Get or create cart using SQL function
   const getOrCreateCart = async () => {
     try {
-      let query = supabase
-        .from('carts')
-        .select('id')
-        .eq('status', 'active');
-
-      // For logged-in users, find by user_id
-      if (user) {
-        query = query.eq('user_id', user.id).is('session_id', null);
-      } else {
-        // For guests, find by session_id
-        const sessionId = getSessionId();
-        if (!sessionId) return null;
-        query = query.eq('session_id', sessionId).is('user_id', null);
-      }
-
-      const { data: existingCart } = await query.maybeSingle();
-
-      if (existingCart) {
-        return existingCart.id;
-      }
-
-      // Create new cart
-      const cartData = {
-        user_id: user?.id || null,
-        session_id: user ? null : getSessionId(), // Only set session_id for guests
-        status: 'active' as const,
-        total_amount: 0,
-        item_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: newCart, error } = await supabase
-        .from('carts')
-        .insert(cartData)
-        .select('id')
-        .single();
+      const { data, error } = await supabase.rpc('get_or_create_cart', {
+        p_user_id: user?.id || null,
+        p_session_id: user ? null : getSessionId()
+      });
 
       if (error) throw error;
-      return newCart.id;
+      return data;
     } catch (error: any) {
       console.error('Error getting/creating cart:', error);
       return null;
     }
   };
 
-  // Update cart totals - centralized function
+  // Update cart totals using SQL function
   const updateCartTotals = async (cartId: string) => {
     try {
-      // Calculate totals from cart items
-      const { data: items, error: itemsError } = await supabase
-        .from('cart_items')
-        .select('quantity, items')
-        .eq('cart_id', cartId);
+      const { data, error } = await supabase.rpc('update_cart_totals', {
+        cart_id_param: cartId
+      });
 
-      if (itemsError) throw itemsError;
-
-      const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
-      const totalAmount = items?.reduce((total, item) => {
-        const price = item.items?.price || 0;
-        return total + (price * item.quantity);
-      }, 0) || 0;
-
-      // Update cart with calculated totals
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          item_count: itemCount,
-          total_amount: totalAmount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cartId);
-
-      if (updateError) throw updateError;
-
-      return { itemCount, totalAmount };
+      if (error) throw error;
+      
+      const result = data?.[0];
+      return {
+        itemCount: result?.item_count || 0,
+        totalAmount: result?.total_amount || 0
+      };
     } catch (error) {
       console.error('Error updating cart totals:', error);
       return { itemCount: 0, totalAmount: 0 };
@@ -163,7 +114,7 @@ export const useCart = () => {
       };
       setCart(typedCartData);
 
-      // Fetch cart items - FIXED SQL syntax
+      // Fetch cart items
       const { data: itemsData, error: itemsError } = await supabase
         .from('cart_items')
         .select(`
@@ -217,7 +168,6 @@ export const useCart = () => {
     variantSelections: any = {}, 
     quantity: number = 1
   ) => {
-    // For guests, require session ID
     if (!user && !getSessionId()) {
       toast({
         title: "Session Error",
@@ -255,7 +205,7 @@ export const useCart = () => {
       }
 
       if (existingItem) {
-        // Update existing item quantity and timestamp
+        // Update existing item quantity
         const { error: updateError } = await supabase
           .from('cart_items')
           .update({ 
@@ -266,12 +216,12 @@ export const useCart = () => {
 
         if (updateError) throw updateError;
       } else {
-        // Add new item to cart - FIXED variable name
+        // Add new item to cart
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert({
             cart_id: cartId, 
-            product_id: product_id, // FIXED: was productId
+            product_id: product_id,
             items: itemData,
             variant_selections: variantSelections,
             quantity: quantity,
@@ -282,10 +232,8 @@ export const useCart = () => {
         if (insertError) throw insertError;
       }
 
-      // Update cart totals
-      await updateCartTotals(cartId);
-      
-      // Refresh cart data
+      // Totals will be updated automatically by trigger
+      // But we still refresh cart data for UI
       await fetchCart();
       
       toast({
@@ -332,9 +280,8 @@ export const useCart = () => {
         throw error;
       }
 
-      // Update cart totals
-      await updateCartTotals(item.cart_id);
-      
+      // Totals updated automatically by trigger
+      // Update local cart state
       if (cart) {
         const totals = await updateCartTotals(cart.id);
         setCart({ ...cart, ...totals });
@@ -367,9 +314,7 @@ export const useCart = () => {
         throw error;
       }
 
-      // Update cart totals
-      await updateCartTotals(item.cart_id);
-      
+      // Totals updated automatically by trigger
       if (cart) {
         const totals = await updateCartTotals(cart.id);
         setCart({ ...cart, ...totals });
@@ -400,18 +345,7 @@ export const useCart = () => {
 
       if (error) throw error;
 
-      // Reset cart totals
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          item_count: 0,
-          total_amount: 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cart.id);
-
-      if (updateError) throw updateError;
-
+      // Totals will be updated automatically by trigger
       await fetchCart();
     } catch (error: any) {
       console.error('Error clearing cart:', error);
@@ -437,7 +371,7 @@ export const useCart = () => {
     }
   };
 
-  // Handle cart migration when user logs in
+  // Handle cart migration when user logs in using SQL function
   const migrateGuestCart = async () => {
     if (!user) return;
 
@@ -445,54 +379,15 @@ export const useCart = () => {
     if (!sessionId) return;
 
     try {
-      // Find guest cart
-      const { data: guestCart } = await supabase
-        .from('carts')
-        .select('id')
-        .eq('session_id', sessionId)
-        .eq('status', 'active')
-        .is('user_id', null)
-        .maybeSingle();
+      const { data: migrationSuccess, error } = await supabase.rpc('migrate_guest_cart_to_user', {
+        p_user_id: user.id,
+        p_session_id: sessionId
+      });
 
-      if (guestCart) {
-        // Check if user already has an active cart
-        const { data: userCart } = await supabase
-          .from('carts')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .is('session_id', null)
-          .maybeSingle();
+      if (error) throw error;
 
-        if (userCart) {
-          // Migrate items from guest cart to user cart
-          const { error: migrateError } = await supabase
-            .from('cart_items')
-            .update({ cart_id: userCart.id })
-            .eq('cart_id', guestCart.id);
-
-          if (migrateError) throw migrateError;
-
-          // Delete guest cart
-          await supabase.from('carts').delete().eq('id', guestCart.id);
-          
-          // Update user cart totals
-          await updateCartTotals(userCart.id);
-        } else {
-          // Convert guest cart to user cart
-          const { error: convertError } = await supabase
-            .from('carts')
-            .update({ 
-              user_id: user.id, 
-              session_id: null,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', guestCart.id);
-
-          if (convertError) throw convertError;
-        }
-
-        // Clear session ID
+      if (migrationSuccess) {
+        // Clear session ID after successful migration
         localStorage.removeItem('cart_session_id');
       }
     } catch (error) {
