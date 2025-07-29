@@ -7,7 +7,7 @@ interface CartItem {
   id: string;
   cart_id: string;
   product_id: string;
-  items: {
+  product: {
     id: string;
     name: string;
     price: number;
@@ -103,17 +103,20 @@ export const useCart = () => {
   // Update cart totals - centralized function
   const updateCartTotals = async (cartId: string) => {
     try {
-      // Calculate totals from cart items
+      // Calculate totals from cart items with product join
       const { data: items, error: itemsError } = await supabase
         .from('cart_items')
-        .select('quantity, items')
+        .select(`
+          quantity, 
+          product:products!cart_items_product_id_fkey(price)
+        `)
         .eq('cart_id', cartId);
 
       if (itemsError) throw itemsError;
 
       const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
       const totalAmount = items?.reduce((total, item) => {
-        const price = item.items?.price || 0;
+        const price = item.product?.price || 0;
         return total + (price * item.quantity);
       }, 0) || 0;
 
@@ -163,14 +166,19 @@ export const useCart = () => {
       };
       setCart(typedCartData);
 
-      // Fetch cart items - FIXED SQL syntax
+      // Fetch cart items - with product join
       const { data: itemsData, error: itemsError } = await supabase
         .from('cart_items')
         .select(`
           id,
           cart_id, 
           product_id, 
-          items,
+          product:products!cart_items_product_id_fkey(
+            id,
+            name,
+            price,
+            image
+          ),
           variant_selections,
           quantity,
           added_at,
@@ -185,7 +193,7 @@ export const useCart = () => {
         id: item.id,
         cart_id: item.cart_id || '',
         product_id: item.product_id || '', 
-        items: item.items || {},
+        product: item.product || {},
         variant_selections: item.variant_selections,
         quantity: item.quantity,
         added_at: item.added_at || '',
@@ -207,13 +215,6 @@ export const useCart = () => {
 
   const addToCart = async (
     product_id: string,
-    itemData: {
-      id: string;
-      name: string;
-      price: number;
-      image: string;
-      [key: string]: any;
-    },
     variantSelections: any = {}, 
     quantity: number = 1
   ) => {
@@ -246,7 +247,7 @@ export const useCart = () => {
         .from('cart_items')
         .select('*')
         .eq('cart_id', cartId)
-        .eq('items->>id', itemData.id)
+        .eq('product_id', product_id)
         .eq('variant_selections', JSON.stringify(variantSelections))
         .maybeSingle();
 
@@ -266,13 +267,12 @@ export const useCart = () => {
 
         if (updateError) throw updateError;
       } else {
-        // Add new item to cart - FIXED variable name
+        // Add new item to cart
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert({
             cart_id: cartId, 
-            product_id: product_id, // FIXED: was productId
-            items: itemData,
+            product_id: product_id,
             variant_selections: variantSelections,
             quantity: quantity,
             added_at: now,
