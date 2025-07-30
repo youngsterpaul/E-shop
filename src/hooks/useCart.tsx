@@ -1,25 +1,20 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  [key: string]: any;
-}
 
 interface CartItem {
   id: string;
   cart_id: string;
   product_id: string;
-  product: Product; // Changed from 'items' to 'product'
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+  };
   variant_selections: any;
   quantity: number;
-  added_at: string;
-  updated_at: string;
 }
 
 interface Cart {
@@ -27,8 +22,9 @@ interface Cart {
   user_id: string | null;
   session_id: string | null;
   status: 'active' | 'checkout' | 'completed' | 'abandoned';
-  total_amount: number;
-  item_count: number;
+  total_amount: number | null;
+  item_count: number | null;
+  currency: string | null;
   expires_at: string | null;
   created_at: string;
   updated_at: string;
@@ -41,219 +37,90 @@ export const useCart = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Use ref to persist across renders
-  const cartCreationPromiseRef = useRef<Promise<string | null> | null>(null);
-
-  // Safe localStorage access
-  const getSessionId = useCallback(() => {
-    if (user) return null; // Logged-in users don't need session ID
-    
-    try {
-      let sessionId = localStorage.getItem('cart_session_id');
-      if (!sessionId) {
-        sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('cart_session_id', sessionId);
-      }
-      return sessionId;
-    } catch (error) {
-      console.error('localStorage access failed:', error);
-      return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Memoize session ID generation
+  const getSessionId = useMemo(() => {
+    let sessionId = localStorage.getItem('cart_session_id');
+    if (!sessionId) {
+      sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('cart_session_id', sessionId);
     }
-  }, [user]);
+    return sessionId;
+  }, []);
 
-  // Get or create cart - improved logic with cleanup
+  // Get or create cart - memoized
   const getOrCreateCart = useCallback(async () => {
     try {
-      let query = supabase
-        .from('carts')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      // For logged-in users, find by user_id
-      if (user) {
-        query = query.eq('user_id', user.id).is('session_id', null);
-      } else {
-        // For guests, find by session_id
-        const sessionId = getSessionId();
-        if (!sessionId) return null;
-        query = query.eq('session_id', sessionId).is('user_id', null);
-      }
-
-      const { data: existingCarts, error: queryError } = await query;
-      
-      if (queryError) throw queryError;
-
-      // If we have existing carts, use the most recent one and clean up duplicates
-      if (existingCarts && existingCarts.length > 0) {
-        const mostRecentCart = existingCarts[0];
-        
-        // Clean up duplicate carts if they exist
-        if (existingCarts.length > 1) {
-          console.warn(`Found ${existingCarts.length} active carts, cleaning up...`);
-          
-          const cartsToMerge = existingCarts.slice(1);
-          
-          for (const oldCart of cartsToMerge) {
-            // Move items from old cart to the main cart
-            await supabase
-              .from('cart_items')
-              .update({ cart_id: mostRecentCart.id })
-              .eq('cart_id', oldCart.id);
-            
-            // Delete the old cart
-            await supabase
-              .from('carts')
-              .delete()
-              .eq('id', oldCart.id);
-          }
-          
-          // Update totals for the merged cart
-          await updateCartTotals(mostRecentCart.id);
-        }
-        
-        return mostRecentCart.id;
-      }
-
-      // Create new cart only if no existing cart found
-      const cartData = {
-        user_id: user?.id || null,
-        session_id: user ? null : getSessionId(),
-        status: 'active' as const,
-        total_amount: 0,
-        item_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: newCart, error } = await supabase
-        .from('carts')
-        .insert(cartData)
-        .select('id')
-        .single();
+      const { data, error } = await supabase.rpc('get_or_create_cart', {
+        p_user_id: user?.id || undefined,
+        p_session_id: user ? undefined : getSessionId
+      });
 
       if (error) throw error;
-      return newCart.id;
+      return data;
     } catch (error: any) {
       console.error('Error getting/creating cart:', error);
       return null;
     }
-  }, [user, getSessionId]);
+  }, [user?.id, getSessionId]);
 
-  // Safe cart creation with race condition protection
-  const getOrCreateCartSafe = useCallback(async () => {
-    if (cartCreationPromiseRef.current) {
-      return await cartCreationPromiseRef.current;
-    }
-    
-    cartCreationPromiseRef.current = getOrCreateCart();
-    const result = await cartCreationPromiseRef.current;
-    cartCreationPromiseRef.current = null;
-    
-    return result;
-  }, [getOrCreateCart]);
-
-  // Update cart totals using prices from products table
-  const updateCartTotals = useCallback(async (cartId: string) => {
-    try {
-      // Get cart items with product prices from products table
-      const { data: items, error: itemsError } = await supabase
-        .from('cart_items')
-        .select(`
-          quantity,
-          product_id,
-          products!inner(price)
-        `)
-        .eq('cart_id', cartId);
-
-      if (itemsError) throw itemsError;
-
-      const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
-      const totalAmount = items?.reduce((total, item) => {
-        const price = item.products?.price || 0;
-        return total + (price * item.quantity);
-      }, 0) || 0;
-
-      // Update cart with calculated totals
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          item_count: itemCount,
-          total_amount: totalAmount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cartId);
-
-      if (updateError) throw updateError;
-
-      return { item_count: itemCount, total_amount: totalAmount };
-    } catch (error) {
-      console.error('Error updating cart totals:', error);
-      return { item_count: 0, total_amount: 0 };
-    }
-  }, []);
-
-  // Fetch cart and cart items with product details
+  // Fetch cart and cart items - optimized
   const fetchCart = useCallback(async () => {
+    if (!user && !getSessionId) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const cartId = await getOrCreateCartSafe();
+      // Get or create cart
+      const cartId = await getOrCreateCart();
       if (!cartId) {
         setLoading(false);
         return;
       }
 
-      // Fetch cart details
-      const { data: cartData, error: cartError } = await supabase
-        .from('carts')
-        .select('*')
-        .eq('id', cartId)
-        .single();
+      // Fetch both cart details and items in parallel
+      const [cartResponse, itemsResponse] = await Promise.all([
+        supabase.from('carts').select('*').eq('id', cartId).single(),
+        supabase
+          .from('cart_items')
+          .select(`
+            id,
+            cart_id,
+            product_id,
+            variant_selections,
+            quantity,
+            products!fk_cart_items_product_id (
+              product_id,
+              name,
+              price,
+              image_urls
+            )
+          `)
+          .eq('cart_id', cartId)
+      ]);
 
-      if (cartError) throw cartError;
+      if (cartResponse.error) throw cartResponse.error;
+      if (itemsResponse.error) throw itemsResponse.error;
       
+      // Type the cart data properly
       const typedCartData: Cart = {
-        ...cartData,
-        status: cartData.status as 'active' | 'checkout' | 'completed' | 'abandoned',
-        total_amount: cartData.total_amount || 0,
-        item_count: cartData.item_count || 0
+        ...cartResponse.data,
+        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
       };
       setCart(typedCartData);
 
-      // Fetch cart items with product details
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('cart_items')
-        .select(`
-          id,
-          cart_id, 
-          product_id, 
-          items,
-          variant_selections,
-          quantity,
-          added_at,
-          updated_at,
-          products!inner(id, name, price, image)
-        `)
-        .eq('cart_id', cartId)
-        .order('added_at', { ascending: false });
-
-      if (itemsError) throw itemsError;
-
-      const formattedItems: CartItem[] = itemsData?.map(item => ({
+      const formattedItems = itemsResponse.data?.map(item => ({
         id: item.id,
         cart_id: item.cart_id || '',
-        product_id: item.product_id || '', 
+        product_id: item.product_id || '',
         product: {
-          id: item.products?.id || item.product_id,
-          name: item.products?.name || item.items?.name || '',
-          price: item.products?.price || 0, // Use price from products table
-          image: item.products?.image || item.items?.image || '',
-          // Merge any additional data from the stored items field
-          ...(item.items || {})
+          id: item.products?.product_id || '',
+          name: item.products?.name || '',
+          price: item.products?.price || 0,
+          image: item.products?.image_urls?.[0] || '/placeholder.svg'
         },
         variant_selections: item.variant_selections,
-        quantity: item.quantity,
-        added_at: item.added_at || '',
-        updated_at: item.updated_at || ''
+        quantity: item.quantity
       })) || [];
 
       setCartItems(formattedItems);
@@ -267,126 +134,16 @@ export const useCart = () => {
     } finally {
       setLoading(false);
     }
-  }, [getOrCreateCartSafe, toast]);
+  }, [user, getSessionId, getOrCreateCart, toast]);
 
-  // Updated addToCart to match context signature
-  const addToCart = useCallback(async (
-    productId: string,
-    variantSelections: any = {},
-    quantity: number = 1,
-    itemMetadata?: any
-  ) => {
-    if (!user && !getSessionId()) {
-      toast({
-        title: "Session Error",
-        description: "Unable to create cart session",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const cartId = await getOrCreateCartSafe();
-      if (!cartId) {
-        toast({
-          title: "Error",
-          description: "Failed to create cart",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Get product details from database
-      const { data: product, error: productError } = await supabase
-        .from('products')
-        .select('id, name, price, image')
-        .eq('id', productId)
-        .single();
-
-      if (productError) throw productError;
-
-      // Prepare item data for storage (can include additional metadata)
-      const itemData = {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        ...itemMetadata // Any additional product metadata
-      };
-
-      const now = new Date().toISOString();
-
-      // Check if item already exists in cart with same variants
-      const { data: existingItem, error: checkError } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('cart_id', cartId)
-        .eq('product_id', productId)
-        .eq('variant_selections', JSON.stringify(variantSelections))
-        .maybeSingle();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-
-      if (existingItem) {
-        // Update existing item quantity
-        const { error: updateError } = await supabase
-          .from('cart_items')
-          .update({ 
-            quantity: existingItem.quantity + quantity,
-            updated_at: now
-          })
-          .eq('id', existingItem.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Add new item to cart
-        const { error: insertError } = await supabase
-          .from('cart_items')
-          .insert({
-            cart_id: cartId, 
-            product_id: productId,
-            items: itemData, // Store for reference/caching
-            variant_selections: variantSelections,
-            quantity: quantity,
-            added_at: now,
-            updated_at: now
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      // Update cart totals
-      await updateCartTotals(cartId);
-      
-      // Refresh cart data
-      await fetchCart();
-      
-      toast({
-        title: "Added to cart",
-        description: "Item has been added to your cart"
-      });
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add item to cart",
-        variant: "destructive"
-      });
-    }
-  }, [user, getSessionId, getOrCreateCartSafe, updateCartTotals, fetchCart, toast]);
-
+  // Optimized quantity update - removed unnecessary fetchCart call
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       await removeFromCart(itemId);
       return;
     }
 
-    const item = cartItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    // Optimistic update
+    // Optimistic update for immediate UI feedback
     setCartItems(prevItems => 
       prevItems.map(item => 
         item.id === itemId ? { ...item, quantity } : item
@@ -396,22 +153,13 @@ export const useCart = () => {
     try {
       const { error } = await supabase
         .from('cart_items')
-        .update({ 
-          quantity,
-          updated_at: new Date().toISOString()
-        })
+        .update({ quantity })
         .eq('id', itemId);
 
       if (error) {
-        await fetchCart(); // Revert on error
+        // Only refetch on error
+        await fetchCart();
         throw error;
-      }
-
-      // Update cart totals
-      const totals = await updateCartTotals(item.cart_id);
-      
-      if (cart) {
-        setCart({ ...cart, ...totals });
       }
     } catch (error: any) {
       console.error('Error updating quantity:', error);
@@ -421,13 +169,11 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [cartItems, cart, updateCartTotals, fetchCart, toast]);
+  }, [fetchCart, toast]);
 
+  // Optimized remove from cart
   const removeFromCart = useCallback(async (itemId: string) => {
-    const item = cartItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    // Optimistic update
+    // Optimistic update for immediate UI feedback
     setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
 
     try {
@@ -437,15 +183,9 @@ export const useCart = () => {
         .eq('id', itemId);
 
       if (error) {
-        await fetchCart(); // Revert on error
+        // Only refetch on error
+        await fetchCart();
         throw error;
-      }
-
-      // Update cart totals
-      const totals = await updateCartTotals(item.cart_id);
-      
-      if (cart) {
-        setCart({ ...cart, ...totals });
       }
       
       toast({
@@ -460,7 +200,78 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [cartItems, cart, updateCartTotals, fetchCart, toast]);
+  }, [fetchCart, toast]);
+
+  // Optimized add to cart
+  const addToCart = useCallback(async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
+    if (!user && !getSessionId) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to add items to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get or create cart
+      const cartId = await getOrCreateCart();
+      if (!cartId) {
+        toast({
+          title: "Error",
+          description: "Failed to create cart",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if item already exists in cart
+      const { data: existingItem, error: checkError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('cart_id', cartId)
+        .eq('product_id', productId)
+        .eq('variant_selections', JSON.stringify(variantSelections))
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingItem) {
+        // Update existing item quantity using our optimized function
+        await updateQuantity(existingItem.id, existingItem.quantity + quantity);
+      } else {
+        // Add new item to cart
+        const { error: insertError } = await supabase
+          .from('cart_items')
+          .insert({
+            cart_id: cartId,
+            product_id: productId,
+            variant_selections: variantSelections,
+            quantity: quantity,
+            user_id: user?.id || null
+          });
+
+        if (insertError) throw insertError;
+        
+        // Refresh cart items after adding new item
+        await fetchCart();
+      }
+      
+      toast({
+        title: "Added to cart",
+        description: "Item has been added to your cart"
+      });
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
+    }
+  }, [user, getSessionId, getOrCreateCart, updateQuantity, fetchCart, toast]);
 
   const clearCart = useCallback(async () => {
     if (!cart) return;
@@ -472,19 +283,6 @@ export const useCart = () => {
         .eq('cart_id', cart.id);
 
       if (error) throw error;
-
-      // Reset cart totals
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          item_count: 0,
-          total_amount: 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cart.id);
-
-      if (updateError) throw updateError;
-
       await fetchCart();
     } catch (error: any) {
       console.error('Error clearing cart:', error);
@@ -497,10 +295,7 @@ export const useCart = () => {
     try {
       const { error } = await supabase
         .from('carts')
-        .update({ 
-          status,
-          updated_at: new Date().toISOString()
-        })
+        .update({ status })
         .eq('id', cart.id);
 
       if (error) throw error;
@@ -510,119 +305,20 @@ export const useCart = () => {
     }
   }, [cart]);
 
-  // Handle cart migration when user logs in
-  const migrateGuestCart = useCallback(async () => {
-    if (!user) return;
-
-    let sessionId: string | null = null;
-    try {
-      sessionId = localStorage.getItem('cart_session_id');
-    } catch (error) {
-      console.error('Failed to access localStorage:', error);
-      return;
-    }
-
-    if (!sessionId) return;
-
-    try {
-      // Find guest cart
-      const { data: guestCart } = await supabase
-        .from('carts')
-        .select('id')
-        .eq('session_id', sessionId)
-        .eq('status', 'active')
-        .is('user_id', null)
-        .maybeSingle();
-
-      if (guestCart) {
-        // Check if user already has an active cart
-        const { data: userCart } = await supabase
-          .from('carts')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .is('session_id', null)
-          .maybeSingle();
-
-        if (userCart) {
-          // Get guest cart items
-          const { data: guestItems } = await supabase
-            .from('cart_items')
-            .select('*')
-            .eq('cart_id', guestCart.id);
-
-          if (guestItems && guestItems.length > 0) {
-            // Merge items to user cart, avoiding duplicates
-            for (const guestItem of guestItems) {
-              // Check if similar item exists in user cart
-              const { data: existingUserItem } = await supabase
-                .from('cart_items')
-                .select('*')
-                .eq('cart_id', userCart.id)
-                .eq('product_id', guestItem.product_id)
-                .eq('variant_selections', JSON.stringify(guestItem.variant_selections))
-                .maybeSingle();
-
-              if (existingUserItem) {
-                // Update quantity of existing item
-                await supabase
-                  .from('cart_items')
-                  .update({ 
-                    quantity: existingUserItem.quantity + guestItem.quantity,
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', existingUserItem.id);
-              } else {
-                // Move item to user cart
-                await supabase
-                  .from('cart_items')
-                  .update({ cart_id: userCart.id })
-                  .eq('id', guestItem.id);
-              }
-            }
-          }
-
-          // Delete guest cart
-          await supabase.from('carts').delete().eq('id', guestCart.id);
-          
-          // Update user cart totals
-          await updateCartTotals(userCart.id);
-        } else {
-          // Convert guest cart to user cart
-          const { error: convertError } = await supabase
-            .from('carts')
-            .update({ 
-              user_id: user.id, 
-              session_id: null,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', guestCart.id);
-
-          if (convertError) throw convertError;
-        }
-
-        // Clear session ID
-        try {
-          localStorage.removeItem('cart_session_id');
-        } catch (error) {
-          console.error('Failed to clear localStorage:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error migrating guest cart:', error);
-    }
-  }, [user, updateCartTotals]);
-
   useEffect(() => {
-    if (user) {
-      migrateGuestCart().then(() => fetchCart());
-    } else {
-      fetchCart();
-    }
-  }, [user, migrateGuestCart, fetchCart]);
+    fetchCart();
+  }, [fetchCart]);
 
-  const totalItems = cart?.item_count || 0;
-  const totalPrice = cart?.total_amount || 0;
+  // Memoize calculated totals to prevent unnecessary recalculations
+  const totalItems = useMemo(() => 
+    cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems]
+  );
+  
+  const totalPrice = useMemo(() => 
+    cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0),
+    [cartItems]
+  );
 
   return {
     cart,
