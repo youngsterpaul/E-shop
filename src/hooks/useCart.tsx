@@ -63,50 +63,27 @@ export const useCart = () => {
     }
   }, [user?.id, getSessionId]);
 
-  // Fetch cart and cart items - optimized
-  const fetchCart = useCallback(async () => {
-    if (!user && !getSessionId) {
-      setLoading(false);
-      return;
-    }
-
+  // Fetch cart items only - separated from cart creation
+  const fetchCartItems = useCallback(async (cartId: string) => {
     try {
-      // Get or create cart
-      const cartId = await getOrCreateCart();
-      if (!cartId) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch both cart details and items in parallel
-      const [cartResponse, itemsResponse] = await Promise.all([
-        supabase.from('carts').select('*').eq('id', cartId).single(),
-        supabase
-          .from('cart_items')
-          .select(`
-            id,
-            cart_id,
+      const itemsResponse = await supabase
+        .from('cart_items')
+        .select(`
+          id,
+          cart_id,
+          product_id,
+          variant_selections,
+          quantity,
+          products!fk_cart_items_product_id (
             product_id,
-            variant_selections,
-            quantity,
-            products!fk_cart_items_product_id (
-              product_id,
-              name,
-              price,
-              image_urls
-            )
-          `)
-          .eq('cart_id', cartId)
-      ]);
+            name,
+            price,
+            image_urls
+          )
+        `)
+        .eq('cart_id', cartId);
 
-      if (cartResponse.error) throw cartResponse.error;
       if (itemsResponse.error) throw itemsResponse.error;
-      
-      const typedCartData: Cart = {
-        ...cartResponse.data,
-        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
-      };
-      setCart(typedCartData);
 
       const formattedItems = itemsResponse.data?.map(item => ({
         id: item.id,
@@ -123,6 +100,42 @@ export const useCart = () => {
       })) || [];
 
       setCartItems(formattedItems);
+      return formattedItems;
+    } catch (error: any) {
+      console.error('Error fetching cart items:', error);
+      throw error;
+    }
+  }, []);
+
+  // Fetch cart and cart items - optimized
+  const fetchCart = useCallback(async () => {
+    if (!user && !getSessionId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Get or create cart
+      const cartId = await getOrCreateCart();
+      if (!cartId) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch both cart details and items in parallel
+      const [cartResponse] = await Promise.all([
+        supabase.from('carts').select('*').eq('id', cartId).single(),
+        fetchCartItems(cartId) // This will update cartItems state
+      ]);
+
+      if (cartResponse.error) throw cartResponse.error;
+      
+      const typedCartData: Cart = {
+        ...cartResponse.data,
+        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
+      };
+      setCart(typedCartData);
+
     } catch (error: any) {
       console.error('Error fetching cart:', error);
       toast({
@@ -133,13 +146,13 @@ export const useCart = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, getSessionId, getOrCreateCart, toast]);
+  }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
 
-  // Set up real-time subscription for cart items
+  // Set up real-time subscription for cart items - FIXED
   useEffect(() => {
     let subscription: any = null;
 
-    const setupSubscription = async () => {
+    const setupSubscription = () => {
       if (!cart?.id) return;
 
       subscription = supabase
@@ -154,8 +167,8 @@ export const useCart = () => {
           },
           (payload) => {
             console.log('Cart items changed:', payload);
-            // Refetch cart items when changes occur
-            fetchCart();
+            // Only fetch cart items, not the entire cart
+            fetchCartItems(cart.id).catch(console.error);
           }
         )
         .subscribe();
@@ -168,7 +181,7 @@ export const useCart = () => {
         supabase.removeChannel(subscription);
       }
     };
-  }, [cart?.id, fetchCart]);
+  }, [cart?.id, fetchCartItems]); // Only depend on cart.id and fetchCartItems
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -191,7 +204,9 @@ export const useCart = () => {
 
       if (error) {
         // Revert optimistic update on error
-        await fetchCart();
+        if (cart?.id) {
+          await fetchCartItems(cart.id);
+        }
         throw error;
       }
     } catch (error: any) {
@@ -202,7 +217,7 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [fetchCart, toast]);
+  }, [cart?.id, fetchCartItems, toast]);
 
   const removeFromCart = useCallback(async (itemId: string) => {
     // Optimistic update for immediate UI feedback
@@ -216,7 +231,9 @@ export const useCart = () => {
 
       if (error) {
         // Revert optimistic update on error
-        await fetchCart();
+        if (cart?.id) {
+          await fetchCartItems(cart.id);
+        }
         throw error;
       }
       
@@ -232,7 +249,7 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [fetchCart, toast]);
+  }, [cart?.id, fetchCartItems, toast]);
 
   const addToCart = useCallback(async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
     if (!user && !getSessionId) {
@@ -288,9 +305,8 @@ export const useCart = () => {
         if (insertError) throw insertError;
       }
       
-      // The real-time subscription will handle the UI update
-      // But we can also manually refresh to ensure immediate update
-      await fetchCart();
+      // Force immediate refresh of cart items after add
+      await fetchCartItems(cartId);
       
       toast({
         title: "Added to cart",
@@ -304,7 +320,7 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [user, getSessionId, getOrCreateCart, fetchCart, toast]);
+  }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
 
   const clearCart = useCallback(async () => {
     if (!cart) return;
@@ -338,6 +354,7 @@ export const useCart = () => {
     }
   }, [cart]);
 
+  // Initial fetch
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
