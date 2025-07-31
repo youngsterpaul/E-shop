@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +36,10 @@ export const useCart = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Use ref to track subscription and prevent multiple subscriptions
+  const subscriptionRef = useRef<any>(null);
+  const isSubscribedRef = useRef(false);
 
   // Memoize session ID generation
   const getSessionId = useMemo(() => {
@@ -63,9 +67,11 @@ export const useCart = () => {
     }
   }, [user?.id, getSessionId]);
 
-  // Fetch cart items only - separated from cart creation
+  // Fetch cart items - stable function that doesn't change
   const fetchCartItems = useCallback(async (cartId: string) => {
     try {
+      console.log('Fetching cart items for cart:', cartId);
+      
       const itemsResponse = await supabase
         .from('cart_items')
         .select(`
@@ -99,6 +105,7 @@ export const useCart = () => {
         quantity: item.quantity
       })) || [];
 
+      console.log('Fetched cart items:', formattedItems);
       setCartItems(formattedItems);
       return formattedItems;
     } catch (error: any) {
@@ -115,12 +122,15 @@ export const useCart = () => {
     }
 
     try {
+      console.log('Fetching cart...');
       // Get or create cart
       const cartId = await getOrCreateCart();
       if (!cartId) {
         setLoading(false);
         return;
       }
+
+      console.log('Got cart ID:', cartId);
 
       // Fetch both cart details and items in parallel
       const [cartResponse] = await Promise.all([
@@ -134,6 +144,8 @@ export const useCart = () => {
         ...cartResponse.data,
         status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
       };
+      
+      console.log('Setting cart data:', typedCartData);
       setCart(typedCartData);
 
     } catch (error: any) {
@@ -148,40 +160,90 @@ export const useCart = () => {
     }
   }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
 
-  // Set up real-time subscription for cart items - FIXED
+  // Set up real-time subscription - COMPLETELY REWRITTEN
   useEffect(() => {
-    let subscription: any = null;
+    console.log('Setting up subscription effect, cart:', cart?.id, 'isSubscribed:', isSubscribedRef.current);
+    
+    // Clean up existing subscription first
+    if (subscriptionRef.current) {
+      console.log('Cleaning up existing subscription');
+      supabase.removeChannel(subscriptionRef.current);
+      subscriptionRef.current = null;
+      isSubscribedRef.current = false;
+    }
+
+    // Only set up subscription if we have a cart and haven't subscribed yet
+    if (!cart?.id || isSubscribedRef.current) {
+      return;
+    }
+
+    console.log('Setting up new subscription for cart:', cart.id);
 
     const setupSubscription = () => {
-      if (!cart?.id) return;
-
-      subscription = supabase
-        .channel(`cart_items_${cart.id}`)
+      const channel = supabase
+        .channel(`cart-changes-${cart.id}`)
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: '*', // Listen to all events
             schema: 'public',
             table: 'cart_items',
             filter: `cart_id=eq.${cart.id}`
           },
           (payload) => {
-            console.log('Cart items changed:', payload);
-            // Only fetch cart items, not the entire cart
-            fetchCartItems(cart.id).catch(console.error);
+            console.log('🔥 Real-time change received:', payload);
+            
+            // Handle different types of changes
+            if (payload.eventType === 'INSERT') {
+              console.log('Adding new item to cart');
+              // We need to fetch the full item with product details
+              fetchCartItems(cart.id).catch(console.error);
+            } else if (payload.eventType === 'UPDATE') {
+              console.log('Updating cart item');
+              const newItem = payload.new as any;
+              setCartItems(prevItems => 
+                prevItems.map(item => 
+                  item.id === newItem.id 
+                    ? { ...item, quantity: newItem.quantity, variant_selections: newItem.variant_selections }
+                    : item
+                )
+              );
+            } else if (payload.eventType === 'DELETE') {
+              console.log('Removing cart item');
+              const oldItem = payload.old as any;
+              setCartItems(prevItems => 
+                prevItems.filter(item => item.id !== oldItem.id)
+              );
+            }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Successfully subscribed to cart changes');
+            isSubscribedRef.current = true;
+          } else if (status === 'CLOSED') {
+            console.log('❌ Subscription closed');
+            isSubscribedRef.current = false;
+          }
+        });
+
+      subscriptionRef.current = channel;
+      return channel;
     };
 
     setupSubscription();
 
+    // Cleanup function
     return () => {
-      if (subscription) {
-        supabase.removeChannel(subscription);
+      console.log('Cleaning up subscription in useEffect cleanup');
+      if (subscriptionRef.current) {
+        supabase.removeChannel(subscriptionRef.current);
+        subscriptionRef.current = null;
+        isSubscribedRef.current = false;
       }
     };
-  }, [cart?.id, fetchCartItems]); // Only depend on cart.id and fetchCartItems
+  }, [cart?.id, fetchCartItems]);
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -212,7 +274,7 @@ export const useCart = () => {
     } catch (error: any) {
       console.error('Error updating quantity:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to update quantity",
         variant: "destructive"
       });
@@ -252,6 +314,8 @@ export const useCart = () => {
   }, [cart?.id, fetchCartItems, toast]);
 
   const addToCart = useCallback(async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
+    console.log('🛒 Adding to cart:', { productId, variantSelections, quantity });
+    
     if (!user && !getSessionId) {
       toast({
         title: "Please sign in",
@@ -272,6 +336,8 @@ export const useCart = () => {
         return;
       }
 
+      console.log('Using cart ID for add:', cartId);
+
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
         .select('*')
@@ -284,15 +350,16 @@ export const useCart = () => {
         throw checkError;
       }
 
+      let result;
       if (existingItem) {
-        const { error: updateError } = await supabase
+        console.log('Updating existing item quantity');
+        result = await supabase
           .from('cart_items')
           .update({ quantity: existingItem.quantity + quantity })
           .eq('id', existingItem.id);
-
-        if (updateError) throw updateError;
       } else {
-        const { error: insertError } = await supabase
+        console.log('Inserting new cart item');
+        result = await supabase
           .from('cart_items')
           .insert({
             cart_id: cartId,
@@ -301,19 +368,23 @@ export const useCart = () => {
             quantity: quantity,
             user_id: user?.id || null
           });
-
-        if (insertError) throw insertError;
       }
+
+      if (result.error) throw result.error;
       
-      // Force immediate refresh of cart items after add
-      await fetchCartItems(cartId);
+      console.log('✅ Item added to cart successfully');
+      
+      // Force immediate refresh to ensure UI updates
+      setTimeout(() => {
+        fetchCartItems(cartId).catch(console.error);
+      }, 100);
       
       toast({
         title: "Added to cart",
         description: "Item has been added to your cart"
       });
     } catch (error: any) {
-      console.error('Error adding to cart:', error);
+      console.error('❌ Error adding to cart:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",
@@ -356,6 +427,7 @@ export const useCart = () => {
 
   // Initial fetch
   useEffect(() => {
+    console.log('Initial fetch effect triggered');
     fetchCart();
   }, [fetchCart]);
 
