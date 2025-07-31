@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +36,8 @@ export const useCart = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const subscriptionRef = useRef<any>(null);
+  const fetchingRef = useRef(false);
 
   // Memoize session ID generation
   const getSessionId = useMemo(() => {
@@ -63,18 +65,26 @@ export const useCart = () => {
     }
   }, [user?.id, getSessionId]);
 
-  // Fetch cart and cart items - optimized
-  const fetchCart = useCallback(async () => {
+  // Fetch cart and cart items - optimized with debouncing
+  const fetchCart = useCallback(async (force = false) => {
+    // Prevent multiple simultaneous fetches
+    if (fetchingRef.current && !force) {
+      return;
+    }
+
     if (!user && !getSessionId) {
       setLoading(false);
       return;
     }
 
+    fetchingRef.current = true;
+    
     try {
       // Get or create cart
       const cartId = await getOrCreateCart();
       if (!cartId) {
         setLoading(false);
+        fetchingRef.current = false;
         return;
       }
 
@@ -106,7 +116,11 @@ export const useCart = () => {
         ...cartResponse.data,
         status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
       };
-      setCart(typedCartData);
+      
+      // Only update state if cart changed
+      if (!cart || cart.id !== typedCartData.id) {
+        setCart(typedCartData);
+      }
 
       const formattedItems = itemsResponse.data?.map(item => ({
         id: item.id,
@@ -123,6 +137,12 @@ export const useCart = () => {
       })) || [];
 
       setCartItems(formattedItems);
+
+      // Set up real-time subscription if not already set up
+      if (!subscriptionRef.current && cartId) {
+        setupRealtimeSubscription(cartId);
+      }
+      
     } catch (error: any) {
       console.error('Error fetching cart:', error);
       toast({
@@ -132,43 +152,49 @@ export const useCart = () => {
       });
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  }, [user, getSessionId, getOrCreateCart, toast]);
+  }, [user, getSessionId, getOrCreateCart, toast, cart]);
 
-  // Set up real-time subscription for cart items
+  // Set up real-time subscription
+  const setupRealtimeSubscription = useCallback((cartId: string) => {
+    // Clean up existing subscription
+    if (subscriptionRef.current) {
+      supabase.removeChannel(subscriptionRef.current);
+    }
+
+    subscriptionRef.current = supabase
+      .channel(`cart_items_${cartId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items',
+          filter: `cart_id=eq.${cartId}`
+        },
+        (payload) => {
+          console.log('Real-time cart change detected:', payload);
+          // Add a small delay to ensure database consistency
+          setTimeout(() => {
+            fetchCart(true);
+          }, 100);
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
+  }, [fetchCart]);
+
+  // Clean up subscription on unmount
   useEffect(() => {
-    let subscription: any = null;
-
-    const setupSubscription = async () => {
-      if (!cart?.id) return;
-
-      subscription = supabase
-        .channel(`cart_items_${cart.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'cart_items',
-            filter: `cart_id=eq.${cart.id}`
-          },
-          (payload) => {
-            console.log('Cart items changed:', payload);
-            // Refetch cart items when changes occur
-            fetchCart();
-          }
-        )
-        .subscribe();
-    };
-
-    setupSubscription();
-
     return () => {
-      if (subscription) {
-        supabase.removeChannel(subscription);
+      if (subscriptionRef.current) {
+        supabase.removeChannel(subscriptionRef.current);
+        subscriptionRef.current = null;
       }
     };
-  }, [cart?.id, fetchCart]);
+  }, []);
 
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -190,12 +216,18 @@ export const useCart = () => {
         .eq('id', itemId);
 
       if (error) {
-        // Revert optimistic update on error
-        await fetchCart();
         throw error;
       }
+      
+      // Force refresh after successful update
+      setTimeout(() => {
+        fetchCart(true);
+      }, 200);
+      
     } catch (error: any) {
       console.error('Error updating quantity:', error);
+      // Revert optimistic update on error
+      await fetchCart(true);
       toast({
         title: "Error",
         description: "Failed to update quantity",
@@ -215,8 +247,6 @@ export const useCart = () => {
         .eq('id', itemId);
 
       if (error) {
-        // Revert optimistic update on error
-        await fetchCart();
         throw error;
       }
       
@@ -224,8 +254,16 @@ export const useCart = () => {
         title: "Removed from cart",
         description: "Item has been removed from your cart"
       });
+      
+      // Force refresh after successful removal
+      setTimeout(() => {
+        fetchCart(true);
+      }, 200);
+      
     } catch (error: any) {
       console.error('Error removing from cart:', error);
+      // Revert optimistic update on error
+      await fetchCart(true);
       toast({
         title: "Error",
         description: "Failed to remove item",
@@ -244,6 +282,8 @@ export const useCart = () => {
       return;
     }
 
+    console.log('Adding to cart:', { productId, variantSelections, quantity });
+
     try {
       const cartId = await getOrCreateCart();
       if (!cartId) {
@@ -254,6 +294,8 @@ export const useCart = () => {
         });
         return;
       }
+
+      console.log('Using cart ID:', cartId);
 
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
@@ -267,7 +309,10 @@ export const useCart = () => {
         throw checkError;
       }
 
+      console.log('Existing item:', existingItem);
+
       if (existingItem) {
+        console.log('Updating existing item');
         const { error: updateError } = await supabase
           .from('cart_items')
           .update({ quantity: existingItem.quantity + quantity })
@@ -275,6 +320,7 @@ export const useCart = () => {
 
         if (updateError) throw updateError;
       } else {
+        console.log('Adding new item');
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert({
@@ -288,14 +334,19 @@ export const useCart = () => {
         if (insertError) throw insertError;
       }
       
-      // The real-time subscription will handle the UI update
-      // But we can also manually refresh to ensure immediate update
-      await fetchCart();
+      console.log('Cart operation successful, refreshing...');
+      
+      // ALWAYS force refresh after add to cart with a delay
+      setTimeout(() => {
+        console.log('Force refreshing cart...');
+        fetchCart(true);
+      }, 300);
       
       toast({
         title: "Added to cart",
         description: "Item has been added to your cart"
       });
+      
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       toast({
@@ -316,11 +367,16 @@ export const useCart = () => {
         .eq('cart_id', cart.id);
 
       if (error) throw error;
-      // Real-time subscription will handle the update
+      
+      // Force refresh after clearing
+      setTimeout(() => {
+        fetchCart(true);
+      }, 200);
+      
     } catch (error: any) {
       console.error('Error clearing cart:', error);
     }
-  }, [cart]);
+  }, [cart, fetchCart]);
 
   const updateCartStatus = useCallback(async (status: 'active' | 'checkout' | 'completed' | 'abandoned') => {
     if (!cart) return;
@@ -338,9 +394,24 @@ export const useCart = () => {
     }
   }, [cart]);
 
+  // Initial fetch
   useEffect(() => {
     fetchCart();
-  }, [fetchCart]);
+  }, [user?.id]); // Only depend on user ID changes
+
+  // Refresh when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !loading) {
+        fetchCart(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchCart, loading]);
 
   const totalItems = useMemo(() => 
     cartItems.reduce((total, item) => total + item.quantity, 0),
@@ -363,6 +434,6 @@ export const useCart = () => {
     updateCartStatus,
     totalItems,
     totalPrice,
-    refetch: fetchCart
+    refetch: () => fetchCart(true)
   };
 };
