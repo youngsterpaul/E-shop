@@ -46,7 +46,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       const reviewsRect = reviewsRef.current.getBoundingClientRect();
 
       // Make tabs sticky when they reach the top
-      setIsSticky(tabsRect.top <= 0);
+      setIsSticky(tabsRect.top <= 18);
 
       // Auto-switch tabs based on scroll position
       const offset = 100; // Offset to trigger tab change
@@ -197,7 +197,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       </div>
 
       {/* Add spacing when tabs are sticky */}
-      {isSticky && <div className={`${isMobile ? 'h-20' : 'h-16'}`} />}
+      {isSticky && <div className={`${isMobile ? '' : 'h-16'}`} />}
 
       {/* Specifications Section */}
       <div ref={specificationsRef} className="mt-8">
