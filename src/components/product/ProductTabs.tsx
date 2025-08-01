@@ -46,7 +46,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       const reviewsRect = reviewsRef.current.getBoundingClientRect();
 
       // Make tabs sticky when they reach the top
-      setIsSticky(tabsRect.top <= 18);
+      setIsSticky(tabsRect.top <= 0);
 
       // Auto-switch tabs based on scroll position
       const offset = 100; // Offset to trigger tab change
@@ -204,8 +204,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Technical Specifications</h3>
-              <p className="text-gray-600">Detailed technical information and specifications</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Specifications</h3>
             </div>
             <div className="p-6">
               {Object.keys(specifications).length > 0 ? (
@@ -260,8 +259,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-b">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Key Features</h3>
-              <p className="text-gray-600">Discover what makes this product special</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Features</h3>
             </div>
             <div className="p-6">
               {features.length > 0 ? (
@@ -317,7 +315,6 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
           <CardContent className="p-0">
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b">
               <h3 className="text-xl font-bold text-gray-900 mb-2">Customer Reviews</h3>
-              <p className="text-gray-600">See what our customers are saying</p>
             </div>
             <div className="p-6">
               <div className="space-y-6">
