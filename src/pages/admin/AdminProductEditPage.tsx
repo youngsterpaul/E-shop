@@ -25,6 +25,12 @@ interface ProductFormData {
   specification: string;
 }
 
+interface ExistingImage {
+  url: string;
+  isExisting: true;
+  index: number;
+}
+
 const AdminProductEdit = () => {
   const navigate = useNavigate();
   const { productId } = useParams();
@@ -61,7 +67,7 @@ const AdminProductEdit = () => {
   const [subcategoryName, setSubcategoryName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
 
   useEffect(() => {
     if (productId) {
@@ -162,9 +168,14 @@ const AdminProductEdit = () => {
           }
         }
 
-        // Handle images - store existing images separately
+        // Handle images - convert existing images to the format expected by the component
         if (data.image_urls && Array.isArray(data.image_urls)) {
-          setExistingImageUrls(data.image_urls);
+          const existingImagesData = data.image_urls.map((url: string, index: number) => ({
+            url,
+            isExisting: true as const,
+            index
+          }));
+          setExistingImages(existingImagesData);
         }
       }
     } catch (error) {
@@ -196,6 +207,10 @@ const AdminProductEdit = () => {
     if (subcategory) {
       setSubcategoryName(subcategory.category);
     }
+  };
+
+  const handleRemoveExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter(img => img.index !== index));
   };
 
   const handleUploadImages = async () => {
@@ -234,6 +249,17 @@ const AdminProductEdit = () => {
       });
       return;
     }
+
+    // Must have at least one image (existing or new)
+    const totalImages = existingImages.length + imageUrls.length;
+    if (totalImages === 0) {
+      toast({
+        title: "No images",
+        description: "Please add at least one image to the product.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsSubmitting(true);
@@ -251,8 +277,11 @@ const AdminProductEdit = () => {
 
       const categoryToStore = subcategoryName ? `${categoryName} > ${subcategoryName}` : categoryName;
       
-      // Combine existing images (that weren't removed) with newly uploaded images
-      const allImageUrls = [...existingImageUrls, ...imageUrls];
+      // Combine existing images that weren't removed with newly uploaded images
+      const finalImageUrls = [
+        ...existingImages.map(img => img.url),
+        ...imageUrls
+      ];
       
       const { error } = await supabase
         .from('products')
@@ -265,7 +294,7 @@ const AdminProductEdit = () => {
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
           specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: allImageUrls,
+          image_urls: finalImageUrls,
           updated_at: new Date().toISOString()
         })
         .eq('product_id', productId || '');
@@ -274,7 +303,7 @@ const AdminProductEdit = () => {
       
       toast({
         title: "Product updated successfully",
-        description: `"${data.name}" has been updated with ${allImageUrls.length} image(s).`,
+        description: `"${data.name}" has been updated with ${finalImageUrls.length} image(s).`,
       });
       
       navigate('/admin/products');
@@ -291,7 +320,8 @@ const AdminProductEdit = () => {
     }
   };
 
-  const canSaveProduct = (imageUrls.length > 0 || images.length === 0) && (existingImageUrls.length > 0 || imageUrls.length > 0);
+  const totalImages = existingImages.length + imageUrls.length;
+  const canSaveProduct = (images.length === 0 || imageUrls.length > 0) && totalImages > 0;
   const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
 
   if (loading) {
@@ -349,6 +379,9 @@ const AdminProductEdit = () => {
               isUploading={isUploading}
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
+              existingImages={existingImages}
+              onRemoveExistingImage={handleRemoveExistingImage}
+              isEditMode={true}
             />
 
             {/* Upload New Images Button */}
@@ -391,10 +424,16 @@ const AdminProductEdit = () => {
                   ) : (
                     <>
                       <CheckCircle className="mr-2 h-4 w-4" />
-                      Update Product
+                      Update Product ({totalImages} image{totalImages !== 1 ? 's' : ''})
                     </>
                   )}
                 </Button>
+              </div>
+            )}
+
+            {totalImages === 0 && (
+              <div className="text-center text-red-500 text-sm">
+                Please add at least one image to the product
               </div>
             )}
           </form>
