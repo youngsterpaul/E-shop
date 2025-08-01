@@ -27,8 +27,10 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const [showMoreReviews, setShowMoreReviews] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [originalTabsTop, setOriginalTabsTop] = useState(0);
 
   const tabsRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
   const specificationsRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
@@ -37,31 +39,46 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const isMobile = isMobileUserAgent();
 
   // Mobile header height - adjust based on your mobile header
-  const MOBILE_HEADER_HEIGHT = 64; // Adjust this value to match your mobile header height
+  const MOBILE_HEADER_HEIGHT = 64;
   const DESKTOP_OFFSET = 20;
   const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
 
-  // Throttled scroll handler for better performance
+  // Store original position of tabs
+  useEffect(() => {
+    if (tabsRef.current && !originalTabsTop) {
+      const rect = tabsRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setOriginalTabsTop(rect.top + scrollTop);
+    }
+  }, [originalTabsTop]);
+
+  // Improved throttled scroll handler
   const throttledScrollHandler = useCallback(() => {
     let ticking = false;
     
     const handleScroll = () => {
-      if (!tabsRef.current || !specificationsRef.current || !featuresRef.current || !reviewsRef.current) return;
+      if (!tabsRef.current || !specificationsRef.current || !featuresRef.current || !reviewsRef.current) {
+        ticking = false;
+        return;
+      }
 
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const tabsRect = tabsRef.current.getBoundingClientRect();
       const specsRect = specificationsRef.current.getBoundingClientRect();
       const featuresRect = featuresRef.current.getBoundingClientRect();
       const reviewsRect = reviewsRef.current.getBoundingClientRect();
 
-      // Make tabs sticky when they reach the mobile header or top
-      setIsSticky(tabsRect.top <= stickyOffset);
+      // Determine if tabs should be sticky
+      const shouldBeSticky = originalTabsTop > 0 && scrollTop >= (originalTabsTop - stickyOffset);
+      setIsSticky(shouldBeSticky);
 
-      // Auto-switch tabs based on scroll position
-      const offset = stickyOffset + 100;
+      // Auto-switch tabs based on scroll position with better logic
+      const offset = shouldBeSticky ? stickyOffset + 100 : 100;
       
-      if (reviewsRect.top <= offset) {
+      // Only update active tab if we're not manually clicking
+      if (reviewsRect.top <= offset && reviewsRect.top > -reviewsRect.height / 2) {
         setActiveTab('reviews');
-      } else if (featuresRect.top <= offset) {
+      } else if (featuresRect.top <= offset && featuresRect.top > -featuresRect.height / 2) {
         setActiveTab('features');
       } else if (specsRect.top <= offset) {
         setActiveTab('specifications');
@@ -76,13 +93,17 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         ticking = true;
       }
     };
-  }, [stickyOffset]);
+  }, [stickyOffset, originalTabsTop]);
 
   // Handle sticky tabs and auto-switching with throttling
   useEffect(() => {
     const scrollHandler = throttledScrollHandler();
     window.addEventListener('scroll', scrollHandler, { passive: true });
-    return () => window.removeEventListener('scroll', scrollHandler);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', scrollHandler);
+    };
   }, [throttledScrollHandler]);
 
   // Handle tab click scrolling with proper mobile header offset
@@ -96,14 +117,18 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
     const targetRef = refs[tab as keyof typeof refs];
     if (targetRef?.current) {
       const elementPosition = targetRef.current.offsetTop;
-      const offsetPosition = elementPosition - (stickyOffset + 80);
+      // Adjust offset based on whether tabs will be sticky
+      const tabsHeight = tabsRef.current?.offsetHeight || 0;
+      const offsetPosition = elementPosition - (stickyOffset + tabsHeight + 20);
+      
+      // Temporarily disable auto-switching during manual scroll
+      setActiveTab(tab);
       
       window.scrollTo({
-        top: offsetPosition,
+        top: Math.max(0, offsetPosition),
         behavior: 'smooth'
       });
     }
-    setActiveTab(tab);
   }, [stickyOffset]);
 
   // Handle keyboard navigation
@@ -198,55 +223,67 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
     : filteredReviews.slice(0, REVIEWS_LIMIT);
 
   return (
-    <div className="mt-8 md:mt-12 mx-auto px-2 md:px-4">
-      {/* Sticky Tab Navigation */}
-      <div 
-        ref={tabsRef}
-        className={`bg-white transition-all duration-300 z-40 ${
-          isSticky 
-            ? `fixed left-0 right-0 shadow-md px-4 py-2` 
-            : 'relative'
-        }`}
-        style={isSticky ? { top: `${stickyOffset}px` } : {}}
-        role="tablist"
-        aria-label="Product information tabs"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-3 gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg">
-            {[
-              { key: 'specifications', label: 'Specifications', count: Object.keys(specifications).length },
-              { key: 'features', label: 'Features', count: features.length },
-              { key: 'reviews', label: isMobile ? 'Reviews' : `Reviews (${totalReviews})`, count: totalReviews }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => scrollToSection(tab.key)}
-                onKeyDown={(e) => handleKeyDown(e, tab.key)}
-                className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  activeTab === tab.key
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                role="tab"
-                aria-selected={activeTab === tab.key}
-                aria-controls={`${tab.key}-panel`}
-                tabIndex={0}
-              >
-                <span className="block md:hidden">{tab.key.charAt(0).toUpperCase()}</span>
-                <span className="hidden md:block">
-                  {tab.label}
-                  {isMobile && tab.key === 'reviews' && totalReviews > 0 && (
-                    <span className="text-xs text-gray-500 ml-1">({totalReviews})</span>
-                  )}
-                </span>
-              </button>
-            ))}
+    <div className="mt-8 md:mt-12 mx-auto px-2 md:px-4" ref={tabsContainerRef}>
+      {/* Tab Navigation Container */}
+      <div className="relative">
+        {/* Placeholder to maintain layout when tabs become sticky */}
+        {isSticky && (
+          <div 
+            className="w-full"
+            style={{ height: tabsRef.current?.offsetHeight || 0 }}
+          />
+        )}
+        
+        {/* Sticky Tab Navigation */}
+        <div 
+          ref={tabsRef}
+          className={`bg-white transition-all duration-200 ease-in-out z-40 ${
+            isSticky 
+              ? 'fixed left-0 right-0 shadow-lg px-4 py-3 border-b border-gray-200' 
+              : 'relative py-2'
+          }`}
+          style={isSticky ? { 
+            top: `${stickyOffset}px`,
+            backdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)'
+          } : {}}
+          role="tablist"
+          aria-label="Product information tabs"
+        >
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-3 gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg">
+              {[
+                { key: 'specifications', label: 'Specifications', count: Object.keys(specifications).length },
+                { key: 'features', label: 'Features', count: features.length },
+                { key: 'reviews', label: isMobile ? 'Reviews' : `Reviews (${totalReviews})`, count: totalReviews }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => scrollToSection(tab.key)}
+                  onKeyDown={(e) => handleKeyDown(e, tab.key)}
+                  className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    activeTab === tab.key
+                      ? 'bg-white text-blue-600 shadow-sm scale-105'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                  }`}
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
+                  aria-controls={`${tab.key}-panel`}
+                  tabIndex={0}
+                >
+                  <span className="block md:hidden">{tab.key.charAt(0).toUpperCase()}</span>
+                  <span className="hidden md:block">
+                    {tab.label}
+                    {isMobile && tab.key === 'reviews' && totalReviews > 0 && (
+                      <span className="text-xs text-gray-500 ml-1">({totalReviews})</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Add spacing when tabs are sticky */}
-      {isSticky && <div className="h-16 md:h-20" />}
 
       {/* Specifications Section */}
       <div 
