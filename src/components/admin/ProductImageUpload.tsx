@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { UploadCloud, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { UploadCloud, X, CheckCircle, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
 
 interface CompressedImage {
   file: File;
@@ -20,12 +20,21 @@ interface ImageUploadProgress {
   error?: string;
 }
 
+interface ExistingImage {
+  url: string;
+  isExisting: true;
+  index: number;
+}
+
 interface ProductImageUploadProps {
   images: CompressedImage[];
   uploadProgress: ImageUploadProgress[];
   isUploading: boolean;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (index: number) => void;
+  existingImages?: ExistingImage[];
+  onRemoveExistingImage?: (index: number) => void;
+  isEditMode?: boolean;
 }
 
 const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
@@ -33,7 +42,10 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
   uploadProgress,
   isUploading,
   onImageUpload,
-  onRemoveImage
+  onRemoveImage,
+  existingImages = [],
+  onRemoveExistingImage,
+  isEditMode = false
 }) => {
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -60,28 +72,30 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'uploading':
-        return 'bg-blue-500';
-      case 'success':
-        return 'bg-green-500';
-      case 'error':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-200';
-    }
-  };
+  const totalImages = existingImages.length + images.length;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Product Images</span>
-          {images.length > 0 && (
-            <Badge variant="secondary">
-              {images.length} image{images.length !== 1 ? 's' : ''}
-            </Badge>
+          {totalImages > 0 && (
+            <div className="flex items-center space-x-2">
+              {isEditMode && existingImages.length > 0 && (
+                <Badge variant="outline" className="bg-blue-50">
+                  <ImageIcon className="h-3 w-3 mr-1" />
+                  {existingImages.length} existing
+                </Badge>
+              )}
+              {images.length > 0 && (
+                <Badge variant="secondary">
+                  {images.length} new
+                </Badge>
+              )}
+              <Badge variant="default">
+                {totalImages} total
+              </Badge>
+            </div>
           )}
         </CardTitle>
       </CardHeader>
@@ -105,7 +119,7 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           >
             <UploadCloud className="h-12 w-12 text-muted-foreground mb-2" />
             <p className="text-lg font-medium">
-              {isUploading ? 'Uploading...' : 'Click to upload images'}
+              {isUploading ? 'Uploading...' : isEditMode ? 'Add more images' : 'Click to upload images'}
             </p>
             <p className="text-sm text-muted-foreground">
               JPG, PNG or GIF up to 10MB (will be compressed)
@@ -113,23 +127,89 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           </Label>
         </div>
 
-        {/* Image Previews */}
+        {/* Existing Images (Edit Mode) */}
+        {isEditMode && existingImages.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <ImageIcon className="h-4 w-4 text-blue-600" />
+              <h4 className="text-sm font-medium text-blue-600">Current Images</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {existingImages.map((existingImage) => (
+                <div key={`existing-${existingImage.index}`} className="relative border rounded-lg overflow-hidden">
+                  {/* Existing Image */}
+                  <div className="relative">
+                    <img
+                      src={existingImage.url}
+                      alt={`Existing image ${existingImage.index + 1}`}
+                      className="w-full h-48 object-cover"
+                    />
+                    
+                    {/* Existing Image Badge */}
+                    <div className="absolute top-2 left-2">
+                      <Badge variant="default" className="bg-blue-600 text-white text-xs">
+                        Current
+                      </Badge>
+                    </div>
+                    
+                    {/* Remove Button for Existing Image */}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveExistingImage?.(existingImage.index)}
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 transition-all"
+                      title="Remove existing image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Existing Image Info */}
+                  <div className="p-3">
+                    <div className="text-xs text-muted-foreground">
+                      <span className="flex items-center">
+                        <ImageIcon className="h-3 w-3 mr-1" />
+                        Existing image
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* New Images */}
         {images.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
+            {isEditMode && (
+              <div className="flex items-center space-x-2">
+                <UploadCloud className="h-4 w-4 text-green-600" />
+                <h4 className="text-sm font-medium text-green-600">New Images to Upload</h4>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {images.map((image, index) => {
                 const progressInfo = getProgressInfo(index);
                 const compressionRatio = ((image.originalSize - image.compressedSize) / image.originalSize * 100).toFixed(1);
                 
                 return (
-                  <div key={index} className="relative border rounded-lg overflow-hidden">
-                    {/* Image */}
+                  <div key={`new-${index}`} className="relative border rounded-lg overflow-hidden">
+                    {/* New Image */}
                     <div className="relative">
                       <img
                         src={image.preview}
-                        alt={`Preview ${index + 1}`}
+                        alt={`New image ${index + 1}`}
                         className="w-full h-48 object-cover"
                       />
+                      
+                      {/* New Image Badge */}
+                      {isEditMode && (
+                        <div className="absolute top-2 left-2">
+                          <Badge variant="default" className="bg-green-600 text-white text-xs">
+                            New
+                          </Badge>
+                        </div>
+                      )}
                       
                       {/* Status Overlay */}
                       {progressInfo && (
@@ -145,20 +225,21 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                         </div>
                       )}
                       
-                      {/* Remove Button */}
+                      {/* Remove Button for New Image */}
                       {!progressInfo?.status || progressInfo.status !== 'uploading' ? (
                         <button
                           type="button"
                           onClick={() => onRemoveImage(index)}
                           className="absolute top-2 right-2 bg-black bg-opacity-70 hover:bg-opacity-90 text-white rounded-full p-1 transition-all"
                           disabled={isUploading}
+                          title="Remove new image"
                         >
                           <X className="h-4 w-4" />
                         </button>
                       ) : null}
                     </div>
 
-                    {/* Image Info */}
+                    {/* New Image Info */}
                     <div className="p-3 space-y-2">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="truncate">{image.file.name}</span>
@@ -198,47 +279,58 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
                 );
               })}
             </div>
-
-            {/* Overall Progress */}
-            {isUploading && uploadProgress.length > 0 && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Upload Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {uploadProgress.filter(p => p.status === 'success').length} / {uploadProgress.length}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Uploading: {uploadProgress.filter(p => p.status === 'uploading').length}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Success: {uploadProgress.filter(p => p.status === 'success').length}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span>Failed: {uploadProgress.filter(p => p.status === 'error').length}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Summary */}
+        {/* Overall Progress */}
+        {isUploading && uploadProgress.length > 0 && (
+          <div className="mt-4 p-4 bg-muted rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Upload Progress</span>
+              <span className="text-sm text-muted-foreground">
+                {uploadProgress.filter(p => p.status === 'success').length} / {uploadProgress.length}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>Uploading: {uploadProgress.filter(p => p.status === 'uploading').length}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Success: {uploadProgress.filter(p => p.status === 'success').length}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span>Failed: {uploadProgress.filter(p => p.status === 'error').length}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Compression Summary for New Images */}
         {images.length > 0 && !isUploading && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="text-sm">
-              <p className="font-medium text-green-800">Compression Summary:</p>
+              <p className="font-medium text-green-800">
+                {isEditMode ? 'New Images ' : ''}Compression Summary:
+              </p>
               <p className="text-green-700">
                 Total size reduced from {formatFileSize(images.reduce((sum, img) => sum + img.originalSize, 0))} to{' '}
                 {formatFileSize(images.reduce((sum, img) => sum + img.compressedSize, 0))}
                 {' '}({((images.reduce((sum, img) => sum + img.originalSize, 0) - images.reduce((sum, img) => sum + img.compressedSize, 0)) / images.reduce((sum, img) => sum + img.originalSize, 0) * 100).toFixed(1)}% savings)
               </p>
             </div>
+          </div>
+        )}
+
+        {/* No Images Message */}
+        {totalImages === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>No images selected</p>
+            <p className="text-sm">Click the upload area above to add product images</p>
           </div>
         )}
       </CardContent>
