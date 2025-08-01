@@ -1,635 +1,452 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Star, ThumbsUp, ThumbsDown, Filter, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-
-import { useProductReviews } from '@/hooks/useReviews';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import OptimizedImage from '../OptimizedImage';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
+import ProductTabs from '@/components/product/ProductTabs';
+import RelatedProductsCarousel from '@/components/product/RelatedProductsCarousel';
+import SiteBreadcrumb from '@/components/Breadcrumb';
+import VariantSelector from '@/components/product/VariantSelector';
+import AddToCartSection from '@/components/product/AddToCartSection';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useProduct } from '@/hooks/useProducts';
+import { useProductVariants } from '@/hooks/useProductVariants';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Menu, Search, Settings, ShoppingBag, Star } from 'lucide-react';
+import Header from '@/components/Header';
+import { MobileHeader } from '@/components/ui/mobile-header';
+import { Button } from "@/components/ui/button"
+import { Link } from 'react-router-dom';
+import MobileBottomActions from '@/components/product/MobileBottomActions';
 
-interface ProductTabsProps {
-  product: {
-    product_id: string;
-    name: string;
-    features?: string[] | string;
-    attributes?: Record<string, any>;
-    specification?: Record<string, any>;
-  };
-}
-
-const ProductTabs = ({ product }: ProductTabsProps) => {
-  const [activeTab, setActiveTab] = useState('specifications');
-  const [reviewFilter, setReviewFilter] = useState('all');
-  const [showMoreSpecs, setShowMoreSpecs] = useState(false);
-  const [showMoreFeatures, setShowMoreFeatures] = useState(false);
-  const [showMoreReviews, setShowMoreReviews] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const specificationsRef = useRef<HTMLDivElement>(null);
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const reviewsRef = useRef<HTMLDivElement>(null);
-
-  const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
+const ProductDetailsPage = () => {
+  const { productName, id } = useParams();
+  const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
+    const gridCols = isMobile 
+    ? "grid-cols-1" 
+    : "grid-cols-2";
 
-  // Mobile header height - adjust based on your mobile header
-  const MOBILE_HEADER_HEIGHT = 64; // Adjust this value to match your mobile header height
-  const DESKTOP_OFFSET = 20;
-  const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
+  const { data: product, isLoading: loading, error } = useProduct(id || '');
+  const { variants } = useProductVariants(id || '');
+  
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [quantity, setQuantity] = useState(1);
 
-  // Throttled scroll handler for better performance
-  const throttledScrollHandler = useCallback(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!tabsRef.current || !specificationsRef.current || !featuresRef.current || !reviewsRef.current) return;
+  // Generate SEO-friendly slug
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
 
-      const tabsRect = tabsRef.current.getBoundingClientRect();
-      const specsRect = specificationsRef.current.getBoundingClientRect();
-      const featuresRect = featuresRef.current.getBoundingClientRect();
-      const reviewsRect = reviewsRef.current.getBoundingClientRect();
-
-      // Make tabs sticky when they reach the mobile header or top
-      setIsSticky(tabsRect.top <= stickyOffset);
-
-      // Auto-switch tabs based on scroll position
-      const offset = stickyOffset + 100;
-      
-      if (reviewsRect.top <= offset) {
-        setActiveTab('reviews');
-      } else if (featuresRect.top <= offset) {
-        setActiveTab('features');
-      } else if (specsRect.top <= offset) {
-        setActiveTab('specifications');
-      }
-      
-      ticking = false;
-    };
-
-    return () => {
-      if (!ticking) {
-        requestAnimationFrame(handleScroll);
-        ticking = true;
-      }
-    };
-  }, [stickyOffset]);
-
-  // Handle sticky tabs and auto-switching with throttling
+  // Redirect to correct URL if product name doesn't match
   useEffect(() => {
-    const scrollHandler = throttledScrollHandler();
-    window.addEventListener('scroll', scrollHandler, { passive: true });
-    return () => window.removeEventListener('scroll', scrollHandler);
-  }, [throttledScrollHandler]);
-
-  // Handle tab click scrolling with proper mobile header offset
-  const scrollToSection = useCallback((tab: string) => {
-    const refs = {
-      specifications: specificationsRef,
-      features: featuresRef,
-      reviews: reviewsRef
-    };
-    
-    const targetRef = refs[tab as keyof typeof refs];
-    if (targetRef?.current) {
-      const elementPosition = targetRef.current.offsetTop;
-      const offsetPosition = elementPosition - (stickyOffset + 80);
+    if (product && productName && id) {
+      const correctSlug = generateSlug(product.name);
       
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
+      if (productName !== correctSlug) {
+        navigate(`/products/${product.categories || 'general'}/${correctSlug}/${id}`, { replace: true });
+      }
+    }
+  }, [product, productName, id, navigate]);
+
+  // Transform variants for VariantSelector
+  const transformedVariants = variants.reduce((acc, variant) => {
+    const existingType = acc.find(v => v.id === variant.variant_type);
+    
+    if (existingType) {
+      existingType.values.push({
+        id: variant.variant_value,
+        name: variant.variant_value,
+        value: variant.variant_value,
+        available: variant.stock_quantity > 0,
+        priceModifier: variant.price_modifier
+      });
+    } else {
+      acc.push({
+        id: variant.variant_type,
+        name: variant.variant_type.charAt(0).toUpperCase() + variant.variant_type.slice(1),
+        type: variant.variant_type === 'color' ? 'color' : variant.variant_type === 'size' ? 'size' : 'other',
+        values: [{
+          id: variant.variant_value,
+          name: variant.variant_value,
+          value: variant.variant_value,
+          available: variant.stock_quantity > 0,
+          priceModifier: variant.price_modifier
+        }]
       });
     }
-    setActiveTab(tab);
-  }, [stickyOffset]);
+    
+    return acc;
+  }, [] as any[]);
 
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback((event: React.KeyboardEvent, tab: string) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      scrollToSection(tab);
-    }
-  }, [scrollToSection]);
+  const requiredVariants = transformedVariants.map(v => v.id);
 
-  // Parse features with error handling
-  const getFeatures = useCallback(() => {
-    if (!product.features) return [];
-    if (typeof product.features === 'string') {
-      try {
-        const parsed = JSON.parse(product.features);
-        return Array.isArray(parsed) ? parsed : [product.features];
-      } catch {
-        return [product.features];
-      }
-    }
-    return Array.isArray(product.features) ? product.features : [];
-  }, [product.features]);
-
-  const features = getFeatures();
-
-  // Parse specifications with error handling
-  const getSpecifications = useCallback(() => {
-    if (product.specification && typeof product.specification === 'object') {
-      return product.specification;
-    }
-    if (product.attributes && typeof product.attributes === 'object') {
-      return product.attributes;
-    }
-    return {};
-  }, [product.specification, product.attributes]);
-
-  const specifications = getSpecifications();
-
-  // Filter reviews
-  const getFilteredReviews = useCallback(() => {
-    if (reviewFilter === 'all') return reviews;
-    const rating = parseInt(reviewFilter);
-    return reviews.filter(review => review.rating === rating);
-  }, [reviews, reviewFilter]);
-
-  const filteredReviews = getFilteredReviews();
-
-  // Calculate rating distribution
-  const getRatingDistribution = useCallback(() => {
-    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(review => {
-      distribution[review.rating as keyof typeof distribution]++;
-    });
-    return distribution;
-  }, [reviews]);
-
-  const ratingDistribution = getRatingDistribution();
-  const totalReviews = reviews.length;
-  const averageRating = totalReviews > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-    : 0;
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const handleVariantChange = (variantTypeId: string, variantValueId: string) => {
+    setSelectedVariants(prev => ({
+      ...prev,
+      [variantTypeId]: variantValueId
+    }));
   };
 
-  // Handle image errors
-  const handleImageError = useCallback((url: string) => {
-    setImageErrors(prev => ({ ...prev, [url]: true }));
-  }, []);
+  const calculatePrice = () => {
+    if (!product) return 0;
+    let totalModifier = 0;
+    
+    Object.entries(selectedVariants).forEach(([type, value]) => {
+      const variant = variants.find(v => v.variant_type === type && v.variant_value === value);
+      if (variant) {
+        totalModifier += variant.price_modifier;
+      }
+    });
+    
+    return product.price + totalModifier;
+  };
 
-  // Show/hide logic with responsive limits
-  const SPECS_LIMIT = isMobile ? 4 : 8;
-  const FEATURES_LIMIT = isMobile ? 4 : 6;
-  const REVIEWS_LIMIT = isMobile ? 2 : 3;
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES'
+    }).format(price);
+  };
 
-  const visibleSpecs = showMoreSpecs 
-    ? Object.entries(specifications) 
-    : Object.entries(specifications).slice(0, SPECS_LIMIT);
+  // SEO Meta Data
+  const generateMetaData = () => {
+    if (!product) return {};
+    
+    const title = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
+    const description = `${product.description || product.name.split('(')[0].trim()} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
+    const image = product.image_urls?.[0] || '/placeholder.svg';
+    
+    return { title, description, image };
+  };
 
-  const visibleFeatures = showMoreFeatures 
-    ? features 
-    : features.slice(0, FEATURES_LIMIT);
+  const { title, description, image } = generateMetaData();
 
-  const visibleReviews = showMoreReviews 
-    ? filteredReviews 
-    : filteredReviews.slice(0, REVIEWS_LIMIT);
-
-  return (
-    <div className="mt-8 md:mt-12 mx-auto px-2 md:px-4">
-      {/* Sticky Tab Navigation */}
-      <div 
-        ref={tabsRef}
-        className={`bg-white transition-all duration-300 z-40 ${
-          isSticky 
-            ? `fixed left-0 right-0 shadow-md px-4 py-2` 
-            : 'relative'
-        }`}
-        style={isSticky ? { top: `${stickyOffset}px` } : {}}
-        role="tablist"
-        aria-label="Product information tabs"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-3 gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg">
-            {[
-              { key: 'specifications', label: 'Specifications', count: Object.keys(specifications).length },
-              { key: 'features', label: 'Features', count: features.length },
-              { key: 'reviews', label: isMobile ? 'Reviews' : `Reviews (${totalReviews})`, count: totalReviews }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => scrollToSection(tab.key)}
-                onKeyDown={(e) => handleKeyDown(e, tab.key)}
-                className={`px-2 md:px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  activeTab === tab.key
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                role="tab"
-                aria-selected={activeTab === tab.key}
-                aria-controls={`${tab.key}-panel`}
-                tabIndex={0}
-              >
-                <span className="block md:hidden">{tab.key.charAt(0).toUpperCase()}</span>
-                <span className="hidden md:block">
-                  {tab.label}
-                  {isMobile && tab.key === 'reviews' && totalReviews > 0 && (
-                    <span className="text-xs text-gray-500 ml-1">({totalReviews})</span>
-                  )}
-                </span>
-              </button>
-            ))}
+  // Loading State
+  if (loading) {
+    return (
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+        {!isMobile && <Header />}
+        {isMobile && <MobileHeader 
+          title="Product Details"
+          rightAction={
+            <Link to="/search">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+            </Link>
+          }
+        />
+      }
+        <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb Skeleton */}
+          <div className="mb-6">
+            <Skeleton className="h-6 w-64" />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            {/* Product Image Skeleton */}
+            <div className="space-y-4">
+              <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-lg" />
+              <div className="flex gap-2 justify-center">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="w-16 h-16 rounded-lg" />
+                ))}
+              </div>
+            </div>
+            
+            {/* Product Info Skeleton */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-8 w-32" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-20" />
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-10 w-16" />
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-12 w-32" />
+              </div>
+              
+              <div className="flex gap-4">
+                <Skeleton className="h-12 flex-1" />
+                <Skeleton className="h-12 w-12" />
+                <Skeleton className="h-12 w-12" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Add spacing when tabs are sticky */}
-      {isSticky && <div className="h-16 md:h-20" />}
-
-      {/* Specifications Section */}
-      <div 
-        ref={specificationsRef} 
-        className="mt-6 md:mt-8"
-        role="tabpanel"
-        id="specifications-panel"
-        aria-labelledby="specifications-tab"
-      >
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 md:p-6 border-b">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-                Specifications
-                {Object.keys(specifications).length > 0 && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    ({Object.keys(specifications).length} items)
-                  </span>
-                )}
-              </h3>
-            </div>
-            <div className="p-4 md:p-6">
-              {Object.keys(specifications).length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
-                    {visibleSpecs.map(([key, value]) => (
-                      <div key={key} className="group">
-                        <div className="bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg p-3 md:p-4 border border-gray-200">
-                          <dt className="font-semibold text-gray-900 mb-1 md:mb-2 text-xs md:text-sm uppercase tracking-wide">
-                            {key.replace(/[_-]/g, ' ')}
-                          </dt>
-                          <dd className="text-gray-700 font-medium text-sm md:text-base break-words">
-                            {Array.isArray(value) ? value.join(', ') : String(value)}
-                          </dd>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {Object.entries(specifications).length > SPECS_LIMIT && (
-                    <div className="text-center pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowMoreSpecs(!showMoreSpecs)}
-                        className="gap-2"
-                        aria-expanded={showMoreSpecs}
-                        aria-label={showMoreSpecs ? 'Show fewer specifications' : `Show ${Object.entries(specifications).length - SPECS_LIMIT} more specifications`}
-                      >
-                        {showMoreSpecs ? (
-                          <>
-                            <ChevronUp size={16} />
-                            Show Less
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown size={16} />
-                            Show More ({Object.entries(specifications).length - SPECS_LIMIT} more)
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 md:py-12">
-                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 italic">No specifications available for this product.</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+  // Error State
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Product not found</h2>
+            <p className="text-gray-600 mb-4">
+              {error ? 'There was an error loading the product.' : 'The product you\'re looking for doesn\'t exist.'}
+            </p>
+            <button 
+              onClick={() => navigate('/')} 
+              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Return to homepage
+            </button>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* Features Section */}
-      <div 
-        ref={featuresRef} 
-        className="mt-6 md:mt-8"
-        role="tabpanel"
-        id="features-panel"
-        aria-labelledby="features-tab"
-      >
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 md:p-6 border-b">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-                Features
-                {features.length > 0 && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    ({features.length} items)
-                  </span>
-                )}
-              </h3>
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
+    { label: product.name.split('(')[0].trim(), }
+  ];
+
+  // Transform product for components
+  const productWithImages = {
+    id: product.product_id,
+    name: product.name.split('(')[0].trim(),
+    image: product.image_urls?.[0] || '/placeholder.svg',
+    images: product.image_urls || [],
+    video: (product as any).video,
+  };
+
+  // Transform product for ProductTabs with proper features handling
+  const productForTabs = {
+    ...product,
+    features: typeof product.features === 'string' 
+      ? [product.features] 
+      : Array.isArray(product.features) 
+        ? product.features 
+        : [],
+    specification: typeof product.specification === 'string' && product.specification
+      ? JSON.parse(product.specification)
+      : product.specification || {}
+  };
+
+  // Structured Data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "description": product.description,
+    "image": product.image_urls || [],
+    "brand": {
+      "@type": "Brand",
+      "name": "Smartkenya Online Shopping"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": calculatePrice(),
+      "priceCurrency": "KES",
+      "availability": product.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Smartkenya Online Shopping"
+      }
+    },
+    "aggregateRating": product.rating ? {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating,
+      "reviewCount": (product as any).reviews || 0
+    } : undefined
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={image} />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={image} />
+        <link rel="canonical" href={window.location.href} />
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      </Helmet>
+
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+        {!isMobile && <Header />}
+        {isMobile && (<MobileHeader
+          title={"Product Details"}
+          rightAction={
+            <div className='space-x-2'>
+              <Link to="/search">
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" className="p-2">
+                <Menu className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="p-4 md:p-6">
-              {features.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3">
-                    {visibleFeatures.map((feature, index) => (
-                      <div key={index} className="group">
-                        <div className="flex items-start p-3 md:p-4 bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg border border-gray-200">
-                          <div className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 md:mr-4 mt-0">
-                            <span className="text-blue-600 font-bold text-xs md:text-sm">{index + 1}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-gray-800 leading-relaxed font-medium text-sm md:text-base break-words">
-                              {feature}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {features.length > FEATURES_LIMIT && (
-                    <div className="text-center pt-4 border-t">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowMoreFeatures(!showMoreFeatures)}
-                        className="gap-2"
-                        aria-expanded={showMoreFeatures}
-                        aria-label={showMoreFeatures ? 'Show fewer features' : `Show ${features.length - FEATURES_LIMIT} more features`}
-                      >
-                        {showMoreFeatures ? (
-                          <>
-                            <ChevronUp size={16} />
-                            Show Less
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown size={16} />
-                            Show More ({features.length - FEATURES_LIMIT} more)
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>  
-              ) : (
-                <div className="text-center py-8 md:py-12">
-                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 italic">No features listed for this product.</p>
-                </div>
-              )}
+          }
+        />)}
+        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
+          {/* Breadcrumb */}
+          {!isMobile && (
+            <div className='min-w-0'>
+              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 trancate" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
 
-      {/* Reviews Section */}
-      <div 
-        ref={reviewsRef} 
-        className="mt-6 md:mt-8"
-        role="tabpanel"
-        id="reviews-panel"
-        aria-labelledby="reviews-tab"
-      >
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 md:p-6 border-b">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Customer Reviews</h3>
+          {/* Product Layout */}
+          <div className={`grid ${gridCols} gap-1`}>
+            {/* Enhanced Image Gallery */}
+            <div className=''>
+              <EnhancedProductImageGallery product={productWithImages} />
             </div>
-            <div className="p-4 md:p-6">
-              <div className="space-y-6">
-                {/* Review Summary */}
-                {totalReviews > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4 md:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Overall Rating */}
-                      <div className="text-center">
-                        <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
-                          {averageRating.toFixed(1)}
-                        </div>
-                        <div className="flex justify-center mb-2">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 md:w-5 md:h-5 ${
-                                i < Math.floor(averageRating) 
-                                  ? 'text-yellow-400 fill-current' 
-                                  : 'text-gray-300'
-                              }`}
-                              aria-hidden="true"
-                            />
-                          ))}
-                        </div>
-                        <p className="text-gray-600 text-sm md:text-base">
-                          Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
-                        </p>
-                      </div>
 
-                      {/* Rating Distribution */}
-                      <div className="space-y-2">
-                        {[5, 4, 3, 2, 1].map((rating) => (
-                          <div key={rating} className="flex items-center gap-2">
-                            <span className="text-xs md:text-sm w-6 md:w-8">{rating}★</span>
-                            <div className="flex-1 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                                style={{ 
-                                  width: totalReviews > 0 
-                                    ? `${(ratingDistribution[rating as keyof typeof ratingDistribution] / totalReviews) * 100}%` 
-                                    : '0%' 
-                                }}
-                                role="progressbar"
-                                aria-valuenow={ratingDistribution[rating as keyof typeof ratingDistribution]}
-                                aria-valuemax={totalReviews}
-                                aria-label={`${rating} star rating: ${ratingDistribution[rating as keyof typeof ratingDistribution]} reviews`}
-                              />
-                            </div>
-                            <span className="text-xs md:text-sm text-gray-600 w-6 md:w-8">
-                              {ratingDistribution[rating as keyof typeof ratingDistribution]}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Review Filters */}
-                {totalReviews > 0 && (
-                  <div className="bg-white border rounded-lg p-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Filter size={16} className="text-gray-600" aria-hidden="true" />
-                      <span className="text-sm font-medium">Filter by rating:</span>
-                      <div className="flex gap-1 md:gap-2 flex-wrap">
-                        <Button
-                          variant={reviewFilter === 'all' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setReviewFilter('all')}
-                          aria-pressed={reviewFilter === 'all'}
-                        >
-                          All
-                        </Button>
-                        {[5, 4, 3, 2, 1].map((rating) => (
-                          <Button
-                            key={rating}
-                            variant={reviewFilter === rating.toString() ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setReviewFilter(rating.toString())}
-                            aria-pressed={reviewFilter === rating.toString()}
-                          >
-                            {rating}★
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Reviews List */}
-                <div className="space-y-4">
-                  {reviewsLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" role="status" aria-label="Loading reviews"></div>
-                      <p className="text-gray-600 mt-2">Loading reviews...</p>
-                    </div>
-                  ) : filteredReviews.length > 0 ? (
-                    <>
-                      {visibleReviews.map((review) => (
-                        <Card key={review.review_id} className="hover:shadow-md transition-shadow">
-                          <CardContent className="p-4 md:p-6">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-medium text-sm md:text-base truncate">{review.username}</span>
-                                  <div className="flex" role="img" aria-label={`${review.rating} out of 5 stars`}>
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className={`w-3 h-3 md:w-4 md:h-4 ${
-                                          i < review.rating 
-                                            ? 'text-yellow-400 fill-current' 
-                                            : 'text-gray-300'
-                                        }`}
-                                        aria-hidden="true"
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
-                                <p className="text-xs md:text-sm text-gray-600">
-                                  {formatDate(review.created_at)}
-                                </p>
-                              </div>
-                              <Badge variant="outline" className="ml-2 flex-shrink-0">{review.rating}/5</Badge>
-                            </div>
-                            
-                            <p className="text-gray-700 mb-4 leading-relaxed text-sm md:text-base break-words">{review.comment}</p>
-                            
-                            {/* Review Media with error handling */}
-                            {review.media_urls && Array.isArray(review.media_urls) && review.media_urls.length > 0 && (
-                              <div className="flex gap-2 overflow-x-auto mb-4">
-                                {review.media_urls
-                                  .filter(url => url && typeof url === 'string' && url.trim() !== '')
-                                  .map((url, index) => (
-                                    <div key={index} className="flex-shrink-0">
-                                      {!imageErrors[url] && (url.includes('video') || url.includes('.mp4') || url.includes('.mov')) ? (
-                                        <video
-                                          src={url}
-                                          className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg cursor-pointer"
-                                          controls
-                                          onError={() => handleImageError(url)}
-                                        />
-                                      ) : !imageErrors[url] ? (
-                                        <OptimizedImage
-                                          src={url}
-                                          alt={`Review image ${index + 1}`}
-                                          width={isMobile ? 64 : 80}
-                                          height={isMobile ? 64 : 80}
-                                          className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                          onError={() => handleImageError(url)}
-                                        />
-                                      ) : (
-                                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                                          <AlertCircle className="w-4 h-4 text-gray-400" />
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                            
-                            {/* Review Actions */}
-                            <div className="flex items-center gap-2 md:gap-4 pt-4 border-t">
-                              <Button variant="ghost" size="sm" className="text-gray-600 text-xs md:text-sm">
-                                <ThumbsUp size={12} className="mr-1" />
-                                Helpful
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-600 text-xs md:text-sm">
-                                <ThumbsDown size={12} className="mr-1" />
-                                Not helpful
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+            {/* Product Information */}
+            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-2/3'}`}>
+              {/* Product Title and Rating */}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                  {(product.name.split('(')[0].trim())}
+                </h1>
+                
+                {product.rating && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          }`}
+                        />
                       ))}
-                      
-                      {filteredReviews.length > REVIEWS_LIMIT && (
-                        <div className="text-center pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowMoreReviews(!showMoreReviews)}
-                            className="gap-2"
-                            aria-expanded={showMoreReviews}
-                            aria-label={showMoreReviews ? 'Show fewer reviews' : `Show ${filteredReviews.length - REVIEWS_LIMIT} more reviews`}
-                          >
-                            {showMoreReviews ? (
-                              <>
-                                <ChevronUp size={16} />
-                                Show Less
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDown size={16} />
-                                Show More ({filteredReviews.length - REVIEWS_LIMIT} more)
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Card>
-                      <CardContent className="p-8 text-center">
-                        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">
-                          {reviewFilter === 'all' 
-                            ? 'No reviews yet. Be the first to review this product!' 
-                            : `No ${reviewFilter}-star reviews found.`
-                          }
-                        </p>
-                      </CardContent>
-                    </Card>
+                    </div>
+                    <span className="text-sm text-gray-600">({(product as any).reviews || 0} reviews)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl font-bold text-orange-500">
+                    {formatPrice(calculatePrice())}
+                  </span>
+                  {calculatePrice() !== product.price && (
+                    <span className="text-xl text-gray-500 line-through">
+                      {formatPrice(product.price)}
+                    </span>
                   )}
                 </div>
+                <p className="text-sm text-gray-600">Price includes VAT</p>
+              </div>
+
+              {/* Variant Selector */}
+              {!isMobile && transformedVariants.length > 0 && (
+                <VariantSelector
+                  variants={transformedVariants}
+                  selectedVariants={selectedVariants}
+                  onVariantChange={handleVariantChange}
+                />
+              )}
+
+              {/* Add to Cart Section - Desktop only */}
+              {!isMobile && (
+                <AddToCartSection
+                  product={{
+                    product_id: product.product_id,
+                    name: product.name.split('(')[0].trim(),
+                    price: calculatePrice(),
+                    stock: product.stock
+                  }}
+                  selectedVariants={selectedVariants}
+                  requiredVariants={requiredVariants}
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                />
+              )}
+
+              {/* Additional Info */}
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>✓ Free shipping on orders over KES 5,000</p>
+                <p>✓ 30-day return policy</p>
+                <p>✓ Secure payment options</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          {/* Tabbed Content */}
+          <ProductTabs product={productForTabs} />
+
+          {/* Related Products */}
+          <RelatedProductsCarousel 
+            currentProduct={{ 
+              id: product.product_id, 
+              category: product.categories || 'general' 
+            }} 
+          />
+        </main>
+
+        {/* Mobile Bottom Actions */}
+        {isMobile && (
+          <MobileBottomActions
+            product={{
+              product_id: product.product_id,
+              name: product.name.split('(')[0].trim(),
+              image: (product as any).image_urls || null,
+              price: product.price,
+              originalPrice: undefined,
+              description: product.description,
+              rating: product.rating || 0,
+              reviews: (product as any).reviews || 0,
+              inStock: product.stock ? product.stock > 0 : true,
+              category: product.categories || 'general',
+              subcategory: undefined,
+              attributes: typeof product.specification === 'string' && product.specification
+                ? JSON.parse(product.specification)
+                : product.specification || {},
+              features: typeof product.features === 'string' 
+                ? [product.features] 
+                : Array.isArray(product.features) 
+                  ? product.features 
+                  : []
+            }}
+            selectedVariants={selectedVariants}
+            requiredVariants={requiredVariants}
+            onVariantChange={handleVariantChange}
+            calculatePrice={calculatePrice}
+          />
+        )}
       </div>
-    </div>
+    </>
   );
 };
 
-export default ProductTabs;
+export default ProductDetailsPage;
