@@ -90,7 +90,7 @@ const SearchPage = () => {
       <div className={`w-full px-0 lg:px-16 mx-auto`}>
         {isLoading ? (
           <div className="space-y-6 //mx-auto">
-            <div className="flex items-center justify-center py-8">
+            <div className="flex items-center justify-center py-10">
               <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full"></div>
               <span className="ml-3 text-gray-600">Searching products...</span>
             </div>
