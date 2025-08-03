@@ -11,7 +11,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Menu, Search, Settings, ShoppingBag, Star } from 'lucide-react';
+import { Love, ShoppingCart, Search, Settings, ShoppingBag, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from "@/components/ui/button"
@@ -307,9 +307,16 @@ const ProductDetailsPage = () => {
                   <Search className="h-4 w-4" />
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" className="p-2">
-                <Menu className="h-4 w-4" />
-              </Button>
+              <Link to="wishlist">
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Love className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="cart">
+                <Button variant="ghost" size="sm" className="p-2">
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           }
         />)}
