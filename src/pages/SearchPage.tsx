@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { useProductSearch } from '@/hooks/useProducts';
@@ -14,15 +13,46 @@ const SearchPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState('featured');
   const { data: products, isLoading, isError } = useProductSearch(searchQuery);
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
     : "grid-cols-6";
+
+  // Sort products based on selected option
+  const sortedProducts = useMemo(() => {
+    if (!products) return [];
+    
+    const productsWithRating = products.map(product => ({
+      ...product,
+      calculatedRating: 4.5, // You can replace this with actual rating logic
+      calculatedPrice: product.price
+    }));
+
+    switch (sortOption) {
+      case 'price-low-high':
+        return [...productsWithRating].sort((a, b) => a.calculatedPrice - b.calculatedPrice);
+      case 'price-high-low':
+        return [...productsWithRating].sort((a, b) => b.calculatedPrice - a.calculatedPrice);
+      case 'rating':
+        return [...productsWithRating].sort((a, b) => b.calculatedRating - a.calculatedRating);
+      case 'newest':
+        // Assuming you have a created_at or similar field
+        return [...productsWithRating].sort((a, b) => {
+          // If you have timestamp fields, use them here
+          // For now, sorting by product_id as proxy for newest
+          return b.product_id.localeCompare(a.product_id);
+        });
+      case 'featured':
+      default:
+        return productsWithRating; // Return original order for featured
+    }
+  }, [products, sortOption]);
  
-   const handleBack = () => {
-       navigate(-1);
-   };
+  const handleBack = () => {
+    navigate(-1);
+  };
 
   const handleSubmit = () => {
     if (searchQuery.trim()) {
@@ -30,22 +60,34 @@ const SearchPage = () => {
     }
   };
 
+  const handleSortChange = (value: string) => {
+    setSortOption(value);
+  };
+
   useEffect(() => {
     // Extract search query from URL
     const params = new URLSearchParams(location.search);
     const queryParam = params.get('q');
+    const sortParam = params.get('sort');
+    
     if (queryParam) {
       setSearchQuery(queryParam);
+    }
+    if (sortParam) {
+      setSortOption(sortParam);
     }
   }, [location.search]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     
-    // Update URL with search query
+    // Update URL with search query and sort option
     const params = new URLSearchParams();
     if (query) {
       params.set('q', query);
+    }
+    if (sortOption !== 'featured') {
+      params.set('sort', sortOption);
     }
     
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
@@ -56,7 +98,7 @@ const SearchPage = () => {
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
         {isMobile && (
-        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 //flex //items-center justify-between">
+        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex w-full items-center gap-3">
             <Button
               variant="ghost"
@@ -83,14 +125,13 @@ const SearchPage = () => {
             </Button>
             </div>
         </div>
-
         )}
       </div>
 
       {/* Search Results */}
       <div className={`w-full px-0 lg:px-16 mx-auto`}>
         {isLoading ? (
-          <div className="space-y-6 //mx-auto">
+          <div className="space-y-6">
             <div className="flex items-center justify-center py-10">
               <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full"></div>
               <span className="ml-3 text-gray-600">Searching products...</span>
@@ -121,22 +162,26 @@ const SearchPage = () => {
               </button>
             </div>
           </div>
-        ) : products && products.length > 0 ? (
+        ) : sortedProducts && sortedProducts.length > 0 ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <p className="text-gray-600 text-lg">
-                <span className="font-semibold text-gray-900">{products.length}</span> 
-                {' '}product{products.length !== 1 ? 's' : ''} found
+                <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
+                {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
                 {searchQuery && (
                   <span> for "<span className="font-medium text-orange-600">{searchQuery.split('(')[0].trim()}</span>"</span>
                 )}
               </p>
               
-              {/* Future filter options can go here */}
+              <ProductSort 
+                sortOption={sortOption} 
+                onSortChange={handleSortChange}
+                className="w-full sm:w-48"
+              />
             </div>
             
             <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-              {products.map((product) => {
+              {sortedProducts.map((product) => {
                 const productData = {
                   id: product.product_id,
                   name: product.name,
