@@ -176,7 +176,7 @@ const SearchPage = () => {
               <ProductSort 
                 sortOption={sortOption} 
                 onSortChange={handleSortChange}
-                className="w-full sm:w-48"
+                className="w-48"
               />
             </div>
             
