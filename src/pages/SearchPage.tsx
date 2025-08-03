@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import { ArrowLeft, ChevronLeft, SearchIcon, Settings } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import ProductSort from '@/components/products/ProductSort';
 
 const SearchPage = () => {
   const location = useLocation();
