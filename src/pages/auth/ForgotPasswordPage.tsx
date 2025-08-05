@@ -154,7 +154,7 @@ const ForgotPasswordPage = () => {
             placeholder="Enter your email address"
             value={email}
             onChange={handleEmailChange}
-            className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
+            className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-green-300'}`}
             autoComplete="email"
             autoFocus
           />
