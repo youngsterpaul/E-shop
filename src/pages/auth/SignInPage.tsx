@@ -114,16 +114,14 @@ const SignInPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
         {/* SmartKenya Logo/Brand */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-2">
           <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Your smart shopping destination
-          </p>
         </div>
 
         {/* Sign In Card */}
-        <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
+        <div>
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 text-center">
               Sign in to your account
@@ -269,6 +267,7 @@ const SignInPage = () => {
             © 2025 SmartKenya. All rights reserved.
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
