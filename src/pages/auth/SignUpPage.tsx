@@ -149,8 +149,9 @@ const SignUpPage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
         {/* SmartKenya Logo/Brand */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
@@ -369,6 +370,7 @@ const SignUpPage = () => {
           <p className="text-xs text-gray-500">
             © 2025 SmartKenya. All rights reserved.
           </p>
+        </div>
         </div>
       </div>
     </div>
