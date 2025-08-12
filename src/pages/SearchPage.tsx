@@ -4,7 +4,8 @@ import ProductCard from '@/components/ProductCard';
 import { useProductSearch } from '@/hooks/useProducts';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 import Header from '@/components/Header';
-import { ArrowLeft, ChevronLeft, SearchIcon, Settings } from 'lucide-react';
+import SmartPagination from '@/components/ui/pagination';
+import { ArrowLeft, ChevronLeft, Search, Settings } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import ProductSort from '@/components/products/ProductSort';
@@ -14,6 +15,9 @@ const SearchPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('featured');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(24);
+  
   const { data: products, isLoading, isError } = useProductSearch(searchQuery);
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
@@ -38,17 +42,27 @@ const SearchPage = () => {
       case 'rating':
         return [...productsWithRating].sort((a, b) => b.calculatedRating - a.calculatedRating);
       case 'newest':
-        // Assuming you have a created_at or similar field
         return [...productsWithRating].sort((a, b) => {
-          // If you have timestamp fields, use them here
-          // For now, sorting by product_id as proxy for newest
           return b.product_id.localeCompare(a.product_id);
         });
       case 'featured':
       default:
-        return productsWithRating; // Return original order for featured
+        return productsWithRating;
     }
   }, [products, sortOption]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedProducts.slice(startIndex, endIndex);
+  }, [sortedProducts, currentPage, itemsPerPage]);
+
+  // Reset to first page when search query or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortOption]);
  
   const handleBack = () => {
     navigate(-1);
@@ -64,11 +78,27 @@ const SearchPage = () => {
     setSortOption(value);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of results
+    window.scrollTo({ 
+      top: isMobile ? 120 : 200, 
+      behavior: 'smooth' 
+    });
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setItemsPerPage(size);
+    setCurrentPage(1); // Reset to first page
+  };
+
   useEffect(() => {
     // Extract search query from URL
     const params = new URLSearchParams(location.search);
     const queryParam = params.get('q');
     const sortParam = params.get('sort');
+    const pageParam = params.get('page');
+    const sizeParam = params.get('size');
     
     if (queryParam) {
       setSearchQuery(queryParam);
@@ -76,12 +106,19 @@ const SearchPage = () => {
     if (sortParam) {
       setSortOption(sortParam);
     }
+    if (pageParam) {
+      setCurrentPage(parseInt(pageParam) || 1);
+    }
+    if (sizeParam) {
+      setItemsPerPage(parseInt(sizeParam) || 24);
+    }
   }, [location.search]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page on new search
     
-    // Update URL with search query and sort option
+    // Update URL with search query, sort option, and pagination
     const params = new URLSearchParams();
     if (query) {
       params.set('q', query);
@@ -89,9 +126,31 @@ const SearchPage = () => {
     if (sortOption !== 'featured') {
       params.set('sort', sortOption);
     }
+    if (itemsPerPage !== 24) {
+      params.set('size', itemsPerPage.toString());
+    }
     
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
+
+  // Update URL when pagination changes
+  useEffect(() => {
+    if (searchQuery) {
+      const params = new URLSearchParams();
+      params.set('q', searchQuery);
+      if (sortOption !== 'featured') {
+        params.set('sort', sortOption);
+      }
+      if (currentPage > 1) {
+        params.set('page', currentPage.toString());
+      }
+      if (itemsPerPage !== 24) {
+        params.set('size', itemsPerPage.toString());
+      }
+      
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }
+  }, [searchQuery, sortOption, currentPage, itemsPerPage]);
 
   return (
     <main className={`w-full min-h-screen flex flex-col bg-gray-50 flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
@@ -121,7 +180,7 @@ const SearchPage = () => {
               className="h-8 bg-gray-50 hover:bg-gray-100 px-3"
               aria-label="Search"
             >
-              <SearchIcon className="text-gray-800 h-4 w-4" />
+              <Search className="text-gray-800 h-4 w-4" />
             </Button>
             </div>
         </div>
@@ -181,7 +240,7 @@ const SearchPage = () => {
             </div>
             
             <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-              {sortedProducts.map((product) => {
+              {paginatedProducts.map((product) => {
                 const productData = {
                   id: product.product_id,
                   name: product.name,
@@ -203,6 +262,22 @@ const SearchPage = () => {
                 );
               })}
             </div>
+
+            {/* Smart Pagination */}
+            {totalPages > 1 && (
+              <SmartPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={sortedProducts.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                showQuickJumper={!isMobile}
+                showSizeChanger={!isMobile}
+                pageSizeOptions={isMobile ? [12, 24, 48] : [12, 24, 48, 96]}
+                className="border-t border-gray-200 bg-white px-4 sm:px-6"
+              />
+            )}
           </div>
         ) : searchQuery ? (
           <div className={`text-center py-1 ${!isMobile ? 'px-80' : ''}`}>
