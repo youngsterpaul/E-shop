@@ -17,6 +17,7 @@ import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
+import { useCart } from '@/hooks/useCart';
 
 const ProductDetailsPage = () => {
   const { productName, id } = useParams();
@@ -31,6 +32,21 @@ const ProductDetailsPage = () => {
   
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+
+  // Safely get cart data with fallback
+  let items: any[] = [];
+  let totalItems = 0;
+  
+  try {
+    const cartData = useCart();
+    items = cartData.cartItems || [];
+    totalItems = items.reduce((total, item) => total + item.quantity, 0);
+  } catch (error) {
+    console.error('Cart context not available:', error);
+    // Fallback to empty cart if context is not available
+    items = [];
+    totalItems = 0;
+  }
 
   // Generate SEO-friendly slug
   const generateSlug = (name: string) => {
@@ -133,22 +149,17 @@ const ProductDetailsPage = () => {
           title="Product Details"
           rightAction={
             <div className="space-x-2">
-              <Link to="/search">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="wishlist">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="cart">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <ShoppingCart className="h-4 w-4" />
-                </Button>
-            </Link>
-        </div>
+              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                <Heart className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
+                <ShoppingCart className="h-4 w-4" />
+                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">0</span>
+              </Button>
+          </div>
           }
         />
       }
@@ -235,7 +246,7 @@ const ProductDetailsPage = () => {
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
-    { label: product.name.split('(')[0].trim(), }
+    { label: product.name }
   ];
 
   // Transform product for components
@@ -314,21 +325,20 @@ const ProductDetailsPage = () => {
           title={"Product Details"}
           rightAction={
             <div className='space-x-2'>
-              <Link to="/search">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="wishlist">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="cart">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <ShoppingCart className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                <Heart className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
+                <ShoppingCart className="h-4 w-4" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Button>
             </div>
           }
         />)}
@@ -414,8 +424,8 @@ const ProductDetailsPage = () => {
 
               {/* Additional Info */}
               <div className="text-sm text-gray-600 space-y-1">
-                <p>✓ Free shipping on orders over KES 5,000</p>
-                <p>✓ 30-day return policy</p>
+                <p>✓ Free shipping on orders over KES 10,000</p>
+                <p>✓ 7-days return policy</p>
                 <p>✓ Secure payment options</p>
               </div>
             </div>

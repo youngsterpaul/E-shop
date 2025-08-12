@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useCartContext } from '@/contexts/CartContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface SelectableCartItemProps {
   item: {
@@ -33,6 +34,8 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   // Refs for cleanup and debouncing
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
   const mountedRef = useRef(true);
+
+  const isMobile = isMobileUserAgent();
 
   // Cleanup on unmount
   useEffect(() => {
@@ -170,6 +173,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
       
       {/* Mobile Layout */}
+      {isMobile && (
       <div className="block sm:hidden">
         <div className="p-3">
           {/* Header with checkbox and remove button */}
@@ -258,8 +262,10 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           </div>
         </div>
       </div>
+      )}
 
       {/* Desktop/Tablet Layout */}
+      {!isMobile && (
       <div className="hidden sm:flex items-start gap-4 p-4">
         <Checkbox
           checked={isSelected}
@@ -340,6 +346,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 });

@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 const CartSummary = () => {
   const { calculations } = useSelectiveCart();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
 
   const handleCheckout = async () => {
@@ -16,7 +18,12 @@ const CartSummary = () => {
       setIsNavigating(true);
       // Add any pre-checkout validation here
       await new Promise(resolve => setTimeout(resolve, 300)); // Simulate async operation
-      navigate('/checkout');
+      if (user) {
+        navigate ('/checkout')
+      }
+      else if (!user) {
+        navigate('/auth/sigin');
+      }
     } catch (err) {
       console.error('Checkout navigation error:', err);
     } finally {
@@ -37,7 +44,7 @@ const CartSummary = () => {
     );
   }
 
-  const freeDeliveryThreshold = 2000;
+  const freeDeliveryThreshold = 10000;
   const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
   const amountNeededForFreeDelivery = freeDeliveryThreshold - calculations.subtotal;
 
@@ -139,7 +146,7 @@ const CartSummary = () => {
           <p className="text-xs text-gray-500">
             {isEligibleForFreeDelivery 
               ? "🎉 You qualify for free delivery!" 
-              : "Free delivery on orders over KES 2,000"
+              : "Free delivery on orders over KES 10,000"
             }
           </p>
         </div>

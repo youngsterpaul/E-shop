@@ -30,7 +30,6 @@ createRoot(document.getElementById('root')!).render(
               <SelectiveCartProvider>
                 <CheckoutProvider>
                   <App />
-                  <SpeedInsights />
                 </CheckoutProvider>
               </SelectiveCartProvider>
             </CartProvider>

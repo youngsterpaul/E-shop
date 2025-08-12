@@ -22,10 +22,6 @@ const ChatPage = () => {
     }
   }, [user, navigate]);
 
-  if (!user) {
-    return null;
-  }
-
   if (!isMobile) {
     return null;
   }

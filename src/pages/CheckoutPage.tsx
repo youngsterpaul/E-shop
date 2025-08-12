@@ -86,7 +86,7 @@ const CheckoutPage = () => {
 
   const [errors, setErrors] = useState<ErrorsType>({});
 
-  const freeDeliveryThreshold = 2000;
+  const freeDeliveryThreshold = 10000;
   const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
 
   // Initialize form data
