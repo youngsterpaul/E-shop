@@ -26,6 +26,13 @@ import {
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
@@ -112,9 +119,27 @@ const AccountPage = () => {
         title="My Account"
         backTo="/"
         rightAction={
-          <Button variant="ghost" size="sm" className="p-2">
-            <Settings className="h-4 w-4" />
-          </Button>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Sign Out
+                </Button>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
         }
       />
       )}
@@ -187,20 +212,6 @@ const AccountPage = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* Logout Button */}
-        <Card>
-          <CardContent className="p-4">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5" />
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
       </div>
       <MobileNav />
     </div>

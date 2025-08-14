@@ -166,14 +166,6 @@ const Header = () => {
                 )}
               </Link>
 
-              <Button 
-                onClick={() => navigate('/category')}
-                variant="ghost" 
-                className="px-2 flex"
-              >
-                Shop Now
-              </Button>
-
               {isMobile && (
                 <Link to="/search">
                   <Button variant="ghost" size="sm" className="p-2">
