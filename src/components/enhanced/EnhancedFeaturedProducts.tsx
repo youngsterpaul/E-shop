@@ -108,7 +108,7 @@ const EnhancedFeaturedProducts = memo(() => {
             </h2>
           )}
           
-          <div className={`grid ${gridCols} bg-white shadow-sm gap-1`}>
+          <div className={`grid ${gridCols} bg-white shadow-sm p-1`}>
             {products?.slice(0, visibleProductsCount).map(product => {
               const productCardData = {
                 id: product.product_id,
