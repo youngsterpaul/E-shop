@@ -7,7 +7,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/contexts/CartContext';
 import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
-import { SpeedInsights } from '@vercel/speed-insights/react';
+//import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App.tsx';
 import './index.css';
 
