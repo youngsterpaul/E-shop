@@ -9,7 +9,7 @@ import ReviewButton from '@/components/ReviewButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, ArrowLeft, Clock, Download, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
+import { Download, ArrowLeft, Clock, Download, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
@@ -366,7 +366,7 @@ const OrderDetailPage = () => {
                       className="flex items-center gap-2 hover:bg-gray-50 border-gray-200" 
                       onClick={handleDownloadReceipt}
                     >
-                      <FileText className="h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       <span className="hidden sm:inline">Receipt</span>
                     </Button>
                   </div>
@@ -449,7 +449,7 @@ const OrderDetailPage = () => {
                             )}
                             
                             <div className="ml-6 flex-1">
-                              <h4 className="font-semibold text-gray-900 text-lg mb-1">{item.product.name}</h4>
+                              <h4 className="font-semibold text-gray-900 text-lg mb-1 line-clamp-2 min-h-[32px]">{item.product.name}</h4>
                               {renderVariantSelections(item.variant_selections)}
                               <p className="text-gray-500 mb-3">Quantity: {item.quantity}</p>
                               <div className="space-y-1">
