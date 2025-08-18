@@ -74,7 +74,7 @@ const EnhancedFeaturedProducts = memo(() => {
   }, [isMobile, handleScroll]);
   
   const loadingSkeleton = (
-    <div className="pb-8 px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white">
+    <div className="pb-8 px-0 lg:px-16 bg-gray-50 ">
       {!isMobile && (
         <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
           <span className='inline-flex px-2'><TrendingUp size={16} /></span>
@@ -98,7 +98,7 @@ const EnhancedFeaturedProducts = memo(() => {
 
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`px-0 lg:px-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'pt-4' : ''}`}>
+      <section className={`px-0 lg:px-1 bg-gray-50 ${!isMobile ? 'pt-4' : ''}`}>
         <div className="*lg:px-0 *md:px-0 *sm:px-0 px-2 bg-white container">
           {/* Products Grid */}
           {!isMobile && (
