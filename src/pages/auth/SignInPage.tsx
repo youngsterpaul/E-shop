@@ -23,7 +23,8 @@ const SignInPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [authError, setAuthError] = useState<string>('');
-
+  const isMobile = isMobileUserAgent();
+  
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
@@ -115,16 +116,16 @@ const SignInPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center /py-12 sm:px-6 lg:px-8">
 
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-2 h-8 w-8"
-          onClick={navigate('/')};
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-    </div>
+    {isMobile && ( 
+        <MobileHeader 
+        title="About SmartKenya"
+        rightAction={
+          <Button variant="ghost" size="sm" className="p-2">
+            <Settings className="h-4 w-4" />
+          </Button>
+        }
+      />
+      )}
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
