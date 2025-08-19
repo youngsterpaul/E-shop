@@ -165,7 +165,7 @@ const SearchPage = () => {
               className="p-2 h-8 w-8"
               onClick={handleBack}
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <EnhancedSearchInput
               value={searchQuery}
@@ -177,7 +177,7 @@ const SearchPage = () => {
             <Button
               type="button"
               onClick={() => handleSubmit()}
-              className="h-8 bg-gray-50 hover:bg-gray-100 px-3"
+              className="h-8  //hover:bg-gray-100 px-3"
               aria-label="Search"
             >
               <Search className="text-gray-800 h-4 w-4" />
