@@ -61,7 +61,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               width={200}
               height={200}
               aspectRatio="square"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover bg-gray-100"
               sizes="200px"
             />
             
