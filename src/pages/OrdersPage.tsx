@@ -4,11 +4,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { FileText, Download, Settings, Package, ShoppingBag } from 'lucide-react';
+import { format } from 'date-fns';
+import { FileText, Download, Settings, Package, ShoppingBag, Search, RefreshCw, Eye } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -36,45 +40,80 @@ interface Order {
   shipping_address: string | null;
 }
 
-// Loading skeleton component for orders
-const OrderSkeleton = () => (
-  <Card className="shadow-md">
-    <CardHeader className="flex flex-row items-center justify-between">
-      <div className="flex-1">
-        <Skeleton className="h-6 w-32 mb-2" />
-        <Skeleton className="h-4 w-48" />
-      </div>
-      <Skeleton className="h-6 w-20" />
+const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
+
+// Loading skeleton component for the table
+const TableLoadingSkeleton = () => (
+  <Card>
+    <CardHeader>
+      <Skeleton className="h-6 w-32" />
     </CardHeader>
-    <CardContent>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex flex-col">
-          <Skeleton className="h-4 w-12 mb-1" />
-          <Skeleton className="h-5 w-20" />
-        </div>
-        <div className="flex flex-col">
-          <Skeleton className="h-4 w-12 mb-1" />
-          <Skeleton className="h-5 w-24" />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Skeleton className="h-8 w-16" />
-          <Skeleton className="h-8 w-24" />
-        </div>
+    <CardContent className="p-0">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+              <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+              <TableHead><Skeleton className="h-4 w-12" /></TableHead>
+              <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+              <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array(5).fill(0).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-10" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-8 w-20" /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </CardContent>
   </Card>
 );
 
-// Loading skeleton for the entire page
+// Page loading skeleton
 const PageLoadingSkeleton = () => (
   <div className="min-h-screen flex flex-col bg-gray-50/50">
-    <main className="flex-grow container py-8">
-      <Skeleton className="h-10 w-48 mb-6" />
-      <div className="space-y-6">
-        {[...Array(3)].map((_, i) => (
-          <OrderSkeleton key={i} />
+    <main className="flex-grow container py-8 px-4">
+      <div className="flex items-center gap-3 mb-8">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="h-10 w-48" />
+      </div>
+      
+      {/* Status cards skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {Array(4).fill(0).map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2 pt-4">
+              <Skeleton className="h-4 w-20" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-8" />
+            </CardContent>
+          </Card>
         ))}
       </div>
+      
+      {/* Search and filter skeleton */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-full md:w-40" />
+            <Skeleton className="h-10 w-full md:w-24" />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <TableLoadingSkeleton />
     </main>
   </div>
 );
@@ -82,10 +121,23 @@ const PageLoadingSkeleton = () => (
 const OrdersPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = isMobileUserAgent();
+
+  const [orderCount, setOrderCount] = useState({ 
+    total: 0, 
+    pending: 0,
+    paid: 0, 
+    processing: 0, 
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0
+  });
 
   // Redirect if not logged in
   useEffect(() => {
@@ -96,44 +148,85 @@ const OrdersPage = () => {
 
   // Fetch user's orders
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!user) return;
-      
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          throw error;
-        }
-        
-        // Type cast the data to ensure items is properly converted from Json to OrderItem[]
-        const typedOrders = data.map(order => ({
-          ...order,
-          items: order.items ? (order.items as unknown as OrderItem[]) : []
-        })) as Order[];
-        
-        setOrders(typedOrders);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        toast({
-          title: "Error loading orders",
-          description: "There was an error loading your orders. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     if (user) {
       fetchOrders();
     }
-  }, [user, toast]);
+  }, [user]);
+
+  // Apply filters whenever search query or status filter changes
+  useEffect(() => {
+    if (!loading) {
+      applyFilters();
+    }
+  }, [searchQuery, statusFilter, orders, loading]);
+
+  const fetchOrders = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Type cast the data to ensure items is properly converted from Json to OrderItem[]
+      const typedOrders = data.map(order => ({
+        ...order,
+        items: order.items ? (order.items as unknown as OrderItem[]) : []
+      })) as Order[];
+      
+      setOrders(typedOrders);
+      setFilteredOrders(typedOrders);
+      
+      // Count orders by status
+      const counts = {
+        total: typedOrders.length,
+        pending: typedOrders.filter(order => order.status === 'pending').length,
+        paid: typedOrders.filter(order => order.status === 'paid').length,
+        processing: typedOrders.filter(order => order.status === 'processing').length,
+        shipped: typedOrders.filter(order => order.status === 'shipped').length,
+        delivered: typedOrders.filter(order => order.status === 'delivered').length,
+        cancelled: typedOrders.filter(order => order.status === 'cancelled').length
+      };
+      setOrderCount(counts);
+      
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: "Error loading orders",
+        description: "There was an error loading your orders. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let result = [...orders];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(order => 
+        order.order_id.toLowerCase().includes(query) || 
+        order.items.some(item => item.name?.toLowerCase().includes(query))
+      );
+    }
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      result = result.filter(order => order.status === statusFilter);
+    }
+    
+    setFilteredOrders(result);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -174,26 +267,25 @@ const OrdersPage = () => {
   };
 
   // Show loading skeleton while auth is loading or orders are loading
-if (authLoading || loading) {
-  return (
-    <>
-      {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader
-          title="My Orders"
-          backTo="/"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      <PageLoadingSkeleton />
-    </>
-  );
-}
-
+  if (authLoading || loading) {
+    return (
+      <>
+        {!isMobile && <Header />}
+        {isMobile && (
+          <MobileHeader
+            title="My Orders"
+            backTo="/"
+            rightAction={
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            }
+          />
+        )}
+        <PageLoadingSkeleton />
+      </>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
@@ -211,11 +303,26 @@ if (authLoading || loading) {
       )}
       
       <main className="flex-grow container py-8 px-4">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Package className="h-6 w-6 text-primary" />
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div className="flex items-center gap-3 mb-4 md:mb-0">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Package className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+              <p className="text-gray-500">Track and manage your orders</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+          
+          <Button 
+            onClick={fetchOrders} 
+            variant="outline"
+            className="flex items-center gap-2 w-full md:w-auto"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
         </div>
 
         {orders.length === 0 ? (
@@ -235,74 +342,176 @@ if (authLoading || loading) {
             </Button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {orders.map((order) => (
-              <Card 
-                key={order.order_id} 
-                className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white" 
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl font-semibold text-gray-900 mb-1">
-                        Order #{order.order_id.slice(-8).toUpperCase()}
-                      </CardTitle>
-                      <CardDescription className="text-gray-500">
-                        {order.created_at ? 
-                          `Placed ${formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}` : 
-                          'Date unavailable'}
-                      </CardDescription>
-                    </div>
-                    <Badge className={`${getStatusColor(order.status)} border px-3 py-1 font-medium`}>
-                      <span className="mr-1">{getStatusIcon(order.status)}</span>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
-                  </div>
+          <>
+            {/* Order Status Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-white shadow-sm">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
                 </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                    <div className="flex flex-col sm:flex-row gap-6">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500 mb-1">Items</span>
-                        <span className="font-semibold text-gray-900">
-                          {order.items?.length || 0} {order.items?.length === 1 ? 'product' : 'products'}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500 mb-1">Total</span>
-                        <span className="font-semibold text-gray-900 text-lg">
-                          Ksh {order.amount?.toLocaleString() || '0'}
-                        </span>
-                      </div>
-                      {order.shipping_address && (
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500 mb-1">Shipping to</span>
-                          <span className="font-medium text-gray-700 text-sm max-w-48 truncate">
-                            {order.shipping_address}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-2 flex-wrap">
-                      <Button 
-                        variant="default"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/order/${order.order_id}`);
-                        }}
-                        className="bg-primary hover:bg-primary/90 px-4"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
+                <CardContent>
+                  <p className="text-2xl font-bold">{orderCount.total}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              
+              <Card className="bg-white shadow-sm">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{orderCount.pending}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Processing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{orderCount.processing + orderCount.paid}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{orderCount.delivered}</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Search and Filter Section */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="search" 
+                      placeholder="Search orders by ID or product name..." 
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orderStatuses.map(status => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    variant="outline"
+                    className="flex items-center gap-2 w-full md:w-auto"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setStatusFilter('all');
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Orders Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Order History</CardTitle>
+                <CardDescription>
+                  {filteredOrders.length} of {orders.length} orders
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-10">
+                            <div className="flex flex-col items-center gap-2">
+                              <ShoppingBag className="h-8 w-8 text-gray-400" />
+                              <p className="text-muted-foreground">No orders found</p>
+                              {(searchQuery || statusFilter !== "all") && (
+                                <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredOrders.map((order) => (
+                          <TableRow 
+                            key={order.order_id} 
+                            className="cursor-pointer hover:bg-muted/50" 
+                            onClick={() => navigate(`/order/${order.order_id}`)}
+                          >
+                            <TableCell className="font-medium">
+                              #{order.order_id.slice(-8).toUpperCase()}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{format(new Date(order.created_at), 'MMM d, yyyy')}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="text-xs">
+                                {order.items?.length || 0} items
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              Ksh {order.amount?.toLocaleString() || '0'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={`${getStatusColor(order.status)} border px-3 py-1 font-medium`}>
+                                <span className="mr-1">{getStatusIcon(order.status)}</span>
+                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/order/${order.order_id}`);
+                                }}
+                                title="View Details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </main>
     </div>
