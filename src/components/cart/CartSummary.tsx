@@ -22,7 +22,7 @@ const CartSummary = () => {
         navigate ('/checkout')
       }
       else if (!user) {
-        navigate('/auth/sigin');
+        navigate('/auth/signin');
       }
     } catch (err) {
       console.error('Checkout navigation error:', err);
