@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
+import { MobileHeader } from '@/components/ui/mobile-header';
 
 const SignInPage = () => {
   const navigate = useNavigate();
