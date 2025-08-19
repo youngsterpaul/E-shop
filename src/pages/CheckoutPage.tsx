@@ -319,7 +319,7 @@ const CheckoutPage = () => {
         if (paymentStatus.status === 'waiting') {
           setPaymentStatus({ status: 'timeout', message: 'Payment request timed out', checkoutRequestId: null });
         }
-      }, 30000);
+      }, 15000);
 
     } catch (error) {
       console.error('Payment error:', error);
