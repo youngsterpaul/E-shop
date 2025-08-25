@@ -23,7 +23,6 @@ const SignUpPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [passwordScore, setPasswordScore] = useState(0);
@@ -94,11 +93,6 @@ const SignUpPage = () => {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    // Terms validation
-    if (!agreeToTerms) {
-      newErrors.terms = 'You must agree to the terms and conditions';
     }
 
     setErrors(newErrors);
@@ -290,31 +284,6 @@ const SignUpPage = () => {
               </div>
               {errors.confirmPassword && (
                 <p className="text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            {/* Terms Agreement */}
-            <div className="space-y-2">
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="terms"
-                  checked={agreeToTerms}
-                  onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
-                  className="mt-1"
-                />
-                <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-orange-600 hover:text-orange-700 underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-orange-600 hover:text-orange-700 underline">
-                    Privacy Policy
-                  </Link>
-                </Label>
-              </div>
-              {errors.terms && (
-                <p className="text-sm text-red-600">{errors.terms}</p>
               )}
             </div>
 

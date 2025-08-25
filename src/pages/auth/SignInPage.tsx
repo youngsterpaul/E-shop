@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Settings, ChevronLeft } from 'lucide-react';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { EnhancedAuthError } from '@/components/auth/EnhancedAuthError';
 import { MobileHeader } from '@/components/ui/mobile-header';
@@ -117,21 +117,21 @@ const SignInPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center /py-12 sm:px-6 lg:px-8">
 
-    {isMobile && ( 
-        <MobileHeader 
-        title="Signin to SmartKenya"
-        rightAction={
-          <Button variant="ghost" size="sm" className="p-2">
-            <Settings className="h-4 w-4" />
-          </Button>
-        }
-      />
-      )}
+
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        
         <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
         {/* SmartKenya Logo/Brand */}
-        <div className="text-center mb-2">
+        <div className="mb-2 flex items-center justify-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 h-8 w-8 absolute left-0"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
           <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
         </div>
 
