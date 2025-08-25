@@ -37,8 +37,8 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   ];
 
   const minSwipeDistance = 50;
-  const magnifierSize = 200; // Size of the magnifier lens
-  const zoomLevel = 2.5; // Zoom level for magnification
+  const magnifierSize = 200;
+  const zoomLevel = 2.5;
 
   const nextImage = () => {
     if (isTransitioning) return;
@@ -95,7 +95,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     }
   };
 
-  // Handle mouse movement for magnifier
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!mainImageRef.current || isVideo(allMedia[currentIndex]) || isMobile) return;
 
@@ -103,11 +102,11 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Calculate magnifier position (center it on cursor)
+    // Keep magnifier within bounds
     const magnifierX = Math.max(magnifierSize / 2, Math.min(rect.width - magnifierSize / 2, x));
     const magnifierY = Math.max(magnifierSize / 2, Math.min(rect.height - magnifierSize / 2, y));
 
-    // Calculate the position in the zoomed image
+    // Calculate percentage position for the zoomed image
     const imageX = (x / rect.width) * 100;
     const imageY = (y / rect.height) * 100;
 
@@ -125,7 +124,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     setShowMagnifier(false);
   };
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') prevImage();
@@ -137,37 +135,31 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  return (
-    <div className="space-y-4">
-      {/* Main Image Container */}
-      <div 
-        ref={mainImageRef}
-        className={`relative aspect-square bg-white overflow-hidden mx-auto cursor-pointer group ${isMobile ? 'w-full' : 'w-1/3'}`}
-        onTouchStart={isMobile ? onTouchStart : undefined}
-        onTouchMove={isMobile ? onTouchMove : undefined}
-        onTouchEnd={isMobile ? onTouchEnd : undefined}
-        onMouseMove={!isMobile ? handleMouseMove : undefined}
-        onMouseEnter={!isMobile ? handleMouseEnter : undefined}
-        onMouseLeave={!isMobile ? handleMouseLeave : undefined}
-        onClick={handleImageClick}
-        role="button"
-        aria-label="View image in full screen"
-        tabIndex={0}
-      >
-        {isVideo(allMedia[currentIndex]) ? (
-          <video
-            src={allMedia[currentIndex]}
-            controls
-            className={`w-full h-full object-cover transition-transform duration-300 ${
-              isTransitioning ? 'scale-105' : 'scale-100'
-            }`}
-            poster={product.image}
-            preload="metadata"
-          >
-            Your browser does not support the video tag.
-          </video>
-        ) : (
-          <div className="relative w-full h-full">
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {/* Mobile Main Image */}
+        <div 
+          ref={mainImageRef}
+          className="relative aspect-square bg-white overflow-hidden w-full cursor-pointer"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onClick={handleImageClick}
+        >
+          {isVideo(allMedia[currentIndex]) ? (
+            <video
+              src={allMedia[currentIndex]}
+              controls
+              className={`w-full h-full object-cover transition-transform duration-300 ${
+                isTransitioning ? 'scale-105' : 'scale-100'
+              }`}
+              poster={product.image}
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
             <OptimizedImage
               src={allMedia[currentIndex]}
               alt={`${product.name} - Image ${currentIndex + 1}`}
@@ -179,114 +171,252 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               }`}
               priority={currentIndex === 0}
             />
+          )}
+          
+          {/* Mobile Image Counter */}
+          {allMedia.length > 1 && (
+            <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-full text-sm font-medium">
+              {currentIndex + 1}/{allMedia.length}
+            </div>
+          )}
 
-            {/* Magnifier Lens - Desktop Only */}
-            {!isMobile && showMagnifier && (
-              <>
-                {/* Magnifier Lens Overlay */}
-                <div
-                  className="absolute pointer-events-none border-2 border-white shadow-lg rounded-full bg-white/20 backdrop-blur-sm z-10"
-                  style={{
-                    width: `${magnifierSize}px`,
-                    height: `${magnifierSize}px`,
-                    left: `${magnifierPosition.x - magnifierSize / 2}px`,
-                    top: `${magnifierPosition.y - magnifierSize / 2}px`,
-                    boxShadow: '0 0 0 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.2)',
-                  }}
-                />
-
-                {/* Magnified Image */}
-                <div
-                  ref={magnifierRef}
-                  className="absolute pointer-events-none border-2 border-white shadow-xl rounded-full overflow-hidden z-20 bg-white"
-                  style={{
-                    width: `${magnifierSize}px`,
-                    height: `${magnifierSize}px`,
-                    left: `${magnifierPosition.x - magnifierSize / 2}px`,
-                    top: `${magnifierPosition.y - magnifierSize / 2}px`,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.8)',
-                  }}
-                >
-                  <OptimizedImage
-                    src={allMedia[currentIndex]}
-                    alt={`${product.name} - Magnified view`}
-                    width={500 * zoomLevel}
-                    height={500 * zoomLevel}
-                    aspectRatio="square"
-                    className="absolute object-cover"
-                    style={{
-                      width: `${magnifierSize * zoomLevel}px`,
-                      height: `${magnifierSize * zoomLevel}px`,
-                      left: `-${(imagePosition.x / 100) * magnifierSize * zoomLevel - magnifierSize / 2}px`,
-                      top: `-${(imagePosition.y / 100) * magnifierSize * zoomLevel - magnifierSize / 2}px`,
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        )}
-        
-        {/* Kilimall-style Image Counter - Inside Image */}
-        {allMedia.length > 1 && (
-          <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
-            {currentIndex + 1}/{allMedia.length}
-          </div>
-        )}
-
-        {/* Magnify Icon Indicator - Desktop Only */}
-        {!isMobile && !isVideo(allMedia[currentIndex]) && !showMagnifier && (
-          <div className="absolute bottom-3 right-3 bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <ZoomIn size={16} />
-          </div>
-        )}
+          {/* Mobile Navigation Arrows */}
+          {allMedia.length > 1 && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+    );
+  }
 
-      {/* Thumbnail Strip - Desktop Only */}
-      {!isMobile && allMedia.length > 1 && (
-        <div 
-          ref={thumbnailsRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide pb-2"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {allMedia.map((media, index) => (
-            <button
-              key={index}
-              onClick={() => handleThumbnailClick(index)}
-              disabled={isTransitioning}
-              className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden border-2 transition-all duration-200 ${
-                currentIndex === index 
-                  ? 'border-primary ring-2 ring-primary/20' 
-                  : 'border-gray-200 hover:border-gray-300'
-              } ${isTransitioning ? 'opacity-50' : ''}`}
-              aria-label={`View ${isVideo(media) ? 'video' : `image ${index + 1}`}`}
-            >
-              {isVideo(media) ? (
-                <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                  <Video size={16} className="text-gray-600" />
+  // Desktop Kilimall-exact style layout
+  return (
+    <div className="flex gap-6 max-w-6xl mx-auto">
+      {/* Desktop Thumbnail Strip - Left Side (Kilimall style) */}
+      {allMedia.length > 1 && (
+        <div className="flex flex-col gap-3 w-20">
+          <div 
+            ref={thumbnailsRef}
+            className="flex flex-col gap-3 overflow-y-auto max-h-96 scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {allMedia.map((media, index) => (
+              <button
+                key={index}
+                onClick={() => handleThumbnailClick(index)}
+                disabled={isTransitioning}
+                className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
+                  currentIndex === index 
+                    ? 'border-orange-500 ring-2 ring-orange-200' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } ${isTransitioning ? 'opacity-50' : ''}`}
+              >
+                {isVideo(media) ? (
+                  <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
+                    <Video size={16} className="text-gray-600 z-10" />
+                    <OptimizedImage
+                      src={product.image}
+                      alt="Video thumbnail"
+                      width={80}
+                      height={80}
+                      aspectRatio="square"
+                      className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    />
+                  </div>
+                ) : (
                   <OptimizedImage
-                    src={product.image}
-                    alt="Video thumbnail"
+                    src={media}
+                    alt={`${product.name} thumbnail ${index + 1}`}
                     width={80}
                     height={80}
                     aspectRatio="square"
-                    className="absolute inset-0 w-full h-full object-cover opacity-50"
+                    className="w-full h-full object-cover"
                   />
-                </div>
-              ) : (
-                <OptimizedImage
-                  src={media}
-                  alt={`${product.name} thumbnail ${index + 1}`}
-                  width={80}
-                  height={80}
-                  aspectRatio="square"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </button>
-          ))}
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Desktop Main Image - Right Side */}
+      <div className="flex-1">
+        <div 
+          ref={mainImageRef}
+          className="relative bg-white overflow-hidden cursor-pointer group border rounded-lg"
+          style={{ 
+            aspectRatio: '1/1',
+            maxWidth: '500px',
+            width: '100%',
+            height: 'auto'
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleImageClick}
+        >
+          {isVideo(allMedia[currentIndex]) ? (
+            <video
+              src={allMedia[currentIndex]}
+              controls
+              className={`w-full h-full object-contain transition-transform duration-300 ${
+                isTransitioning ? 'scale-105' : 'scale-100'
+              }`}
+              poster={product.image}
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
+              <OptimizedImage
+                src={allMedia[currentIndex]}
+                alt={`${product.name} - Image ${currentIndex + 1}`}
+                width={500}
+                height={500}
+                aspectRatio="square"
+                className={`max-w-full max-h-full object-contain transition-all duration-300 ${
+                  isTransitioning ? 'scale-105 opacity-90' : 'scale-100 opacity-100'
+                }`}
+                priority={currentIndex === 0}
+              />
+
+              {/* Magnifier for Desktop */}
+              {showMagnifier && (
+                <>
+                  {/* Magnifier Lens Overlay */}
+                  <div
+                    className="absolute pointer-events-none border-2 border-orange-500 shadow-lg rounded-full bg-orange-100/30 z-10"
+                    style={{
+                      width: `${magnifierSize}px`,
+                      height: `${magnifierSize}px`,
+                      left: `${magnifierPosition.x - magnifierSize / 2}px`,
+                      top: `${magnifierPosition.y - magnifierSize / 2}px`,
+                      boxShadow: '0 0 0 2px rgba(255,165,0,0.5), 0 4px 20px rgba(0,0,0,0.2)',
+                    }}
+                  />
+
+                  {/* Magnified Image Container */}
+                  <div
+                    ref={magnifierRef}
+                    className="absolute pointer-events-none border-4 border-white shadow-xl rounded-full overflow-hidden z-20 bg-white"
+                    style={{
+                      width: `${magnifierSize}px`,
+                      height: `${magnifierSize}px`,
+                      left: `${magnifierPosition.x - magnifierSize / 2}px`,
+                      top: `${magnifierPosition.y - magnifierSize / 2}px`,
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,165,0,0.6)',
+                    }}
+                  >
+                    {/* Magnified Image */}
+                    <div
+                      className="absolute w-full h-full"
+                      style={{
+                        backgroundImage: `url(${allMedia[currentIndex]})`,
+                        backgroundSize: `${zoomLevel * 100}%`,
+                        backgroundPosition: `${imagePosition.x}% ${imagePosition.y}%`,
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          
+          {/* Desktop Image Counter */}
+          {allMedia.length > 1 && (
+            <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+              {currentIndex + 1}/{allMedia.length}
+            </div>
+          )}
+
+          {/* Desktop Navigation Arrows */}
+          {allMedia.length > 1 && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImage();
+                }}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImage();
+                }}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </>
+          )}
+
+          {/* Zoom Icon */}
+          {!isVideo(allMedia[currentIndex]) && !showMagnifier && (
+            <div className="absolute bottom-4 right-4 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <ZoomIn size={16} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Zoom Dialog */}
+      <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
+        <DialogContent className="max-w-4xl w-full h-full max-h-screen p-0 bg-black">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full z-50"
+              onClick={() => setIsZoomOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            {!isVideo(allMedia[currentIndex]) && (
+              <OptimizedImage
+                src={allMedia[currentIndex]}
+                alt={`${product.name} - Zoomed view`}
+                width={1000}
+                height={1000}
+                aspectRatio="square"
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
