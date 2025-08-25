@@ -346,7 +346,7 @@ const ProductDetailsPage = () => {
           {/* Breadcrumb */}
           {!isMobile && (
             <div className='min-w-0'>
-              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 trancate" />
+              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 truncate" />
             </div>
           )}
 

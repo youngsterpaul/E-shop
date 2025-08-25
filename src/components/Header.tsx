@@ -116,7 +116,7 @@ const Header = () => {
       <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && (
-        <nav className="block bg-gray-50 border-b" role="navigation" aria-label="Main Navigation">
+        <nav className="block bg-white /border-b" role="navigation" aria-label="Main Navigation">
           <div className="container mx-auto px-4">
             <ul className="flex items-center justify-center space-x-8 py-2">
               {mainNavItems.map((item) => (
