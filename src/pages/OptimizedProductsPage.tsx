@@ -1,102 +1,19 @@
 
-import React, { useState } from "react";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import { useCategories } from '@/hooks/useCategories';
-import { MobileHeader } from "@/components/ui/mobile-header";
-import { isMobileUserAgent } from "@/hooks/use-mobile";
-import SiteBreadcrumb from "@/components/Breadcrumb";
-import MobileNav from "@/components/MobileNav";
-import ProductGrid from "@/components/products/ProductGrid";
-import ProductFilters from "@/components/products/ProductFilters";
-import ProductHeader from "@/components/products/ProductHeader";
-import MobileFiltersModal from "@/components/products/MobileFiltersModal";
-import { useProductFilters } from "@/hooks/useProductFilters";
-import { useOptimizedProductsData } from "@/hooks/useOptimizedProductsData";
-import { usePagination } from "@/hooks/usePagination";
+import Header from '@/components/Header';
+import MobileNav from '@/components/MobileNav';
+import CategoryIcons from '@/components/CategoryIcons';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import SiteBreadcrumb from '@/components/Breadcrumb';
+import { Link } from 'react-router-dom';
+import { MobileHeader } from '@/components/ui/mobile-header';
+import { Search } from 'lucide-react';
 
 const OptimizedProductsPage = () => {
-  const { categories, subcategories, fetchSubcategories, setSubcategories } = useCategories();
   const isMobile = isMobileUserAgent();
   
-  // Mobile filter state
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [openFilterSections, setOpenFilterSections] = useState<string[]>([
-    "categories",
-    "price",
-  ]);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12;
-  
-  // Filter management
-  const filters = useProductFilters({
-    onFiltersChange: () => {
-      setCurrentPage(1); // Reset to first page when filters change
-    }
-  });
-
-  // Data fetching with optimizations
-  const { products, totalProducts, totalPages, isLoading } = useOptimizedProductsData({
-    filters: {
-      selectedCategories: filters.selectedCategories,
-      selectedSubcategories: filters.selectedSubcategories,
-      selectedBrands: filters.selectedBrands,
-      selectedRatings: filters.selectedRatings,
-      priceRange: filters.priceRange,
-      sortOption: filters.sortOption,
-    },
-    currentPage,
-    productsPerPage,
-  });
-
-  // Update subcategories when categories change
-  React.useEffect(() => {
-    const updateFilterOptions = async () => {
-      if (filters.selectedCategories.length === 1) {
-        const selectedCategory = categories.find(cat => cat.category === filters.selectedCategories[0]);
-        if (selectedCategory) {
-          await fetchSubcategories(selectedCategory.id);
-        }
-      } else {
-        setSubcategories([]);
-      }
-    };
-
-    updateFilterOptions();
-  }, [filters.selectedCategories, categories, fetchSubcategories, setSubcategories]);
-
-  // Toggle filter sections (mobile)
-  const toggleFilterSection = (section: string) => {
-    if (openFilterSections.includes(section)) {  
-      setOpenFilterSections(openFilterSections.filter(s => s !== section));
-    } else {
-      setOpenFilterSections([...openFilterSections, section]);
-    }
-  };
-
-  // Transform data for components
-  const categoryData = categories.map(cat => ({
-    id: cat.id.toString(),
-    name: cat.category,
-  }));
-
-  const subcategoryData = subcategories.map(subcat => ({
-    id: subcat.id.toString(),
-    name: subcat.category,
-  }));
-
-  const { PaginationComponent } = usePagination({
-    currentPage,
-    totalPages,
-    onPageChange: setCurrentPage,
-  });
-
   return (
     <>
-      {/* Schema Markup */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
@@ -116,112 +33,44 @@ const OptimizedProductsPage = () => {
               {
                 "@type": "ListItem",
                 "position": 2,
-                "name": "Products",
-                "item": "https://smartkenya.co.ke/products"
+                "name": "Category",
+                "item": "https://smartkenya.co.ke/category"
               }
             ]
           }
         })}
       </script>
-
-      <div className={`flex flex-col min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (
-          <MobileHeader 
-            title={'Products'}
-            backTo="/"
+          <MobileHeader
+            title={'Product Category'}
             rightAction={
+            <Link to="/search">
               <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
+                <Search className="h-4 w-4" />
               </Button>
+            </Link>
             }
           />
         )}
 
-        <main className="flex-grow pt-6 pb-16">
-          <div className="container mx-auto px-4">
+        <main className="flex-grow pb-16">
             {/* Breadcrumb */}
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Products' }
-              ]}
-              className="mb-6"
-            />
-
-            {/* Header with sort and mobile filter toggle */}
-            <ProductHeader
-              title="All Products"
-              productCount={totalProducts}
-              sortOption={filters.sortOption}
-              onSortChange={filters.setSortOption}
-              onFiltersToggle={() => setMobileFiltersOpen(true)}
-              showMobileFilters={isMobile}
-            />
-
-            <div className="flex gap-6">
-              {/* Desktop Filters Sidebar */}
-              {!isMobile && (
-                <div className="w-64 flex-shrink-0">
-                  <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-                    <ProductFilters
-                      selectedCategories={filters.selectedCategories}
-                      selectedSubcategories={filters.selectedSubcategories}
-                      selectedBrands={filters.selectedBrands}
-                      selectedRatings={filters.selectedRatings}
-                      priceRange={filters.priceRange}
-                      onToggleCategory={filters.toggleCategory}
-                      onToggleSubcategory={filters.toggleSubcategory}
-                      onToggleBrand={filters.toggleBrand}
-                      onToggleRating={filters.toggleRating}
-                      onPriceChange={filters.setPriceRange}
-                      onResetFilters={filters.resetFilters}
-                      categories={categoryData}
-                      subcategories={subcategoryData}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Mobile filters modal */}
-              <MobileFiltersModal
-                isOpen={mobileFiltersOpen}
-                onClose={() => setMobileFiltersOpen(false)}
-                openSections={openFilterSections}
-                onToggleSection={toggleFilterSection}
-                selectedCategories={filters.selectedCategories}
-                selectedSubcategories={filters.selectedSubcategories}
-                selectedBrands={filters.selectedBrands}
-                selectedRatings={filters.selectedRatings}
-                priceRange={filters.priceRange}
-                onToggleCategory={filters.toggleCategory}
-                onToggleSubcategory={filters.toggleSubcategory}
-                onToggleBrand={filters.toggleBrand}
-                onToggleRating={filters.toggleRating}
-                onPriceChange={filters.setPriceRange}
-                onResetFilters={filters.resetFilters}
-                categories={categoryData}
-                subcategories={subcategoryData}
+            {!isMobile && (
+              <SiteBreadcrumb 
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Products' }
+                ]}
+                className="mb-6"
               />
+            )}
 
-              {/* Products Grid */}
-              <div className="flex-1">
-                <ProductGrid 
-                  products={products} 
-                  loading={isLoading}
-                />
-
-                {/* Pagination */}
-                {!isLoading && totalPages > 1 && (
-                  <div className="mt-8">
-                    <PaginationComponent />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        <CategoryIcons />
+        <MobileNav />
         </main>
-        <MobileNav/>
       </div>
     </>
   );

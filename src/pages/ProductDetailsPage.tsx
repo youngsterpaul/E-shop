@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -12,13 +11,13 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Settings, ShoppingBag, Star } from 'lucide-react';
+import { Heart, ShoppingCart, Search, Settings, ShoppingBag, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
-
+import { useCart } from '@/hooks/useCart';
 
 const ProductDetailsPage = () => {
   const { productName, id } = useParams();
@@ -33,6 +32,21 @@ const ProductDetailsPage = () => {
   
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+
+  // Safely get cart data with fallback
+  let items: any[] = [];
+  let totalItems = 0;
+  
+  try {
+    const cartData = useCart();
+    items = cartData.cartItems || [];
+    totalItems = items.reduce((total, item) => total + item.quantity, 0);
+  } catch (error) {
+    console.error('Cart context not available:', error);
+    // Fallback to empty cart if context is not available
+    items = [];
+    totalItems = 0;
+  }
 
   // Generate SEO-friendly slug
   const generateSlug = (name: string) => {
@@ -117,8 +131,8 @@ const ProductDetailsPage = () => {
   const generateMetaData = () => {
     if (!product) return {};
     
-    const title = `${product.name} - ${product.categories || 'Products'} | Your Store`;
-    const description = `${product.description || product.name} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
+    const title = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
+    const description = `${product.description || product.name.split('(')[0].trim()} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
     const image = product.image_urls?.[0] || '/placeholder.svg';
     
     return { title, description, image };
@@ -129,16 +143,23 @@ const ProductDetailsPage = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Product Details"
           rightAction={
-            <Link to="/search">
-              <Button variant="ghost" size="sm" className="p-2">
+            <div className="space-x-2">
+              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
                 <Search className="h-4 w-4" />
               </Button>
-            </Link>
+              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                <Heart className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
+                <ShoppingCart className="h-4 w-4" />
+                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">0</span>
+              </Button>
+          </div>
           }
         />
       }
@@ -231,7 +252,7 @@ const ProductDetailsPage = () => {
   // Transform product for components
   const productWithImages = {
     id: product.product_id,
-    name: product.name,
+    name: product.name.split('(')[0].trim(),
     image: product.image_urls?.[0] || '/placeholder.svg',
     images: product.image_urls || [],
     video: (product as any).video,
@@ -259,7 +280,7 @@ const ProductDetailsPage = () => {
     "image": product.image_urls || [],
     "brand": {
       "@type": "Brand",
-      "name": "Your Store"
+      "name": "Smartkenya Online Shopping"
     },
     "offers": {
       "@type": "Offer",
@@ -268,7 +289,7 @@ const ProductDetailsPage = () => {
       "availability": product.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Organization",
-        "name": "Your Store"
+        "name": "Smartkenya Online Shopping"
       }
     },
     "aggregateRating": product.rating ? {
@@ -301,34 +322,47 @@ const ProductDetailsPage = () => {
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
-          title="Product Details"
-          backTo="/"
+          title={"Product Details"}
           rightAction={
-          <Link to="/search">
-            <Button variant="ghost" size="sm" className="p-2">
-              <Search className="h-4 w-4" />
-            </Button>
-          </Link>
+            <div className='space-x-2'>
+              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
+                <Search className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                <Heart className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
+                <ShoppingCart className="h-4 w-4" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Button>
+            </div>
           }
         />)}
-        <main className={`container mx-auto py-6 ${isMobile ? 'pb-20 px-1' : 'pb-8'}`}>
+        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
           {/* Breadcrumb */}
           {!isMobile && (
-            <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
+            <div className='min-w-0'>
+              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 trancate" />
+            </div>
           )}
+
           {/* Product Layout */}
-          <div className={`grid ${gridCols} p-4 max-w-7xl`}>
+          <div className={`grid ${gridCols} gap-1`}>
             {/* Enhanced Image Gallery */}
             <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
             </div>
 
             {/* Product Information */}
-            <div className="space-y-6">
+            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-2/3'}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                  {product.name}
+                  {(product.name.split('(')[0].trim())}
                 </h1>
                 
                 {product.rating && (
@@ -363,14 +397,6 @@ const ProductDetailsPage = () => {
                 <p className="text-sm text-gray-600">Price includes VAT</p>
               </div>
 
-              {/* Product Description */}
-              {product.description && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                </div>
-              )}
-
               {/* Variant Selector */}
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector
@@ -385,7 +411,7 @@ const ProductDetailsPage = () => {
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
-                    name: product.name,
+                    name: product.name.split('(')[0].trim(),
                     price: calculatePrice(),
                     stock: product.stock
                   }}
@@ -398,8 +424,8 @@ const ProductDetailsPage = () => {
 
               {/* Additional Info */}
               <div className="text-sm text-gray-600 space-y-1">
-                <p>✓ Free shipping on orders over KES 5,000</p>
-                <p>✓ 30-day return policy</p>
+                <p>✓ Free shipping on orders over KES 10,000</p>
+                <p>✓ 7-days return policy</p>
                 <p>✓ Secure payment options</p>
               </div>
             </div>
@@ -407,7 +433,7 @@ const ProductDetailsPage = () => {
           
           {/* Tabbed Content */}
           <ProductTabs product={productForTabs} />
-          
+
           {/* Related Products */}
           <RelatedProductsCarousel 
             currentProduct={{ 
@@ -422,7 +448,8 @@ const ProductDetailsPage = () => {
           <MobileBottomActions
             product={{
               product_id: product.product_id,
-              name: product.name,
+              name: product.name.split('(')[0].trim(),
+              image: (product as any).image_urls || null,
               price: product.price,
               originalPrice: undefined,
               description: product.description,

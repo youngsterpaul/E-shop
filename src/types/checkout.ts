@@ -9,6 +9,8 @@ export interface CheckoutStep {
 export interface CustomerDetails {
   firstName: string;
   lastName: string;
+  userName: string;
+  user_id: string;
   email: string;
   phone: string;
 }
@@ -18,7 +20,6 @@ export interface DeliveryInfo {
   city: string;
   county: string;
   deliveryMethod: 'standard' | 'express';
-  specialInstructions?: string;
 }
 
 export interface PaymentStatus {

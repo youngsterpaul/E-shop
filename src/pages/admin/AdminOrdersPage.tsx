@@ -10,13 +10,32 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, Eye, FileUp, RefreshCw, FileText } from 'lucide-react';
+import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 
+// Updated interface to match OrderDetailPage structure
 interface OrderItem {
+  id?: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+  };
+  variant_selections?: Record<string, any>;
+  quantity: number;
+  // Legacy fields for backward compatibility
+  product_id?: string;
+  name?: string;
+  price?: number;
+  image?: string;
+}
+
+// Legacy interface for receipt generation
+interface LegacyOrderItem {
   product_id: string;
   quantity: number;
   name: string;
@@ -35,6 +54,8 @@ interface Order {
   shipping_address: string | null;
   created_at: string;
   updated_at: string;
+  first_name?: string;
+  last_name?: string;
   mpesa_checkout_request_id?: string;
   payment_id?: string;
 }
@@ -57,7 +78,8 @@ const AdminOrdersPage = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [orderCount, setOrderCount] = useState({ 
     total: 0, 
-    pending: 0, 
+    pending: 0,
+    paid: 0, 
     processing: 0, 
     shipped: 0,
     delivered: 0,
@@ -75,6 +97,45 @@ const AdminOrdersPage = () => {
       applyFilters();
     }
   }, [searchQuery, statusFilter, orders]);
+
+  // Function to normalize order items for display
+  const normalizeOrderItem = (item: any): OrderItem => {
+    // If it's already in the new format
+    if (item.product && typeof item.product === 'object') {
+      return item;
+    }
+    
+    // Convert legacy format to new format
+    return {
+      id: item.product_id || item.id,
+      product: {
+        id: item.product_id || item.id || '',
+        name: item.name || '',
+        price: item.price || 0,
+        image: item.image
+      },
+      variant_selections: item.variant_selections,
+      quantity: item.quantity || 0
+    };
+  };
+
+  // Function to display variant selections
+  const renderVariantSelections = (variant_selections?: Record<string, any>) => {
+    if (!variant_selections || Object.keys(variant_selections).length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="text-xs text-gray-500 mt-1">
+        {Object.entries(variant_selections).map(([key, value], index) => (
+          <span key={key}>
+            {key}: {value}
+            {index < Object.entries(variant_selections).length - 1 && ', '}
+          </span>
+        ))}
+      </div>
+    );
+  };
   
   const fetchOrders = async () => {
     setLoading(true);
@@ -114,6 +175,7 @@ const AdminOrdersPage = () => {
         const counts = {
           total: typedOrders.length,
           pending: typedOrders.filter(order => order.status === 'pending').length,
+          paid: typedOrders.filter(order => order.status === 'paid').length,
           processing: typedOrders.filter(order => order.status === 'processing').length,
           shipped: typedOrders.filter(order => order.status === 'shipped').length,
           delivered: typedOrders.filter(order => order.status === 'delivered').length,
@@ -205,13 +267,29 @@ const AdminOrdersPage = () => {
     }
   };
   
-  const handleDownloadReceipt = (order: Order, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDownloadReceipt = (order: Order, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
     try {
-      downloadReceipt(order);
+      // Transform the order to match the expected structure for downloadReceipt (legacy format)
+      const transformedOrder = {
+        ...order,
+        items: order.items?.map(item => {
+          const normalizedItem = normalizeOrderItem(item);
+          return {
+            product_id: normalizedItem.product.id,
+            quantity: normalizedItem.quantity,
+            name: normalizedItem.product.name,
+            price: normalizedItem.product.price,
+            image: normalizedItem.product.image
+          } as LegacyOrderItem;
+        }) || null
+      };
+
+      downloadReceipt(transformedOrder);
       toast({
         title: "Receipt downloaded",
-        description: `Receipt for order #${order.order_id} has been downloaded.`,
+        description: `Receipt for order #${order.order_id.slice(-8).toUpperCase()} has been downloaded.`,
       });
     } catch (error) {
       console.error('Error downloading receipt:', error);
@@ -222,21 +300,42 @@ const AdminOrdersPage = () => {
       });
     }
   };
-  
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-warning text-warning-foreground';
-      case 'processing':
-        return 'bg-primary text-primary-foreground';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'paid':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+        case 'processing':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'shipped':
-        return 'bg-secondary text-secondary-foreground';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered':
-        return 'bg-success text-success-foreground';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'cancelled':
-        return 'bg-destructive text-destructive-foreground';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return '⏳';
+      case 'paid':
+        return '📦';
+      case 'processing':
+        return '⚙️';
+      case 'shipped':
+        return '🚚';
+      case 'delivered':
+        return '✅';
+      case 'cancelled':
+        return '❌';
+      default:
+        return '📦';
     }
   };
 
@@ -282,6 +381,15 @@ const AdminOrdersPage = () => {
             </CardContent>
           </Card>
           
+          <Card className="bg-white shadow-sm">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Paid</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{orderCount.paid}</p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white shadow-sm">
             <CardHeader className="pb-2 pt-4">
               <CardTitle className="text-sm font-medium text-muted-foreground">Processing</CardTitle>
@@ -400,18 +508,26 @@ const AdminOrdersPage = () => {
                   ) : (
                     filteredOrders.map((order) => (
                       <TableRow key={order.order_id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleOrderClick(order)}>
-                        <TableCell className="font-medium">{order.order_id}</TableCell>
+                        <TableCell className="font-medium">#{order.order_id.slice(-8).toUpperCase()}</TableCell>
                         <TableCell>{format(new Date(order.created_at), 'MMM d, yyyy')}</TableCell>
                         <TableCell>
                           <div>
+                            {order.first_name && order.last_name && (
+                              <div className="text-sm font-medium">{order.first_name} {order.last_name}</div>
+                            )}
                             {order.email && <div className="text-sm">{order.email}</div>}
                             {order.phone_number && <div className="text-xs text-muted-foreground">{order.phone_number}</div>}
                           </div>
                         </TableCell>
-                        <TableCell>{order.items?.length || 0}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-xs">
+                            {order.items?.length || 0} items
+                          </Badge>
+                        </TableCell>
                         <TableCell>Ksh {order.amount?.toLocaleString() || 0}</TableCell>
                         <TableCell>
-                          <Badge className={getStatusBadgeColor(order.status)}>
+                          <Badge className={`${getStatusColor(order.status)} border px-3 py-1 font-medium`}>
+                            <span className="mr-1">{getStatusIcon(order.status)}</span>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
                         </TableCell>
@@ -423,7 +539,7 @@ const AdminOrdersPage = () => {
                               onClick={(e) => handleDownloadReceipt(order, e)}
                               title="Download Receipt"
                             >
-                              <FileText className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 
@@ -448,65 +564,163 @@ const AdminOrdersPage = () => {
         </Card>
       </div>
       
-      {/* Order Update Dialog */}
+      {/* Enhanced Order Update Dialog - Similar to OrderDetailPage */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Order #{selectedOrder?.order_id}</DialogTitle>
-            <DialogDescription>
-              View order details and update status
-            </DialogDescription>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold">
+                  Order #{selectedOrder?.order_id.slice(-8).toUpperCase()}
+                </DialogTitle>
+                <DialogDescription className="flex items-center mt-1">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Placed on {selectedOrder && format(new Date(selectedOrder.created_at), 'PPP')}
+                </DialogDescription>
+              </div>
+              <div className="ml-auto">
+                <Badge className={`${selectedOrder && getStatusColor(selectedOrder.status)} border px-4 py-2 font-medium`}>
+                  <span className="mr-2">{selectedOrder && getStatusIcon(selectedOrder.status)}</span>
+                  {selectedOrder && selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                </Badge>
+              </div>
+            </div>
           </DialogHeader>
           
           {selectedOrder && (
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Customer</p>
-                  <p>{selectedOrder.email || 'N/A'}</p>
-                  <p>{selectedOrder.phone_number || 'N/A'}</p>
+            <div className="space-y-6 py-4">
+              {/* Customer and Shipping Information */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <h3 className="font-semibold text-gray-900">Shipping Address</h3>
+                  </div>
+                  <div className="pl-8">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {selectedOrder.shipping_address || 'No shipping address provided'}
+                    </p>
+                  </div>
                 </div>
                 
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Date & Amount</p>
-                  <p>{format(new Date(selectedOrder.created_at), 'PPP')}</p>
-                  <p className="font-medium">Ksh {selectedOrder.amount?.toLocaleString() || 0}</p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                    <h3 className="font-semibold text-gray-900">Contact Information</h3>
+                  </div>
+                  <div className="pl-8 space-y-2">
+                    {selectedOrder.first_name && selectedOrder.last_name && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">👤</span>
+                        <p className="text-gray-700">{selectedOrder.first_name} {selectedOrder.last_name}</p>
+                      </div>
+                    )}
+                    {selectedOrder.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <p className="text-gray-700">{selectedOrder.email}</p>
+                      </div>
+                    )}
+                    {selectedOrder.phone_number && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <p className="text-gray-700">{selectedOrder.phone_number}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Shipping Address</p>
-                <p>{selectedOrder.shipping_address || 'No address provided'}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Items</p>
-                <div className="max-h-48 overflow-y-auto border rounded-md divide-y">
-                  {selectedOrder.items?.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-2">
-                      {item.image && (
-                        <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-md" />
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium">{item.name}</p>
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <p>Qty: {item.quantity}</p>
-                          <p>Ksh {(item.price || 0).toLocaleString()}</p>
+              {/* Order Items - Enhanced Display */}
+              <div className="bg-white border rounded-lg">
+                <div className="flex items-center gap-3 p-6 border-b">
+                  <ShoppingBag className="h-5 w-5 text-gray-400" />
+                  <h3 className="text-xl font-semibold text-gray-900">Order Items</h3>
+                  <Badge variant="secondary" className="ml-auto">
+                    {selectedOrder.items?.length || 0} items
+                  </Badge>
+                </div>
+                
+                <div className="p-6">
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="divide-y divide-gray-100">
+                        {selectedOrder.items.map((item, i) => {
+                          const normalizedItem = normalizeOrderItem(item);
+                          return (
+                            <div key={i} className="flex py-6 items-center justify-between first:pt-0 last:pb-0">
+                              <div className="flex items-center flex-1">
+                                {normalizedItem.product.image ? (
+                                  <img 
+                                    src={normalizedItem.product.image} 
+                                    alt={normalizedItem.product.name}
+                                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                  />
+                                ) : (
+                                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                                    <Package className="h-8 w-8 text-gray-400" />
+                                  </div>
+                                )}
+                                
+                                <div className="ml-6 flex-1">
+                                  <h4 className="font-semibold text-gray-900 text-lg mb-1">{normalizedItem.product.name}</h4>
+                                  {renderVariantSelections(normalizedItem.variant_selections)}
+                                  <p className="text-gray-500 mb-3">Quantity: {normalizedItem.quantity}</p>
+                                  <div className="space-y-1">
+                                    <p className="font-semibold text-gray-900">
+                                      Ksh {(normalizedItem.product.price || 0).toLocaleString()} each
+                                    </p>
+                                    <p className="text-lg font-bold text-primary">
+                                      Total: Ksh {((normalizedItem.product.price || 0) * (normalizedItem.quantity || 0)).toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Total Section */}
+                      <div className="border-t border-gray-200 pt-6">
+                        <div className="flex justify-between items-center bg-gray-50 rounded-lg p-4">
+                          <div>
+                            <p className="text-gray-500 mb-1">Total Amount</p>
+                            <p className="text-sm text-gray-500">
+                              {selectedOrder.items?.length || 0} items
+                            </p>
+                          </div>
+                          <p className="text-3xl font-bold text-gray-900">
+                            Ksh {(selectedOrder.amount || 0).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="text-center py-16">
+                      <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <ShoppingBag className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Items Found</h3>
+                      <p className="text-gray-500">No items found in this order</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Update Status</p>
+              {/* Status Update Section */}
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Order Status</h3>
                 <Select value={updatedStatus} onValueChange={setUpdatedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="max-w-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
@@ -514,19 +728,18 @@ const AdminOrdersPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleDownloadReceipt(selectedOrder, new Event('click') as unknown as React.MouseEvent)}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Download Receipt
-                </Button>
-              </div>
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="border-t pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => selectedOrder && handleDownloadReceipt(selectedOrder)}
+              className="mr-auto"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Download Receipt
+            </Button>
             <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
               Cancel
             </Button>

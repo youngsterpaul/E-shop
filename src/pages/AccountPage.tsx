@@ -16,16 +16,28 @@ import {
   Bell,
   CreditCard,
   Shield,
-  HelpCircle
+  HelpCircle,
+  FileQuestion,
+  Info,
+  LucideMessageCircleQuestion,
+  CarTaxiFront,
+  GraduationCap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     if (!user) {
@@ -56,33 +68,39 @@ const AccountPage = () => {
       href: '/orders',
     },
     {
-      icon: MapPin,
-      title: 'Shipping Addresses',
-      description: 'Manage delivery addresses',
-      href: '/shipping',
-    },
-    {
       icon: Heart,
       title: 'Wishlist',
       description: 'Your saved items',
       href: '/wishlist',
     },
     {
-      icon: CreditCard,
-      title: 'Payment Methods',
-      description: 'Manage payment options',
-      href: '/payment-methods',
+      icon: Info,
+      title: 'About SmartKenya',
+      description: 'Know more about SmartKenya',
+      href: '/about',
     },
     {
-      icon: Bell,
-      title: 'Notifications',
-      description: 'Email and push preferences',
-      href: '/notifications',
+      icon: LucideMessageCircleQuestion,
+      title: 'FAQs',
+      description: 'Get answers to common questions',
+      href: '/faq',
+    },
+    {
+      icon: CarTaxiFront,
+      title: 'Returns & Refunds',
+      description: 'Know our return policy',
+      href: '/returns',
+    },
+    {
+      icon: GraduationCap,
+      title: 'Careers',
+      description: 'Explore Careers at SmartKenya',
+      href: '/careers',
     },
     {
       icon: Shield,
       title: 'Privacy & Security',
-      description: 'Password and security settings',
+      description: 'Know how we protect your data',
       href: '/privacy',
     },
     {
@@ -94,19 +112,39 @@ const AccountPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      <MobileHeader 
+      {isMobile && (
+        <MobileHeader 
         title="My Account"
         backTo="/"
         rightAction={
-          <Button variant="ghost" size="sm" className="p-2">
-            <Settings className="h-4 w-4" />
-          </Button>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Sign Out
+                </Button>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
         }
       />
+      )}
 
-      <div className="container mx-auto px-4 py-6">
+      <div className={`container mx-auto px-4 py-6 ${isMobile ? 'pb-14' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Account</h1>
@@ -174,20 +212,6 @@ const AccountPage = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* Logout Button */}
-        <Card>
-          <CardContent className="p-4">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5" />
-              Sign Out
-            </Button>
-          </CardContent>
-        </Card>
       </div>
       <MobileNav />
     </div>

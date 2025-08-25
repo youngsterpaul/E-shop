@@ -1,16 +1,14 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-//import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const PrivacyPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   return (   
   <>
@@ -42,27 +40,26 @@ const PrivacyPage = () => {
         })}
       </script>
 
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        <MobileHeader
+        {isMobile && ( 
+          <MobileHeader
           title="Privacy Policy"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
+        /> 
+        )}
+      <main className="flex-grow mx-auto px-4 container py-8">
+        <SiteBreadcrumb 
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Privacy Policy' }
+          ]}
+          className="mb-6"
         />
-      <main className="flex-grow container py-8">
-          <div className="container mx-auto px-4">
-            {/* Breadcrumb */}
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Privacy Policy' }
-              ]}
-              className="mb-6"
-            />
 
           <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
           <div className="bg-white rounded-lg shadow-md p-6 prose prose-orange max-w-none">
@@ -199,7 +196,6 @@ const PrivacyPage = () => {
               </p>
             </section>
           </div>
-        </div>
       </main>
       
       

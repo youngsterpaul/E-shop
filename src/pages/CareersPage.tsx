@@ -185,29 +185,32 @@ const CareersPage = () => {
         <meta name="description" content="Explore exciting career opportunities at our company. Join our team and help shape the future of digital commerce." />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        <MobileHeader
+        {isMobile && ( 
+          <MobileHeader
           title="Careers"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
         />
+        )}
          {/* Hero Section */}
         <section className="relative py-20 px-4 text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
           <div className="relative max-w-4xl mx-auto">
             {/* Breadcrumb */}
-            <SiteBreadcrumb 
+            {!isMobile && (
+              <SiteBreadcrumb 
               items={[
                 { label: 'Home', href: '/' },
                 { label: 'Careers' }
               ]}
               className="mb-6"
             />
+            )}
 
           <h1 className="text-3xl font-bold mb-6">Careers at SmartKenya</h1>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in">

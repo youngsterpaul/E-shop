@@ -22,7 +22,6 @@ const EmptyCart = () => {
       {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Shopping Cart"
-          backTo="/products"
           rightAction={
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <ShoppingBag className="h-4 w-4" />
@@ -32,7 +31,7 @@ const EmptyCart = () => {
         />
       } 
       <MobileNav /> 
-      <div className="container mx-auto px-4 py-12">
+      <div className="py-12">
         {/* Empty Cart Section */}
         <div className="text-center mb-16">
           <div className="relative mb-8">
@@ -51,16 +50,16 @@ const EmptyCart = () => {
         </div>
 
         {/* Featured Products Section */}
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
           {isLoading ? (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (
                 <ProductSkeleton key={index} />
               ))}
             </div>
           ) : (
-            <div className={`grid ${gridCols} bg-white p-4 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
               {products?.slice(0, 4).map((product) => {
                 const productCardData = {
                   id: product.product_id,

@@ -128,9 +128,10 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
             <Button
               type="button"
               onClick={() => handleSubmit()}
-              className="h-8 bg-orange-500 hover:bg-orange-600 px-3"
+              className="h-8 bg-gray-50 hover:bg-gray-100 px-3"
+              aria-label="Search"
             >
-              <SearchIcon className="h-4 w-4" />
+              <SearchIcon className="text-gray-800 h-4 w-4" />
             </Button>
           )}
         </div>

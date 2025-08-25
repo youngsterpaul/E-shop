@@ -2,14 +2,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-//import Header from "@/components/Header";
-//import Footer from "@/components/Footer";
-import MobileNav from "@/components/MobileNav";
 import { AlertTriangle } from "lucide-react";
+import { isMobileUserAgent } from "@/hooks/use-mobile";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     console.error(
@@ -19,7 +18,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       
       <main className="flex-grow flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">

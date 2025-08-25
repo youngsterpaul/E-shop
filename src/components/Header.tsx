@@ -136,13 +136,13 @@ const Header = () => {
         )}
 
 
-        <div className={`container px-4 mx-auto ${isMobile ? 'py-2' : 'py-4'}`}>
+        <div className={`container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
               <h1 className="text-2xl font-bold text-gray-800">SmartKenya</h1>
             </Link>
-
+            
             {/* Desktop Search */}
             {!isMobile && (
               <>
@@ -157,7 +157,7 @@ const Header = () => {
               </div>
             
             <div className="flex items-center space-x-4">
-              <Link to="/cart" className="relative text-gray-700 hover:text-primary transition-colors">
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors">
                 <ShoppingCart size={24} />
                 {totalItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
@@ -166,13 +166,13 @@ const Header = () => {
                 )}
               </Link>
 
-              <Button 
-                onClick={() => navigate('/products')}
-                variant="ghost" 
-                className="px-2 flex"
-              >
-                Shop Now
-              </Button>
+              {isMobile && (
+                <Link to="/search">
+                  <Button variant="ghost" size="sm" className="p-2">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
               
               {user ? (
                 <DropdownMenu>
@@ -200,11 +200,6 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link to="/orders" className="cursor-pointer flex items-center">
                         <ShoppingBag className="mr-2 h-4 w-4" /> My Orders
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/shipping" className="cursor-pointer flex items-center">
-                        <MapPin className="mr-2 h-4 w-4" /> Shipping Addresses
                       </Link>
                     </DropdownMenuItem>
                     {profile?.is_admin && (
@@ -235,18 +230,17 @@ const Header = () => {
                 </Button>
               )}
             </div>  
-             </>
-            )}
-
+          </>
+        )}
           {isMobile && (
-            <div className="flex items-center space-x-4">
-              <Link to="/search">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          )}           
+          <div className="flex items-center space-x-4">
+            <Link to="/search">
+              <Button variant="ghost" size="sm" className="p-2" aria-label="Search">
+                <Search className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        )}           
           </div>
         </div>     
       </header>

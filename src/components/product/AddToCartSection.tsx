@@ -79,7 +79,7 @@ const AddToCartSection = ({
       
       toast({
         title: "Added to cart!",
-        description: `${product.name} has been added to your cart`,
+        description: `${product.name.split('(')[0].trim()} has been added to your cart`,
       });
     } catch (error) {
       toast({
@@ -120,7 +120,7 @@ const AddToCartSection = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: product.name,
+          title: product.name.split('(')[0].trim(),
           url: window.location.href,
         });
       } catch (error) {

@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import CheckoutModal from '@/components/checkout/CheckoutModal';
+import Header from './components/Header';
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -20,13 +21,13 @@ const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 
 // New auth pages
 const SignInPage = lazy(() => import("./pages/auth/SignInPage"));
 const SignUpPage = lazy(() => import("./pages/auth/SignUpPage"));
 const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
 
-const ShippingPage = lazy(() => import("./pages/ShippingPage"));
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
 
 const AboutPage = lazy(() => import("./pages/AboutPage"));
@@ -39,7 +40,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // New pages
 const CareersPage = lazy(() => import("./pages/CareersPage"));
-const SitemapPage = lazy(() => import("./pages/SitemapPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -51,8 +51,6 @@ const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
-
-const AdminNotificationsPage = lazy(() => import("./pages/admin/AdminNotificationsPage"));
 
 // Add the lazy import for OptimizedProductsPage
 const OptimizedProductsPage = lazy(() => import("./pages/OptimizedProductsPage"));
@@ -67,7 +65,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/products" element={<OptimizedProductsPage />} />
+            <Route path="/category" element={<OptimizedProductsPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             
@@ -79,13 +77,13 @@ function App() {
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order/:id" element={<OrderDetailPage />} />
-            <Route path="/shipping" element={<ShippingPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -96,7 +94,6 @@ function App() {
                     
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />
-            <Route path="/sitemap" element={<SitemapPage />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -108,8 +105,6 @@ function App() {
             <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
-
-            <Route path="/admin/notifications" element={<AdminRoute><AdminNotificationsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

@@ -1,9 +1,7 @@
 
 import React, { useState } from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const ContactPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -52,19 +50,19 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
+      {isMobile && ( 
         <MobileHeader
           title="Contact Us"
-          backTo="/"
+          backTo='/'
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
-        />
-      <main className="flex-grow container py-8">
-        <div className="container mx-auto px-4">
+        />)}
+        <main className="flex-grow mx-auto px-4 container py-8">
           <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
           <p className="text-gray-600 mb-8">
             Have a question, suggestion, or concern? We're here to help!
@@ -204,7 +202,6 @@ const ContactPage = () => {
               </div>
             </div>
           </div>
-        </div>
       </main>
 
     </div>

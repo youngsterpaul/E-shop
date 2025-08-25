@@ -1,9 +1,7 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-//import Footer from '@/components/Footer';
-//import MobileNav from '@/components/MobileNav';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import {
   Accordion,
   AccordionContent,
@@ -16,7 +14,7 @@ import { Search, Settings } from 'lucide-react';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
 const FAQPage = () => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   const faqCategories = [
     {
@@ -106,19 +104,19 @@ const FAQPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-        {!isMobile && <Header />}
-        <MobileHeader
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      {!isMobile && <Header />}
+        {isMobile && ( 
+         <MobileHeader
           title="FAQs"
-          backTo="/"
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
             </Button>
           }
         /> 
-      <main className="flex-grow container py-8">
-        <div className="container mx-auto px-4">
+        )}
+      <main className="flex-grow mx-auto px-4 container py-8">
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">
             Find answers to commonly asked questions about our products, ordering, shipping, and more.
@@ -166,10 +164,7 @@ const FAQPage = () => {
               Contact Support
             </Button>
           </div>
-        </div>
       </main>
-      
-    
     </div>
   );
 };

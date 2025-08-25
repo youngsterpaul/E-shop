@@ -15,6 +15,8 @@ export const CustomerDetailsStep = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    userName: '',
+    user_id: '',
     email: '',
     phone: ''
   });
@@ -26,7 +28,9 @@ export const CustomerDetailsStep = () => {
     setFormData({
       firstName: customerDetails.firstName || profile?.first_name || '',
       lastName: customerDetails.lastName || profile?.last_name || '',
+      userName: `${customerDetails.firstName || profile?.first_name || ''} ${customerDetails.lastName || profile?.last_name || ''}`.trim() || '',
       email: customerDetails.email || user?.email || '',
+      user_id: customerDetails.user_id || profile?.user_id || '',
       phone: customerDetails.phone || profile?.phone || ''
     });
   }, [customerDetails, profile, user]);
@@ -34,13 +38,13 @@ export const CustomerDetailsStep = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.userName.trim()) {
+      newErrors.userName = 'Full Name is required';
     }
     
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
+    //if (!formData.lastName.trim()) {
+      //newErrors.lastName = 'Last name is required';
+    //}
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -90,34 +94,18 @@ export const CustomerDetailsStep = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                placeholder="Enter your first name"
-                className={errors.firstName ? 'border-red-500' : ''}
-              />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                placeholder="Enter your last name"
-                className={errors.lastName ? 'border-red-500' : ''}
-              />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-              )}
-            </div>
+          <div>
+            <Label htmlFor="Full Name">Full Name</Label>
+            <Input
+              id="userName"
+              value={formData.userName}
+              onChange={(e) => handleInputChange('userName', e.target.value)}
+              placeholder="Enter your full name"
+              className={errors.useName ? 'border-red-500' : ''}
+            />
+            {errors.useName && (
+              <p className="text-red-500 text-sm mt-1">{errors.userName}</p>
+            )}
           </div>
 
           <div>
@@ -136,9 +124,6 @@ export const CustomerDetailsStep = () => {
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
-            <p className="text-gray-500 text-xs mt-1">
-              We'll send order updates to this email
-            </p>
           </div>
 
           <div>
@@ -150,15 +135,12 @@ export const CustomerDetailsStep = () => {
               id="phone"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="+254712345678 or 0712345678"
+              placeholder="0712345678"
               className={errors.phone ? 'border-red-500' : ''}
             />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
             )}
-            <p className="text-gray-500 text-xs mt-1">
-              This number will be used for M-Pesa payment and delivery updates
-            </p>
           </div>
         </CardContent>
       </Card>

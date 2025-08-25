@@ -19,15 +19,16 @@ const initialState: CheckoutState = {
   customerDetails: {
     firstName: '',
     lastName: '',
+    userName: '',
+    user_id: '',
     email: '',
     phone: '',
   },
   deliveryInfo: {
-    address: '',
-    city: '',
     county: '',
+    city: '',
+    address: '',
     deliveryMethod: 'standard',
-    specialInstructions: '',
   },
   paymentStatus: {
     status: 'idle',

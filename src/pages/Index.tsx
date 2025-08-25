@@ -52,7 +52,7 @@ const Index = () => {
       <CriticalCSS />
       <ProductionOptimizer />
       
-      <div className={`min-h-screen flex flex-col`}>
+      <div className={`min-h-screen flex flex-col bg-gray-50`}>
         <PerformanceMonitor />
         <main className={`flex-grow`}>
           <div className={`${!isMobile ? 'min-w-max' : ''}`}>

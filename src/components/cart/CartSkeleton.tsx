@@ -4,6 +4,7 @@ import Header from '../Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '../ui/mobile-header';
 import { ShoppingBag } from 'lucide-react';
+import MobileNav from '../MobileNav';
 
 const CartSkeleton = () => {
   const isMobile = isMobileUserAgent();
@@ -13,7 +14,6 @@ const CartSkeleton = () => {
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Shopping Cart"
-          backTo="/products"
           rightAction={
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <ShoppingBag className="h-4 w-4" />
@@ -118,6 +118,7 @@ const CartSkeleton = () => {
           </div>
         </div>
       </div>
+      <MobileNav />
     </div>
   );
 };

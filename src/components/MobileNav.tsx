@@ -26,7 +26,7 @@ const MobileNav = () => {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: List, label: 'Category', path: '/products' },
+    { icon: List, label: 'Category', path: '/category' },
     { icon: MessageCircle, label: 'Chat', path: '/chat' },
     { 
       icon: ShoppingCart, 

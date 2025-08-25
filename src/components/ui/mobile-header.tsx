@@ -2,7 +2,7 @@
 import { ArrowLeft, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface MobileHeaderProps {
   title: string;
@@ -13,7 +13,7 @@ interface MobileHeaderProps {
 
 export const MobileHeader = ({ title, onBack, backTo, rightAction }: MobileHeaderProps) => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = isMobileUserAgent();
 
   const handleBack = () => {
     if (onBack) {
@@ -38,7 +38,7 @@ export const MobileHeader = ({ title, onBack, backTo, rightAction }: MobileHeade
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold truncate">{title}</h1>
+        <h1 className="text-lg font-semibold truncate overflow-hidden">{title}</h1>
       </div>
       {rightAction && (
         <div className="flex-shrink-0">

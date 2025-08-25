@@ -51,19 +51,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[200px] mx-auto">
+    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[200px] mx-auto ${isMobile ? 'rounded-lg':''}`}>
       <CardContent className="p-2 h-full flex flex-col">
         <Link to={`/product/${productSlug}/${product.id}`} className="block">
-          <div className="relative overflow-hidden bg-white aspect-square">
+          <div className="relative overflow-hidden bg-white aspect-square rounded-sm">
             <OptimizedImage
               src={product.image}
               alt={product.name}
               width={200}
               height={200}
               aspectRatio="square"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover bg-gray-100"
               sizes="200px"
             />
+            
             
             {/* Discount Badge */}
             {product.discount && (
@@ -106,7 +107,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="p-2 flex flex-col flex-grow space-y-1">
           <Link to={`/product/${productSlug}/${product.id}`}>
             <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
-              {product.name}
+              {product.name.split('(')[0].trim()}
             </h3>
           </Link>
 

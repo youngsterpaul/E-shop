@@ -65,11 +65,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Cache successful responses
+          // Cache successful responses - clone BEFORE checking status
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(DYNAMIC_CACHE)
-              .then(cache => cache.put(event.request, responseClone));
+              .then(cache => cache.put(event.request, responseClone))
+              .catch(error => console.log('Cache put failed:', error));
           }
           return response;
         })
@@ -91,9 +92,11 @@ self.addEventListener('fetch', (event) => {
           }
           return fetch(event.request)
             .then(response => {
+              // Clone immediately after fetch
               const responseClone = response.clone();
               caches.open(STATIC_CACHE)
-                .then(cache => cache.put(event.request, responseClone));
+                .then(cache => cache.put(event.request, responseClone))
+                .catch(error => console.log('Cache put failed:', error));
               return response;
             });
         })
@@ -107,9 +110,16 @@ self.addEventListener('fetch', (event) => {
       .then(response => {
         const fetchPromise = fetch(event.request)
           .then(networkResponse => {
+            // Clone IMMEDIATELY after fetch, before any other operations
+            const responseClone = networkResponse.clone();
             caches.open(DYNAMIC_CACHE)
-              .then(cache => cache.put(event.request, networkResponse.clone()));
+              .then(cache => cache.put(event.request, responseClone))
+              .catch(error => console.log('Cache put failed:', error));
             return networkResponse;
+          })
+          .catch(error => {
+            console.log('Network fetch failed:', error);
+            return response; // Return cached response if available
           });
         
         return response || fetchPromise;

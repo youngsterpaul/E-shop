@@ -17,7 +17,8 @@ export const PaymentStep = () => {
     setStep 
   } = useCheckout();
   
-  const { calculations, selectedItems } = useSelectiveCart();
+  // Use getSelectedItems() instead of selectedItems to get full item objects
+  const { calculations, getSelectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
   const [timeoutTimer, setTimeoutTimer] = useState<NodeJS.Timeout | null>(null);
@@ -71,10 +72,7 @@ export const PaymentStep = () => {
             updatePaymentStatus({ status: 'success' });
             clearCart();
             cleanup();
-            // Add a small delay to show success message before moving to next step
-            setTimeout(() => {
-              setStep(4);
-            }, 2000);
+            setStep(4);
           } else if (status?.status === 'failed') {
             updatePaymentStatus({ 
               status: 'failed',
@@ -92,7 +90,7 @@ export const PaymentStep = () => {
           console.error('Error checking payment status:', error);
           // Don't update status on polling errors, just log them
         }
-      }, 1500); // Check every 1.5 seconds for faster response
+      }, 1000); // Check every 1 second for faster response
       
       setPollInterval(interval);
     } else {
@@ -119,19 +117,37 @@ export const PaymentStep = () => {
     try {
       // Use Promise.race to enforce 30-second timeout on the entire process
       const paymentProcess = async () => {
+        // Get the full selected items with all details
+        const selectedItemsWithDetails = getSelectedItems();
+        
+        // Transform items to match your expected structure
+        const orderItems = selectedItemsWithDetails.map(item => ({
+          id: item.id,
+          product: {
+            id: item.product.id,
+            name: item.product.name,
+            price: item.product.price,
+            image: item.product.image
+          },
+          variant_selections: item.variant_selections || {},
+          quantity: item.quantity
+        }));
+
         // First create the order in the database (optimized query)
         const { data: order, error: orderError } = await supabase
           .from('orders')
           .insert({
             order_id: orderId,
+            user_id: customerDetails.user_id || null,
             email: customerDetails.email,
             phone_number: customerDetails.phone,
             status: 'pending',
             amount: finalTotal,
-            items: selectedItems as any,
-            shipping_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.county}`,
-            first_name: customerDetails.firstName,
-            last_name: customerDetails.lastName,
+            items: orderItems, // Use the properly formatted items
+            shipping_address: `${deliveryInfo.county}, ${deliveryInfo.city}, ${deliveryInfo.address}`,
+            username: `${customerDetails.firstName} ${customerDetails.lastName}`,
+            discount_amount: calculations.discount,
+            tracking_number: orderId.slice(-8).toLocaleUpperCase(),
           })
           .select('order_id')
           .single();
@@ -232,10 +248,6 @@ export const PaymentStep = () => {
               <div className="bg-white p-4 rounded-lg border">
                 <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
                 <p className="text-sm text-gray-600">Phone: {customerDetails.phone}</p>
-                <div className="flex items-center justify-center mt-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-600 mr-2" />
-                  <span className="text-sm text-blue-600">Processing...</span>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -348,12 +360,12 @@ export const PaymentStep = () => {
                 <span>Delivery ({deliveryInfo.deliveryMethod})</span>
                 <span>KES {deliveryCost.toLocaleString()}</span>
               </div>
-              {calculations.tax > 0 && (
+              {/*{calculations.tax > 0 && (
                 <div className="flex justify-between">
                   <span>Tax (16%)</span>
                   <span>KES {calculations.tax.toLocaleString()}</span>
                 </div>
-              )}
+              )} */}
               {calculations.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>

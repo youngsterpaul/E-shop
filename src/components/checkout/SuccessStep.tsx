@@ -11,12 +11,12 @@ export const SuccessStep = () => {
 
   const handleViewOrders = () => {
     closeCheckout();
-    navigate('/orders');
+    navigate(`order/${orderId}`);
   };
 
   const handleContinueShopping = () => {
     closeCheckout();
-    navigate('/products');
+    navigate('/');
   };
 
   return (
@@ -75,7 +75,7 @@ export const SuccessStep = () => {
       </div>
 
       <div className="text-sm text-gray-500 space-y-1">
-        <p>You will receive order updates via SMS and email.</p>
+        <p>You will receive order updates via email.</p>
         <p>For any questions, contact our support team.</p>
       </div>
     </div>

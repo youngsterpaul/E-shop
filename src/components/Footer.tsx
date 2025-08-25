@@ -19,9 +19,9 @@ const Footer = ({ className }: FooterProps) => {
       links: [
         { label: 'All Products', href: '/products' },
         { label: 'Categories', href: '/categories' },
-        { label: 'Best Sellers', href: '/bestsellers' },
-        { label: 'Featured Deals', href: '/deals' },
-        { label: 'Brands', href: '/brands' },
+        { label: 'Best Sellers', href: '/categories' },
+        { label: 'Featured Deals', href: '/categories' },
+        { label: 'Brands', href: '/categories' },
       ]
     },
     {
@@ -51,7 +51,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Careers', href: '/careers' },
         { label: 'Privacy Policy', href: '/privacy' },
         { label: 'Terms & Conditions', href: '/terms' },
-        { label: 'Sitemap', href: '/sitemap' },
       ]
     }
   ];
@@ -89,13 +88,13 @@ const Footer = ({ className }: FooterProps) => {
         })}
       </script>
 
-      <footer className={cn("bg-gray-800 text-white w-full", className)}>
+      <footer className={cn("bg-gray-900 text-white w-full", className)}>
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Your one-stop shop for quality electronics and gadgets. We deliver nationwide across Kenya.
+              <p className="text-center text-gray-900 text-xs leading-relaxed">
+                SmartKenya Your one-stop shop for quality electronics and gadgets. We deliver …
               </p>
             </div>
               
@@ -159,7 +158,7 @@ const Footer = ({ className }: FooterProps) => {
               <div className="order-1 sm:order-2">
                 <h4 className="font-medium text-sm mb-3">We Accept</h4>
                 <div className="flex flex-wrap gap-2">
-                  <div className="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold">M-PESA</div>
+                  <div className="bg-green-800 text-white px-3 py-1 rounded text-xs font-bold">M-PESA</div>
                   <div className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold">Card</div>
                 </div>
               </div>
@@ -167,7 +166,7 @@ const Footer = ({ className }: FooterProps) => {
           </div>
         {/* Copyright - takes full width on mobile, aligned right on larger screens */}
         <div className="border-t border-gray-700 py-4">
-          <p className="text-center text-gray-500 text-xs leading-relaxed">
+          <p className="text-center text-white-500 text-xs leading-relaxed">
             © {new Date().getFullYear()} SmartKenya. All rights reserved. Designed for Kenya, Built with ❤️
           </p>
         </div>

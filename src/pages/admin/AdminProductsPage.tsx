@@ -301,7 +301,7 @@ const AdminProductsPage = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{product.name}</div>
+                          <div className="font-medium line-clamp-2 min-h-[32px]">{product.name}</div>
                         </TableCell>
                         <TableCell>{product.categories || 'Uncategorized'}</TableCell>
                         <TableCell>{formatPrice(product.price)}</TableCell>

@@ -13,7 +13,7 @@ interface EmailRequest {
   email: string;
   orderId: string;
   amount: number;
-  customerName?: string;
+  userName?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
     
-    const { email, orderId, amount, customerName }: EmailRequest = requestBody;
+    const { email, orderId, amount, userName }: EmailRequest = requestBody;
 
     if (!email || !orderId || !amount) {
       console.error('Missing required fields:', { email: !!email, orderId: !!orderId, amount: !!amount });
@@ -60,13 +60,13 @@ const handler = async (req: Request): Promise<Response> => {
       subject: `Payment Confirmation - Order #${orderId}`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <div style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
             <h1 style="color: white; margin: 0; font-size: 28px;">Payment Confirmed!</h1>
           </div>
           
           <div style="background: #fff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px;">
             <p style="font-size: 18px; margin-bottom: 20px;">
-              Hello ${customerName || 'Valued Customer'},
+              Hello ${userName || 'Valued Customer'},
             </p>
             
             <p style="font-size: 16px; margin-bottom: 25px;">
@@ -91,13 +91,13 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '') || 'https://smartkenya.co.ke'}/orders" 
+              <a href="https://smartkenya.co.ke/order/${orderId}" 
                  style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order Status
               </a>
             </div>
             
-            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
+            <hr style="border: none; border-top: 1px solid #291f1fff; margin: 30px 0;">
             
             <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
               Need help? Contact our customer support:
