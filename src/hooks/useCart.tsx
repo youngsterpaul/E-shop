@@ -140,9 +140,10 @@ export const useCart = () => {
 
       if (cartResponse.error) throw cartResponse.error;
       
-      const typedCartData: Cart = {
+  const typedCartData: Cart = {
         ...cartResponse.data,
-        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
+        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned',
+        currency: 'KES' // Default currency since it's not in database
       };
       
       console.log('Setting cart data:', typedCartData);
@@ -374,10 +375,7 @@ export const useCart = () => {
       
       console.log('✅ Item added to cart successfully');
       
-      // Force immediate refresh to ensure UI updates
-      setTimeout(() => {
-        fetchCartItems(cartId).catch(console.error);
-      }, 100);
+      // NO NEED for timeout - real-time subscription will handle the update automatically
       
       toast({
         title: "Added to cart",
@@ -425,11 +423,30 @@ export const useCart = () => {
     }
   }, [cart]);
 
-  // Initial fetch
+  // Initial fetch and auth migration
   useEffect(() => {
     console.log('Initial fetch effect triggered');
     fetchCart();
-  }, [fetchCart]);
+    
+    // Auto-migrate guest cart when user is authenticated
+    if (user && getSessionId) {
+      console.log('🔄 Migrating guest cart for authenticated user');
+      supabase.rpc('migrate_guest_cart_to_user', {
+        p_user_id: user.id,
+        p_session_id: getSessionId
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error('Cart migration error:', error);
+        } else {
+          console.log('Cart migration result:', data);
+          if (data) {
+            // Refresh cart after migration
+            setTimeout(() => fetchCart(), 500);
+          }
+        }
+      });
+    }
+  }, [fetchCart, user, getSessionId]);
 
   const totalItems = useMemo(() => 
     cartItems.reduce((total, item) => total + item.quantity, 0),

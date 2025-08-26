@@ -9,7 +9,7 @@ import ReviewButton from '@/components/ReviewButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, ArrowLeft, Clock, Download, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
+import { Download, ArrowLeft, Clock, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';

@@ -341,14 +341,16 @@ const ProductDetailsPage = () => {
               </Button>
             </div>
           }
-        />)}
-        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
-          {/* Breadcrumb */}
+        />)}          
+        
+        {/* Breadcrumb */}
           {!isMobile && (
             <div className='min-w-0'>
               <SiteBreadcrumb items={breadcrumbItems} className="mb-6 truncate" />
             </div>
           )}
+
+        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
 
           {/* Product Layout */}
           <div className={`grid ${gridCols} gap-1`}>

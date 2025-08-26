@@ -318,30 +318,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
                       boxShadow: '0 0 0 2px rgba(255,165,0,0.5), 0 4px 20px rgba(0,0,0,0.2)',
                     }}
                   />
-
-                  {/* Magnified Image Container */}
-                  <div
-                    ref={magnifierRef}
-                    className="absolute pointer-events-none border-4 border-white shadow-xl rounded-full overflow-hidden z-20 bg-white"
-                    style={{
-                      width: `${magnifierSize}px`,
-                      height: `${magnifierSize}px`,
-                      left: `${magnifierPosition.x - magnifierSize / 2}px`,
-                      top: `${magnifierPosition.y - magnifierSize / 2}px`,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,165,0,0.6)',
-                    }}
-                  >
-                    {/* Magnified Image */}
-                    <div
-                      className="absolute w-full h-full"
-                      style={{
-                        backgroundImage: `url(${allMedia[currentIndex]})`,
-                        backgroundSize: `${zoomLevel * 100}%`,
-                        backgroundPosition: `${imagePosition.x}% ${imagePosition.y}%`,
-                        backgroundRepeat: 'no-repeat',
-                      }}
-                    />
-                  </div>
                 </>
               )}
             </div>
