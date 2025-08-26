@@ -92,7 +92,7 @@ const VirtualizedProductGrid = ({ products, loading }: VirtualizedProductGridPro
       height={Math.min(800, rowCount * rowHeight)} // Limit max height
       rowCount={rowCount}
       rowHeight={rowHeight}
-      width="100%"
+      width={window.innerWidth - 48}
     >
       {Cell}
     </Grid>

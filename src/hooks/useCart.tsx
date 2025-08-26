@@ -140,9 +140,10 @@ export const useCart = () => {
 
       if (cartResponse.error) throw cartResponse.error;
       
-      const typedCartData: Cart = {
+  const typedCartData: Cart = {
         ...cartResponse.data,
-        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
+        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned',
+        currency: 'KES' // Default currency since it's not in database
       };
       
       console.log('Setting cart data:', typedCartData);
