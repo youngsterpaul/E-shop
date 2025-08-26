@@ -214,7 +214,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
 
   // Desktop Kilimall-exact style layout
   return (
-    <div className="flex gap-6 max-w-6xl mx-auto">
+    <div className="flex gap-6 /max-w-6xl /mx-auto">
       {/* Desktop Thumbnail Strip - Left Side (Kilimall style) */}
       {allMedia.length > 1 && (
         <div className="flex flex-col gap-3 w-20">
@@ -303,23 +303,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
                 }`}
                 priority={currentIndex === 0}
               />
-
-              {/* Magnifier for Desktop */}
-              {showMagnifier && (
-                <>
-                  {/* Magnifier Lens Overlay */}
-                  <div
-                    className="absolute pointer-events-none border-2 border-orange-500 shadow-lg rounded-full bg-orange-100/30 z-10"
-                    style={{
-                      width: `${magnifierSize}px`,
-                      height: `${magnifierSize}px`,
-                      left: `${magnifierPosition.x - magnifierSize / 2}px`,
-                      top: `${magnifierPosition.y - magnifierSize / 2}px`,
-                      boxShadow: '0 0 0 2px rgba(255,165,0,0.5), 0 4px 20px rgba(0,0,0,0.2)',
-                    }}
-                  />
-                </>
-              )}
             </div>
           )}
           

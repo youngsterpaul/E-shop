@@ -319,7 +319,7 @@ const ProductDetailsPage = () => {
         </script>
       </Helmet>
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '/min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
@@ -343,14 +343,15 @@ const ProductDetailsPage = () => {
           }
         />)}          
         
+
+        <main className={`${isMobile ? 'pb-16' : 'py-6container mx-auto'}`}>
+
         {/* Breadcrumb */}
           {!isMobile && (
             <div className='min-w-0'>
-              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 truncate" />
+              <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
             </div>
           )}
-
-        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
 
           {/* Product Layout */}
           <div className={`grid ${gridCols} gap-1`}>
