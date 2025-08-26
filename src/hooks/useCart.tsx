@@ -423,11 +423,30 @@ export const useCart = () => {
     }
   }, [cart]);
 
-  // Initial fetch
+  // Initial fetch and auth migration
   useEffect(() => {
     console.log('Initial fetch effect triggered');
     fetchCart();
-  }, [fetchCart]);
+    
+    // Auto-migrate guest cart when user is authenticated
+    if (user && getSessionId) {
+      console.log('🔄 Migrating guest cart for authenticated user');
+      supabase.rpc('migrate_guest_cart_to_user', {
+        p_user_id: user.id,
+        p_session_id: getSessionId
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error('Cart migration error:', error);
+        } else {
+          console.log('Cart migration result:', data);
+          if (data) {
+            // Refresh cart after migration
+            setTimeout(() => fetchCart(), 500);
+          }
+        }
+      });
+    }
+  }, [fetchCart, user, getSessionId]);
 
   const totalItems = useMemo(() => 
     cartItems.reduce((total, item) => total + item.quantity, 0),
