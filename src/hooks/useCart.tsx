@@ -375,10 +375,7 @@ export const useCart = () => {
       
       console.log('✅ Item added to cart successfully');
       
-      // Force immediate refresh to ensure UI updates
-      setTimeout(() => {
-        fetchCartItems(cartId).catch(console.error);
-      }, 100);
+      // NO NEED for timeout - real-time subscription will handle the update automatically
       
       toast({
         title: "Added to cart",
