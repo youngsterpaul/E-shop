@@ -1,15 +1,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Index from '@/pages';
-import Product from '@/pages/Product';
-import Cart from '@/pages/Cart';
-import Checkout from '@/pages/Checkout';
-import Confirmation from '@/pages/Confirmation';
-import Profile from '@/pages/Profile';
-import Admin from '@/pages/Admin';
-import { CartProvider } from '@/context/CartContext';
-import { SelectiveCartProvider } from '@/context/SelectiveCartContext';
-import { CheckoutProvider } from '@/context/CheckoutContext';
+import Index from '@/pages/Index';
+import ProductDetailsPage from '@/pages/ProductDetailsPage';
+import CartPage from '@/pages/CartPage';
+import CheckoutPage from '@/pages/CheckoutPage';
+import ProfilePage from '@/pages/ProfilePage';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import { CartProvider } from '@/contexts/CartContext';
+import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
+import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import {
@@ -35,12 +34,11 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/products" element={<ProductsPage />} />
                   <Route path="/category" element={<OptimizedProductsPage />} />
-                  <Route path="/product/:productId" element={<Product />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/confirmation" element={<Confirmation />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/product/:productId" element={<ProductDetailsPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/search" element={<SearchPage />} />
                 </Routes>
               </BrowserRouter>

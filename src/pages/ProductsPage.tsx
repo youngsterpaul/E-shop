@@ -238,8 +238,7 @@ const ProductsPage = () => {
           <div className="px-4 lg:px-0">
             <ProductGrid
               products={products}
-              isLoading={isLoading}
-              gridCols={gridCols}
+              loading={isLoading}
             />
 
             {/* Pagination */}
