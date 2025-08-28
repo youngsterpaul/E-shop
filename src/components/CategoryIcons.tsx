@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
 import { 
@@ -146,8 +145,9 @@ const CategoryIcons = () => {
     ? "grid-cols-2" 
     : "grid-cols-6";
 
-  const handleCategoryClick = (searchQuery: string) => {
-    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+  const handleCategoryClick = (searchQuery: string, categoryName: string) => {
+    // Navigate to products page with category filter instead of search
+    navigate(`/products?category=${encodeURIComponent(categoryName)}`);
   };
 
   if (isMobile) {
@@ -159,7 +159,7 @@ const CategoryIcons = () => {
           return (
             <div
               key={category.id}
-              onClick={() => handleCategoryClick(category.searchQuery)}
+              onClick={() => handleCategoryClick(category.searchQuery, category.name)}
               className="flex flex-col items-center justify-center p-3 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group border border-gray-100"
             >
               <div className={`${category.color} p-2.5 rounded-full mb-2 group-hover:scale-105 transition-transform duration-200`}>
@@ -179,7 +179,6 @@ const CategoryIcons = () => {
   return (
     <section className={`mx-0 lg:mx-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'mt-4' : ''}`}>
       <div className="container mx-auto px-4">
-
         <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
           SHOP BY CATEGORY
         </h2>
@@ -189,7 +188,7 @@ const CategoryIcons = () => {
             return (
               <div
                 key={category.id}
-                onClick={() => handleCategoryClick(category.searchQuery)}
+                onClick={() => handleCategoryClick(category.searchQuery, category.name)}
                 className="flex flex-col items-center justify-center cursor-pointer group"
               >
                 <div className="relative w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
