@@ -54,7 +54,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[200px] mx-auto ${isMobile ? 'rounded-lg':''}`}>
       <CardContent className="p-0 h-full flex flex-col">
         <Link to={`/product/${productSlug}/${product.id}`} className="block">
-          <div className="relative overflow-hidden bg-white aspect-square rounded-sm">
+          <div className="relative overflow-hidden bg-white aspect-square /rounded-sm">
             <OptimizedImage
               src={product.image}
               alt={product.name}
