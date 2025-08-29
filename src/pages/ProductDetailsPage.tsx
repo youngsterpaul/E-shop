@@ -319,7 +319,7 @@ const ProductDetailsPage = () => {
         </script>
       </Helmet>
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '/min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
