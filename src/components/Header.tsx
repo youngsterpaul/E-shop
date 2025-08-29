@@ -80,6 +80,7 @@ const Header = () => {
 
   // Main navigation items for sitelinks
   const mainNavItems = [
+    { label: 'Home', href: '/', description: 'Return to homepage' },
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
     { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
