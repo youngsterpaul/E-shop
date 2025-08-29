@@ -5,13 +5,10 @@ import { useProductSearch } from '@/hooks/useProducts';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 import Header from '@/components/Header';
 import SmartPagination from '@/components/ui/pagination';
-import { ArrowLeft, ChevronLeft, Search, Filter } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, Search, Settings } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ProductSort from '@/components/products/ProductSort';
-import ProductFilters from '@/components/products/ProductFilters';
-import { useProductFilters } from '@/hooks/useProductFilters';
 
 const SearchPage = () => {
   const location = useLocation();
@@ -27,44 +24,13 @@ const SearchPage = () => {
     ? "grid-cols-2" 
     : "grid-cols-6";
 
-  // Add filters for search page
-  const filters = useProductFilters({
-    onFiltersChange: (newFilters) => {
-      // You can update URL with filter parameters here if needed
-      console.log('Filters changed:', newFilters);
-    }
-  });
-
-  // Apply filters to search results
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    
-    let result = [...products];
-    
-    // Apply brand filter
-    if (filters.selectedBrands.length > 0) {
-      result = result.filter(product => 
-        filters.selectedBrands.some(brand => 
-          product.name.toLowerCase().includes(brand.toLowerCase())
-        )
-      );
-    }
-    
-    // Apply price filter
-    result = result.filter(product => 
-      product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
-    );
-    
-    return result;
-  }, [products, filters.selectedBrands, filters.priceRange]);
-
   // Sort products based on selected option
   const sortedProducts = useMemo(() => {
-    if (!filteredProducts) return [];
+    if (!products) return [];
     
-    const productsWithRating = filteredProducts.map(product => ({
+    const productsWithRating = products.map(product => ({
       ...product,
-      calculatedRating: 4.5,
+      calculatedRating: 4.5, // You can replace this with actual rating logic
       calculatedPrice: product.price
     }));
 
@@ -83,7 +49,7 @@ const SearchPage = () => {
       default:
         return productsWithRating;
     }
-  }, [filteredProducts, sortOption]);
+  }, [products, sortOption]);
 
   // Pagination calculations
   const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
@@ -211,42 +177,11 @@ const SearchPage = () => {
             <Button
               type="button"
               onClick={() => handleSubmit()}
-              className="h-8 px-3"
+              className="h-8  //hover:bg-gray-100 px-3"
               aria-label="Search"
             >
               <Search className="text-gray-800 h-4 w-4" />
             </Button>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 h-8 w-8"
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>Filter Results</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <ProductFilters
-                    selectedCategories={filters.selectedCategories}
-                    selectedSubcategories={filters.selectedSubcategories}
-                    selectedBrands={filters.selectedBrands}
-                    selectedRatings={filters.selectedRatings}
-                    priceRange={filters.priceRange}
-                    onToggleCategory={filters.toggleCategory}
-                    onToggleSubcategory={filters.toggleSubcategory}
-                    onToggleBrand={filters.toggleBrand}
-                    onToggleRating={filters.toggleRating}
-                    onPriceChange={filters.setPriceRange}
-                    onResetFilters={filters.resetFilters}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
             </div>
         </div>
         )}
@@ -254,40 +189,6 @@ const SearchPage = () => {
 
       {/* Search Results */}
       <div className={`w-full px-0 lg:px-16 mx-auto`}>
-        {/* Desktop Filter Button */}
-        {!isMobile && searchQuery && (
-          <div className="mb-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="mb-4">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter Results
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>Filter Search Results</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <ProductFilters
-                    selectedCategories={filters.selectedCategories}
-                    selectedSubcategories={filters.selectedSubcategories}
-                    selectedBrands={filters.selectedBrands}
-                    selectedRatings={filters.selectedRatings}
-                    priceRange={filters.priceRange}
-                    onToggleCategory={filters.toggleCategory}
-                    onToggleSubcategory={filters.toggleSubcategory}
-                    onToggleBrand={filters.toggleBrand}
-                    onToggleRating={filters.toggleRating}
-                    onPriceChange={filters.setPriceRange}
-                    onResetFilters={filters.resetFilters}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        )}
-
         {isLoading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-center py-10">
