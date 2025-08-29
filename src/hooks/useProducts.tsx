@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export type Product = {
@@ -15,34 +14,58 @@ export type Product = {
   stock?: number;
   featured?: boolean;
   specification?: string | Record<string, any>;
-  features?: string | string[]; // Changed from Record<string, any> to string[]
+  features?: string | string[];
   rating?: number;
 };
 
+// Constants for pagination
+export const PAGINATION_CONFIG = {
+  DESKTOP_PAGE_SIZE: 24,
+  MOBILE_PAGE_SIZE: 12,
+  FEATURED_LIMIT: 100, // Reasonable limit for featured products
+};
+
+// Helper function to process products
+const processProducts = (products: any[]): Product[] => {
+  return products.map(product => ({
+    ...product,
+    specification: typeof product.specification === 'string' && product.specification
+      ? (() => {
+          try {
+            return JSON.parse(product.specification);
+          } catch (e) {
+            console.error('Failed to parse specification JSON:', e);
+            return {};
+          }
+        })()
+      : product.specification || {}
+  }));
+};
+
 export const useProducts = () => {
-const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
+  const fetchProducts = async ({ pageParam = 0, pageSize = 24 } = {}) => {
+    const from = pageParam * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('products')
-      .select('*');
+      .select('*', { count: 'exact' })
+      .range(from, to)
+      .order('created_at', { ascending: false });
       
     if (error) {
       console.error('Error fetching products:', error);
       throw new Error(error.message);
     }
 
-    // Parse specification if it's a string
-    const processedData = data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    }));
-    
-    return processedData as Product[];
+    return {
+      products: processProducts(data || []),
+      totalCount: count || 0,
+      hasNextPage: (count || 0) > (from + (data?.length || 0)),
+      nextPage: (count || 0) > (from + (data?.length || 0)) ? pageParam + 1 : undefined
+    };
   };
   
   const fetchProductById = async (id: string) => {
@@ -57,84 +80,81 @@ const [products, setProducts] = useState([]);
       throw new Error(error.message);
     }
 
-    // Process specification field if it exists and is a string
-    if (data && data.specification && typeof data.specification === 'string') {
-      try {
-        data.specification = JSON.parse(data.specification);
-      } catch (e) {
-        console.error('Failed to parse specification JSON:', e);
-        data.specification = null;
-      }
-    }
-    
-    return data as Product;
+    if (!data) return null;
+
+    return processProducts([data])[0];
   };
   
-  const fetchFeaturedProducts = async () => {
-    const { data, error } = await supabase
+  const fetchFeaturedProducts = async ({ pageParam = 0, pageSize = 24 } = {}) => {
+    const from = pageParam * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('products')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('featured', true)
-      .limit(12);
+      .range(from, to)
+      .order('created_at', { ascending: false });
       
     if (error) {
       console.error('Error fetching featured products:', error);
       throw new Error(error.message);
     }
     
-    // Parse specification if it's a string
-    const processedData = data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    }));
-    
-    return processedData as Product[];
+    return {
+      products: processProducts(data || []),
+      totalCount: count || 0,
+      hasNextPage: (count || 0) > (from + (data?.length || 0)),
+      nextPage: (count || 0) > (from + (data?.length || 0)) ? pageParam + 1 : undefined
+    };
   };
   
-  const fetchProductsByCategory = async (category: string) => {
-    const { data, error } = await supabase
+  const fetchProductsByCategory = async (category: string, { pageParam = 0, pageSize = 24 } = {}) => {
+    const from = pageParam * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('products')
-      .select('*')
-      .eq('categories', category);
+      .select('*', { count: 'exact' })
+      .eq('categories', category)
+      .range(from, to)
+      .order('created_at', { ascending: false });
       
     if (error) {
       console.error(`Error fetching products in category ${category}:`, error);
       throw new Error(error.message);
     }
     
-    // Parse specification if it's a string
-    const processedData = data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    }));
-    
-    return processedData as Product[];
+    return {
+      products: processProducts(data || []),
+      totalCount: count || 0,
+      hasNextPage: (count || 0) > (from + (data?.length || 0)),
+      nextPage: (count || 0) > (from + (data?.length || 0)) ? pageParam + 1 : undefined
+    };
   };
   
-  const searchProducts = async (query: string) => {
-    const { data, error } = await supabase
+  const searchProducts = async (query: string, { pageParam = 0, pageSize = 24 } = {}) => {
+    const from = pageParam * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('products')
-      .select('*')
-      .ilike('name', `%${query}%`);
+      .select('*', { count: 'exact' })
+      .or(`name.ilike.%${query}%,description.ilike.%${query}%,categories.ilike.%${query}%`)
+      .range(from, to)
+      .order('created_at', { ascending: false });
       
     if (error) {
       console.error(`Error searching products with query ${query}:`, error);
       throw new Error(error.message);
     }
     
-    // Parse specification if it's a string
-    const processedData = data.map(product => ({
-      ...product,
-      specification: typeof product.specification === 'string' && product.specification
-        ? JSON.parse(product.specification)
-        : product.specification || {}
-    }));
-    
-    return processedData as Product[];
+    return {
+      products: processProducts(data || []),
+      totalCount: count || 0,
+      hasNextPage: (count || 0) > (from + (data?.length || 0)),
+      nextPage: (count || 0) > (from + (data?.length || 0)) ? pageParam + 1 : undefined
+    };
   };
 
   return {
@@ -146,56 +166,100 @@ const [products, setProducts] = useState([]);
   };
 };
 
-export const useFeaturedProducts = () => {
+// Hook for infinite scrolling featured products
+export const useFeaturedProducts = (pageSize?: number) => {
   const { fetchFeaturedProducts } = useProducts();
   
-  return useQuery({
-    queryKey: ['featuredProducts'],
-    queryFn: fetchFeaturedProducts
+  return useInfiniteQuery({
+    queryKey: ['featuredProducts', pageSize],
+    queryFn: ({ pageParam }) => fetchFeaturedProducts({ pageParam, pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    select: (data) => ({
+      pages: data.pages,
+      pageParams: data.pageParams,
+      products: data.pages.flatMap(page => page.products),
+      totalCount: data.pages[0]?.totalCount || 0,
+      hasNextPage: data.pages[data.pages.length - 1]?.hasNextPage || false
+    }),
   });
 };
 
+// Hook for single product
 export const useProduct = (id: string) => {
   const { fetchProductById } = useProducts();
   
   return useQuery({
     queryKey: ['product', id],
     queryFn: () => fetchProductById(id),
-    enabled: !!id
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
+// Hook for product search with infinite scroll
+export const useProductSearch = (query: string, pageSize?: number) => {
+  const { searchProducts } = useProducts();
+  
+  return useInfiniteQuery({
+    queryKey: ['productSearch', query, pageSize],
+    queryFn: ({ pageParam }) => searchProducts(query, { pageParam, pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    enabled: query.length > 1,
+    select: (data) => ({
+      pages: data.pages,
+      pageParams: data.pageParams,
+      products: data.pages.flatMap(page => page.products),
+      totalCount: data.pages[0]?.totalCount || 0,
+      hasNextPage: data.pages[data.pages.length - 1]?.hasNextPage || false
+    }),
+  });
+};
+
+// Hook for products by category with infinite scroll
+export const useProductsByCategory = (category: string, pageSize?: number) => {
+  const { fetchProductsByCategory } = useProducts();
+  
+  return useInfiniteQuery({
+    queryKey: ['productsByCategory', category, pageSize],
+    queryFn: ({ pageParam }) => fetchProductsByCategory(category, { pageParam, pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    enabled: !!category,
+    select: (data) => ({
+      pages: data.pages,
+      pageParams: data.pageParams,
+      products: data.pages.flatMap(page => page.products),
+      totalCount: data.pages[0]?.totalCount || 0,
+      hasNextPage: data.pages[data.pages.length - 1]?.hasNextPage || false
+    }),
+  });
+};
+
+// Simple hook for product by name (keeping for backward compatibility)
 export const useProductByName = (productName: string) => {
   return useQuery({
     queryKey: ["product", "name", productName],
     queryFn: () => fetchProductByName(productName),
     enabled: !!productName,
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-export const useProductSearch = (query: string) => {
-  const { searchProducts } = useProducts();
-  
-  return useQuery({
-    queryKey: ['productSearch', query],
-    queryFn: () => searchProducts(query),
-    enabled: query.length > 1
-  });
-};
-
-export const fetchProductByName = async (productName: string): Promise<Product> => {
-  // Convert URL slug back to searchable format
+export const fetchProductByName = async (productName: string): Promise<Product | null> => {
   const searchName = productName.replace(/-/g, ' ');
   
   const { data, error } = await supabase
     .from("products")
-    .select()
+    .select('*')
     .ilike("name", `%${searchName}%`)
-    .single();
+    .maybeSingle();
 
   if (error) {
+    console.error('Error fetching product by name:', error);
     throw new Error(error.message);
   }
 
-  return data as Product;
+  return data ? processProducts([data])[0] : null;
 };
