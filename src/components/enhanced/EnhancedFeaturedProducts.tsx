@@ -1,162 +1,215 @@
-
-import { memo, useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Loader2 } from 'lucide-react';
+import { ArrowRight, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
-import { useFeaturedProducts } from '@/hooks/useProducts';
+import { useFeaturedProducts, PAGINATION_CONFIG } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const EnhancedFeaturedProducts = memo(() => {
-  const { data: products, isLoading } = useFeaturedProducts();
   const isMobile = isMobileUserAgent();
+  const pageSize = isMobile ? PAGINATION_CONFIG.MOBILE_PAGE_SIZE : PAGINATION_CONFIG.DESKTOP_PAGE_SIZE;
   
-  // State for managing visible products
-  const [visibleProductsCount, setVisibleProductsCount] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFeaturedProducts(pageSize);
   
-  // Initial product counts
-  const initialDesktopCount = 36;
-  const initialMobileCount = 30;
-  const loadMoreDesktopCount = 18; // Load 18 more products on desktop
-  const loadMoreMobileCount = 15; // Load 15 more products on mobile
+  // State for scroll handling
+  const [isNearBottom, setIsNearBottom] = useState(false);
   
-  // Grid layout
-  const gridCols = isMobile ? "grid-cols-2" : "grid-cols-8";
+  // Memoized values
+  const products = useMemo(() => data?.products || [], [data?.products]);
+  const totalCount = useMemo(() => data?.totalCount || 0, [data?.totalCount]);
   
-  // Initialize visible products count
-  useEffect(() => {
-    setVisibleProductsCount(isMobile ? initialMobileCount : initialDesktopCount);
+  // Grid layout configuration
+  const gridConfig = useMemo(() => {
+    if (isMobile) {
+      return {
+        cols: "grid-cols-2",
+        gap: "gap-2",
+        padding: "p-2"
+      };
+    }
+    return {
+      cols: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6",
+      gap: "gap-1",
+      padding: "px-0 lg:px-1"
+    };
   }, [isMobile]);
   
-  // Desktop "Show More" handler
-  const handleShowMore = useCallback(() => {
-    setIsLoadingMore(true);
-    
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      setVisibleProductsCount(prev => prev + loadMoreDesktopCount);
-      setIsLoadingMore(false);
-    }, 500);
-  }, []);
-  
-  // Mobile infinite scroll handler
+  // Scroll handler for infinite scroll on mobile
   const handleScroll = useCallback(() => {
-    if (isMobile && products && visibleProductsCount < products.length) {
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-      
-      // Trigger when user is 200px from bottom
-      if (scrollTop + clientHeight >= scrollHeight - 200) {
-        if (!isLoadingMore) {
-          setIsLoadingMore(true);
-          
-          // Simulate loading delay
-          setTimeout(() => {
-            setVisibleProductsCount(prev => 
-              Math.min(prev + loadMoreMobileCount, products.length)
-            );
-            setIsLoadingMore(false);
-          }, 500);
-        }
-      }
+    if (!isMobile || !hasNextPage || isFetchingNextPage) return;
+    
+    const scrollHeight = document.documentElement.scrollHeight;
+    const scrollTop = document.documentElement.scrollTop;
+    const clientHeight = document.documentElement.clientHeight;
+    const threshold = 300; // pixels from bottom
+    
+    const nearBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+    
+    if (nearBottom && !isNearBottom) {
+      setIsNearBottom(true);
+      fetchNextPage();
+    } else if (!nearBottom && isNearBottom) {
+      setIsNearBottom(false);
     }
-  }, [isMobile, products, visibleProductsCount, isLoadingMore]);
+  }, [isMobile, hasNextPage, isFetchingNextPage, isNearBottom, fetchNextPage]);
   
-  // Add scroll event listener for mobile
+  // Attach scroll listener for mobile infinite scroll
   useEffect(() => {
     if (isMobile) {
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
+      const throttledScroll = throttle(handleScroll, 200);
+      window.addEventListener('scroll', throttledScroll, { passive: true });
+      return () => window.removeEventListener('scroll', throttledScroll);
     }
   }, [isMobile, handleScroll]);
   
-  const loadingSkeleton = (
-    <div className="pb-8 px-2 /lg:px-16 bg-gray-50 ">
+  // Load more handler for desktop
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  
+  // Transform product data for ProductCard
+  const transformProductData = useCallback((product) => ({
+    id: product.product_id,
+    name: product.name,
+    price: product.price,
+    originalPrice: undefined,
+    image: product.image_urls?.[0] || '/placeholder-product.jpg',
+    rating: product.rating || 4,
+    reviews: 0,
+    discount: undefined,
+    category: product.categories || '',
+    inStock: (product.stock || 0) > 0,
+  }), []);
+  
+  // Loading skeleton
+  const loadingSkeleton = useMemo(() => (
+    <div className={`${gridConfig.padding} bg-gray-50`}>
       {!isMobile && (
-        <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
-          <span className='inline-flex px-2'><TrendingUp size={16} /></span>
+        <div className="border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+          <TrendingUp size={16} className="mr-2" />
           HOT DEALS
-        </h2>
+        </div>
       )}
-      <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-        {Array.from({ length: visibleProductsCount || (isMobile ? initialMobileCount : initialDesktopCount) }).map((_, i) => (
+      <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
+        {Array.from({ length: pageSize }).map((_, i) => (
           <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
         ))}
       </div>
     </div>
-  );
-
-  if (isLoading) {
-    return loadingSkeleton;
+  ), [gridConfig, pageSize, isMobile]);
+  
+  // Error state
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Failed to load products
+        </h3>
+        <p className="text-gray-600 text-center mb-4">
+          {error?.message || 'Something went wrong while fetching products.'}
+        </p>
+        <Button 
+          onClick={() => window.location.reload()} 
+          variant="outline"
+          className="flex items-center"
+        >
+          Try Again
+        </Button>
+      </div>
+    );
   }
-
-  // Check if there are more products to show
-  const hasMoreProducts = products && visibleProductsCount < products.length;
-
+  
+  // Initial loading state
+  if (isLoading) {
+    return (
+      <LazySection fallback={loadingSkeleton}>
+        {loadingSkeleton}
+      </LazySection>
+    );
+  }
+  
+  // No products state
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No featured products found
+          </h3>
+          <p className="text-gray-600">
+            Check back later for exciting deals and offers.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`px-0 lg:px-1 bg-white ${!isMobile ? 'pt-4' : ''}`}>
-        <div className="*lg:px-0 *md:px-0 *sm:px-0 px-2 bg-white /container">
-          {/* Products Grid */}
+      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4' : ''}`}>
+        <div className="bg-white">
+          {/* Section Header - Desktop only */}
           {!isMobile && (
-            <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
-              <span className='inline-flex px-2'><TrendingUp size={16} /></span>
+            <div className="border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+              <TrendingUp size={16} className="mr-2" />
               HOT DEALS
-            </h2>
+              {totalCount > 0 && (
+                <span className="ml-auto text-xs text-gray-500">
+                  Showing {products.length} of {totalCount} products
+                </span>
+              )}
+            </div>
           )}
           
-          <div className={`grid ${gridCols} shadow-sm gap-1 ${!isMobile ? 'bg-white' : 'bg-gray-50'}`}>
-            {products?.slice(0, visibleProductsCount).map(product => {
-              const productCardData = {
-                id: product.product_id,
-                name: product.name,
-                price: product.price,
-                originalPrice: undefined,
-                image: (product as any).image_urls?.[0],
-                rating: product.rating || 4,
-                reviews: 0,
-                discount: undefined,
-                category: product.categories ?? '',
-                inStock: true,
-              };
-              return (
-                <ProductCard 
-                  key={product.product_id} 
-                  product={productCardData} 
-                />
-              );
-            })}
+          {/* Products Grid */}
+          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} ${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
+            {products.map((product, index) => (
+              <ProductCard 
+                key={`${product.product_id}-${index}`}
+                product={transformProductData(product)}
+              />
+            ))}
           </div>
 
-          {/* Desktop Show More Button */}
-          {!isMobile && hasMoreProducts && (
-            <div className="flex justify-center py-4">
-              <button 
-                onClick={handleShowMore}
-                disabled={isLoadingMore}
-                className='flex items-center justify-center text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors duration-200 mx-auto px-6 py-3 bg-white shadow-sm hover:shadow-md border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed'
+          {/* Desktop Load More Button */}
+          {!isMobile && hasNextPage && (
+            <div className="flex justify-center py-6">
+              <Button 
+                onClick={handleLoadMore}
+                disabled={isFetchingNextPage}
+                variant="outline"
+                className="flex items-center px-6 py-3 text-sm font-semibold transition-all duration-200 hover:shadow-md"
               >
-                {isLoadingMore ? (
+                {isFetchingNextPage ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Loading...
                   </>
                 ) : (
                   <>
-                    Show More
+                    Load More Products
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           )}
           
           {/* Mobile Loading Indicator */}
-          {isMobile && isLoadingMore && (
-            <div className="flex justify-center py-4">
+          {isMobile && isFetchingNextPage && (
+            <div className="flex justify-center py-6">
               <div className="flex items-center text-gray-600">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading more products...
@@ -164,10 +217,12 @@ const EnhancedFeaturedProducts = memo(() => {
             </div>
           )}
           
-          {/* End of products message */}
-          {!hasMoreProducts && products && products.length > 0 && (
-            <div className="text-center py-4 text-gray-500 text-sm">
-              {isMobile ? "You've reached the end of products" : "All products displayed"}
+          {/* End of products indicator */}
+          {!hasNextPage && products.length > 0 && (
+            <div className="text-center py-6">
+              <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600">
+                {isMobile ? "You've seen all products" : `All ${products.length} products displayed`}
+              </div>
             </div>
           )}
         </div>
@@ -175,6 +230,32 @@ const EnhancedFeaturedProducts = memo(() => {
     </LazySection>
   );
 });
+
+// Utility function for throttling
+function throttle(func, wait) {
+  let timeout;
+  let previous = 0;
+  
+  return function executedFunction(...args) {
+    const now = Date.now();
+    const remaining = wait - (now - previous);
+    
+    if (remaining <= 0 || remaining > wait) {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      previous = now;
+      func.apply(this, args);
+    } else if (!timeout) {
+      timeout = setTimeout(() => {
+        previous = Date.now();
+        timeout = null;
+        func.apply(this, args);
+      }, remaining);
+    }
+  };
+}
 
 EnhancedFeaturedProducts.displayName = 'EnhancedFeaturedProducts';
 
