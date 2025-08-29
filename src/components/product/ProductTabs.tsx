@@ -250,7 +250,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
           role="tablist"
           aria-label="Product information tabs"
         >
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w mx-auto">
             <div className="grid grid-cols-3 gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg">
               {[
                 { key: 'specifications', label: 'Specifications', count: Object.keys(specifications).length },
@@ -261,7 +261,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   key={tab.key}
                   onClick={() => scrollToSection(tab.key)}
                   onKeyDown={(e) => handleKeyDown(e, tab.key)}
-                  className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium rounded-md transition-all duration-200 ${
                     activeTab === tab.key
                       ? 'bg-white text-blue-600 shadow-sm scale-105'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
@@ -606,18 +606,6 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                                   ))}
                               </div>
                             )}
-                            
-                            {/* Review Actions */}
-                            <div className="flex items-center gap-2 md:gap-4 pt-4 border-t">
-                              <Button variant="ghost" size="sm" className="text-gray-600 text-xs md:text-sm">
-                                <ThumbsUp size={12} className="mr-1" />
-                                Helpful
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-gray-600 text-xs md:text-sm">
-                                <ThumbsDown size={12} className="mr-1" />
-                                Not helpful
-                              </Button>
-                            </div>
                           </CardContent>
                         </Card>
                       ))}

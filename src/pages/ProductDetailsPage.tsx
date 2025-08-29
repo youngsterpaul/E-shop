@@ -348,7 +348,7 @@ const ProductDetailsPage = () => {
 
         {/* Breadcrumb */}
           {!isMobile && (
-            <div className='min-w-0'>
+            <div className='min-w-0 hidden'>
               <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
             </div>
           )}
@@ -426,11 +426,13 @@ const ProductDetailsPage = () => {
               )}
 
               {/* Additional Info */}
+              {isMobile && (
               <div className="text-sm text-gray-600 space-y-1">
                 <p>✓ Free shipping on orders over KES 10,000</p>
                 <p>✓ 7-days return policy</p>
                 <p>✓ Secure payment options</p>
               </div>
+              )}
             </div>
           </div>
           

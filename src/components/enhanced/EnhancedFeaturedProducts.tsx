@@ -23,7 +23,7 @@ const EnhancedFeaturedProducts = memo(() => {
   const loadMoreMobileCount = 15; // Load 15 more products on mobile
   
   // Grid layout
-  const gridCols = isMobile ? "grid-cols-2" : "grid-cols-6";
+  const gridCols = isMobile ? "grid-cols-2" : "grid-cols-8";
   
   // Initialize visible products count
   useEffect(() => {
@@ -74,7 +74,7 @@ const EnhancedFeaturedProducts = memo(() => {
   }, [isMobile, handleScroll]);
   
   const loadingSkeleton = (
-    <div className="pb-8 px-2 lg:px-16 bg-gray-50 ">
+    <div className="pb-8 px-2 /lg:px-16 bg-gray-50 ">
       {!isMobile && (
         <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
           <span className='inline-flex px-2'><TrendingUp size={16} /></span>
@@ -98,8 +98,8 @@ const EnhancedFeaturedProducts = memo(() => {
 
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`px-0 lg:px-1 bg-gray-50 ${!isMobile ? 'pt-4' : ''}`}>
-        <div className="*lg:px-0 *md:px-0 *sm:px-0 px-2 bg-white container">
+      <section className={`px-0 lg:px-1 bg-white ${!isMobile ? 'pt-4' : ''}`}>
+        <div className="*lg:px-0 *md:px-0 *sm:px-0 px-2 bg-white /container">
           {/* Products Grid */}
           {!isMobile && (
             <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold">
@@ -108,7 +108,7 @@ const EnhancedFeaturedProducts = memo(() => {
             </h2>
           )}
           
-          <div className={`grid ${gridCols} bg-gray-50 shadow-sm gap-1`}>
+          <div className={`grid ${gridCols} shadow-sm gap-1 ${!isMobile ? 'bg-white' : 'bg-gray-50'}`}>
             {products?.slice(0, visibleProductsCount).map(product => {
               const productCardData = {
                 id: product.product_id,

@@ -212,16 +212,16 @@ const AddToCartSection = ({
           variant="outline"
           size="lg"
           onClick={handleWishlist}
-          className={`h-12 w-12 p-0 ${
+          className={`h-12 w-auto px-4 flex items-center gap-2 ${
             isInWishlistState 
               ? 'text-red-500 border-red-500 bg-red-50 hover:bg-red-100' 
               : 'hover:text-red-500 hover:border-red-500'
           }`}
         >
-          <Heart 
-            className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} 
-          />
+          <Heart className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} />
+          {isInWishlistState ? 'Wishlisted' : 'Add to Wishlist'}
         </Button>
+
         
         <Button
           variant="outline"
@@ -230,6 +230,7 @@ const AddToCartSection = ({
           className="h-12 w-12 p-0"
         >
           <Share2 className="h-5 w-5" />
+          
         </Button>
       </div>
     </div>
