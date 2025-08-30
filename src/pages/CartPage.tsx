@@ -14,7 +14,7 @@ import MobileNav from '@/components/MobileNav';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 
 const CartPage = () => {
-  const { cartItems, loading, isCartEmpty } = useCartContext();
+  const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
   const { 
     selectedItems, 
     isAllSelected, 
@@ -24,6 +24,12 @@ const CartPage = () => {
   } = useSelectiveCart();
   
   const isMobile = isMobileUserAgent();
+
+  // Refetch cart data when component mounts to ensure fresh data
+  useEffect(() => {
+    console.log('CartPage mounted, refetching cart data');
+    refetch();
+  }, [refetch]);
 
   // Memoized handlers
   const handleSelectAll = useCallback((selectAll: boolean) => {
