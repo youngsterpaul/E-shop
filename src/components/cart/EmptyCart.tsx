@@ -51,7 +51,7 @@ const EmptyCart = () => {
 
         {/* Featured Products Section */}
         <div className="mx-aut">
-          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mx-2">You might also like</h2>
           {isLoading ? (
             <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (
