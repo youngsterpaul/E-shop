@@ -201,8 +201,9 @@ const SearchPage = () => {
             />
             <Button
               type="button"
+              variant="ghost"
               onClick={() => handleSubmit()}
-              className="h-8  //hover:bg-gray-100 px-3"
+              className="h-8 px-3"
               aria-label="Search"
             >
               <Search className="text-gray-800 h-4 w-4" />
@@ -214,7 +215,7 @@ const SearchPage = () => {
 
       {/* Search Results */}
       <div className={`w-full ${!isMobile ? 'px-4 xl:px-16' : 'px-0'} mx-auto`}>
-        <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
+        <div className={`flex gap-6 ${isMobile ? 'flex-row' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && products && products.products && products.products.length > 0 && (
             <div className="w-72 flex-shrink-0">
