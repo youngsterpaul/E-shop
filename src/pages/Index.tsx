@@ -57,8 +57,11 @@ const Index = () => {
         <main className={`flex-grow`}>
           <div className={`${!isMobile ? 'min-w-max' : ''}`}>
             <Header />
-            <EnhancedHeroSection />
-            <CategoryIcons />
+            <div className="relative">
+              <EnhancedHeroSection />
+              {!isMobile && <CategoryIcons />}
+            </div>
+            {isMobile && <CategoryIcons />}
             <EnhancedFeaturedProducts />
             <Footer />
           </div>

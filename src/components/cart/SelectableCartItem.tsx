@@ -284,7 +284,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 text-sm md:text-base mb-1 trancate">
+          <h3 className="font-medium text-gray-900 text-sm md:text-base mb-1 truncate">
             {item.product.name}
           </h3>
           
