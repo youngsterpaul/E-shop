@@ -235,7 +235,7 @@ const SearchPage = () => {
                   <span className="ml-3 text-gray-600">Searching products...</span>
                 </div>
                 
-                <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+                <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
@@ -262,7 +262,7 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <p className="text-gray-600 text-lg">
                       <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
@@ -289,7 +289,7 @@ const SearchPage = () => {
                   />
                 </div>
                 
-                <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+                <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
                   {paginatedProducts.map((product) => {
                     const productData = {
                       id: product.product_id,
