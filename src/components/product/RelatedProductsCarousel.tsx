@@ -56,10 +56,10 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
 
   return (
     <div className="mt-12">
-      <div className="mx-auto mx-2">
+      <div className="mx-auto">
         {/* Header with title and navigation */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
+          <h2 className="text-2xl font-bold text-gray-900 px-2">You might also like</h2>
           
           {products.length > 8 && (
             <div className="flex gap-2">
@@ -88,7 +88,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
 
         {/* Products Grid */}
-        <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+        <div className={`grid ${gridCols} bg-white gap-2 shadow-sm p-2`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
               id: product.product_id,
