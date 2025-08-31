@@ -161,7 +161,7 @@ export const useCart = () => {
     }
   }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
 
-  // Set up real-time subscription - COMPLETELY REWRITTEN
+  // Set up real-time subscription - IMPROVED VERSION
   useEffect(() => {
     console.log('Setting up subscription effect, cart:', cart?.id, 'isSubscribed:', isSubscribedRef.current);
     
@@ -194,28 +194,10 @@ export const useCart = () => {
           (payload) => {
             console.log('🔥 Real-time change received:', payload);
             
-            // Handle different types of changes
-            if (payload.eventType === 'INSERT') {
-              console.log('Adding new item to cart');
-              // We need to fetch the full item with product details
+            // Always refetch to ensure consistency
+            setTimeout(() => {
               fetchCartItems(cart.id).catch(console.error);
-            } else if (payload.eventType === 'UPDATE') {
-              console.log('Updating cart item');
-              const newItem = payload.new as any;
-              setCartItems(prevItems => 
-                prevItems.map(item => 
-                  item.id === newItem.id 
-                    ? { ...item, quantity: newItem.quantity, variant_selections: newItem.variant_selections }
-                    : item
-                )
-              );
-            } else if (payload.eventType === 'DELETE') {
-              console.log('Removing cart item');
-              const oldItem = payload.old as any;
-              setCartItems(prevItems => 
-                prevItems.filter(item => item.id !== oldItem.id)
-              );
-            }
+            }, 100); // Small delay to ensure database consistency
           }
         )
         .subscribe((status) => {

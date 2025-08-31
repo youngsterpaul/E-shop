@@ -271,7 +271,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   aria-controls={`${tab.key}-panel`}
                   tabIndex={0}
                 >
-                  <span className="block md:hidden">{tab.key.charAt(0).toUpperCase()}</span>
+                  <span className="block md:hidden">{tab.key}</span>
                   <span className="hidden md:block">
                     {tab.label}
                     {isMobile && tab.key === 'reviews' && totalReviews > 0 && (

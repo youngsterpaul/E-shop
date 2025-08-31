@@ -183,7 +183,7 @@ const AddToCartSection = ({
         <Button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
-          className={`flex-1 h-12 text-base font-semibold transition-all duration-200 ${
+          className={`h-12 text-base font-semibold transition-all duration-200 ${
             showSuccess 
               ? 'bg-green-500 hover:bg-green-600' 
               : 'bg-orange-500 hover:bg-orange-600'

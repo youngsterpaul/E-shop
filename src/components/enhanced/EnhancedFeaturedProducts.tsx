@@ -37,7 +37,7 @@ const EnhancedFeaturedProducts = memo(() => {
       };
     }
     return {
-      cols: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6",
+      cols: "grid-cols-6 xl:grid-cols-8",
       gap: "gap-1",
       padding: "px-0 lg:px-1"
     };
@@ -112,7 +112,7 @@ const EnhancedFeaturedProducts = memo(() => {
   // Error state
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
+      <div className="flex flex-col items-center justify-center py-12">
         <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Failed to load products
@@ -232,26 +232,26 @@ const EnhancedFeaturedProducts = memo(() => {
 });
 
 // Utility function for throttling
-function throttle(func, wait) {
-  let timeout;
+function throttle<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | null;
   let previous = 0;
-  
-  return function executedFunction(...args) {
+
+  return (...args: Parameters<T>) => {
     const now = Date.now();
     const remaining = wait - (now - previous);
-    
+
     if (remaining <= 0 || remaining > wait) {
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;
       }
       previous = now;
-      func.apply(this, args);
+      func(...args);
     } else if (!timeout) {
       timeout = setTimeout(() => {
         previous = Date.now();
         timeout = null;
-        func.apply(this, args);
+        func(...args);
       }, remaining);
     }
   };
