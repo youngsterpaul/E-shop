@@ -23,10 +23,8 @@ const SearchPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState(24);
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 200000],
-    brands: [],
     specifications: {},
     ratings: [],
-    features: [],
   });
   
   const { searchProducts } = useProducts();
@@ -170,10 +168,8 @@ const SearchPage = () => {
 
   // Calculate active filters count for mobile sheet
   const activeFiltersCount = 
-    filters.brands.length + 
     Object.values(filters.specifications).flat().length +
     filters.ratings.length + 
-    filters.features.length +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0);
 
   useEffect(() => {
