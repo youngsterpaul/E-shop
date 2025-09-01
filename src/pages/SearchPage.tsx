@@ -263,14 +263,14 @@ const SearchPage = () => {
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className="space-y-6">
                 <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4 px-4' : ''}`}>
-                <p className="text-gray-600 text-lg">
+                <p className={`${isMobile ? 'mx-2 mt-28':''} text-gray-600 text-lg`}>
                   <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
                   {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
                   {searchQuery && (
                     <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
                   )}
                 </p>
-                <div className="grid grid-cols-2 items-center /justify-between gap-4 px-2">      
+                <div className="grid grid-cols-2 items-center justify-between space-x-4 gap-4 px-2">      
                   <ProductSort 
                   sortOption={sortOption} 
                   onSortChange={handleSortChange}
