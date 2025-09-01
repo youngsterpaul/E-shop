@@ -270,7 +270,7 @@ const SearchPage = () => {
                     <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
                   )}
                 </p>
-                <div className="grid grid-cols-2 items-center justify-between gap-4 px-2">      
+                <div className="grid grid-cols-2 items-center /justify-between gap-4 px-2">      
                   <ProductSort 
                   sortOption={sortOption} 
                   onSortChange={handleSortChange}
@@ -288,7 +288,7 @@ const SearchPage = () => {
                 </div>
                 </div>
                 
-                <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
+                <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 p-2 shadow-sm`}>
                   {paginatedProducts.map((product) => {
                     const productData = {
                       id: product.product_id,
