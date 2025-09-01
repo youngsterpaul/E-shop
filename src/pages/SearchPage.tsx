@@ -265,7 +265,7 @@ const SearchPage = () => {
                 <div className="flex flex-col /sm:flex-row sm:items-center justify-between gap-4 px-4">
                   <div className="flex flex-col /sm:flex-row sm:items-center gap-2">
                     <p className="text-gray-600 text-lg">
-                      <span className="font-semibold text-gray-900 mt-4">{sortedProducts.length}</span> 
+                      <span className="font-semibold text-gray-900 mt-62">{sortedProducts.length}</span> 
                       {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
                       {searchQuery && (
                         <span> for "<span className="font-medium text-orange-600">{searchQuery.split('(')[0].trim()}</span>"</span>
