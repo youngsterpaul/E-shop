@@ -7,26 +7,9 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/contexts/CartContext';
 import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
-import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
-import { CookieConsent } from '@/components/CookieConsent';
-import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
-import { OfflineIndicator } from '@/components/OfflineIndicator';
-import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
-import { ProductionAnalytics } from '@/components/ProductionAnalytics';
-import { useErrorReporting } from '@/hooks/useErrorReporting';
 //import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App.tsx';
 import './index.css';
-
-const AppWithAnalytics = () => {
-  useErrorReporting();
-  return (
-    <>
-      <App />
-      <ProductionAnalytics />
-    </>
-  );
-};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,26 +22,20 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <GlobalErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <CartProvider>
-                <SelectiveCartProvider>
-                  <CheckoutProvider>
-                    <AccessibilitySkipLink />
-                    <AppWithAnalytics />
-                    <CookieConsent />
-                    <PWAInstallPrompt />
-                    <OfflineIndicator />
-                  </CheckoutProvider>
-                </SelectiveCartProvider>
-              </CartProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </GlobalErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <CartProvider>
+              <SelectiveCartProvider>
+                <CheckoutProvider>
+                  <App />
+                </CheckoutProvider>
+              </SelectiveCartProvider>
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   </StrictMode>
 );

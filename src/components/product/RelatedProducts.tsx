@@ -17,9 +17,7 @@ const RelatedProducts = ({ currentProduct }: RelatedProductsProps) => {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchProducts().then((result) => {
-      setProducts(result.products || []);
-    });
+    fetchProducts().then(setProducts);
   }, [fetchProducts]);
 
   const relatedProducts = products
