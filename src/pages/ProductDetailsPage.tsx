@@ -341,15 +341,12 @@ const ProductDetailsPage = () => {
               </Button>
             </div>
           }
-        />)}          
-        
-
-        <main className={`${isMobile ? 'pb-16' : 'py-6container mx-auto'}`}>
-
-        {/* Breadcrumb */}
+        />)}
+        <main className={`${isMobile ? 'pb-16' : 'py-6 container mx-auto'}`}>
+          {/* Breadcrumb */}
           {!isMobile && (
-            <div className='min-w-0 hidden'>
-              <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
+            <div className='min-w-0'>
+              <SiteBreadcrumb items={breadcrumbItems} className="mb-6 truncate" />
             </div>
           )}
 
@@ -361,7 +358,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Product Information */}
-            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-1/2'}`}>
+            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-2/3'}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -426,13 +423,11 @@ const ProductDetailsPage = () => {
               )}
 
               {/* Additional Info */}
-              {isMobile && (
               <div className="text-sm text-gray-600 space-y-1">
                 <p>✓ Free shipping on orders over KES 10,000</p>
                 <p>✓ 7-days return policy</p>
                 <p>✓ Secure payment options</p>
               </div>
-              )}
             </div>
           </div>
           

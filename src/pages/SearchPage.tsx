@@ -32,10 +32,10 @@ const SearchPage = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-4 xl:grid-cols-6";
+    : "grid-cols-6";
 
   // Apply filters to products
-  const filteredProducts = useProductFiltering(products?.products, filters);
+  const filteredProducts = useProductFiltering(products, filters);
 
   // Sort products based on selected option
   const sortedProducts = useMemo(() => {
@@ -213,13 +213,13 @@ const SearchPage = () => {
       </div>
 
       {/* Search Results */}
-      <div className={`w-full ${!isMobile ? 'px-4 xl:px-16' : 'px-0'} mx-auto`}>
+      <div className={`w-full ${!isMobile ? 'px-4 lg:px-16' : 'px-0'} mx-auto`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
-          {!isMobile && products && products.products && products.products.length > 0 && (
+          {!isMobile && products && products.length > 0 && (
             <div className="w-72 flex-shrink-0">
               <SearchFilters 
-                products={products?.products || []} 
+                products={products} 
                 onFiltersChange={handleFiltersChange}
               />
             </div>
@@ -272,9 +272,9 @@ const SearchPage = () => {
                     </p>
                     
                     {/* Mobile Filter Button */}
-                    {isMobile && products && products.products && products.products.length > 0 && (
+                    {isMobile && products && products.length > 0 && (
                       <MobileFilterSheet
-                        products={products.products}
+                        products={products}
                         onFiltersChange={handleFiltersChange}
                         activeFiltersCount={activeFiltersCount}
                       />
@@ -328,7 +328,7 @@ const SearchPage = () => {
                   />
                 )}
               </div>
-            ) : products && products.products && products.products.length > 0 && sortedProducts.length === 0 ? (
+            ) : products && products.length > 0 && sortedProducts.length === 0 ? (
               <div className="text-center py-16 px-4">
                 <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto">
                   <div className="text-gray-400 mb-4">
@@ -342,7 +342,7 @@ const SearchPage = () => {
                   </p>
                   {isMobile && (
                     <MobileFilterSheet
-                      products={products.products}
+                      products={products}
                       onFiltersChange={handleFiltersChange}
                       activeFiltersCount={activeFiltersCount}
                     />

@@ -183,7 +183,7 @@ const AddToCartSection = ({
         <Button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
-          className={`h-12 text-base font-semibold transition-all duration-200 ${
+          className={`flex-1 h-12 text-base font-semibold transition-all duration-200 ${
             showSuccess 
               ? 'bg-green-500 hover:bg-green-600' 
               : 'bg-orange-500 hover:bg-orange-600'
@@ -212,16 +212,16 @@ const AddToCartSection = ({
           variant="outline"
           size="lg"
           onClick={handleWishlist}
-          className={`h-12 w-auto px-4 flex items-center gap-2 ${
+          className={`h-12 w-12 p-0 ${
             isInWishlistState 
               ? 'text-red-500 border-red-500 bg-red-50 hover:bg-red-100' 
               : 'hover:text-red-500 hover:border-red-500'
           }`}
         >
-          <Heart className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} />
-          {isInWishlistState ? 'Wishlisted' : 'Add to Wishlist'}
+          <Heart 
+            className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} 
+          />
         </Button>
-
         
         <Button
           variant="outline"
@@ -230,7 +230,6 @@ const AddToCartSection = ({
           className="h-12 w-12 p-0"
         >
           <Share2 className="h-5 w-5" />
-          
         </Button>
       </div>
     </div>
