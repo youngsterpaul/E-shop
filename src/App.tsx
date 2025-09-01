@@ -62,7 +62,8 @@ function App() {
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
         <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
+          <main id="main-content">
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/category" element={<OptimizedProductsPage />} />
@@ -108,8 +109,9 @@ function App() {
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            </Routes>
+          </main>
+        </Suspense>
         
       {/* Global Checkout Modal */}
       <CheckoutModal />
