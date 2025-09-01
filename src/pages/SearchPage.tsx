@@ -270,7 +270,7 @@ const SearchPage = () => {
                     <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
                   )}
                 </p>
-                <div className="grid grid-cols-2 sm:items-center justify-between px-2">      
+                <div className="grid grid-cols-2 items-center justify-between gap-4 px-2">      
                   <ProductSort 
                   sortOption={sortOption} 
                   onSortChange={handleSortChange}
