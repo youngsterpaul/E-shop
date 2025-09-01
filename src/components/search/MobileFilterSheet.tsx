@@ -14,7 +14,7 @@ interface MobileFilterSheetProps {
 const MobileFilterSheet = ({ products, onFiltersChange, activeFiltersCount }: MobileFilterSheetProps) => {
   return (
     <Sheet>
-      <SheetTrigger asChild className='w-24'>
+      <SheetTrigger asChild className='w-28'>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
           <Filter className="h-4 w-4" />
           Filter
