@@ -14,14 +14,7 @@ const ChatPage = () => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
   const [isVisible, setIsVisible] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState(null);
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/contact');
-    }
-    setIsVisible(true);
-  }, [user, navigate]);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   if (!isMobile) {
     return null;
