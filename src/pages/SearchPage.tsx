@@ -262,31 +262,30 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <p className="text-gray-600 text-lg">
-                      <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
-                      {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
-                      {searchQuery && (
-                        <span> for "<span className="font-medium text-orange-600">{searchQuery.split('(')[0].trim()}</span>"</span>
-                      )}
-                    </p>
-                    
-                    {/* Mobile Filter Button */}
-                    {isMobile && products && products.products && products.products.length > 0 && (
-                      <MobileFilterSheet
-                        products={products.products}
-                        onFiltersChange={handleFiltersChange}
-                        activeFiltersCount={activeFiltersCount}
-                      />
-                    )}
-                  </div>
-                  
-                  <ProductSort 
-                    sortOption={sortOption} 
-                    onSortChange={handleSortChange}
-                    className="w-48"
-                  />
+                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4 px-4' : ''}`}>
+                <p className="text-gray-600 text-lg">
+                  <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
+                  {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
+                  {searchQuery && (
+                    <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
+                  )}
+                </p>
+                <div className="grid grid-cols-2 sm:items-center justify-between gap-4 px-4">      
+                  {/* Mobile Filter Button */}
+                  {isMobile && products && products.products && products.products.length > 0 && (
+                    <MobileFilterSheet
+                      products={products.products}
+                      onFiltersChange={handleFiltersChange}
+                      activeFiltersCount={activeFiltersCount}
+                    />
+                  )}
+                
+                <ProductSort 
+                  sortOption={sortOption} 
+                  onSortChange={handleSortChange}
+                  className="w-48"
+                />
+                </div>
                 </div>
                 
                 <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
