@@ -261,7 +261,7 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
-              <div className="space-y-6">
+              <div className={`${!isMobile ? 'space-y-6':'space-y-2'}`}>
                 <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4 px-4' : ''}`}>
                 <p className={`${isMobile ? 'mx-2 mt-4':''} text-gray-600 text-lg`}>
                   <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
