@@ -16,6 +16,10 @@ const ChatPage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
+  useEffect(() => {
+    setIsVisible(true);
+  }, [user, navigate]);
+
   if (!isMobile) {
     return null;
   }
