@@ -8,8 +8,8 @@ import { CartProvider } from '@/contexts/CartContext';
 import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
-import { CookieConsent } from '@/components/CookieConsent';
-import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+//import { CookieConsent } from '@/components/CookieConsent';
+//import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
@@ -49,8 +49,8 @@ createRoot(document.getElementById('root')!).render(
                   <CheckoutProvider>
                     <AccessibilitySkipLink />
                     <AppWithAnalytics />
-                    <CookieConsent />
-                    <PWAInstallPrompt />
+                    {/* <CookieConsent /> */}
+                    {/* <PWAInstallPrompt /> */}
                     <OfflineIndicator />
                   </CheckoutProvider>
                 </SelectiveCartProvider>
