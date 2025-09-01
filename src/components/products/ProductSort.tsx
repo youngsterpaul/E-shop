@@ -15,7 +15,7 @@ interface ProductSortProps {
 
 const ProductSort = ({ sortOption, onSortChange, className = '' }: ProductSortProps) => {
   return (
-    <div className={`w-48 ${className}`}>
+    <div className={`w-24 ${className}`}>
       <Select value={sortOption} onValueChange={onSortChange}>
         <SelectTrigger>
           <SelectValue placeholder="Sort by" />
