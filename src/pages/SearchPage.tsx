@@ -271,6 +271,12 @@ const SearchPage = () => {
                   )}
                 </p>
                 <div className="grid grid-cols-2 sm:items-center justify-between px-2">      
+                  <ProductSort 
+                  sortOption={sortOption} 
+                  onSortChange={handleSortChange}
+                  className="w-48"
+                 />
+                  
                   {/* Mobile Filter Button */}
                   {isMobile && products && products.products && products.products.length > 0 && (
                     <MobileFilterSheet
@@ -279,12 +285,6 @@ const SearchPage = () => {
                       activeFiltersCount={activeFiltersCount}
                     />
                   )}
-                
-                <ProductSort 
-                  sortOption={sortOption} 
-                  onSortChange={handleSortChange}
-                  className="w-48"
-                />
                 </div>
                 </div>
                 
