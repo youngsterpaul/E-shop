@@ -23,7 +23,7 @@ const heroSlides: HeroSlide[] = [
     title: "Summer Tech Sale",
     subtitle: "Latest Gadgets & Electronics",
     description: "Up to 50% off on premium electronics. Free delivery on orders over KES 10,000.",
-    image: "/hero3.webp",
+    image: "/hero1.webp",
     buttonText: "Shop Now",
     buttonLink: "/products",
     badge: "50% OFF"
@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
     title: "New Arrivals",
     subtitle: "Cutting-Edge Technology",
     description: "Discover the latest innovations in tech. Premium quality, best prices guaranteed.",
-    image: "/hero3.webp",
+    image: "/hero2.webp",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
