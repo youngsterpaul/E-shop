@@ -38,27 +38,25 @@ const queryClient = new QueryClient({
 });
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <GlobalErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <CartProvider>
-                <SelectiveCartProvider>
-                  <CheckoutProvider>
-                    <AccessibilitySkipLink />
-                    <AppWithAnalytics />
-                    <CookieConsent />
-                    <PWAInstallPrompt />
-                    <OfflineIndicator />
-                  </CheckoutProvider>
-                </SelectiveCartProvider>
-              </CartProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </GlobalErrorBoundary>
-  </StrictMode>
+  <GlobalErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <CartProvider>
+              <SelectiveCartProvider>
+                <CheckoutProvider>
+                  <AccessibilitySkipLink />
+                  <AppWithAnalytics />
+                  <CookieConsent />
+                  <PWAInstallPrompt />
+                  <OfflineIndicator />
+                </CheckoutProvider>
+              </SelectiveCartProvider>
+            </CartProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </GlobalErrorBoundary>
 );
