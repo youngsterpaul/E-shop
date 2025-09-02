@@ -53,8 +53,26 @@ export const useCart = () => {
     return sessionId;
   }, []);
 
-  // Get or create cart - memoized
-  const getOrCreateCart = useCallback(async () => {
+  // Get existing cart without creating
+  const getExistingCart = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('carts')
+        .select('*')
+        .eq(user?.id ? 'user_id' : 'session_id', user?.id || getSessionId())
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting existing cart:', error);
+      return null;
+    }
+  }, [user?.id, getSessionId]);
+
+  // Create cart only when needed (when adding items)
+  const createCartForItem = useCallback(async () => {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
         p_user_id: user?.id || undefined,
@@ -64,7 +82,7 @@ export const useCart = () => {
       if (error) throw error;
       return data;
     } catch (error: any) {
-      console.error('Error getting/creating cart:', error);
+      console.error('Error creating cart:', error);
       return null;
     }
   }, [user?.id, getSessionId]);
@@ -113,7 +131,7 @@ export const useCart = () => {
     }
   }, []);
 
-  // Fetch cart and cart items - optimized with duplicate prevention
+  // Fetch existing cart and items - no auto-creation
   const fetchCart = useCallback(async () => {
     // Prevent multiple simultaneous fetches
     if (isFetchingRef.current) {
@@ -128,25 +146,23 @@ export const useCart = () => {
     isFetchingRef.current = true;
     
     try {
-      // Get or create cart
-      const cartId = await getOrCreateCart();
-      if (!cartId) {
+      // Only get existing cart, don't create
+      const existingCart = await getExistingCart();
+      if (!existingCart) {
+        // No cart exists, set empty state
+        setCart(null);
+        setCartItems([]);
         setLoading(false);
         return;
       }
 
-      // Fetch both cart details and items in parallel
-      const [cartResponse] = await Promise.all([
-        supabase.from('carts').select('*').eq('id', cartId).single(),
-        fetchCartItems(cartId) // This will update cartItems state
-      ]);
-
-      if (cartResponse.error) throw cartResponse.error;
+      // Fetch cart items
+      await fetchCartItems(existingCart.id);
       
       const typedCartData: Cart = {
-        ...cartResponse.data,
-        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned',
-        currency: 'KES' // Default currency since it's not in database
+        ...existingCart,
+        status: existingCart.status as 'active' | 'checkout' | 'completed' | 'abandoned',
+        currency: 'KES'
       };
       
       setCart(typedCartData);
@@ -162,7 +178,7 @@ export const useCart = () => {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
+  }, [user, getSessionId, getExistingCart, fetchCartItems, toast]);
 
   // Set up real-time subscription - FIXED VERSION
   useEffect(() => {
@@ -262,7 +278,8 @@ export const useCart = () => {
 
   const removeFromCart = useCallback(async (itemId: string) => {
     // Optimistic update for immediate UI feedback
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    const updatedItems = cartItems.filter(item => item.id !== itemId);
+    setCartItems(updatedItems);
 
     try {
       const { error } = await supabase
@@ -277,6 +294,12 @@ export const useCart = () => {
         }
         throw error;
       }
+
+      // If no items left, delete the cart
+      if (updatedItems.length === 0 && cart?.id) {
+        await supabase.from('carts').delete().eq('id', cart.id);
+        setCart(null);
+      }
       
       toast({
         title: "Removed from cart",
@@ -290,7 +313,7 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [cart?.id, fetchCartItems, toast]);
+  }, [cart?.id, cartItems, fetchCartItems, toast]);
 
   const addToCart = useCallback(async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
     if (!user && !getSessionId()) {
@@ -303,14 +326,19 @@ export const useCart = () => {
     }
 
     try {
-      const cartId = await getOrCreateCart();
+      // Get existing cart or create new one only when adding items
+      let cartId = cart?.id;
       if (!cartId) {
-        toast({
-          title: "Error",
-          description: "Failed to create cart",
-          variant: "destructive"
-        });
-        return;
+        const newCartId = await createCartForItem();
+        if (!newCartId) {
+          toast({
+            title: "Error",
+            description: "Failed to create cart",
+            variant: "destructive"
+          });
+          return;
+        }
+        cartId = newCartId;
       }
 
       const { data: existingItem, error: checkError } = await supabase
@@ -344,6 +372,11 @@ export const useCart = () => {
       }
 
       if (result.error) throw result.error;
+
+      // If this was the first item and we didn't have a cart, refetch to get the new cart
+      if (!cart?.id) {
+        await fetchCart();
+      }
       
       toast({
         title: "Added to cart",
@@ -357,19 +390,31 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [user, getSessionId, getOrCreateCart, toast]);
+  }, [user, getSessionId, createCartForItem, cart?.id, fetchCart, toast]);
 
   const clearCart = useCallback(async () => {
     if (!cart) return;
 
     try {
-      const { error } = await supabase
+      // Delete all cart items
+      const { error: itemsError } = await supabase
         .from('cart_items')
         .delete()
         .eq('cart_id', cart.id);
 
-      if (error) throw error;
-      // Real-time subscription will handle the update
+      if (itemsError) throw itemsError;
+
+      // Delete the cart itself
+      const { error: cartError } = await supabase
+        .from('carts')
+        .delete()
+        .eq('id', cart.id);
+
+      if (cartError) throw cartError;
+
+      // Clear local state
+      setCart(null);
+      setCartItems([]);
     } catch (error: any) {
       console.error('Error clearing cart:', error);
     }
