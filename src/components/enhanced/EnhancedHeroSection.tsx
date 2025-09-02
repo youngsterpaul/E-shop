@@ -23,7 +23,7 @@ const heroSlides: HeroSlide[] = [
     title: "Summer Tech Sale",
     subtitle: "Latest Gadgets & Electronics",
     description: "Up to 50% off on premium electronics. Free delivery on orders over KES 10,000.",
-    image: "/hero1.webp",
+    image: "/hero3.webp",
     buttonText: "Shop Now",
     buttonLink: "/products",
     badge: "50% OFF"
@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
     title: "New Arrivals",
     subtitle: "Cutting-Edge Technology",
     description: "Discover the latest innovations in tech. Premium quality, best prices guaranteed.",
-    image: "/hero2.webp",
+    image: "/hero3.webp",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
@@ -77,14 +77,14 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'min-h-[30vh]' : 'min-h-[100vh]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'mx-2 rounded-lg' : 'mx-2 rounded-lg mt-4' }`}>
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 aspect-square ">
+      <div className="absolute inset-0 aspect-square/ ">
         <LazyImage
           src={`${currentSlideData.image}`}
           alt={currentSlideData.title}
           priority={true}
-          className="w-full h-full object-fill"
+          className="w-full h-ful object-cov"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>
