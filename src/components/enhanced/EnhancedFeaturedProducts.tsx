@@ -158,7 +158,7 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4' : ''}`}>
+      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4' : ''}`}>
         <div className="bg-white">
           {/* Section Header - Desktop only */}
           {!isMobile && (
@@ -218,6 +218,7 @@ const EnhancedFeaturedProducts = memo(() => {
           )}
           
           {/* End of products indicator */}
+          {/*
           {!hasNextPage && products.length > 0 && (
             <div className="text-center py-6">
               <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600">
@@ -225,6 +226,7 @@ const EnhancedFeaturedProducts = memo(() => {
               </div>
             </div>
           )}
+          */}
         </div>
       </section>
     </LazySection>
