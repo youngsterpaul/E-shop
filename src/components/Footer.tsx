@@ -93,12 +93,12 @@ const Footer = ({ className }: FooterProps) => {
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>
-              <p className="text-center text-gray-900 text-xs leading-relaxed">
-                SmartKenya Your one-stop shop for quality electronics and gadgets. We deliver …
+              <p className="font-semibold text-gray-400 text-xs leading-relaxed">
+                SmartKenya Your one-stop shop for quality electronics and gadgets.
               </p>
             </div>
               
-            <div className="grid grid-cols-6 gap-8 mb-8">
+            <div className="grid grid-cols-6 mb-8">
               
               {/* Dynamic Footer Sections */}
               {footerSections.map((section) => (
