@@ -156,10 +156,14 @@ const ProductDetailsPage = () => {
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
-                <ShoppingCart className="h-4 w-4" />
-                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">0</span>
-              </Button>
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors">
+                <ShoppingCart size={24} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Link>
           </div>
           }
         />
@@ -333,14 +337,14 @@ const ProductDetailsPage = () => {
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
-                <ShoppingCart className="h-4 w-4" />
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors">
+                <ShoppingCart size={24} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
                     {totalItems > 99 ? '99+' : totalItems}
                   </span>
                 )}
-              </Button>
+              </Link>
             </div>
           }
         />)}          
