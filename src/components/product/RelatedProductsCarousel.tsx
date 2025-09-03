@@ -88,7 +88,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
 
         {/* Products Grid */}
-        <div className={`grid ${gridCols} bg-white gap-2 shadow-sm p-2`}>
+        <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 shadow-sm p-2`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
               id: product.product_id,

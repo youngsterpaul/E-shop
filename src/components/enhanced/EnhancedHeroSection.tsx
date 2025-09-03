@@ -77,14 +77,14 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'min-h-[30vh]' : 'min-h-[100vh]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'mx-2 rounded-lg' : 'mx-2 rounded-lg mt-4' }`}>
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 aspect-square ">
+      <div className="absolute inset-0 aspect-square/ ">
         <LazyImage
-          src={`${currentSlideData.image}?auto=format&fit=crop&w=1920&q=80&fm=webp`}
+          src={`${currentSlideData.image}`}
           alt={currentSlideData.title}
           priority={true}
-          className="w-full h-full object-cover"
+          className="w-full h-ful object-cov"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>
