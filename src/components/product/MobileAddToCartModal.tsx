@@ -9,7 +9,7 @@ import { useCart } from '@/hooks/useCart';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { useProductReviews } from '@/hooks/useReviews';
 //import { getCartDisplayAttributes } from '@/data/categoryAttributes';
-import DynamicAttributeSelector from './DynamicAttributeSelector';
+//import DynamicAttributeSelector from './DynamicAttributeSelector';
 import OptimizedImage from '../OptimizedImage';
 
 interface MobileAddToCartModalProps {
@@ -65,10 +65,10 @@ const MobileAddToCartModal = ({
   const totalReviews = reviews.length;
   const averageRating = totalReviews > 0 
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-    : product.rating; // fallback to product.rating if no reviews
+    : 5; // fallback to product.rating if no reviews
 
   // Use real review count or fallback to product.reviews
-  const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 5);
+  const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 0);
 
   // Auto-select first variant for each type when modal opens
   useEffect(() => {
