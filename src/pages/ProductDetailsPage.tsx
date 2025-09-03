@@ -416,7 +416,7 @@ const ProductDetailsPage = () => {
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
-                    name: product.name.split('(')[0].trim(),
+                    name: product.name,
                     price: calculatePrice(),
                     stock: product.stock
                   }}

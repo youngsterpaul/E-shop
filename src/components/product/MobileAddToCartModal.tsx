@@ -68,7 +68,7 @@ const MobileAddToCartModal = ({
     : product.rating; // fallback to product.rating if no reviews
 
   // Use real review count or fallback to product.reviews
-  const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 0);
+  const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 5);
 
   // Auto-select first variant for each type when modal opens
   useEffect(() => {
