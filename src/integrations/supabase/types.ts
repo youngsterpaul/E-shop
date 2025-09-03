@@ -41,73 +41,19 @@ export type Database = {
         }
         Relationships: []
       }
-      brands: {
-        Row: {
-          category_id: number | null
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          logo_url: string | null
-          name: string
-          subcategory_id: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          category_id?: number | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name: string
-          subcategory_id?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          category_id?: number | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
-          name?: string
-          subcategory_id?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brands_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "brands_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       callback_ip_whitelist: {
         Row: {
           created_at: string | null
-          description: string | null
           id: string
           ip_address: unknown
         }
         Insert: {
           created_at?: string | null
-          description?: string | null
           id?: string
           ip_address: unknown
         }
         Update: {
           created_at?: string | null
-          description?: string | null
           id?: string
           ip_address?: unknown
         }
@@ -494,13 +440,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "products_subcategory_id_fkey"
             columns: ["subcategory_id"]
