@@ -39,7 +39,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const isMobile = isMobileUserAgent();
 
   // Mobile header height - adjust based on your mobile header
-  const MOBILE_HEADER_HEIGHT = 64;
+  const MOBILE_HEADER_HEIGHT = 60;
   const DESKTOP_OFFSET = 20;
   const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
 

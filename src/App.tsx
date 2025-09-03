@@ -1,13 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import ErrorBoundary from '@/components/ErrorBoundary';
+//import ErrorBoundary from '@/components/ErrorBoundary';
 import React, { lazy, Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+//import { Toaster } from "@/components/ui/toaster";
+//import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
-import CheckoutModal from '@/components/checkout/CheckoutModal';
-import Header from './components/Header';
+//import CheckoutModal from '@/components/checkout/CheckoutModal';
+//import Header from './components/Header';
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -57,7 +57,7 @@ const OptimizedProductsPage = lazy(() => import("./pages/OptimizedProductsPage")
 
 function App() {
   return (
-    <ErrorBoundary>
+
       <TooltipProvider>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
@@ -113,13 +113,10 @@ function App() {
           </main>
         </Suspense>
         
-      {/* Global Checkout Modal */}
-      <CheckoutModal />
-        
       {/*<Toaster />*/}
       </div>
       </TooltipProvider>
-    </ErrorBoundary>
+
   );
 }
 

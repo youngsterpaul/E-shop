@@ -44,4 +44,3 @@ const RelatedProducts = ({ currentProduct }: RelatedProductsProps) => {
 };
 
 export default RelatedProducts;
-

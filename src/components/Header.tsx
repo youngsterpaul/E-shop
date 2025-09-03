@@ -84,6 +84,10 @@ const Header = () => {
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
     { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
+    { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
+    { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },
+    { label: 'Privacy Policy', href: '/privacy', description: 'Know your privacy at smartkenya' },
+    { label: 'T&C', href: '/terms', description: 'Terms and Conditions of Smartkenya' },
   ];
 
   return (

@@ -147,6 +147,7 @@ const ProductDetailsPage = () => {
         {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Product Details"
+          backTo="/"
           rightAction={
             <div className="space-x-2">
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
@@ -323,6 +324,7 @@ const ProductDetailsPage = () => {
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
+          backTo="/"
           rightAction={
             <div className='space-x-2'>
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
@@ -414,7 +416,7 @@ const ProductDetailsPage = () => {
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
-                    name: product.name.split('(')[0].trim(),
+                    name: product.name,
                     price: calculatePrice(),
                     stock: product.stock
                   }}
