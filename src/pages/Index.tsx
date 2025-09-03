@@ -54,7 +54,7 @@ const Index = () => {
       
       <div className={`min-h-screen flex flex-col bg-gray-50`}>
         <PerformanceMonitor />
-        <main className={`flex-grow`}>
+              <main className="flex-grow mx-auto px-4 container py-8">
           <div className={`${!isMobile ? 'min-w-max' : ''}`}>
             <Header />
             <div className="relative">

@@ -144,7 +144,7 @@ const CategoryIcons = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-6 xl:grid-cols-8";
+    : "grid-cols-6";
 
   const handleCategoryClick = (searchQuery: string) => {
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);

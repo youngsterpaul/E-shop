@@ -145,29 +145,28 @@ const ProductDetailsPage = () => {
     return (
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        {isMobile && <MobileHeader 
-          title="Product Details"
+        {isMobile && (<MobileHeader
+          title={"Product Details"}
           backTo="/"
           rightAction={
-            <div className="space-x-2">
+            <div className='flex items-center gap-2'>
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
                 <Search className="h-4 w-4" />
               </Button>
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors">
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
                 <ShoppingCart size={16} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
                     {totalItems > 99 ? '99+' : totalItems}
                   </span>
                 )}
               </Link>
-          </div>
+            </div>
           }
-        />
-      }
+        />)}
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-6">
@@ -330,24 +329,24 @@ const ProductDetailsPage = () => {
           title={"Product Details"}
           backTo="/"
           rightAction={
-            <div className='space-x-2'>
+            <div className='flex items-center gap-2'>
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
                 <Search className="h-4 w-4" />
               </Button>
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors">
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
                 <ShoppingCart size={16} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
                     {totalItems > 99 ? '99+' : totalItems}
                   </span>
                 )}
               </Link>
             </div>
           }
-        />)}          
+        />)}         
         
 
         <main className={`${isMobile ? 'pb-16' : 'py-6container mx-auto'}`}>
