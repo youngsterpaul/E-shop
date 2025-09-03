@@ -349,7 +349,7 @@ const ProductDetailsPage = () => {
         />)}         
         
 
-      <main className={`${isMobile ? 'pb-16' : 'py-6'} container mx-auto px-4`}>
+      <main className={`${isMobile ? 'pb-16' : 'py-6'} container mx-auto px-2`}>
 
         {/* Breadcrumb */}
           {!isMobile && (
@@ -370,7 +370,7 @@ const ProductDetailsPage = () => {
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                  {(product.name.split('(')[0].trim())}
+                  {product.name}
                 </h1>
                 
                 {product.rating && (
