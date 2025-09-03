@@ -214,7 +214,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
 
   // Desktop Kilimall-exact style layout
   return (
-    <div className="flex gap-6 /max-w-6xl /mx-auto">
+<div className="flex gap-6 w-full max-w-none">
       {/* Desktop Thumbnail Strip - Left Side (Kilimall style) */}
       {allMedia.length > 1 && (
         <div className="flex flex-col gap-3 w-20">
@@ -263,7 +263,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       )}
 
       {/* Desktop Main Image - Right Side */}
-      <div className="flex-1">
+      <div className="flex-1 max-w-lg">
         <div 
           ref={mainImageRef}
           className="relative bg-white overflow-hidden cursor-pointer group border rounded-lg"
