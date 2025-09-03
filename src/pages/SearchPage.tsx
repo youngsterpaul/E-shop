@@ -330,7 +330,7 @@ const SearchPage = () => {
                     <span className="text-sm text-gray-500"> • Loading more...</span>
                   )}
                 </p>
-                <div className="flex items-center justify-between">      
+                <div className={`flex items-center justify-between ${isMobile ? 'px-2':''}`}>      
                   <ProductSort 
                   sortOption={sortOption} 
                   onSortChange={handleSortChange}
