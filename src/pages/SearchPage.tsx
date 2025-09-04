@@ -9,6 +9,7 @@ import SmartPagination from '@/components/ui/pagination';
 import { ArrowLeft, ChevronLeft, Search, Settings } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import { MobileHeader } from '@/components/ui/mobile-header';
 import ProductSort from '@/components/products/ProductSort';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
@@ -31,7 +32,7 @@ const SearchPage = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-4 xl:grid-cols-6";
+    : "grid-cols-5";
 
   // Desktop: Use regular query with pagination
   const desktopQuery = useQuery({
@@ -235,20 +236,24 @@ const SearchPage = () => {
   }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile]);
 
   return (
-    <main className={`w-full min-h-screen flex flex-col bg-gray-50 flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      <div className="mb-8 pb-8">       
-        {isMobile && (
-        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex w-full items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-8 w-8"
-              onClick={handleBack}
-            >
-              <ChevronLeft className="h-4 w-4" />
+      {isMobile && (
+        <MobileHeader 
+          title={'Search Products'}
+          backTo="/"
+          rightAction={
+            <Button variant="ghost" size="sm" className="p-2">
+              <Settings className="h-4 w-4" />
             </Button>
+          }
+        />
+      )}
+      
+      {/* Mobile Search Bar */}
+      {isMobile && (
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex w-full items-center gap-3">
             <EnhancedSearchInput
               value={searchQuery}
               onChange={setSearchQuery}
@@ -267,12 +272,11 @@ const SearchPage = () => {
             </Button>
           </div>
         </div>
-        )}
-      </div>
+      )}
 
-      {/* Search Results */}
-      <div className={`w-full ${!isMobile ? 'px-4 xl:px-16' : 'px-0'} mx-auto`}>
-        <div className={`flex gap-6 ${isMobile ? 'flex-row' : ''}`}>
+      {/* Main Content */}
+      <main className="flex-grow mx-auto px-4 container py-8">
+        <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && allProducts && allProducts.length > 0 && (
             <div className="w-72 flex-shrink-0">
@@ -292,7 +296,7 @@ const SearchPage = () => {
                   <span className="ml-3 text-gray-600">Searching products...</span>
                 </div>
                 
-                <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
+                <div className={`grid ${gridCols} gap-4 ${isMobile ? '' : 'bg-white p-6 shadow-sm rounded-lg'}`}>
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
@@ -318,58 +322,61 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
-              <div className={`${!isMobile ? 'space-y-6':'space-y-2'}`}>
-                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : ''}`}>
-                <p className={`${isMobile ? 'mx-2 my-6':''} text-gray-600 text-lg`}>
-                  <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
-                  {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
-                  {searchQuery && (
-                    <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
-                  )}
-                  {isMobile && mobileQuery.hasNextPage && (
-                    <span className="text-sm text-gray-500"> • Loading more...</span>
-                  )}
-                </p>
-                <div className={`flex items-center justify-between ${isMobile ? 'px-2':''}`}>      
-                  <ProductSort 
-                  sortOption={sortOption} 
-                  onSortChange={handleSortChange}
-                  className="w-48"
-                 />
+              <div className="space-y-6">
+                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-4'} ${isMobile ? 'bg-white rounded-lg shadow-md p-4' : ''}`}>
+                  <p className="text-gray-600 text-lg">
+                    <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
+                    {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
+                    {searchQuery && (
+                      <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
+                    )}
+                    {isMobile && mobileQuery.hasNextPage && (
+                      <span className="text-sm text-gray-500"> • Loading more...</span>
+                    )}
+                  </p>
                   
-                  {/* Mobile Filter Button */}
-                  {isMobile && allProducts && allProducts.length > 0 && (
-                    <MobileFilterSheet
-                      products={allProducts}
-                      onFiltersChange={handleFiltersChange}
-                      activeFiltersCount={activeFiltersCount}
+                  <div className="flex items-center justify-between gap-4">      
+                    <ProductSort 
+                      sortOption={sortOption} 
+                      onSortChange={handleSortChange}
+                      className="w-48"
                     />
-                  )}
-                </div>
+                    
+                    {/* Mobile Filter Button */}
+                    {isMobile && allProducts && allProducts.length > 0 && (
+                      <MobileFilterSheet
+                        products={allProducts}
+                        onFiltersChange={handleFiltersChange}
+                        activeFiltersCount={activeFiltersCount}
+                      />
+                    )}
+                  </div>
                 </div>
                 
-                <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 p-2 shadow-sm`}>
-                  {displayProducts.map((product) => {
-                    const productData = {
-                      id: product.product_id,
-                      name: product.name,
-                      price: product.price,
-                      originalPrice: product.price * 1.2,
-                      image: product.image_urls?.[0] || '',
-                      rating: 4.5,
-                      reviews: 0,
-                      discount: undefined,
-                      category: product.categories || '',
-                      inStock: true,
-                    };
-                    
-                    return (
-                      <ProductCard
-                        key={product.product_id}
-                        product={productData}
-                      />
-                    );
-                  })}
+                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-6 shadow-sm rounded-lg'}`}>
+                  <div className={`grid ${gridCols} gap-4`}>
+                    {displayProducts.map((product) => {
+                      const productData = {
+                        id: product.product_id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.price * 1.2,
+                        image: product.image_urls?.[0] || '',
+                        rating: 4.5,
+                        reviews: 0,
+                        discount: undefined,
+                        category: product.categories || '',
+                        inStock: true,
+                      };
+                      
+                      return (
+                        <ProductCard
+                          key={product.product_id}
+                          product={productData}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Mobile: Loading indicator for infinite scroll */}
@@ -392,13 +399,13 @@ const SearchPage = () => {
                     showQuickJumper={true}
                     showSizeChanger={true}
                     pageSizeOptions={[12, 24, 48, 96]}
-                    className="border-t border-gray-200 bg-white px-4 sm:px-6"
+                    className="border-t border-gray-200 bg-white px-4 sm:px-6 rounded-lg shadow-sm"
                   />
                 )}
               </div>
             ) : allProducts && allProducts.length > 0 && sortedProducts.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto">
+                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md' : 'bg-gray-50'} border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto`}>
                   <div className="text-gray-400 mb-4">
                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -418,8 +425,8 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : searchQuery ? (
-              <div className={`text-center py-1 ${!isMobile ? 'px-80' : ''}`}>
-                <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto">
+              <div className="text-center py-16">
+                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md' : 'bg-gray-50'} border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto`}>
                   <div className="text-gray-400 mb-4">
                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -441,7 +448,7 @@ const SearchPage = () => {
               </div>
             ) : (
               <div className="text-center py-16">
-                <div className="max-w-md mx-auto">
+                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-8' : ''} max-w-md mx-auto`}>
                   <div className="text-gray-400 mb-4">
                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -456,8 +463,8 @@ const SearchPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 };
 

@@ -177,7 +177,7 @@ const CategoryIcons = () => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="/hidden block absolute bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-200/50 shadow-sm">
+    <section className="/hidden container mx-auto px-4 block  bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-200/50 shadow-sm">
       <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
         SHOP BY CATEGORY
       </h2>

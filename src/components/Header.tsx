@@ -120,7 +120,7 @@ const Header = () => {
       {/* Main navigation for desktop - important for sitelinks */}
 
 
-        <div className={`container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
+        <div className={`container px-0 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
@@ -230,7 +230,7 @@ const Header = () => {
 
         {!isMobile && (
         <nav className="block bg-gray-50 /border-b" role="navigation" aria-label="Main Navigation">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-0">
             <ul className="flex items-center /justify-center space-x-8 pt-2 pb-4">
               {mainNavItems.map((item) => (
                 <li key={item.href}>

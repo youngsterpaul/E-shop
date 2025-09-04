@@ -9,7 +9,10 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { SEOHelmet } from '@/components/SEOHelmet';
+import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { Settings, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -52,19 +55,28 @@ const Index = () => {
       <CriticalCSS />
       <ProductionOptimizer />
       
-      <div className={`min-h-screen flex flex-col bg-gray-50`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
         <PerformanceMonitor />
-          <Header />
-          <main className={`flex-grow mx-auto px-0 container ${!isMobile ? 'min-w-max' : ''}`}>
-            <div className="relative">
+        <Header />
+        
+        <main className="flex-grow mx-auto px-0 container pb-8">
+          <div className="absolut">
+            <div className={isMobile ? 'bg-white rounded-lg shadow-md mb-6' : ''}>
               <EnhancedHeroSection />
-              {!isMobile && <CategoryIcons />}
             </div>
-            {isMobile && <CategoryIcons />}
-            <EnhancedFeaturedProducts />
-          </main>
-          <Footer />
-          <MobileNav />
+            
+            <div className={isMobile ? 'bg-white rounded-lg shadow-md p-4 mb-6' : 'mb-8'}>
+              <CategoryIcons />
+            </div>
+            
+            <div className={isMobile ? 'bg-white rounded-lg shadow-md p-4' : ''}>
+              <EnhancedFeaturedProducts />
+            </div>
+          </div>
+        </main>
+        
+        {!isMobile && <Footer />}
+        {isMobile && <MobileNav />}
       </div>
     </>
   );
