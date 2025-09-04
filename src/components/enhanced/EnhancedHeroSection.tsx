@@ -74,7 +74,7 @@ const EnhancedHeroSection = memo(() => {
   const currentSlideData = heroSlides[currentSlide];
 
   // Dynamic height based on device type
-  const heroHeight = isMobile ? 'min-h-[30vh]' : 'h-[500px]';
+  const heroHeight = isMobile ? 'h-[100px]' : 'h-[500px]';
 
   return (
     <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
