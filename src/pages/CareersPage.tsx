@@ -198,7 +198,7 @@ const CareersPage = () => {
         />
         )}
          {/* Hero Section */}
-        <section className="relative py-20 px-4 text-center overflow-hidden">
+        <section className="container relative py-20 px-4 text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
           <div className="relative max-w-4xl mx-auto">
             {/* Breadcrumb */}
@@ -239,7 +239,7 @@ const CareersPage = () => {
                 We believe in creating an environment where everyone can thrive and contribute to our shared success.
               </p>
             </div>
-            <div className="grid md:grid-cols-4 gap-8">
+            <div className={`grid gap-8 ${!isMobile ? 'grid-cols-4' : ''}`}>
               <Card className="text-center group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="pt-6">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -289,7 +289,7 @@ const CareersPage = () => {
             </div>
 
             {/* Filters */}
-            <div className="mb-8 space-y-4 md:space-y-0 md:flex md:gap-4 items-center">
+            <div className={`mb-8 space-y-4 md:space-y-0 md:gap-4 items-center ${!isMobile ? 'flex' : ''}`}>
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input

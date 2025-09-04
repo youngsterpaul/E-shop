@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, DollarSign, ChevronRight } from 'lucide-react';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface Job {
   id: string;
@@ -23,6 +24,8 @@ interface JobCardProps {
 }
 
 const JobCard = ({ job, onApply }: JobCardProps) => {
+  const isMobile = isMobileUserAgent();
+
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-l-4 border-l-blue-500">
       <CardHeader>
@@ -57,7 +60,7 @@ const JobCard = ({ job, onApply }: JobCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className={`grid gap-6 ${!isMobile ? 'grid-cols-2' : ''}`}>
           <div>
             <h4 className="font-semibold mb-2 text-gray-900">Key Responsibilities:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
