@@ -349,7 +349,7 @@ const ProductDetailsPage = () => {
         />)}         
         
 
-      <main className={`${isMobile ? 'pb-16' : 'py-6'} container mx-auto px-2`}>
+      <main className={`${isMobile ? 'pb-16 px-0' : 'py-6 px-2'} container mx-auto /px-2`}>
 
         {/* Breadcrumb */}
           {!isMobile && (
@@ -359,14 +359,14 @@ const ProductDetailsPage = () => {
           )}
 
           {/* Product Layout */}
-<div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto`}>
+        <div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto`}>
             {/* Enhanced Image Gallery */}
             <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
             </div>
 
             {/* Product Information */}
-<div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
+          <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">

@@ -15,7 +15,7 @@ const EmptyCart = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-6";
+    : "grid-cols-7";
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
@@ -50,7 +50,7 @@ const EmptyCart = () => {
         </div>
 
         {/* Featured Products Section */}
-        <div className="mx-auto container">
+      <div className={`mx-auto ${isMobile ? 'container':''}`}>
           <h2 className="text-2xl font-bold text-gray-900 mx-2">You might also like</h2>
           {isLoading ? (
             <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>

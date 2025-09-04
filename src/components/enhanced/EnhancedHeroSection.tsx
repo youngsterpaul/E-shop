@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
     title: "New Arrivals",
     subtitle: "Cutting-Edge Technology",
     description: "Discover the latest innovations in tech. Premium quality, best prices guaranteed.",
-    image: "/hero2.webp",
+    image: "/hero2.jpg",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
@@ -74,7 +74,7 @@ const EnhancedHeroSection = memo(() => {
   const currentSlideData = heroSlides[currentSlide];
 
   // Dynamic height based on device type
-  const heroHeight = isMobile ? 'min-h-[30vh]' : 'h-[50vh]';
+  const heroHeight = isMobile ? 'min-h-[30vh]' : 'h-[500px]';
 
   return (
     <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
@@ -86,7 +86,7 @@ const EnhancedHeroSection = memo(() => {
           priority={true}
           width={100}
           height={100}
-          className="w-full h-full object-cover"
+          className="w-full h-2/3 object-cover"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>

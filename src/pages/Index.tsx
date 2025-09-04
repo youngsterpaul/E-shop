@@ -61,15 +61,15 @@ const Index = () => {
         
         <main className={`flex-grow mx-auto pb-8 ${!isMobile ? 'container px-0' : ''}`}>
           <div className="absolut">
-            <div className={isMobile ? 'bg-white rounded-lg shadow-md mb-6' : ''}>
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : ''}>
               <EnhancedHeroSection />
             </div>
             
-            <div className={isMobile ? 'bg-white rounded-lg shadow-md p-4 mb-6' : 'mb-8'}>
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8'}>
               <CategoryIcons />
             </div>
             
-            <div className={isMobile ? 'bg-white rounded-lg shadow-md p-4' : ''}>
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : ''}>
               <EnhancedFeaturedProducts />
             </div>
           </div>
