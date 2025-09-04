@@ -54,19 +54,17 @@ const Index = () => {
       
       <div className={`min-h-screen flex flex-col bg-gray-50`}>
         <PerformanceMonitor />
-        <main className={`flex-grow`}>
-          <div className={`${!isMobile ? 'min-w-max' : ''}`}>
-            <Header />
+          <Header />
+          <main className={`flex-grow mx-auto px-0 container ${!isMobile ? 'min-w-max' : ''}`}>
             <div className="relative">
               <EnhancedHeroSection />
               {!isMobile && <CategoryIcons />}
             </div>
             {isMobile && <CategoryIcons />}
             <EnhancedFeaturedProducts />
-            <Footer />
-          </div>
+          </main>
+          <Footer />
           <MobileNav />
-        </main>
       </div>
     </>
   );
