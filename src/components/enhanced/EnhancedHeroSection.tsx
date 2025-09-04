@@ -77,7 +77,7 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-2' }`}>
       {/* Background Image with Overlay */}
       <div className="/absolute inset-0 aspect-square/ ">
         <LazyImage
