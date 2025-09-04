@@ -37,7 +37,7 @@ const EnhancedFeaturedProducts = memo(() => {
       };
     }
     return {
-      cols: "grid-cols-6",
+      cols: "grid-cols-7",
       gap: "gap-1",
       padding: "px-0 lg:px-1"
     };
