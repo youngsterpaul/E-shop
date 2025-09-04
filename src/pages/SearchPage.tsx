@@ -238,22 +238,18 @@ const SearchPage = () => {
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader 
-          title={'Search Products'}
-          backTo="/"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      
-      {/* Mobile Search Bar */}
-      {isMobile && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="mb-8 pb-8">       
+        {isMobile && (
+        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex w-full items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-8 w-8"
+              onClick={handleBack}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             <EnhancedSearchInput
               value={searchQuery}
               onChange={setSearchQuery}
@@ -272,10 +268,11 @@ const SearchPage = () => {
             </Button>
           </div>
         </div>
-      )}
+        )}
+      </div>
 
       {/* Main Content */}
-      <main className="flex-grow mx-auto px-4 container py-8">
+      <main className="flex-grow mx-auto px-0 container py-8">
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && allProducts && allProducts.length > 0 && (
@@ -328,7 +325,7 @@ const SearchPage = () => {
                     <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
                     {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
                     {searchQuery && (
-                      <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
+                      <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery}</span>"</span>
                     )}
                     {isMobile && mobileQuery.hasNextPage && (
                       <span className="text-sm text-gray-500"> • Loading more...</span>

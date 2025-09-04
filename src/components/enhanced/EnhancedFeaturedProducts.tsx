@@ -96,7 +96,7 @@ const EnhancedFeaturedProducts = memo(() => {
   const loadingSkeleton = useMemo(() => (
     <div className={`${gridConfig.padding} bg-gray-50`}>
       {!isMobile && (
-        <div className="border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+        <div className="border flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
           <TrendingUp size={16} className="mr-2" />
           HOT DEALS
         </div>
@@ -162,7 +162,7 @@ const EnhancedFeaturedProducts = memo(() => {
         <div className="bg-white">
           {/* Section Header - Desktop only */}
           {!isMobile && (
-            <div className="border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+            <div className="my-4 border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-xl font-bold bg-white">
               <TrendingUp size={16} className="mr-2" />
               HOT DEALS
               {totalCount > 0 && (
