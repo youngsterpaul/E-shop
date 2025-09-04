@@ -124,16 +124,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     setShowMagnifier(false);
   };
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'ArrowRight') nextImage();
-      if (e.key === 'Escape') setIsZoomOpen(false);
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
 
   if (isMobile) {
     return (
@@ -180,33 +170,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             </div>
           )}
 
-          {/* Mobile Navigation Arrows */}
-          {allMedia.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prevImage();
-                }}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextImage();
-                }}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+
         </div>
       </div>
     );
@@ -214,7 +178,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
 
   // Desktop Kilimall-exact style layout
   return (
-    <div className="flex gap-6 /max-w-6xl /mx-auto">
+<div className="flex gap-6 w-full max-w-none">
       {/* Desktop Thumbnail Strip - Left Side (Kilimall style) */}
       {allMedia.length > 1 && (
         <div className="flex flex-col gap-3 w-20">
@@ -263,7 +227,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
       )}
 
       {/* Desktop Main Image - Right Side */}
-      <div className="flex-1">
+      <div className="flex-1 max-w-lg">
         <div 
           ref={mainImageRef}
           className="relative bg-white overflow-hidden cursor-pointer group border rounded-lg"
@@ -313,33 +277,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             </div>
           )}
 
-          {/* Desktop Navigation Arrows */}
-          {allMedia.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  prevImage();
-                }}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextImage();
-                }}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </>
-          )}
+
 
           {/* Zoom Icon */}
           {!isVideo(allMedia[currentIndex]) && !showMagnifier && (

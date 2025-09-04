@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Download, ArrowLeft, Clock, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
-import { downloadReceipt } from '@/utils/receiptGenerator';
+//import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
@@ -221,7 +221,7 @@ const OrderDetailPage = () => {
         return '📦';
     }
   };
-  
+  {/*
   const handleDownloadReceipt = () => {
     if (order) {
       try {
@@ -249,7 +249,8 @@ const OrderDetailPage = () => {
         });
       }
     }
-  };
+  }; 
+*/}
 
   // Function to display variant selections
   const renderVariantSelections = (variant_selections?: Record<string, any>) => {
@@ -360,6 +361,7 @@ const OrderDetailPage = () => {
                       <span className="mr-2">{getStatusIcon(order.status)}</span>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </Badge>
+                    {/*
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -369,6 +371,7 @@ const OrderDetailPage = () => {
                       <Download className="h-4 w-4" />
                       <span className="hidden sm:inline">Receipt</span>
                     </Button>
+                    */}
                   </div>
                 </div>
               </CardHeader>

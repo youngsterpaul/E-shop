@@ -8,8 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { useProductReviews } from '@/hooks/useReviews';
-import { getCartDisplayAttributes } from '@/data/categoryAttributes';
-import DynamicAttributeSelector from './DynamicAttributeSelector';
+//import { getCartDisplayAttributes } from '@/data/categoryAttributes';
+//import DynamicAttributeSelector from './DynamicAttributeSelector';
 import OptimizedImage from '../OptimizedImage';
 
 interface MobileAddToCartModalProps {
@@ -58,14 +58,14 @@ const MobileAddToCartModal = ({
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
 
   // Get dynamic attributes for this product's category
-  const dynamicAttributes = getCartDisplayAttributes(product.category, product.subcategory);
+  // const dynamicAttributes = getCartDisplayAttributes(product.category, product.subcategory);
   const hasVariants = getVariantTypes().length > 0;
 
   // Calculate real rating and review count from fetched reviews
   const totalReviews = reviews.length;
   const averageRating = totalReviews > 0 
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-    : product.rating; // fallback to product.rating if no reviews
+    : 5; // fallback to product.rating if no reviews
 
   // Use real review count or fallback to product.reviews
   const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 0);
@@ -144,10 +144,12 @@ const MobileAddToCartModal = ({
     }
 
     // Check if required attributes are selected
-    const requiredAttributes = dynamicAttributes.filter(attr => attr.required);
+    // const requiredAttributes = dynamicAttributes.filter(attr => attr.required);
+    {/*
     const missingRequired = requiredAttributes.filter(attr => 
       !selectedAttributes[attr.id] || selectedAttributes[attr.id] === ''
-    );
+    ); 
+
 
     if (missingRequired.length > 0) {
       toast({
@@ -157,7 +159,7 @@ const MobileAddToCartModal = ({
       });
       return;
     }
-
+    */}
     setIsAddingToCart(true);
     
     // Combine variants and dynamic attributes
@@ -348,6 +350,7 @@ const MobileAddToCartModal = ({
               ))}
 
               {/* Dynamic Product Attributes */}
+              {/*
               {dynamicAttributes.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Options</h4>
@@ -358,6 +361,7 @@ const MobileAddToCartModal = ({
                   />
                 </div>
               )}
+              */}
 
               {/* Quantity Selector */}
               <div>

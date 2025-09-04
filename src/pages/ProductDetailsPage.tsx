@@ -143,26 +143,30 @@ const ProductDetailsPage = () => {
   // Loading State
   if (loading) {
     return (
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-gray-50`}>
         {!isMobile && <Header />}
-        {isMobile && <MobileHeader 
-          title="Product Details"
+        {isMobile && (<MobileHeader
+          title={"Product Details"}
+          backTo="/"
           rightAction={
-            <div className="space-x-2">
+            <div className='flex items-center gap-2'>
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
                 <Search className="h-4 w-4" />
               </Button>
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
-                <ShoppingCart className="h-4 w-4" />
-                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">0</span>
-              </Button>
-          </div>
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
+                <ShoppingCart size={16} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Link>
+            </div>
           }
-        />
-      }
+        />)}
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb Skeleton */}
           <div className="mb-6">
@@ -323,28 +327,29 @@ const ProductDetailsPage = () => {
         {!isMobile && <Header />}
         {isMobile && (<MobileHeader
           title={"Product Details"}
+          backTo="/"
           rightAction={
-            <div className='space-x-2'>
+            <div className='flex items-center gap-2'>
               <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
                 <Search className="h-4 w-4" />
               </Button>
               <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Button onClick={() => navigate('/cart')} variant="ghost" size="sm" className="p-2" aria-label='View Cart'>
-                <ShoppingCart className="h-4 w-4" />
+              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
+                <ShoppingCart size={16} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
                     {totalItems > 99 ? '99+' : totalItems}
                   </span>
                 )}
-              </Button>
+              </Link>
             </div>
           }
-        />)}          
+        />)}         
         
 
-        <main className={`${isMobile ? 'pb-16' : 'py-6container mx-auto'}`}>
+      <main className={`${isMobile ? 'pb-16' : 'py-6'} container mx-auto px-2`}>
 
         {/* Breadcrumb */}
           {!isMobile && (
@@ -354,18 +359,18 @@ const ProductDetailsPage = () => {
           )}
 
           {/* Product Layout */}
-          <div className={`grid ${gridCols} gap-1`}>
+<div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto`}>
             {/* Enhanced Image Gallery */}
             <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
             </div>
 
             {/* Product Information */}
-            <div className={`space-y-6 ${isMobile ? 'space-x-2 p-2' : 'w-1/2'}`}>
+<div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
               {/* Product Title and Rating */}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                  {(product.name.split('(')[0].trim())}
+                  {product.name}
                 </h1>
                 
                 {product.rating && (
@@ -414,7 +419,7 @@ const ProductDetailsPage = () => {
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
-                    name: product.name.split('(')[0].trim(),
+                    name: product.name,
                     price: calculatePrice(),
                     stock: product.stock
                   }}
@@ -453,7 +458,7 @@ const ProductDetailsPage = () => {
           <MobileBottomActions
             product={{
               product_id: product.product_id,
-              name: product.name.split('(')[0].trim(),
+              name: product.name,
               image: (product as any).image_urls || null,
               price: product.price,
               originalPrice: undefined,

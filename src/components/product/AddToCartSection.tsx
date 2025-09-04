@@ -120,7 +120,7 @@ const AddToCartSection = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: product.name.split('(')[0].trim(),
+          title: product.name,
           url: window.location.href,
         });
       } catch (error) {

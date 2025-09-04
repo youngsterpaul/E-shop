@@ -158,7 +158,7 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4' : ''}`}>
+      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4' : 'mb-12'}`}>
         <div className="bg-white">
           {/* Section Header - Desktop only */}
           {!isMobile && (

@@ -319,7 +319,7 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className={`${!isMobile ? 'space-y-6':'space-y-2'}`}>
-                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4 px-4' : ''}`}>
+                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : ''}`}>
                 <p className={`${isMobile ? 'mx-2 my-6':''} text-gray-600 text-lg`}>
                   <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
                   {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
@@ -330,7 +330,7 @@ const SearchPage = () => {
                     <span className="text-sm text-gray-500"> • Loading more...</span>
                   )}
                 </p>
-                <div className="grid grid-cols-2 items-center justify-between space-x-8 gap-4 px-2">      
+                <div className={`flex items-center justify-between ${isMobile ? 'px-2':''}`}>      
                   <ProductSort 
                   sortOption={sortOption} 
                   onSortChange={handleSortChange}
