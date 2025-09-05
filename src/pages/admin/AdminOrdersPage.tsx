@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download, Trash2, AlertTriangle, ChevronDown, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
@@ -60,6 +60,7 @@ interface Order {
 }
 
 const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
+const ORDERS_PER_PAGE = 20; // Number of orders to load per page
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
@@ -67,9 +68,13 @@ const AdminOrdersPage = () => {
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreOrders, setHasMoreOrders] = useState(false);
   
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -102,6 +107,11 @@ const AdminOrdersPage = () => {
       applyFilters();
     }
   }, [searchQuery, statusFilter, orders]);
+
+  // Update displayed orders when filtered orders change
+  useEffect(() => {
+    updateDisplayedOrders();
+  }, [filteredOrders, currentPage]);
 
   // Function to normalize order items for display
   const normalizeOrderItem = (item: any): OrderItem => {
@@ -211,6 +221,31 @@ const AdminOrdersPage = () => {
     }
     
     setFilteredOrders(result);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const updateDisplayedOrders = () => {
+    const startIndex = 0;
+    const endIndex = currentPage * ORDERS_PER_PAGE;
+    const ordersToShow = filteredOrders.slice(startIndex, endIndex);
+    
+    setDisplayedOrders(ordersToShow);
+    setHasMoreOrders(endIndex < filteredOrders.length);
+  };
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    
+    // Simulate a brief loading state for better UX
+    setTimeout(() => {
+      setCurrentPage(prev => prev + 1);
+      setLoadingMore(false);
+    }, 300);
+  };
+
+  const resetPagination = () => {
+    setCurrentPage(1);
+    setDisplayedOrders([]);
   };
   
   const handleOrderClick = (order: Order) => {
@@ -503,6 +538,7 @@ const AdminOrdersPage = () => {
                 onClick={() => {
                   setSearchQuery('');
                   setStatusFilter('all');
+                  resetPagination();
                 }}
               >
                 Reset Filters
@@ -513,7 +549,12 @@ const AdminOrdersPage = () => {
         
         <Card>
           <CardHeader className="pb-0">
-            <CardTitle>Order List</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Order List</span>
+              <div className="text-sm text-muted-foreground font-normal">
+                Showing {displayedOrders.length} of {filteredOrders.length} orders
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -542,14 +583,14 @@ const AdminOrdersPage = () => {
                         <TableCell className="text-right"><div className="h-8 w-8 bg-gray-200 rounded-full ml-auto animate-pulse"></div></TableCell>
                       </TableRow>
                     ))
-                  ) : filteredOrders.length === 0 ? (
+                  ) : displayedOrders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-10">
                         <p className="text-muted-foreground">No orders found</p>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredOrders.map((order) => (
+                    displayedOrders.map((order) => (
                       <TableRow key={order.order_id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleOrderClick(order)}>
                         <TableCell className="font-medium">#{order.order_id.slice(-8).toUpperCase()}</TableCell>
                         <TableCell>{format(new Date(order.created_at), 'MMM d, yyyy')}</TableCell>
@@ -575,6 +616,84 @@ const AdminOrdersPage = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
+                          {/* Delete Confirmation Dialog */}
+                          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-red-100 rounded-full">
+                                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                                  </div>
+                                  <div>
+                                    <DialogTitle className="text-lg font-semibold">Delete Order</DialogTitle>
+                                    <DialogDescription>
+                                      Are you sure you want to permanently delete this order?
+                                    </DialogDescription>
+                                  </div>
+                                </div>
+                              </DialogHeader>
+                              
+                              {orderToDelete && (
+                                <div className="py-4">
+                                  <div className="bg-gray-50 rounded-lg p-4">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="font-medium">Order #{orderToDelete.order_id.slice(-8).toUpperCase()}</p>
+                                        <p className="text-sm text-gray-600">
+                                          {orderToDelete.first_name && orderToDelete.last_name 
+                                            ? `${orderToDelete.first_name} ${orderToDelete.last_name}` 
+                                            : orderToDelete.email || orderToDelete.phone_number}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          Ksh {orderToDelete.amount?.toLocaleString() || 0} • {orderToDelete.items?.length || 0} items
+                                        </p>
+                                      </div>
+                                      <Badge className={`${getStatusColor(orderToDelete.status)} border px-2 py-1 text-xs`}>
+                                        {orderToDelete.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-sm text-red-800">
+                                      <strong>Warning:</strong> This action cannot be undone. The order and all associated data will be permanently deleted.
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <DialogFooter>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setIsDeleteDialogOpen(false);
+                                    setOrderToDelete(null);
+                                  }}
+                                  disabled={isDeleting}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button 
+                                  variant="destructive"
+                                  onClick={handleDeleteOrder}
+                                  disabled={isDeleting}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  {isDeleting ? (
+                                    <>
+                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete Order
+                                    </>
+                                  )}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
                           <div className="flex justify-end gap-1">
                             <Button 
                               variant="ghost" 
@@ -612,6 +731,39 @@ const AdminOrdersPage = () => {
                 </TableBody>
               </Table>
             </div>
+            
+            {/* Load More Button */}
+            {hasMoreOrders && !loading && (
+              <div className="flex justify-center py-6 border-t">
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  variant="outline"
+                  className="min-w-[200px]"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading more orders...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      Show More Orders ({filteredOrders.length - displayedOrders.length} remaining)
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            
+            {/* End of results message */}
+            {!hasMoreOrders && displayedOrders.length > 0 && filteredOrders.length > ORDERS_PER_PAGE && (
+              <div className="flex justify-center py-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  You've reached the end of the list. Showing all {filteredOrders.length} orders.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

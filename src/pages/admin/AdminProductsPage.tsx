@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -11,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash2, FileUp, X, Check, Settings } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, FileUp, X, Check, Settings, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
@@ -39,8 +38,13 @@ const AdminProductsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const { categories } = useCategories();
-    const [showVariantsDialog, setShowVariantsDialog] = useState(false);
+  const [showVariantsDialog, setShowVariantsDialog] = useState(false);
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
+  
+  // Pagination state
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  
   const categoryOptions = [{ id: 0, category: 'All Categories' }, ...categories];
 
   const handleEdit = (productId: string) => {
@@ -74,13 +78,41 @@ const AdminProductsPage = () => {
 
     return searchMatch && categoryMatch;
   });
+
+  // Get products to display (with pagination)
+  const displayedProducts = filteredProducts.slice(0, displayedItemsCount);
+  const hasMoreProducts = filteredProducts.length > displayedItemsCount;
+
+  // Reset displayed items when filters change
+  useEffect(() => {
+    setDisplayedItemsCount(itemsPerPage);
+    setSelectedProducts([]); // Clear selection when filters change
+    setIsAllSelected(false);
+  }, [searchQuery, selectedCategory, itemsPerPage]);
+
+  // Handle "Show More" button
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => prev + itemsPerPage);
+  };
+
+  // Handle "Show All" button
+  const handleShowAll = () => {
+    setDisplayedItemsCount(filteredProducts.length);
+  };
+
+  // Handle "Show Less" button
+  const handleShowLess = () => {
+    setDisplayedItemsCount(itemsPerPage);
+    // Scroll to top of table
+    document.querySelector('[data-table-container]')?.scrollIntoView({ behavior: 'smooth' });
+  };
   
-  // Handle bulk selection
+  // Handle bulk selection (only for displayed products)
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(product => product.product_id));
+      setSelectedProducts(displayedProducts.map(product => product.product_id));
     }
     setIsAllSelected(!isAllSelected);
   };
@@ -92,6 +124,14 @@ const AdminProductsPage = () => {
       setSelectedProducts([...selectedProducts, productId]);
     }
   };
+
+  // Update isAllSelected based on current selection
+  useEffect(() => {
+    const displayedProductIds = displayedProducts.map(p => p.product_id);
+    const allDisplayedSelected = displayedProductIds.length > 0 && 
+      displayedProductIds.every(id => selectedProducts.includes(id));
+    setIsAllSelected(allDisplayedSelected);
+  }, [selectedProducts, displayedProducts]);
   
   // Handle delete
   const handleDeleteClick = (productId: string) => {
@@ -196,7 +236,7 @@ const AdminProductsPage = () => {
               disabled={selectedProducts.length === 0}
               onClick={handleBulkDeleteClick}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected ({selectedProducts.length})
             </Button>
             
             <Button variant="outline">
@@ -231,6 +271,18 @@ const AdminProductsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-full md:w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="25">25 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                  <SelectItem value="100">100 per page</SelectItem>
+                </SelectContent>
+              </Select>
               
               <Button variant="outline" onClick={resetFilters}>
                 Reset Filters
@@ -239,12 +291,30 @@ const AdminProductsPage = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card data-table-container>
           <CardHeader className="pb-0">
-            <CardTitle>Product Inventory</CardTitle>
-            <CardDescription>
-              {filteredProducts.length} products found
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Product Inventory</CardTitle>
+                <CardDescription>
+                  Showing {displayedProducts.length} of {filteredProducts.length} products
+                  {selectedProducts.length > 0 && (
+                    <span className="ml-2 text-orange-600 font-medium">
+                      • {selectedProducts.length} selected
+                    </span>
+                  )}
+                </CardDescription>
+              </div>
+              {filteredProducts.length > itemsPerPage && (
+                <div className="text-sm text-muted-foreground">
+                  {hasMoreProducts ? (
+                    <span>{displayedItemsCount} of {filteredProducts.length} shown</span>
+                  ) : (
+                    <span>All {filteredProducts.length} products shown</span>
+                  )}
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -253,7 +323,7 @@ const AdminProductsPage = () => {
                   <TableRow>
                     <TableHead className="w-[50px]">
                       <Checkbox 
-                        checked={isAllSelected && filteredProducts.length > 0}
+                        checked={isAllSelected && displayedProducts.length > 0}
                         onCheckedChange={toggleSelectAll}
                       />
                     </TableHead>
@@ -292,7 +362,7 @@ const AdminProductsPage = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredProducts.map((product) => (
+                    displayedProducts.map((product) => (
                       <TableRow key={product.product_id}>
                         <TableCell>
                           <Checkbox 
@@ -350,6 +420,46 @@ const AdminProductsPage = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredProducts.length > itemsPerPage && !isLoading && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-6 border-t bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  {hasMoreProducts && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleShowMore}
+                        className="flex items-center gap-2"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                        Show More ({Math.min(itemsPerPage, filteredProducts.length - displayedItemsCount)} more)
+                      </Button>
+                      
+                      {filteredProducts.length - displayedItemsCount > itemsPerPage && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleShowAll}
+                          className="text-orange-600 hover:text-orange-700"
+                        >
+                          Show All ({filteredProducts.length})
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  
+                  {!hasMoreProducts && displayedItemsCount > itemsPerPage && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowLess}
+                      className="flex items-center gap-2"
+                    >
+                      Show Less
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
