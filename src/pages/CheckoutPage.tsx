@@ -256,6 +256,7 @@ const CheckoutPage = () => {
           shipping_address: `${deliveryData.county}, ${deliveryData.city}, ${deliveryData.address}`,
           username: customerData.userName,
           discount_amount: calculations.discount,
+          delivery_fee: calculations.shipping,
           tracking_number: newOrderId.slice(-8).toUpperCase(),
         })
         .select('order_id')

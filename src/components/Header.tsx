@@ -87,6 +87,7 @@ const Header = () => {
     { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
     { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },
     { label: 'Privacy Policy', href: '/privacy', description: 'Know your privacy at smartkenya' },
+    { label: 'Returns', href: '/returns', description: 'Return policy' },
     { label: 'T&C', href: '/terms', description: 'Terms and Conditions of Smartkenya' },
   ];
 

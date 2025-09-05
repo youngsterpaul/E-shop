@@ -291,6 +291,7 @@ export type Database = {
           shipping_address: string | null
           status: string
           tracking_number: string | null
+          delivery_fee: number | null
           updated_at: string
           user_id: string | null
           username: string | null
@@ -306,6 +307,7 @@ export type Database = {
           shipping_address?: string | null
           status: string
           tracking_number?: string | null
+          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           shipping_address?: string | null
           status?: string
           tracking_number?: string | null
+          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
