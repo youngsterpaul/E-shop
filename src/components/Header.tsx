@@ -83,6 +83,7 @@ const Header = () => {
     { label: 'Home', href: '/', description: 'Return to homepage' },
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
+    { label: 'Wishlist', href: '/wishlist', description: 'Check your wishlist products' },
     { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
     { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
     { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },

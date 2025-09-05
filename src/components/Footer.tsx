@@ -21,7 +21,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Categories', href: '/categories' },
         { label: 'Best Sellers', href: '/categories' },
         { label: 'Featured Deals', href: '/categories' },
-        { label: 'Brands', href: '/categories' },
       ]
     },
     {
@@ -30,7 +29,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Help Center', href: '/faq' },
         { label: 'Contact Us', href: '/contact' },
         { label: 'Track Your Order', href: '/orders' },
-        { label: 'Shipping Information', href: '/shipping' },
         { label: 'Returns Policy', href: '/returns' },
       ]
     },
@@ -41,7 +39,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Order History', href: '/orders' },
         { label: 'Wishlist', href: '/wishlist' },
         { label: 'Profile Settings', href: '/profile' },
-        { label: 'Sign In', href: '/auth/signin' },
       ]
     },
     {

@@ -159,7 +159,7 @@ const WishlistPage = () => {
               <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign in to view your wishlist</h2>
               <p className="text-gray-600 mb-6">Save your favorite items for later</p>
-              <Link to="/auth">
+              <Link to="/auth/signin">
                 <Button className="bg-primary hover:bg-primary/90">
                   Sign In
                 </Button>
