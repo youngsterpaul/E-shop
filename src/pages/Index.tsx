@@ -59,14 +59,15 @@ const Index = () => {
         <PerformanceMonitor />
         <Header />
         
-        <main className={`flex-grow mx-auto pb-8 ${!isMobile ? 'container px-0' : ''}`}>
+        <main className={`flex-grow mx-auto pb-8 ${!isMobile ? 'container px-4' : ''}`}>
           <div className="absolut">
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : ''}>
               <EnhancedHeroSection />
             </div>
             
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8'}>
-              <CategoryIcons />
+              {/* Show limited categories on index page (will slice to 8 on mobile) */}
+              <CategoryIcons showAll={false} />
             </div>
             
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : ''}>

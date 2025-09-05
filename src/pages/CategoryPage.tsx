@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header';
 import MobileNav from '@/components/MobileNav';
 import CategoryIcons from '@/components/CategoryIcons';
@@ -9,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Search } from 'lucide-react';
 
-const OptimizedProductsPage = () => {
+const CategoryPage = () => {
   const isMobile = isMobileUserAgent();
   
   return (
@@ -68,7 +67,8 @@ const OptimizedProductsPage = () => {
               />
             )}
 
-        <CategoryIcons />
+        {/* Show all categories on category page */}
+        <CategoryIcons showAll={true} />
         <MobileNav />
         </main>
       </div>
@@ -76,4 +76,4 @@ const OptimizedProductsPage = () => {
   );
 };
 
-export default OptimizedProductsPage;
+export default CategoryPage;
