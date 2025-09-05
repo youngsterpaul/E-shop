@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import Header from '@/components/Header';
@@ -88,6 +90,9 @@ const ProfilePage = () => {
   const [lastName, setLastName] = useState(profile?.last_name || '');
   const [email, setEmail] = useState(profile?.email || '');
   const [phone, setPhone] = useState(profile?.phone || '');
+  const [county, setCounty] = useState(profile?.county || '');
+  const [city, setCity] = useState(profile?.city || '');
+  const [address, setAddress] = useState(profile?.address || '');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -96,6 +101,24 @@ const ProfilePage = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const isMobile = isMobileUserAgent();
 
+  // County and city mapping
+  const countyOptions = [
+    { value: 'embu', label: 'Embu' },
+    { value: 'murangaa', label: "Murang'a" }
+  ];
+
+  const cityOptions = {
+    embu: [
+      { value: 'runyenjes', label: 'Runyenjes' },
+      { value: 'manyatta', label: 'Manyatta' },
+      { value: 'embu-town', label: 'Embu Town' }
+    ],
+    murangaa: [
+      { value: 'kiharu', label: 'Kiharu' },
+      { value: 'mukuyu', label: 'Mukuyu' }
+    ]
+  };
+
   // Initialize form data when profile loads
   useEffect(() => {
     if (profile) {
@@ -103,6 +126,9 @@ const ProfilePage = () => {
       setLastName(profile.last_name || '');
       setEmail(profile.email || '');
       setPhone(profile.phone || '');
+      setCounty(profile.county || '');
+      setCity(profile.city || '');
+      setAddress(profile.address || '');
       setFilename(profile.avatar_url);
     }
   }, [profile]);
@@ -158,6 +184,12 @@ const ProfilePage = () => {
     }
   }, [error, success]);
 
+  // Get available cities based on selected county
+  const getAvailableCities = () => {
+    if (!county) return [];
+    return cityOptions[county] || [];
+  };
+
   const handleUpdateProfile = async () => {
     try {
       setError(null);
@@ -167,6 +199,9 @@ const ProfilePage = () => {
         last_name: lastName,
         email: email,
         phone: phone,
+        county: county,
+        city: city,
+        address: address,
         updated_at: new Date(),
       };
 
@@ -260,10 +295,6 @@ const ProfilePage = () => {
       setUploadProgress(100);
       setFilename(newFilename);
       setSuccess('Avatar updated successfully!');
-      const errorMsg = typeof error === 'object' && error !== null && 'message' in error
-        ? (error as { message?: string }).message
-        : String(error);
-      setError(`Error uploading avatar: ${errorMsg}`);
     } catch (error) {
       console.error('Error uploading avatar:', error);
       setError(`Error uploading avatar: ${typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message : String(error)}`);
@@ -304,10 +335,7 @@ const ProfilePage = () => {
       }
       
       // Clear local state and cache
-      const errorMsg = typeof error === 'object' && error !== null && 'message' in error
-        ? (error as { message?: string }).message
-        : String(error);
-      setError(`Error removing avatar: ${errorMsg}`);
+      setFilename(null);
       setAvatarUrl(null);
       avatarCache.invalidate(`avatar_${filename}`);
       setSuccess('Avatar removed successfully!');
@@ -348,8 +376,8 @@ const ProfilePage = () => {
         />
       )}
       
-      <div className="flex-grow mx-auto px-4 container py-8">
-        <div className="max-w-md mx-auto space-y-6">
+      <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4':''}`}>
+        <div className="/max-w-md mx-auto space-y-6">
           
           {/* Error/Success Messages */}
           {error && (
@@ -488,6 +516,59 @@ const ProfilePage = () => {
                 value={phone}
                 onChange={(value) => setPhone(value)}
                 disabled={loading}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="county">County</Label>
+                <Select value={county} onValueChange={(value) => {
+                  setCounty(value);
+                  setCity(''); // Reset city when county changes
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select county" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countyOptions.map((countyOption) => (
+                      <SelectItem key={countyOption.value} value={countyOption.value}>
+                        {countyOption.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="city">City/Town</Label>
+                <Select 
+                  value={city} 
+                  onValueChange={(value) => setCity(value)}
+                  disabled={!county}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={county ? "Select city" : "Select county first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableCities().map((cityOption) => (
+                      <SelectItem key={cityOption.value} value={cityOption.value}>
+                        {cityOption.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="address">Street Address</Label>
+              <Textarea
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter your street address"
+                disabled={loading}
+                rows={3}
               />
             </div>
             

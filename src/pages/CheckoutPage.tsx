@@ -769,33 +769,45 @@ const CheckoutPage = () => {
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Items */}
-                <ScrollArea className="max-h-60">
-                  <div className="space-y-3">
-                    {selectedItems.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <img
-                          src={item.product.image}
-                          alt={item.product.name}
-                          className="w-12 h-12 object-cover rounded border"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium truncate">
-                            {item.product.name}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs text-gray-500">
-                              Qty: {item.quantity}
-                            </p>
-                            <p className="text-sm font-medium">
-                              KES {(item.product.price * item.quantity).toLocaleString()}
-                            </p>
+              {/* Items */}
+              <ScrollArea className="max-h-60">
+                <div className="space-y-3">
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <img
+                        src={item.product.image}
+                        alt={item.product.name}
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {item.product.name}
+                        </p>
+                        
+                        {/* Variant display */}
+                        {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.variant_selections as Record<string, string>).map(([type, value]) => (
+                              <span key={`${type}-${value}`} className="text-xs text-gray-500">
+                                <span className="capitalize font-medium">{type}:</span> {value}
+                              </span>
+                            ))}
                           </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-500">
+                            Qty: {item.quantity}
+                          </p>
+                          <p className="text-sm font-medium">
+                            KES {(item.product.price * item.quantity).toLocaleString()}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
 
                 <Separator />
 

@@ -463,6 +463,9 @@ export type Database = {
           is_admin: boolean | null
           last_name: string | null
           phone: string | null
+          county: string | null
+          city: string | null
+          address: string | null
           updated_at: string | null
           user_id: string
         }
@@ -474,6 +477,9 @@ export type Database = {
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
+          county: string | null
+          city: string | null
+          address: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -485,6 +491,9 @@ export type Database = {
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
+          county?: string | null
+          city?: string | null
+          address?: string | null
           updated_at?: string | null
           user_id?: string
         }
