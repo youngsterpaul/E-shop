@@ -38,6 +38,7 @@ import {
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const [deliveryInfoSaved, setDeliveryInfoSaved] = useState(false);
   const isMobile = isMobileUserAgent();
   const { user, profile } = useAuth();
   const { calculations, getSelectedItems } = useSelectiveCart();
@@ -99,6 +100,14 @@ const CheckoutPage = () => {
       user_id: profile?.user_id || '',
       phone: profile?.phone || ''
     });
+
+    // Add this to initialize delivery data from profile
+    setDeliveryData({
+      address: profile?.address || '',
+      city: profile?.city || '',
+      county: profile?.county || '',
+      deliveryMethod: 'standard'
+    });
   }, [profile, user]);
 
   // Check if user has items to checkout
@@ -114,7 +123,7 @@ const CheckoutPage = () => {
     { value: 'murangaa', label: "Murang'a" }
   ];
 
-  const cityOptions = {
+  const cityOptions: Record<string, { value: string; label: string }[]> = {
     embu: [
       { value: 'runyenjes', label: 'Runyenjes' },
       { value: 'manyatta', label: 'Manyatta' },
@@ -180,6 +189,12 @@ const CheckoutPage = () => {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
     } else if (currentStep === 2 && validateStep2()) {
+      // Save all delivery data to profile before moving to step 3
+      updateProfileDeliveryInfo({
+        address: deliveryData.address,
+        city: deliveryData.city,
+        county: deliveryData.county
+      });
       setCurrentStep(3);
     } else if (currentStep === 3) {
       setShowPaymentModal(true);
@@ -208,10 +223,21 @@ const CheckoutPage = () => {
       [field]: value,
       ...(field === 'county' ? { city: '' } : {})
     }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+  
+  if (errors[field]) {
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  }
+
+  // Update profile with new delivery information - fix the typing here
+  const updates: { [key: string]: string } = { [field]: value };
+  
+  // If county changes, also clear city in profile
+  if (field === 'county') {
+    updates.city = '';
+  }
+  
+  updateProfileDeliveryInfo(updates);
+};
 
   // Get available cities based on selected county
   const getAvailableCities = () => {
@@ -334,6 +360,30 @@ const CheckoutPage = () => {
 
   const handleRetryPayment = () => {
     setPaymentStatus({ status: 'idle', message: '', checkoutRequestId: null });
+  };
+
+  // Add this function after your existing handler functions
+  const updateProfileDeliveryInfo = async (updates) => {
+    if (!user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating profile delivery info:', error);
+      } else {
+        setDeliveryInfoSaved(true);
+        setTimeout(() => setDeliveryInfoSaved(false), 2000);
+      }
+    } catch (error) {
+      console.error('Error updating profile delivery info:', error);
+    }
   };
 
   // Calculate totals
@@ -488,6 +538,13 @@ const CheckoutPage = () => {
             )}
           </div>
         </CardContent>
+        
+        {/* Success message moved outside CardContent but inside Card */}
+        {deliveryInfoSaved && (
+          <div className="text-center pb-4">
+            <p className="text-sm text-green-600">✓ Address saved to your profile</p>
+          </div>
+        )}
       </Card>
     </div>
   );
