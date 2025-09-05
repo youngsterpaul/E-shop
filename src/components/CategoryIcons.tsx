@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { LucideIcon } from 'lucide-react';
+import { Car, HardDrive, Home, Keyboard, LucideIcon, Mouse, Printer, Usb, Wifi } from 'lucide-react';
 import { 
   Smartphone, 
   Laptop, 
@@ -139,6 +139,78 @@ const categoryIcons: CategoryIcon[] = [
     color: 'bg-gray-50',
     iconColor: 'text-gray-600',
     productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'keyboards',
+    name: 'Keyboards',
+    icon: Keyboard,
+    searchQuery: 'keyboard',
+    color: 'bg-purple-50',
+    iconColor: 'text-purple-600',
+    productImage: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'mice',
+    name: 'Mice',
+    icon: Mouse,
+    searchQuery: 'mouse',
+    color: 'bg-rose-50',
+    iconColor: 'text-rose-600',
+    productImage: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'storage',
+    name: 'Storage',
+    icon: HardDrive,
+    searchQuery: 'hard drive ssd',
+    color: 'bg-slate-50',
+    iconColor: 'text-slate-600',
+    productImage: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'usb',
+    name: 'USB & Cables',
+    icon: Usb,
+    searchQuery: 'usb cable',
+    color: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'printers',
+    name: 'Printers',
+    icon: Printer,
+    searchQuery: 'printer',
+    color: 'bg-lime-50',
+    iconColor: 'text-lime-600',
+    productImage: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'wifi',
+    name: 'WiFi & Internet',
+    icon: Wifi,
+    searchQuery: 'wifi router modem',
+    color: 'bg-sky-50',
+    iconColor: 'text-sky-600',
+    productImage: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'automotive',
+    name: 'Car Tech',
+    icon: Car,
+    searchQuery: 'car electronics',
+    color: 'bg-red-50',
+    iconColor: 'text-red-600',
+    productImage: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'smart-home',
+    name: 'Smart Home',
+    icon: Home,
+    searchQuery: 'smart home automation',
+    color: 'bg-violet-50',
+    iconColor: 'text-violet-600',
+    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
   }
 ];
 
