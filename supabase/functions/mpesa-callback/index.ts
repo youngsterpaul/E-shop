@@ -64,6 +64,7 @@ async function sendPaymentConfirmationEmail(orderId: string) {
         email: order.email,
         orderId: orderId,
         amount: order.amount,
+        trackingId: order.tracking_number,
         customerName: `${order.first_name || ''} ${order.last_name || ''}`.trim()
       }
     });

@@ -257,7 +257,7 @@ const CheckoutPage = () => {
           username: customerData.userName,
           discount_amount: calculations.discount,
           delivery_fee: calculations.shipping,
-          tracking_number: newOrderId.slice(-8).toUpperCase(),
+          tracking_number: newOrderId.slice(-5).toUpperCase(),
         })
         .select('order_id')
         .single();
