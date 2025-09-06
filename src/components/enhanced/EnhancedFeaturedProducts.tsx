@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo } from 'react';
+import { memo, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
@@ -20,8 +20,9 @@ const EnhancedFeaturedProducts = memo(() => {
     isFetchingNextPage,
   } = useFeaturedProducts(pageSize);
   
-  // State for scroll handling
-  const [isNearBottom, setIsNearBottom] = useState(false);
+  // Use ref to track loading state to prevent multiple fetches
+  const isLoadingMore = useRef(false);
+  const lastScrollY = useRef(0);
   
   // Memoized values
   const products = useMemo(() => data?.products || [], [data?.products]);
@@ -43,42 +44,67 @@ const EnhancedFeaturedProducts = memo(() => {
     };
   }, [isMobile]);
   
-  // Scroll handler for infinite scroll on mobile
+  // Optimized scroll handler with better throttling and debouncing
   const handleScroll = useCallback(() => {
-    if (!isMobile || !hasNextPage || isFetchingNextPage) return;
+    if (!isMobile || !hasNextPage || isFetchingNextPage || isLoadingMore.current) return;
+    
+    const currentScrollY = window.scrollY;
+    
+    // Only check if scrolling down
+    if (currentScrollY <= lastScrollY.current) {
+      lastScrollY.current = currentScrollY;
+      return;
+    }
+    lastScrollY.current = currentScrollY;
     
     const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
-    const threshold = 300; // pixels from bottom
+    const clientHeight = window.innerHeight;
+    const threshold = 400; // Increased threshold for earlier loading
     
-    const nearBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+    const nearBottom = currentScrollY + clientHeight >= scrollHeight - threshold;
     
-    if (nearBottom && !isNearBottom) {
-      setIsNearBottom(true);
-      fetchNextPage();
-    } else if (!nearBottom && isNearBottom) {
-      setIsNearBottom(false);
+    if (nearBottom && !isLoadingMore.current) {
+      isLoadingMore.current = true;
+      fetchNextPage().finally(() => {
+        isLoadingMore.current = false;
+      });
     }
-  }, [isMobile, hasNextPage, isFetchingNextPage, isNearBottom, fetchNextPage]);
+  }, [isMobile, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  
+  // More efficient throttle implementation
+  const throttledScrollHandler = useMemo(() => {
+    let ticking = false;
+    
+    return () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+  }, [handleScroll]);
   
   // Attach scroll listener for mobile infinite scroll
   useEffect(() => {
-    if (isMobile) {
-      const throttledScroll = throttle(handleScroll, 200);
-      window.addEventListener('scroll', throttledScroll, { passive: true });
-      return () => window.removeEventListener('scroll', throttledScroll);
-    }
-  }, [isMobile, handleScroll]);
+    if (!isMobile) return;
+    
+    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+    return () => window.removeEventListener('scroll', throttledScrollHandler);
+  }, [isMobile, throttledScrollHandler]);
   
   // Load more handler for desktop
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (hasNextPage && !isFetchingNextPage && !isLoadingMore.current) {
+      isLoadingMore.current = true;
+      fetchNextPage().finally(() => {
+        isLoadingMore.current = false;
+      });
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   
-  // Transform product data for ProductCard
+  // Memoized transform function to prevent recreating on every render
   const transformProductData = useCallback((product) => ({
     id: product.product_id,
     name: product.name,
@@ -91,6 +117,12 @@ const EnhancedFeaturedProducts = memo(() => {
     category: product.categories || '',
     inStock: (product.stock || 0) > 0,
   }), []);
+  
+  // Memoize transformed products to prevent recalculation
+  const transformedProducts = useMemo(() => 
+    products.map(transformProductData), 
+    [products, transformProductData]
+  );
   
   // Loading skeleton
   const loadingSkeleton = useMemo(() => (
@@ -175,10 +207,10 @@ const EnhancedFeaturedProducts = memo(() => {
           
           {/* Products Grid */}
           <div className={`grid ${gridConfig.cols} ${gridConfig.gap} ${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
-            {products.map((product, index) => (
+            {transformedProducts.map((product, index) => (
               <ProductCard 
-                key={`${product.product_id}-${index}`}
-                product={transformProductData(product)}
+                key={`${product.id}-${index}`}
+                product={product}
               />
             ))}
           </div>
@@ -216,48 +248,11 @@ const EnhancedFeaturedProducts = memo(() => {
               </div>
             </div>
           )}
-          
-          {/* End of products indicator */}
-          {/*
-          {!hasNextPage && products.length > 0 && (
-            <div className="text-center py-6">
-              <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600">
-                {isMobile ? "You've seen all products" : `All ${products.length} products displayed`}
-              </div>
-            </div>
-          )}
-          */}
         </div>
       </section>
     </LazySection>
   );
 });
-
-// Utility function for throttling
-function throttle<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null;
-  let previous = 0;
-
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-    const remaining = wait - (now - previous);
-
-    if (remaining <= 0 || remaining > wait) {
-      if (timeout) {
-        clearTimeout(timeout);
-        timeout = null;
-      }
-      previous = now;
-      func(...args);
-    } else if (!timeout) {
-      timeout = setTimeout(() => {
-        previous = Date.now();
-        timeout = null;
-        func(...args);
-      }, remaining);
-    }
-  };
-}
 
 EnhancedFeaturedProducts.displayName = 'EnhancedFeaturedProducts';
 
