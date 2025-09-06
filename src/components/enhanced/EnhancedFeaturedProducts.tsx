@@ -90,11 +90,9 @@ const EnhancedFeaturedProducts = memo(() => {
   useEffect(() => {
     if (!isMobile) return;
     
-    window.addEventListener('scroll', scrollHandler, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', scrollHandler);
-    };
-  }, [isMobile, scrollHandler]);
+    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
+    return () => window.removeEventListener('scroll', throttledScrollHandler);
+  }, [isMobile, throttledScrollHandler]);
   
   // Load more handler for desktop
   const handleLoadMore = useCallback(() => {
