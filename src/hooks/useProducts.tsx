@@ -21,7 +21,7 @@ export type Product = {
 // Constants for pagination
 export const PAGINATION_CONFIG = {
   DESKTOP_PAGE_SIZE: 24,
-  MOBILE_PAGE_SIZE: 12,
+  MOBILE_PAGE_SIZE: 8,
   FEATURED_LIMIT: 100, // Reasonable limit for featured products
 };
 
