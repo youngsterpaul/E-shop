@@ -20,9 +20,9 @@ const EnhancedFeaturedProducts = memo(() => {
     isFetchingNextPage,
   } = useFeaturedProducts(pageSize);
   
-  // Refs for intersection observer
-  const loadMoreTriggerRef = useRef(null);
+  // Use ref to track loading state to prevent multiple fetches
   const isLoadingMore = useRef(false);
+  const lastScrollY = useRef(0);
   
   // Memoized values
   const products = useMemo(() => data?.products || [], [data?.products]);
@@ -44,45 +44,64 @@ const EnhancedFeaturedProducts = memo(() => {
     };
   }, [isMobile]);
   
-  // Intersection Observer callback
-  const handleIntersection = useCallback((entries) => {
-    const [entry] = entries;
+  // Optimized scroll handler with better throttling and debouncing
+  const handleScroll = useCallback(() => {
+    if (!isMobile || !hasNextPage || isFetchingNextPage || isLoadingMore.current) return;
     
-    if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !isLoadingMore.current) {
+    const currentScrollY = window.scrollY;
+    
+    // Only check if scrolling down
+    if (currentScrollY <= lastScrollY.current) {
+      lastScrollY.current = currentScrollY;
+      return;
+    }
+    lastScrollY.current = currentScrollY;
+    
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    const threshold = 400; // Increased threshold for earlier loading
+    
+    const nearBottom = currentScrollY + clientHeight >= scrollHeight - threshold;
+    
+    if (nearBottom && !isLoadingMore.current) {
       isLoadingMore.current = true;
       fetchNextPage().finally(() => {
-        setTimeout(() => {
-          isLoadingMore.current = false;
-        }, 200);
+        isLoadingMore.current = false;
       });
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [isMobile, hasNextPage, isFetchingNextPage, fetchNextPage]);
   
-  // Set up intersection observer for mobile infinite scroll
-  useEffect(() => {
-    if (!isMobile || !loadMoreTriggerRef.current) return;
-    
-    const observer = new IntersectionObserver(handleIntersection, {
-      root: null,
-      rootMargin: '200px', // Trigger 200px before the element comes into view
-      threshold: 0.1,
-    });
-    
-    observer.observe(loadMoreTriggerRef.current);
+  // More efficient throttle implementation
+  const throttledScrollHandler = useMemo(() => {
+    let ticking = false;
     
     return () => {
-      observer.disconnect();
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-  }, [isMobile, handleIntersection, products.length]); // Re-run when products change
+  }, [handleScroll]);
+  
+  // Attach scroll listener for mobile infinite scroll
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', scrollHandler);
+    };
+  }, [isMobile, scrollHandler]);
   
   // Load more handler for desktop
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isLoadingMore.current) {
       isLoadingMore.current = true;
       fetchNextPage().finally(() => {
-        setTimeout(() => {
-          isLoadingMore.current = false;
-        }, 200);
+        isLoadingMore.current = false;
       });
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -197,15 +216,6 @@ const EnhancedFeaturedProducts = memo(() => {
               />
             ))}
           </div>
-
-          {/* Mobile Intersection Observer Trigger */}
-          {isMobile && hasNextPage && (
-            <div 
-              ref={loadMoreTriggerRef}
-              className="h-4 w-full"
-              aria-hidden="true"
-            />
-          )}
 
           {/* Desktop Load More Button */}
           {!isMobile && hasNextPage && (
