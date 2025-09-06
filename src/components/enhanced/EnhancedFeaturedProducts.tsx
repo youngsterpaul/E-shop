@@ -231,15 +231,15 @@ const EnhancedFeaturedProducts = memo(() => {
             </div>
           )}
           
-          {/* Mobile Loading Indicator */}
-          {isMobile && isFetchingNextPage && (
+          {/* Mobile Loading Indicator - Remove this since it's now in the trigger */}
+          {/* {isMobile && isFetchingNextPage && (
             <div className="flex justify-center py-6">
               <div className="flex items-center text-gray-600">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading more products...
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </section>
     </LazySection>
