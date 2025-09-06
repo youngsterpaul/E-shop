@@ -122,7 +122,7 @@ const Header = () => {
       {/* Main navigation for desktop - important for sitelinks */}
 
 
-        <div className={`container mx-auto ${isMobile ? 'py-2 px-4 border-b border-gray-200' : 'px-4 py-4'}`}>
+        <div className={`container mx-auto ${isMobile ? 'py-2 px-3 border-b border-gray-200' : 'px-4 py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
