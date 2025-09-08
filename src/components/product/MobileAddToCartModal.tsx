@@ -7,8 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { useProductVariants } from '@/hooks/useProductVariants';
-import { useProductReviews } from '@/hooks/useReviews';
-//import { getCartDisplayAttributes } from '@/data/categoryAttributes';
+import { getCartDisplayAttributes } from '@/data/categoryAttributes';
 import DynamicAttributeSelector from './DynamicAttributeSelector';
 import OptimizedImage from '../OptimizedImage';
 
@@ -49,53 +48,13 @@ const MobileAddToCartModal = ({
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [variantsInitialized, setVariantsInitialized] = useState(false);
   const { toast } = useToast();
   const { addToCart } = useCart();
   const { variants, getVariantsByType, getVariantTypes } = useProductVariants(product.product_id);
-  
-  // Fetch real reviews data using the same hook as ProductTabs
-  const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
 
   // Get dynamic attributes for this product's category
-  // const dynamicAttributes = getCartDisplayAttributes(product.category, product.subcategory);
+  const dynamicAttributes = getCartDisplayAttributes(product.category, product.subcategory);
   const hasVariants = getVariantTypes().length > 0;
-
-  // Calculate real rating and review count from fetched reviews
-  const totalReviews = reviews.length;
-  const averageRating = totalReviews > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-    : product.rating; // fallback to product.rating if no reviews
-
-  // Use real review count or fallback to product.reviews
-  const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 0);
-
-  // Auto-select first variant for each type when modal opens
-  useEffect(() => {
-    if (isOpen && hasVariants && !variantsInitialized) {
-      const variantTypes = getVariantTypes();
-      
-      variantTypes.forEach(type => {
-        // Only auto-select if no variant is already selected for this type
-        if (!selectedVariants[type]) {
-          const variantsForType = getVariantsByType(type);
-          if (variantsForType.length > 0) {
-            // Select the first variant
-            onVariantChange(type, variantsForType[0].variant_value);
-          }
-        }
-      });
-      
-      setVariantsInitialized(true);
-    }
-  }, [isOpen, hasVariants, variantsInitialized, selectedVariants, getVariantTypes, getVariantsByType, onVariantChange]);
-
-  // Reset initialization state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setVariantsInitialized(false);
-    }
-  }, [isOpen]);
 
   // Handle modal animations and body scroll
   useEffect(() => {
@@ -144,12 +103,10 @@ const MobileAddToCartModal = ({
     }
 
     // Check if required attributes are selected
-    // const requiredAttributes = dynamicAttributes.filter(attr => attr.required);
-    {/*
+    const requiredAttributes = dynamicAttributes.filter(attr => attr.required);
     const missingRequired = requiredAttributes.filter(attr => 
       !selectedAttributes[attr.id] || selectedAttributes[attr.id] === ''
-    ); 
-
+    );
 
     if (missingRequired.length > 0) {
       toast({
@@ -159,7 +116,7 @@ const MobileAddToCartModal = ({
       });
       return;
     }
-    */}
+
     setIsAddingToCart(true);
     
     // Combine variants and dynamic attributes
@@ -260,7 +217,7 @@ const MobileAddToCartModal = ({
                         <Star
                           key={i}
                           className={`w-3 h-3 ${
-                            i < Math.floor(averageRating) 
+                            i < Math.floor(product.rating) 
                               ? 'text-yellow-400 fill-current' 
                               : 'text-gray-300'
                           }`}
@@ -268,11 +225,7 @@ const MobileAddToCartModal = ({
                       ))}
                     </div>
                     <span className="text-xs text-gray-500">
-                      {reviewsLoading ? (
-                        <span className="animate-pulse">...</span>
-                      ) : (
-                        `(${displayReviewCount})`
-                      )}
+                      ({product.reviews || 0})
                     </span>
                     <Badge variant={product.inStock ? "default" : "destructive"} className="text-xs">
                       {product.inStock ? "In Stock" : "Out of Stock"}
@@ -350,7 +303,6 @@ const MobileAddToCartModal = ({
               ))}
 
               {/* Dynamic Product Attributes */}
-              {/*
               {dynamicAttributes.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Options</h4>
@@ -361,7 +313,6 @@ const MobileAddToCartModal = ({
                   />
                 </div>
               )}
-              */}
 
               {/* Quantity Selector */}
               <div>

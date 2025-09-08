@@ -37,12 +37,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       ...cartData,
       getCartItemById,
       isCartEmpty,
-      hasItems,
-      // Force re-render when cart items change
-      _cartItemsLength: cartData.cartItems.length,
-      _lastUpdate: Date.now()
+      hasItems
     };
-  }, [cartData, cartData.cartItems, cartData.cartItems.length]);
+  }, [cartData]);
 
   return (
     <CartContext.Provider value={enhancedCartData}>

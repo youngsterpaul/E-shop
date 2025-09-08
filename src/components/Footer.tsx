@@ -89,7 +89,7 @@ const Footer = ({ className }: FooterProps) => {
       </script>
 
       <footer className={cn("bg-gray-900 text-white w-full", className)}>
-        <div className="w-full mx-auto px-4 /sm:px-6 /lg:px-8 py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>

@@ -18,8 +18,9 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <main className="max-w-md w-full text-center">
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      
+      <main className="flex-grow flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="flex justify-center mb-6">
             <AlertTriangle className="h-24 w-24 text-orange-500" />
