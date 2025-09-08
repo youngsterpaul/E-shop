@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
+  // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -37,6 +37,36 @@ export type Database = {
           id?: string
           setting_key?: string
           setting_value?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      auto_reply_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          response_text: string
+          trigger_keywords: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          response_text: string
+          trigger_keywords: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          response_text?: string
+          trigger_keywords?: string[]
           updated_at?: string | null
         }
         Relationships: []
@@ -163,13 +193,6 @@ export type Database = {
             referencedColumns: ["product_id"]
           },
           {
-            foreignKeyName: "cart_items_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "fk_cart_items_product_id"
             columns: ["product_id"]
             isOneToOne: false
@@ -212,15 +235,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "carts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       categories: {
         Row: {
@@ -336,12 +351,19 @@ export type Database = {
       }
       orders: {
         Row: {
+          actual_delivery_date: string | null
           amount: number | null
+          coupon_code: string | null
           created_at: string
           discount_amount: number | null
           email: string | null
+          estimated_delivery: string | null
+          first_name: string | null
           items: Json | null
+          last_name: string | null
+          mpesa_checkout_request_id: string | null
           order_id: string
+          payment_id: string | null
           phone_number: string | null
           shipping_address: string | null
           status: string
@@ -351,12 +373,19 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          actual_delivery_date?: string | null
           amount?: number | null
+          coupon_code?: string | null
           created_at?: string
           discount_amount?: number | null
           email?: string | null
+          estimated_delivery?: string | null
+          first_name?: string | null
           items?: Json | null
+          last_name?: string | null
+          mpesa_checkout_request_id?: string | null
           order_id: string
+          payment_id?: string | null
           phone_number?: string | null
           shipping_address?: string | null
           status: string
@@ -366,12 +395,19 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          actual_delivery_date?: string | null
           amount?: number | null
+          coupon_code?: string | null
           created_at?: string
           discount_amount?: number | null
           email?: string | null
+          estimated_delivery?: string | null
+          first_name?: string | null
           items?: Json | null
+          last_name?: string | null
+          mpesa_checkout_request_id?: string | null
           order_id?: string
+          payment_id?: string | null
           phone_number?: string | null
           shipping_address?: string | null
           status?: string
@@ -380,7 +416,22 @@ export type Database = {
           user_id?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_email_fkey"
+            columns: ["email"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["email"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       product_variants: {
         Row: {
@@ -432,6 +483,8 @@ export type Database = {
           categories: string | null
           created_at: string | null
           description: string | null
+          dimensions: string | null
+          download_url: string | null
           featured: boolean | null
           features: Json | null
           image_urls: string[] | null
@@ -440,20 +493,26 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           name: string
+          phone: string | null
           price: number | null
           product_id: string
           rating: number | null
           review_count: number | null
+          seo_keywords: string[] | null
+          sku: string | null
           specification: Json | null
           stock: number | null
           subcategory_id: number | null
           updated_at: string | null
+          weight: number | null
         }
         Insert: {
           brand_id?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          dimensions?: string | null
+          download_url?: string | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null
@@ -462,20 +521,26 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          phone?: string | null
           price?: number | null
           product_id?: string
           rating?: number | null
           review_count?: number | null
+          seo_keywords?: string[] | null
+          sku?: string | null
           specification?: Json | null
           stock?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
+          weight?: number | null
         }
         Update: {
           brand_id?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          dimensions?: string | null
+          download_url?: string | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null
@@ -484,14 +549,18 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          phone?: string | null
           price?: number | null
           product_id?: string
           rating?: number | null
           review_count?: number | null
+          seo_keywords?: string[] | null
+          sku?: string | null
           specification?: Json | null
           stock?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
+          weight?: number | null
         }
         Relationships: [
           {
@@ -546,6 +615,41 @@ export type Database = {
         }
         Relationships: []
       }
+      review_media: {
+        Row: {
+          created_at: string | null
+          file_size: number | null
+          id: string
+          media_type: string
+          media_url: string
+          review_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          media_type: string
+          media_url: string
+          review_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          media_type?: string
+          media_url?: string
+          review_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_media_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["review_id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string
@@ -585,13 +689,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
         ]
       }
       wishlists: {
@@ -613,15 +710,7 @@ export type Database = {
           product_id?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "wishlists_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -629,7 +718,7 @@ export type Database = {
     }
     Functions: {
       can_user_review_product: {
-        Args: { p_product_id: string; p_user_id: string }
+        Args: { p_user_id: string; p_product_id: string }
         Returns: boolean
       }
       check_is_admin: {
@@ -638,26 +727,18 @@ export type Database = {
       }
       cleanup_expired_carts: {
         Args: Record<PropertyKey, never>
-        Returns: number
+        Returns: undefined
       }
       get_or_create_cart: {
-        Args: { p_session_id?: string; p_user_id?: string }
+        Args: { p_user_id?: string; p_session_id?: string }
         Returns: string
       }
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
       }
-      migrate_guest_cart_to_user: {
-        Args: { p_session_id: string; p_user_id: string }
-        Returns: boolean
-      }
-      notify_admin_no_reply: {
-        Args: { message_text: string; user_id: string; user_message_id: string }
-        Returns: undefined
-      }
       update_order_first_name: {
-        Args: { first_name: string; order_id: number }
+        Args: { order_id: number; first_name: string }
         Returns: undefined
       }
     }
