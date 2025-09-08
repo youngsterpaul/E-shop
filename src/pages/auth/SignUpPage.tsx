@@ -109,7 +109,7 @@ const SignUpPage = () => {
     setIsSubmitting(true);
     
     try {
-      await signUp(formData.email, formData.password);
+      await signUp(formData.email, formData.password, '', ''); // Empty firstName and lastName
       
       toast({
         title: "Account created successfully!",
