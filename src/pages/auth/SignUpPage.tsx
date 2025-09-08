@@ -15,8 +15,6 @@ const SignUpPage = () => {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -60,16 +58,6 @@ const SignUpPage = () => {
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
-
-    // First Name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-
-    // Last Name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
 
     // Email validation
     if (!formData.email.trim()) {
@@ -121,7 +109,7 @@ const SignUpPage = () => {
     setIsSubmitting(true);
     
     try {
-      await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
+      await signUp(formData.email, formData.password);
       
       toast({
         title: "Account created successfully!",
@@ -163,50 +151,6 @@ const SignUpPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Fields */}
-            <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                First name
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  id="firstName"
-                  type="text"
-                  placeholder="First name"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`pl-10 h-12 ${errors.firstName ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
-                  autoComplete="given-name"
-                  autoFocus
-                />
-              </div>
-              {errors.firstName && (
-                <p className="text-sm text-red-600">{errors.firstName}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                Last name
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  id="lastName"
-                  type="text"
-                  placeholder="Last name"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`pl-10 h-12 ${errors.lastName ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
-                  autoComplete="family-name"
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-sm text-red-600">{errors.lastName}</p>
-              )}
-            </div>
-
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -222,6 +166,7 @@ const SignUpPage = () => {
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   className={`pl-10 h-12 ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
                   autoComplete="email"
+                  autoFocus
                 />
               </div>
               {errors.email && (

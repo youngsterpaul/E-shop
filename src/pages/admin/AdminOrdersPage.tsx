@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download } from 'lucide-react';
+import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
@@ -76,6 +75,12 @@ const AdminOrdersPage = () => {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [updatedStatus, setUpdatedStatus] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Delete confirmation dialog states
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const [orderCount, setOrderCount] = useState({ 
     total: 0, 
     pending: 0,
@@ -148,24 +153,16 @@ const AdminOrdersPage = () => {
       if (error) throw error;
       
       if (data) {
-        // Convert Json items to OrderItem[] type
         const typedOrders: Order[] = data.map(order => ({
           ...order,
           items: order.items ? (order.items as unknown as OrderItem[]) : null,
-          mpesa_checkout_request_id: order.mpesa_checkout_request_id || undefined,
-          actual_delivery_date: order.actual_delivery_date || undefined,
           amount: order.amount || 0,
-          coupon_code: order.coupon_code || undefined,
           discount_amount: order.discount_amount || 0,
           email: order.email || null,
-          first_name: order.first_name || undefined,
-          last_name: order.last_name || undefined,
           phone_number: order.phone_number || null,
           shipping_address: order.shipping_address || null,
           tracking_number: order.tracking_number || undefined,
-          username: order.username || undefined,
-          estimated_delivery: order.estimated_delivery || undefined,
-          payment_id: order.payment_id || undefined
+          username: order.username || undefined
         }));
         
         setOrders(typedOrders);
@@ -264,6 +261,52 @@ const AdminOrdersPage = () => {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Handle delete order confirmation
+  const handleDeleteClick = (order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOrderToDelete(order);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Delete order function
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    try {
+      setIsDeleting(true);
+
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('order_id', orderToDelete.order_id);
+
+      if (error) throw error;
+
+      // Remove order from state
+      const updatedOrders = orders.filter(order => order.order_id !== orderToDelete.order_id);
+      setOrders(updatedOrders);
+
+      toast({
+        title: "Order deleted",
+        description: `Order #${orderToDelete.order_id.slice(-8).toUpperCase()} has been permanently deleted.`,
+      });
+
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete(null);
+
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Failed to delete order",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -551,6 +594,15 @@ const AdminOrdersPage = () => {
                               title="View Order"
                             >
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={(e) => handleDeleteClick(order, e)}
+                              title="Delete Order"
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>

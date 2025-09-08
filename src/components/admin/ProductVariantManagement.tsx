@@ -176,7 +176,7 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Product Variants - {productName}</CardTitle>
+          <CardTitle>Product Variants</CardTitle>
           <Dialog open={showAddDialog} onOpenChange={(open) => {
             setShowAddDialog(open);
             if (!open) resetForm();

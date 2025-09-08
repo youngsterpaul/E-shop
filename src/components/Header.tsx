@@ -80,11 +80,14 @@ const Header = () => {
 
   // Main navigation items for sitelinks
   const mainNavItems = [
-    { label: 'Categories', href: '/products', description: 'Browse all product categories' },
-    { label: 'Best Sellers', href: '/bestsellers', description: 'Top selling products' },
+    { label: 'Home', href: '/', description: 'Return to homepage' },
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
     { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
+    { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
+    { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },
+    { label: 'Privacy Policy', href: '/privacy', description: 'Know your privacy at smartkenya' },
+    { label: 'T&C', href: '/terms', description: 'Terms and Conditions of Smartkenya' },
   ];
 
   return (
@@ -115,28 +118,9 @@ const Header = () => {
 
       <header className="w-full bg-white shadow-sm sticky top-0 z-50">
       {/* Main navigation for desktop - important for sitelinks */}
-      {!isMobile && (
-        <nav className="block bg-white /border-b" role="navigation" aria-label="Main Navigation">
-          <div className="container mx-auto px-4">
-            <ul className="flex items-center justify-center space-x-8 py-2">
-              {mainNavItems.map((item) => (
-                <li key={item.href}>
-                  <Link 
-                    to={item.href}
-                    className="text-sm text-gray-700 hover:text-orange-500 transition-colors"
-                    title={item.description}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-        )}
 
 
-        <div className={`container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
+        <div className={`/container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
@@ -242,7 +226,27 @@ const Header = () => {
           </div>
         )}           
           </div>
-        </div>     
+        </div>   
+
+        {!isMobile && (
+        <nav className="block bg-gray-50 /border-b" role="navigation" aria-label="Main Navigation">
+          <div className="/container mx-auto px-4">
+            <ul className="flex items-center /justify-center space-x-8 pt-2 pb-4">
+              {mainNavItems.map((item) => (
+                <li key={item.href}>
+                  <Link 
+                    to={item.href}
+                    className="text-sm text-gray-700 hover:text-orange-500 transition-colors"
+                    title={item.description}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+        )}  
       </header>
     </>
   );

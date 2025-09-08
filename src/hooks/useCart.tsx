@@ -37,12 +37,14 @@ export const useCart = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Use ref to track subscription and prevent multiple subscriptions
+  // Use refs to prevent multiple operations and track state
   const subscriptionRef = useRef<any>(null);
   const isSubscribedRef = useRef(false);
+  const isInitializedRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
-  // Memoize session ID generation
-  const getSessionId = useMemo(() => {
+  // Stable session ID generation
+  const getSessionId = useCallback(() => {
     let sessionId = localStorage.getItem('cart_session_id');
     if (!sessionId) {
       sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -51,18 +53,36 @@ export const useCart = () => {
     return sessionId;
   }, []);
 
-  // Get or create cart - memoized
-  const getOrCreateCart = useCallback(async () => {
+  // Get existing cart without creating
+  const getExistingCart = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('carts')
+        .select('*')
+        .eq(user?.id ? 'user_id' : 'session_id', user?.id || getSessionId())
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      console.error('Error getting existing cart:', error);
+      return null;
+    }
+  }, [user?.id, getSessionId]);
+
+  // Create cart only when needed (when adding items)
+  const createCartForItem = useCallback(async () => {
     try {
       const { data, error } = await supabase.rpc('get_or_create_cart', {
         p_user_id: user?.id || undefined,
-        p_session_id: user ? undefined : getSessionId
+        p_session_id: user ? undefined : getSessionId()
       });
 
       if (error) throw error;
       return data;
     } catch (error: any) {
-      console.error('Error getting/creating cart:', error);
+      console.error('Error creating cart:', error);
       return null;
     }
   }, [user?.id, getSessionId]);
@@ -70,8 +90,6 @@ export const useCart = () => {
   // Fetch cart items - stable function that doesn't change
   const fetchCartItems = useCallback(async (cartId: string) => {
     try {
-      console.log('Fetching cart items for cart:', cartId);
-      
       const itemsResponse = await supabase
         .from('cart_items')
         .select(`
@@ -105,7 +123,6 @@ export const useCart = () => {
         quantity: item.quantity
       })) || [];
 
-      console.log('Fetched cart items:', formattedItems);
       setCartItems(formattedItems);
       return formattedItems;
     } catch (error: any) {
@@ -114,38 +131,40 @@ export const useCart = () => {
     }
   }, []);
 
-  // Fetch cart and cart items - optimized
+  // Fetch existing cart and items - no auto-creation
   const fetchCart = useCallback(async () => {
-    if (!user && !getSessionId) {
+    // Prevent multiple simultaneous fetches
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    if (!user && !getSessionId()) {
       setLoading(false);
       return;
     }
 
+    isFetchingRef.current = true;
+    
     try {
-      console.log('Fetching cart...');
-      // Get or create cart
-      const cartId = await getOrCreateCart();
-      if (!cartId) {
+      // Only get existing cart, don't create
+      const existingCart = await getExistingCart();
+      if (!existingCart) {
+        // No cart exists, set empty state
+        setCart(null);
+        setCartItems([]);
         setLoading(false);
         return;
       }
 
-      console.log('Got cart ID:', cartId);
-
-      // Fetch both cart details and items in parallel
-      const [cartResponse] = await Promise.all([
-        supabase.from('carts').select('*').eq('id', cartId).single(),
-        fetchCartItems(cartId) // This will update cartItems state
-      ]);
-
-      if (cartResponse.error) throw cartResponse.error;
+      // Fetch cart items
+      await fetchCartItems(existingCart.id);
       
       const typedCartData: Cart = {
-        ...cartResponse.data,
-        status: cartResponse.data.status as 'active' | 'checkout' | 'completed' | 'abandoned'
+        ...existingCart,
+        status: existingCart.status as 'active' | 'checkout' | 'completed' | 'abandoned',
+        currency: 'KES'
       };
       
-      console.log('Setting cart data:', typedCartData);
       setCart(typedCartData);
 
     } catch (error: any) {
@@ -157,86 +176,62 @@ export const useCart = () => {
       });
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
+  }, [user, getSessionId, getExistingCart, fetchCartItems, toast]);
 
-  // Set up real-time subscription - COMPLETELY REWRITTEN
+  // Set up real-time subscription - FIXED VERSION
   useEffect(() => {
-    console.log('Setting up subscription effect, cart:', cart?.id, 'isSubscribed:', isSubscribedRef.current);
-    
-    // Clean up existing subscription first
-    if (subscriptionRef.current) {
-      console.log('Cleaning up existing subscription');
-      supabase.removeChannel(subscriptionRef.current);
-      subscriptionRef.current = null;
-      isSubscribedRef.current = false;
-    }
-
     // Only set up subscription if we have a cart and haven't subscribed yet
     if (!cart?.id || isSubscribedRef.current) {
       return;
     }
 
-    console.log('Setting up new subscription for cart:', cart.id);
-
+    let retryTimeout: NodeJS.Timeout;
+    
     const setupSubscription = () => {
       const channel = supabase
         .channel(`cart-changes-${cart.id}`)
         .on(
           'postgres_changes',
           {
-            event: '*', // Listen to all events
+            event: '*',
             schema: 'public',
             table: 'cart_items',
             filter: `cart_id=eq.${cart.id}`
           },
           (payload) => {
-            console.log('🔥 Real-time change received:', payload);
-            
-            // Handle different types of changes
-            if (payload.eventType === 'INSERT') {
-              console.log('Adding new item to cart');
-              // We need to fetch the full item with product details
+            // Debounce rapid changes
+            setTimeout(() => {
               fetchCartItems(cart.id).catch(console.error);
-            } else if (payload.eventType === 'UPDATE') {
-              console.log('Updating cart item');
-              const newItem = payload.new as any;
-              setCartItems(prevItems => 
-                prevItems.map(item => 
-                  item.id === newItem.id 
-                    ? { ...item, quantity: newItem.quantity, variant_selections: newItem.variant_selections }
-                    : item
-                )
-              );
-            } else if (payload.eventType === 'DELETE') {
-              console.log('Removing cart item');
-              const oldItem = payload.old as any;
-              setCartItems(prevItems => 
-                prevItems.filter(item => item.id !== oldItem.id)
-              );
-            }
+            }, 100);
           }
         )
         .subscribe((status) => {
-          console.log('Subscription status:', status);
           if (status === 'SUBSCRIBED') {
-            console.log('✅ Successfully subscribed to cart changes');
             isSubscribedRef.current = true;
-          } else if (status === 'CLOSED') {
-            console.log('❌ Subscription closed');
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
             isSubscribedRef.current = false;
+            // Retry subscription after 2 seconds on error
+            if (cart?.id) {
+              retryTimeout = setTimeout(() => {
+                if (subscriptionRef.current) {
+                  supabase.removeChannel(subscriptionRef.current);
+                }
+                setupSubscription();
+              }, 2000);
+            }
           }
         });
 
       subscriptionRef.current = channel;
-      return channel;
     };
 
     setupSubscription();
 
     // Cleanup function
     return () => {
-      console.log('Cleaning up subscription in useEffect cleanup');
+      clearTimeout(retryTimeout);
       if (subscriptionRef.current) {
         supabase.removeChannel(subscriptionRef.current);
         subscriptionRef.current = null;
@@ -283,7 +278,8 @@ export const useCart = () => {
 
   const removeFromCart = useCallback(async (itemId: string) => {
     // Optimistic update for immediate UI feedback
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    const updatedItems = cartItems.filter(item => item.id !== itemId);
+    setCartItems(updatedItems);
 
     try {
       const { error } = await supabase
@@ -298,6 +294,12 @@ export const useCart = () => {
         }
         throw error;
       }
+
+      // If no items left, delete the cart
+      if (updatedItems.length === 0 && cart?.id) {
+        await supabase.from('carts').delete().eq('id', cart.id);
+        setCart(null);
+      }
       
       toast({
         title: "Removed from cart",
@@ -311,12 +313,10 @@ export const useCart = () => {
         variant: "destructive"
       });
     }
-  }, [cart?.id, fetchCartItems, toast]);
+  }, [cart?.id, cartItems, fetchCartItems, toast]);
 
   const addToCart = useCallback(async (productId: string, variantSelections: any = {}, quantity: number = 1) => {
-    console.log('🛒 Adding to cart:', { productId, variantSelections, quantity });
-    
-    if (!user && !getSessionId) {
+    if (!user && !getSessionId()) {
       toast({
         title: "Please sign in",
         description: "You need to be signed in to add items to cart",
@@ -326,17 +326,20 @@ export const useCart = () => {
     }
 
     try {
-      const cartId = await getOrCreateCart();
+      // Get existing cart or create new one only when adding items
+      let cartId = cart?.id;
       if (!cartId) {
-        toast({
-          title: "Error",
-          description: "Failed to create cart",
-          variant: "destructive"
-        });
-        return;
+        const newCartId = await createCartForItem();
+        if (!newCartId) {
+          toast({
+            title: "Error",
+            description: "Failed to create cart",
+            variant: "destructive"
+          });
+          return;
+        }
+        cartId = newCartId;
       }
-
-      console.log('Using cart ID for add:', cartId);
 
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
@@ -352,13 +355,11 @@ export const useCart = () => {
 
       let result;
       if (existingItem) {
-        console.log('Updating existing item quantity');
         result = await supabase
           .from('cart_items')
           .update({ quantity: existingItem.quantity + quantity })
           .eq('id', existingItem.id);
       } else {
-        console.log('Inserting new cart item');
         result = await supabase
           .from('cart_items')
           .insert({
@@ -371,39 +372,49 @@ export const useCart = () => {
       }
 
       if (result.error) throw result.error;
-      
-      console.log('✅ Item added to cart successfully');
-      
-      // Force immediate refresh to ensure UI updates
-      setTimeout(() => {
-        fetchCartItems(cartId).catch(console.error);
-      }, 100);
+
+      // If this was the first item and we didn't have a cart, refetch to get the new cart
+      if (!cart?.id) {
+        await fetchCart();
+      }
       
       toast({
         title: "Added to cart",
         description: "Item has been added to your cart"
       });
     } catch (error: any) {
-      console.error('❌ Error adding to cart:', error);
+      console.error('Error adding to cart:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",
         variant: "destructive"
       });
     }
-  }, [user, getSessionId, getOrCreateCart, fetchCartItems, toast]);
+  }, [user, getSessionId, createCartForItem, cart?.id, fetchCart, toast]);
 
   const clearCart = useCallback(async () => {
     if (!cart) return;
 
     try {
-      const { error } = await supabase
+      // Delete all cart items
+      const { error: itemsError } = await supabase
         .from('cart_items')
         .delete()
         .eq('cart_id', cart.id);
 
-      if (error) throw error;
-      // Real-time subscription will handle the update
+      if (itemsError) throw itemsError;
+
+      // Delete the cart itself
+      const { error: cartError } = await supabase
+        .from('carts')
+        .delete()
+        .eq('id', cart.id);
+
+      if (cartError) throw cartError;
+
+      // Clear local state
+      setCart(null);
+      setCartItems([]);
     } catch (error: any) {
       console.error('Error clearing cart:', error);
     }
@@ -425,11 +436,41 @@ export const useCart = () => {
     }
   }, [cart]);
 
-  // Initial fetch
+  // Initial fetch and auth migration - FIXED VERSION
   useEffect(() => {
-    console.log('Initial fetch effect triggered');
-    fetchCart();
-  }, [fetchCart]);
+    // Prevent multiple initializations
+    if (isInitializedRef.current) {
+      return;
+    }
+    
+    isInitializedRef.current = true;
+    
+    const initializeCart = async () => {
+      // Auto-migrate guest cart when user is authenticated
+      if (user && getSessionId()) {
+        try {
+          const { data, error } = await supabase.rpc('migrate_guest_cart_to_user', {
+            p_user_id: user.id,
+            p_session_id: getSessionId()
+          });
+          
+          if (error) {
+            console.error('Cart migration error:', error);
+          } else if (data) {
+            // Wait a moment for migration to complete
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        } catch (error) {
+          console.error('Migration failed:', error);
+        }
+      }
+      
+      // Fetch cart after potential migration
+      await fetchCart();
+    };
+
+    initializeCart();
+  }, [user, fetchCart, getSessionId]);
 
   const totalItems = useMemo(() => 
     cartItems.reduce((total, item) => total + item.quantity, 0),
