@@ -38,7 +38,6 @@ import {
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const [deliveryInfoSaved, setDeliveryInfoSaved] = useState(false);
   const isMobile = isMobileUserAgent();
   const { user, profile } = useAuth();
   const { calculations, getSelectedItems } = useSelectiveCart();
@@ -377,9 +376,6 @@ const CheckoutPage = () => {
 
       if (error) {
         console.error('Error updating profile delivery info:', error);
-      } else {
-        setDeliveryInfoSaved(true);
-        setTimeout(() => setDeliveryInfoSaved(false), 2000);
       }
     } catch (error) {
       console.error('Error updating profile delivery info:', error);
@@ -539,12 +535,6 @@ const CheckoutPage = () => {
           </div>
         </CardContent>
         
-        {/* Success message moved outside CardContent but inside Card */}
-        {deliveryInfoSaved && (
-          <div className="text-center pb-4">
-            <p className="text-sm text-green-600">✓ Address saved to your profile</p>
-          </div>
-        )}
       </Card>
     </div>
   );
