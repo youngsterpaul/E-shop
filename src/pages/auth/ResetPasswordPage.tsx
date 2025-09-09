@@ -1,15 +1,16 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,10 +19,100 @@ const ResetPasswordPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+  const [tokenError, setTokenError] = useState<string>('');
+
+  // Token validation effect
+  useEffect(() => {
+    const validateResetToken = async () => {
+      // Check URL parameters for reset token and errors
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
+      const error = searchParams.get('error');
+      const errorCode = searchParams.get('error_code');
+      const errorDescription = searchParams.get('error_description');
+
+      // Also check hash parameters (common for auth callbacks)
+      const hash = window.location.hash.substring(1);
+      const hashParams = new URLSearchParams(hash);
+      const hashAccessToken = hashParams.get('access_token');
+      const hashRefreshToken = hashParams.get('refresh_token');
+      const hashError = hashParams.get('error');
+      const hashErrorCode = hashParams.get('error_code');
+
+      // Check for errors first
+      if (error || hashError || errorCode || hashErrorCode) {
+        const errorMsg = errorDescription || hashParams.get('error_description') || 'Reset link is invalid or has expired';
+        setTokenError(errorMsg.replace(/\+/g, ' '));
+        setIsValidToken(false);
+        
+        toast({
+          title: "Reset link expired",
+          description: "Your password reset link has expired. Please request a new one.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check for valid tokens
+      const finalAccessToken = accessToken || hashAccessToken;
+      const finalRefreshToken = refreshToken || hashRefreshToken;
+
+      if (!finalAccessToken || !finalRefreshToken || type !== 'recovery') {
+        setTokenError('Invalid or missing reset tokens');
+        setIsValidToken(false);
+        
+        toast({
+          title: "Invalid reset link",
+          description: "This reset link is invalid. Please request a new password reset.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        // Validate the session with Supabase
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: finalAccessToken,
+          refresh_token: finalRefreshToken,
+        });
+
+        if (sessionError) {
+          console.error('Session validation error:', sessionError);
+          throw sessionError;
+        }
+
+        setIsValidToken(true);
+        console.log('Password reset token validated successfully');
+        
+      } catch (error: any) {
+        console.error('Token validation failed:', error);
+        setTokenError(error.message || 'Failed to validate reset token');
+        setIsValidToken(false);
+        
+        toast({
+          title: "Invalid reset link",
+          description: "This reset link is invalid or has expired. Please request a new password reset.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    validateResetToken();
+  }, [searchParams, toast]);
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
 
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Please enter a new password';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
+    }
+
+    // Confirm password validation
     if (!confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (password !== confirmPassword) {
@@ -118,6 +209,46 @@ const ResetPasswordPage = () => {
           Continue to Sign In
         </Link>
       </Button>
+    </div>
+  );
+
+  const ExpiredTokenContent = () => (
+    <div className="text-center space-y-6">
+      <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+        <AlertCircle className="h-8 w-8 text-red-600" />
+      </div>
+      
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-900">Reset Link Expired</h3>
+        <p className="text-gray-600">
+          {tokenError || 'Your password reset link has expired or is invalid.'}
+        </p>
+      </div>
+      
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
+        <p className="font-medium mb-1">What happened:</p>
+        <ul className="space-y-1 text-left">
+          <li>• Password reset links expire after 1 hour for security</li>
+          <li>• The link may have already been used</li>
+          <li>• You need to request a new password reset</li>
+        </ul>
+      </div>
+      
+      <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors">
+        <Link to="/auth/forgot-password">
+          Request New Reset Link
+        </Link>
+      </Button>
+      
+      <div className="text-center pt-4">
+        <Link
+          to="/auth/signin"
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to sign in
+        </Link>
+      </div>
     </div>
   );
 
@@ -220,17 +351,39 @@ const ResetPasswordPage = () => {
         <div>
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 text-center">
-              {isSuccess ? 'Password Reset Complete' : 'Reset your password'}
+              {isSuccess 
+                ? 'Password Reset Complete' 
+                : isValidToken === false 
+                  ? 'Reset Link Issue' 
+                  : isValidToken === null 
+                    ? 'Validating Reset Link...' 
+                    : 'Reset your password'
+              }
             </h2>
             <p className="mt-2 text-sm text-gray-600 text-center">
               {isSuccess 
                 ? 'Your password has been successfully updated' 
-                : 'Enter your new password below'
+                : isValidToken === false 
+                  ? 'There was an issue with your reset link'
+                  : isValidToken === null 
+                    ? 'Please wait while we validate your reset link'
+                    : 'Enter your new password below'
               }
             </p>
           </div>
 
-          {isSuccess ? <SuccessContent /> : <ResetForm />}
+          {isValidToken === null ? (
+            <div className="text-center space-y-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+              <p className="text-gray-600">Validating reset link...</p>
+            </div>
+          ) : isValidToken === false ? (
+            <ExpiredTokenContent />
+          ) : isSuccess ? (
+            <SuccessContent />
+          ) : (
+            <ResetForm />
+          )}
         </div>
 
         {/* Footer */}

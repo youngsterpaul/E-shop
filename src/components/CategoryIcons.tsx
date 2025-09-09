@@ -144,7 +144,7 @@ const CategoryIcons = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-6";
+    : "grid-cols-6 xl:grid-cols-8";
 
   const handleCategoryClick = (searchQuery: string) => {
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -177,46 +177,43 @@ const CategoryIcons = () => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className={`mx-0 lg:mx-16 bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'mt-4' : ''}`}>
-      <div className="container mx-auto px-4">
-
-        <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
-          SHOP BY CATEGORY
-        </h2>
-        <div className={`grid ${gridCols} gap-3 md:gap-4 bg-white p-4 shadow-sm`}>
-          {categoryIcons.map((category) => {
-            const IconComponent = category.icon;
-            return (
-              <div
-                key={category.id}
-                onClick={() => handleCategoryClick(category.searchQuery)}
-                className="flex flex-col items-center justify-center cursor-pointer group"
-              >
-                <div className="relative w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
-                  {category.productImage ? (
-                    <>
-                      <OptimizedImage
-                        src={category.productImage}
-                        alt={category.name}
-                        className="w-full h-full object-cover"
-                        aspectRatio="square"
-                        priority={false}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </>
-                  ) : (
-                    <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
-                      <IconComponent size={32} className="text-white" />
-                    </div>
-                  )}
-                </div>
-                <span className="text-sm font-medium text-gray-800 text-center group-hover:text-gray-900 transition-colors">
-                  {category.name}
-                </span>
+    <section className="/hidden block absolute bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-200/50 shadow-sm">
+      <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+        SHOP BY CATEGORY
+      </h2>
+      <div className={`grid ${gridCols} gap-3 /md:gap-4 bg-white p-4 shadow-sm`}>
+        {categoryIcons.map((category) => {
+          const IconComponent = category.icon;
+          return (
+            <div
+              key={category.id}
+              onClick={() => handleCategoryClick(category.searchQuery)}
+              className="flex flex-col items-center justify-center cursor-pointer group"
+            >
+              <div className="relative w-44 h-44 /md:w-28 /md:h-28 /lg:w-32 /lg:h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
+                {category.productImage ? (
+                  <>
+                    <OptimizedImage
+                      src={category.productImage}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      aspectRatio="square"
+                      priority={false}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </>
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
+                    <IconComponent size={32} className="text-white" />
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
+              <span className="text-sm font-medium text-gray-800 text-center group-hover:text-gray-900 transition-colors">
+                {category.name}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

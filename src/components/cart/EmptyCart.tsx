@@ -15,7 +15,7 @@ const EmptyCart = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-6";
+    : "grid-cols-6 xl:grid-cols-8";
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
@@ -31,7 +31,7 @@ const EmptyCart = () => {
         />
       } 
       <MobileNav /> 
-      <div className="py-12">
+      <div className={`w-full py-12 ${!isMobile ? 'px-4 xl:px-16' : 'px-0'} mx-auto`}>
         {/* Empty Cart Section */}
         <div className="text-center mb-16">
           <div className="relative mb-8">
@@ -50,17 +50,17 @@ const EmptyCart = () => {
         </div>
 
         {/* Featured Products Section */}
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
+        <div className="mx-aut">
+          <h2 className="text-2xl font-bold text-gray-900 mx-2">You might also like</h2>
           {isLoading ? (
-            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+            <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (
                 <ProductSkeleton key={index} />
               ))}
             </div>
           ) : (
-            <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-              {products?.slice(0, 4).map((product) => {
+            <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
+              {products?.products?.slice(0, 4).map((product) => {
                 const productCardData = {
                   id: product.product_id,
                   name: product.name,
