@@ -100,7 +100,7 @@ const AdminProductEdit = () => {
       if (data) {
         // Set basic form data
         form.setValue('name', data.name);
-        form.setValue('description', '');  // Set empty string since description doesn't exist
+        form.setValue('description', data.description || '');
         form.setValue('price', data.price || 0);
         form.setValue('stock', data.stock || 0);
         form.setValue('categories', data.categories || '');

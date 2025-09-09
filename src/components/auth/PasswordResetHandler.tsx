@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -9,58 +9,25 @@ interface PasswordResetHandlerProps {
     isValidToken: boolean;
     isLoading: boolean;
     errorMessage: string | null;
-    hasAuthError: boolean;
   }) => React.ReactNode;
 }
 
 export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) => {
   const [searchParams] = useSearchParams();
-  const location = useLocation();
   const [isValidToken, setIsValidToken] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [hasAuthError, setHasAuthError] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const validateResetToken = async () => {
       try {
-        // Check for URL errors first (in hash fragment)
-        const hashFragment = window.location.hash;
+        // Get URL parameters - check both hash and search params
         const urlParams = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(hashFragment.substring(1));
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        // Check for auth errors in URL
-        const error = searchParams.get('error') || 
-                     urlParams.get('error') || 
-                     hashParams.get('error');
-        const errorDescription = searchParams.get('error_description') || 
-                                urlParams.get('error_description') || 
-                                hashParams.get('error_description');
-        const errorCode = searchParams.get('error_code') || 
-                         urlParams.get('error_code') || 
-                         hashParams.get('error_code');
-
-        // Handle auth errors first
-        if (error) {
-          console.log('Auth error detected in URL:', { error, errorCode, errorDescription });
-          setHasAuthError(true);
-          setIsValidToken(false);
-          
-          if (error === 'access_denied' && errorCode === 'otp_expired') {
-            setErrorMessage('This password reset link has expired or is invalid. Please request a new one.');
-          } else if (errorDescription === 'Email link is invalid or has expired') {
-            setErrorMessage('This password reset link has expired or is invalid. Please request a new one.');
-          } else {
-            setErrorMessage('Invalid password reset link. Please request a new one.');
-          }
-          
-          setIsLoading(false);
-          return;
-        }
-
-        // Try to get tokens from different locations
+        // Try to get tokens from either location
         const accessToken = searchParams.get('access_token') || 
                            urlParams.get('access_token') || 
                            hashParams.get('access_token');
@@ -70,33 +37,37 @@ export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) =>
         const type = searchParams.get('type') || 
                     urlParams.get('type') || 
                     hashParams.get('type');
+        const error = searchParams.get('error') || 
+                     urlParams.get('error') || 
+                     hashParams.get('error');
+        const errorDescription = searchParams.get('error_description') || 
+                                urlParams.get('error_description') || 
+                                hashParams.get('error_description');
 
         console.log('Reset token validation - URL params:', {
           accessToken: accessToken ? 'present' : 'missing',
           refreshToken: refreshToken ? 'present' : 'missing',
           type,
-          hasError: !!error,
-          currentUrl: window.location.href
+          error,
+          errorDescription
         });
 
-        // Check if user is already signed in but accessing reset page without valid tokens
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && (!accessToken || !refreshToken || type !== 'recovery')) {
-          console.log('User already signed in, redirecting to home');
-          setErrorMessage('You are already signed in. If you want to change your password, please use the profile settings.');
+        // Check for errors in URL parameters
+        if (error) {
+          console.error('Reset URL error:', error, errorDescription);
+          setErrorMessage(
+            errorDescription === 'Email link is invalid or has expired'
+              ? 'This password reset link has expired or is invalid. Please request a new one.'
+              : 'Invalid password reset link. Please request a new one.'
+          );
           setIsValidToken(false);
           setIsLoading(false);
-          
-          // Redirect to home after 3 seconds
-          setTimeout(() => {
-            navigate('/');
-          }, 3000);
           return;
         }
 
         // Check if we have the required parameters for recovery
         if (!accessToken || !refreshToken) {
-          console.log('Missing required reset parameters');
+          console.error('Missing required reset parameters');
           setErrorMessage('Invalid password reset link. Please request a new one.');
           setIsValidToken(false);
           setIsLoading(false);
@@ -105,7 +76,7 @@ export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) =>
 
         // For password recovery, type should be 'recovery'
         if (type !== 'recovery') {
-          console.log('Invalid type for password reset:', type);
+          console.error('Invalid type for password reset:', type);
           setErrorMessage('Invalid password reset link. Please request a new one.');
           setIsValidToken(false);
           setIsLoading(false);
@@ -153,7 +124,7 @@ export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) =>
     };
 
     validateResetToken();
-  }, [searchParams, location.hash, toast, navigate]);
+  }, [searchParams, toast]);
 
-  return <>{children({ isValidToken, isLoading, errorMessage, hasAuthError })}</>;
+  return <>{children({ isValidToken, isLoading, errorMessage })}</>;
 };

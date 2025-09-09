@@ -41,18 +41,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    let isInitialized = false;
-
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state change:', event, session?.user?.id);
-        
-        // Prevent duplicate initial session handling
-        if (event === 'INITIAL_SESSION' && isInitialized) {
-          return;
-        }
-        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -67,24 +59,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Set loading to false after handling the auth state
         setLoading(false);
-        isInitialized = true;
       }
     );
 
-    // Get initial session - this will trigger INITIAL_SESSION event
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
-      // Don't duplicate state setting here since onAuthStateChange will handle it
-      if (!isInitialized) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user?.id) {
-          fetchProfile(session.user.id);
-        }
-        setLoading(false);
-        isInitialized = true;
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user?.id) {
+        fetchProfile(session.user.id);
       }
+      setLoading(false);
     }).catch((error) => {
       console.error('Error getting initial session:', error);
       setLoading(false);

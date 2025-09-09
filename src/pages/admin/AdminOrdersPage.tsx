@@ -352,7 +352,6 @@ const AdminOrdersPage = () => {
       // Transform the order to match the expected structure for downloadReceipt (legacy format)
       const transformedOrder = {
         ...order,
-        delivery_fee: 0,  // Default delivery fee
         items: order.items?.map(item => {
           const normalizedItem = normalizeOrderItem(item);
           return {
