@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,17 @@ const ResetPasswordPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
+  const [hasAutoFocused, setHasAutoFocused] = useState(false);
+  
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  // Handle initial auto-focus only once
+  useEffect(() => {
+    if (!hasAutoFocused && passwordRef.current) {
+      passwordRef.current.focus();
+      setHasAutoFocused(true);
+    }
+  }, [hasAutoFocused]);
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
@@ -130,6 +141,7 @@ const ResetPasswordPage = () => {
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
+            ref={passwordRef}
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Enter your new password"
@@ -137,7 +149,6 @@ const ResetPasswordPage = () => {
             onChange={(e) => handlePasswordChange(e.target.value)}
             className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
             autoComplete="new-password"
-            autoFocus
           />
           <button
             type="button"
