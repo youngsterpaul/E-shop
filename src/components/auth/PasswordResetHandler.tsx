@@ -75,8 +75,24 @@ export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) =>
           accessToken: accessToken ? 'present' : 'missing',
           refreshToken: refreshToken ? 'present' : 'missing',
           type,
-          hasError: !!error
+          hasError: !!error,
+          currentUrl: window.location.href
         });
+
+        // Check if user is already signed in but accessing reset page without valid tokens
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && (!accessToken || !refreshToken || type !== 'recovery')) {
+          console.log('User already signed in, redirecting to home');
+          setErrorMessage('You are already signed in. If you want to change your password, please use the profile settings.');
+          setIsValidToken(false);
+          setIsLoading(false);
+          
+          // Redirect to home after 3 seconds
+          setTimeout(() => {
+            navigate('/');
+          }, 3000);
+          return;
+        }
 
         // Check if we have the required parameters for recovery
         if (!accessToken || !refreshToken) {
@@ -137,7 +153,7 @@ export const PasswordResetHandler = ({ children }: PasswordResetHandlerProps) =>
     };
 
     validateResetToken();
-  }, [searchParams, location.hash, toast]);
+  }, [searchParams, location.hash, toast, navigate]);
 
   return <>{children({ isValidToken, isLoading, errorMessage, hasAuthError })}</>;
 };
