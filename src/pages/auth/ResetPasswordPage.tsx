@@ -18,17 +18,15 @@ const ResetPasswordPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
-  const [hasAutoFocused, setHasAutoFocused] = useState(true);
-  
+
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  // Handle initial auto-focus only once
+  // Autofocus on password input once on mount
   useEffect(() => {
-    if (!hasAutoFocused && passwordRef.current) {
+    if (passwordRef.current) {
       passwordRef.current.focus();
-      setHasAutoFocused(true);
     }
-  }, [hasAutoFocused]);
+  }, []);
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
@@ -59,14 +57,14 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
+
     try {
       console.log('Attempting to update password...');
-      
+
       const { data: { user }, error } = await supabase.auth.updateUser({
         password: password
       });
@@ -79,7 +77,7 @@ const ResetPasswordPage = () => {
       if (user) {
         console.log('Password updated successfully for user:', user.id);
         setIsSuccess(true);
-        
+
         toast({
           title: "Password updated successfully!",
           description: "Your password has been reset. You can now sign in with your new password.",
@@ -108,13 +106,13 @@ const ResetPasswordPage = () => {
       <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
         <CheckCircle className="h-8 w-8 text-green-600" />
       </div>
-      
+
       <div className="space-y-2">
         <p className="text-gray-600">
           Your password has been successfully reset. You can now sign in with your new password.
         </p>
       </div>
-      
+
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
         <p className="font-medium mb-1">What's next:</p>
         <ul className="space-y-1 text-left">
@@ -123,7 +121,7 @@ const ResetPasswordPage = () => {
           <li>• Consider updating your password manager</li>
         </ul>
       </div>
-      
+
       <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 h-12 rounded-lg font-medium transition-colors">
         <Link to="/auth/signin">
           Continue to Sign In
@@ -222,35 +220,35 @@ const ResetPasswordPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center /py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
-        {/* SmartKenya Logo/Brand */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
-        </div>
-
-        {/* Reset Password Card */}
-        <div>
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 text-center">
-              {isSuccess ? 'Password Reset Complete' : 'Reset your password'}
-            </h2>
-            <p className="mt-2 text-sm text-gray-600 text-center">
-              {isSuccess 
-                ? 'Your password has been successfully updated' 
-                : 'Enter your new password below'
-              }
-            </p>
+          {/* SmartKenya Logo/Brand */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
           </div>
 
-          {isSuccess ? <SuccessContent /> : <ResetForm />}
-        </div>
+          {/* Reset Password Card */}
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 text-center">
+                {isSuccess ? 'Password Reset Complete' : 'Reset your password'}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600 text-center">
+                {isSuccess
+                  ? 'Your password has been successfully updated'
+                  : 'Enter your new password below'
+                }
+              </p>
+            </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            © 2025 SmartKenya. All rights reserved.
-          </p>
+            {isSuccess ? <SuccessContent /> : <ResetForm />}
+          </div>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-xs text-gray-500">
+              © 2025 SmartKenya. All rights reserved.
+            </p>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
