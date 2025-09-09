@@ -1,64 +1,62 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const handler = async (req)=>{
+
+interface EmailRequest {
+  email: string;
+  orderId: string;
+  amount: number;
+  userName?: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
   console.log('Payment confirmation email function called');
+  
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders
-    });
+    return new Response(null, { headers: corsHeaders });
   }
+
   if (req.method !== 'POST') {
     console.log('Method not allowed:', req.method);
-    return new Response('Method not allowed', {
-      status: 405,
-      headers: corsHeaders
-    });
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
+
   try {
     // Check if RESEND_API_KEY exists
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       console.error('RESEND_API_KEY is not configured');
-      return new Response(JSON.stringify({
-        error: 'Email service not configured'
-      }), {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
-    const { email, orderId, amount, userName } = requestBody;
+    
+    const { email, orderId, amount, userName }: EmailRequest = requestBody;
+
     if (!email || !orderId || !amount) {
-      console.error('Missing required fields:', {
-        email: !!email,
-        orderId: !!orderId,
-        amount: !!amount
-      });
-      return new Response(JSON.stringify({
-        error: 'Missing required fields'
-      }), {
-        status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
+      console.error('Missing required fields:', { email: !!email, orderId: !!orderId, amount: !!amount });
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
     console.log('Sending email to:', email, 'for order:', orderId);
+
     const emailResponse = await resend.emails.send({
       from: "SmartKenya <info@smartkenya.co.ke>",
-      to: [
-        email
-      ],
+      to: [email],
       subject: `Payment Confirmation - Order #${orderId}`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -94,7 +92,7 @@ const handler = async (req)=>{
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://smartkenya.co.ke/order/${orderId}" 
-                 background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                 style="background: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order Status
               </a>
             </div>
@@ -118,27 +116,28 @@ const handler = async (req)=>{
             </div>
           </div>
         </div>
-      `
+      `,
     });
+
     console.log("Payment confirmation email sent successfully:", emailResponse);
+
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        ...corsHeaders
-      }
+        ...corsHeaders,
+      },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending payment confirmation email:", error);
-    return new Response(JSON.stringify({
-      error: error.message
-    }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
-    });
+    );
   }
 };
+
 serve(handler);

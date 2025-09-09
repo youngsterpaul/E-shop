@@ -18,28 +18,36 @@ interface SearchFiltersProps {
 
 export interface FilterState {
   priceRange: [number, number];
+  brands: string[];
   specifications: Record<string, string[]>;
   ratings: number[];
+  features: string[];
 }
 
 const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersProps) => {
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 200000],
+    brands: [],
     specifications: {},
     ratings: [],
+    features: [],
   });
 
   const [openSections, setOpenSections] = useState({
     price: true,
+    brand: true,
     specs: true,
     rating: true,
+    features: true,
   });
 
   // Extract filter options from products
   const filterOptions = useMemo(() => {
-    if (!products?.length) return { specs: {}, maxPrice: 200000 };
+    if (!products?.length) return { brands: [], specs: {}, features: [], maxPrice: 200000 };
 
+    const brands = new Set<string>();
     const specs: Record<string, Set<string>> = {};
+    const features = new Set<string>();
     let maxPrice = 0;
 
     products.forEach(product => {
@@ -48,7 +56,13 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
         maxPrice = product.price;
       }
 
-      // Extract specs from specification field only
+      // Extract brand from name (first word typically)
+      const brandMatch = product.name.match(/^([A-Za-z]+)/);
+      if (brandMatch) {
+        brands.add(brandMatch[1]);
+      }
+
+      // Extract specs from specification field
       if (product.specification && typeof product.specification === 'object') {
         Object.entries(product.specification).forEach(([key, value]) => {
           if (value && typeof value === 'string') {
@@ -57,6 +71,59 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
           }
         });
       }
+
+      // Extract specs from product name
+      const name = product.name;
+      
+      // RAM extraction
+      const ramMatch = name.match(/(\d+)GB RAM/i);
+      if (ramMatch) {
+        if (!specs['RAM']) specs['RAM'] = new Set();
+        specs['RAM'].add(`${ramMatch[1]}GB`);
+      }
+
+      // Storage extraction
+      const storageMatch = name.match(/(\d+)GB ROM/i);
+      if (storageMatch) {
+        if (!specs['Storage']) specs['Storage'] = new Set();
+        specs['Storage'].add(`${storageMatch[1]}GB`);
+      }
+
+      // Camera extraction
+      const cameraMatch = name.match(/(\d+)MP/i);
+      if (cameraMatch) {
+        if (!specs['Camera']) specs['Camera'] = new Set();
+        specs['Camera'].add(`${cameraMatch[1]}MP`);
+      }
+
+      // Battery extraction
+      const batteryMatch = name.match(/(\d+)mAh/i);
+      if (batteryMatch) {
+        if (!specs['Battery']) specs['Battery'] = new Set();
+        specs['Battery'].add(`${batteryMatch[1]}mAh`);
+      }
+
+      // Display size extraction
+      const displayMatch = name.match(/(\d+\.?\d*)".*Display/i);
+      if (displayMatch) {
+        if (!specs['Display Size']) specs['Display Size'] = new Set();
+        specs['Display Size'].add(`${displayMatch[1]}"`);
+      }
+
+      // Extract features from features field
+      if (product.features) {
+        if (Array.isArray(product.features)) {
+          product.features.forEach(feature => features.add(feature));
+        } else if (typeof product.features === 'string') {
+          features.add(product.features);
+        }
+      }
+
+      // Extract features from name
+      if (name.includes('5G')) features.add('5G');
+      if (name.includes('AMOLED')) features.add('AMOLED Display');
+      if (name.includes('120Hz')) features.add('120Hz Display');
+      if (name.includes('Fast Charging')) features.add('Fast Charging');
     });
 
     // Convert sets to sorted arrays
@@ -66,7 +133,9 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     });
 
     return {
+      brands: Array.from(brands).sort(),
       specs: sortedSpecs,
+      features: Array.from(features).sort(),
       maxPrice: Math.ceil(maxPrice * 1.1), // Add 10% buffer
     };
   }, [products]);
@@ -100,6 +169,15 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     }));
   };
 
+  const toggleBrand = (brand: string) => {
+    setFilters(prev => ({
+      ...prev,
+      brands: prev.brands.includes(brand)
+        ? prev.brands.filter(b => b !== brand)
+        : [...prev.brands, brand],
+    }));
+  };
+
   const toggleSpec = (specType: string, value: string) => {
     setFilters(prev => ({
       ...prev,
@@ -121,17 +199,30 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     }));
   };
 
+  const toggleFeature = (feature: string) => {
+    setFilters(prev => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...prev.features, feature],
+    }));
+  };
+
   const clearAllFilters = () => {
     setFilters({
       priceRange: [0, filterOptions.maxPrice],
+      brands: [],
       specifications: {},
       ratings: [],
+      features: [],
     });
   };
 
   const activeFiltersCount = 
+    filters.brands.length + 
     Object.values(filters.specifications).flat().length +
     filters.ratings.length + 
+    filters.features.length +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < filterOptions.maxPrice ? 1 : 0);
 
   return (
@@ -202,6 +293,36 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
 
           <Separator />
 
+          {/* Brand Filter */}
+          {filterOptions.brands.length > 0 && (
+            <>
+              <Collapsible open={openSections.brand} onOpenChange={() => toggleSection('brand')}>
+                <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
+                  <h4 className="font-medium text-gray-900">Brand</h4>
+                  {openSections.brand ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                  {filterOptions.brands.map((brand) => (
+                    <div key={brand} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`brand-${brand}`}
+                        checked={filters.brands.includes(brand)}
+                        onCheckedChange={() => toggleBrand(brand)}
+                      />
+                      <label
+                        htmlFor={`brand-${brand}`}
+                        className="text-sm text-gray-700 cursor-pointer flex-1"
+                      >
+                        {brand}
+                      </label>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+              <Separator />
+            </>
+          )}
+
           {/* Specifications Filters */}
           {Object.keys(filterOptions.specs).map((specType) => (
             <div key={specType}>
@@ -259,6 +380,36 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
               ))}
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Features Filter */}
+          {filterOptions.features.length > 0 && (
+            <>
+              <Separator />
+              <Collapsible open={openSections.features} onOpenChange={() => toggleSection('features')}>
+                <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
+                  <h4 className="font-medium text-gray-900">Features</h4>
+                  {openSections.features ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                  {filterOptions.features.map((feature) => (
+                    <div key={feature} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`feature-${feature}`}
+                        checked={filters.features.includes(feature)}
+                        onCheckedChange={() => toggleFeature(feature)}
+                      />
+                      <label
+                        htmlFor={`feature-${feature}`}
+                        className="text-sm text-gray-700 cursor-pointer flex-1"
+                      >
+                        {feature}
+                      </label>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            </>
+          )}
         </div>
       </ScrollArea>
     </div>

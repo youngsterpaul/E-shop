@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
-import { useProductSearch, useProducts } from '@/hooks/useProducts';
-import { useQuery } from '@tanstack/react-query';
+import { useProductSearch } from '@/hooks/useProducts';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 import Header from '@/components/Header';
 import SmartPagination from '@/components/ui/pagination';
@@ -23,49 +22,20 @@ const SearchPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState(24);
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 200000],
+    brands: [],
     specifications: {},
     ratings: [],
+    features: [],
   });
   
-  const { searchProducts } = useProducts();
+  const { data: products, isLoading, isError } = useProductSearch(searchQuery);
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-4 xl:grid-cols-6";
-
-  // Desktop: Use regular query with pagination
-  const desktopQuery = useQuery({
-    queryKey: ['productSearch', searchQuery, currentPage, itemsPerPage],
-    queryFn: () => searchProducts(searchQuery, { 
-      pageParam: currentPage - 1, 
-      pageSize: itemsPerPage 
-    }),
-    enabled: !isMobile && searchQuery.length > 1,
-    staleTime: 30000,
-  });
-
-  // Mobile: Use infinite query
-  const mobileQuery = useProductSearch(
-    searchQuery, 
-    isMobile ? 12 : undefined
-  );
-
-  // Determine which data to use
-  const queryData = isMobile ? mobileQuery : desktopQuery;
-  const isLoading = queryData.isLoading;
-  const isError = queryData.isError;
-  
-  // Extract products based on device type
-  const allProducts = useMemo(() => {
-    if (isMobile) {
-      return mobileQuery.data?.products || [];
-    } else {
-      return desktopQuery.data?.products || [];
-    }
-  }, [isMobile, mobileQuery.data, desktopQuery.data]);
+    : "grid-cols-6";
 
   // Apply filters to products
-  const filteredProducts = useProductFiltering(allProducts, filters);
+  const filteredProducts = useProductFiltering(products, filters);
 
   // Sort products based on selected option
   const sortedProducts = useMemo(() => {
@@ -73,7 +43,7 @@ const SearchPage = () => {
     
     const productsWithRating = filteredProducts.map(product => ({
       ...product,
-      calculatedRating: product.rating || 4.5,
+      calculatedRating: product.rating || 4.5, // Use product rating or default
       calculatedPrice: product.price
     }));
 
@@ -94,42 +64,18 @@ const SearchPage = () => {
     }
   }, [filteredProducts, sortOption]);
 
-  // Desktop pagination
-  const totalCount = isMobile ? mobileQuery.data?.totalCount || 0 : desktopQuery.data?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  
-  const displayProducts = isMobile ? sortedProducts : sortedProducts;
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedProducts.slice(startIndex, endIndex);
+  }, [sortedProducts, currentPage, itemsPerPage]);
 
-  // Mobile infinite scroll handler
-  const handleLoadMore = useCallback(() => {
-    if (isMobile && mobileQuery.hasNextPage && !mobileQuery.isFetchingNextPage) {
-      mobileQuery.fetchNextPage();
-    }
-  }, [isMobile, mobileQuery]);
-
-  // Infinite scroll effect for mobile
+  // Reset to first page when search query, sort, or filters change
   useEffect(() => {
-    if (!isMobile) return;
-
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop
-        >= document.documentElement.offsetHeight - 1000
-      ) {
-        handleLoadMore();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleLoadMore, isMobile]);
-
-  // Reset when search query, sort, or filters change
-  useEffect(() => {
-    if (!isMobile) {
-      setCurrentPage(1);
-    }
-  }, [searchQuery, sortOption, filters, isMobile]);
+    setCurrentPage(1);
+  }, [searchQuery, sortOption, filters]);
  
   const handleBack = () => {
     navigate(-1);
@@ -146,20 +92,17 @@ const SearchPage = () => {
   };
 
   const handlePageChange = (page: number) => {
-    if (!isMobile) {
-      setCurrentPage(page);
-      window.scrollTo({ 
-        top: 200, 
-        behavior: 'smooth' 
-      });
-    }
+    setCurrentPage(page);
+    // Scroll to top of results
+    window.scrollTo({ 
+      top: isMobile ? 120 : 200, 
+      behavior: 'smooth' 
+    });
   };
 
   const handlePageSizeChange = (size: number) => {
-    if (!isMobile) {
-      setItemsPerPage(size);
-      setCurrentPage(1);
-    }
+    setItemsPerPage(size);
+    setCurrentPage(1); // Reset to first page
   };
 
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -168,8 +111,10 @@ const SearchPage = () => {
 
   // Calculate active filters count for mobile sheet
   const activeFiltersCount = 
+    filters.brands.length + 
     Object.values(filters.specifications).flat().length +
     filters.ratings.length + 
+    filters.features.length +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0);
 
   useEffect(() => {
@@ -186,19 +131,17 @@ const SearchPage = () => {
     if (sortParam) {
       setSortOption(sortParam);
     }
-    if (pageParam && !isMobile) {
+    if (pageParam) {
       setCurrentPage(parseInt(pageParam) || 1);
     }
-    if (sizeParam && !isMobile) {
+    if (sizeParam) {
       setItemsPerPage(parseInt(sizeParam) || 24);
     }
-  }, [location.search, isMobile]);
+  }, [location.search]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!isMobile) {
-      setCurrentPage(1);
-    }
+    setCurrentPage(1); // Reset to first page on new search
     
     // Update URL with search query, sort option, and pagination
     const params = new URLSearchParams();
@@ -208,16 +151,16 @@ const SearchPage = () => {
     if (sortOption !== 'featured') {
       params.set('sort', sortOption);
     }
-    if (!isMobile && itemsPerPage !== 24) {
+    if (itemsPerPage !== 24) {
       params.set('size', itemsPerPage.toString());
     }
     
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
 
-  // Update URL when pagination changes (desktop only)
+  // Update URL when pagination changes
   useEffect(() => {
-    if (searchQuery && !isMobile) {
+    if (searchQuery) {
       const params = new URLSearchParams();
       params.set('q', searchQuery);
       if (sortOption !== 'featured') {
@@ -232,7 +175,7 @@ const SearchPage = () => {
       
       window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
     }
-  }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile]);
+  }, [searchQuery, sortOption, currentPage, itemsPerPage]);
 
   return (
     <main className={`w-full min-h-screen flex flex-col bg-gray-50 flex-grow ${!isMobile ? 'min-w-max' : ''}`}>
@@ -258,9 +201,8 @@ const SearchPage = () => {
             />
             <Button
               type="button"
-              variant="ghost"
               onClick={() => handleSubmit()}
-              className="h-8 px-3"
+              className="h-8  //hover:bg-gray-100 px-3"
               aria-label="Search"
             >
               <Search className="text-gray-800 h-4 w-4" />
@@ -271,13 +213,13 @@ const SearchPage = () => {
       </div>
 
       {/* Search Results */}
-      <div className={`w-full ${!isMobile ? 'px-4 xl:px-16' : 'px-0'} mx-auto`}>
-        <div className={`flex gap-6 ${isMobile ? 'flex-row' : ''}`}>
+      <div className={`w-full ${!isMobile ? 'px-4 lg:px-16' : 'px-0'} mx-auto`}>
+        <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
-          {!isMobile && allProducts && allProducts.length > 0 && (
+          {!isMobile && products && products.length > 0 && (
             <div className="w-72 flex-shrink-0">
               <SearchFilters 
-                products={allProducts} 
+                products={products} 
                 onFiltersChange={handleFiltersChange}
               />
             </div>
@@ -292,7 +234,7 @@ const SearchPage = () => {
                   <span className="ml-3 text-gray-600">Searching products...</span>
                 </div>
                 
-                <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
+                <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
@@ -318,43 +260,41 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
-              <div className={`${!isMobile ? 'space-y-6':'space-y-2'}`}>
-                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4 px-4' : ''}`}>
-                <p className={`${isMobile ? 'mx-2 my-6':''} text-gray-600 text-lg`}>
-                  <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
-                  {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
-                  {searchQuery && (
-                    <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split('(')[0].trim()}</span>"</span>
-                  )}
-                  {isMobile && mobileQuery.hasNextPage && (
-                    <span className="text-sm text-gray-500"> • Loading more...</span>
-                  )}
-                </p>
-                <div className="grid grid-cols-2 items-center justify-between space-x-8 gap-4 px-2">      
-                  <ProductSort 
-                  sortOption={sortOption} 
-                  onSortChange={handleSortChange}
-                  className="w-48"
-                 />
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <p className="text-gray-600 text-lg">
+                      <span className="font-semibold text-gray-900">{sortedProducts.length}</span> 
+                      {' '}product{sortedProducts.length !== 1 ? 's' : ''} found
+                      {searchQuery && (
+                        <span> for "<span className="font-medium text-orange-600">{searchQuery.split('(')[0].trim()}</span>"</span>
+                      )}
+                    </p>
+                    
+                    {/* Mobile Filter Button */}
+                    {isMobile && products && products.length > 0 && (
+                      <MobileFilterSheet
+                        products={products}
+                        onFiltersChange={handleFiltersChange}
+                        activeFiltersCount={activeFiltersCount}
+                      />
+                    )}
+                  </div>
                   
-                  {/* Mobile Filter Button */}
-                  {isMobile && allProducts && allProducts.length > 0 && (
-                    <MobileFilterSheet
-                      products={allProducts}
-                      onFiltersChange={handleFiltersChange}
-                      activeFiltersCount={activeFiltersCount}
-                    />
-                  )}
-                </div>
+                  <ProductSort 
+                    sortOption={sortOption} 
+                    onSortChange={handleSortChange}
+                    className="w-48"
+                  />
                 </div>
                 
-                <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 p-2 shadow-sm`}>
-                  {displayProducts.map((product) => {
+                <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
+                  {paginatedProducts.map((product) => {
                     const productData = {
                       id: product.product_id,
                       name: product.name,
                       price: product.price,
-                      originalPrice: product.price * 1.2,
+                      originalPrice: product.price * 1.2, // Example discount calculation
                       image: product.image_urls?.[0] || '',
                       rating: 4.5,
                       reviews: 0,
@@ -372,31 +312,23 @@ const SearchPage = () => {
                   })}
                 </div>
 
-                {/* Mobile: Loading indicator for infinite scroll */}
-                {isMobile && mobileQuery.isFetchingNextPage && (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full"></div>
-                    <span className="ml-2 text-gray-600">Loading more products...</span>
-                  </div>
-                )}
-
-                {/* Desktop: Smart Pagination */}
-                {!isMobile && totalPages > 1 && (
+                {/* Smart Pagination */}
+                {totalPages > 1 && (
                   <SmartPagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    totalItems={totalCount}
+                    totalItems={sortedProducts.length}
                     itemsPerPage={itemsPerPage}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
-                    showQuickJumper={true}
-                    showSizeChanger={true}
-                    pageSizeOptions={[12, 24, 48, 96]}
+                    showQuickJumper={!isMobile}
+                    showSizeChanger={!isMobile}
+                    pageSizeOptions={isMobile ? [12, 24, 48] : [12, 24, 48, 96]}
                     className="border-t border-gray-200 bg-white px-4 sm:px-6"
                   />
                 )}
               </div>
-            ) : allProducts && allProducts.length > 0 && sortedProducts.length === 0 ? (
+            ) : products && products.length > 0 && sortedProducts.length === 0 ? (
               <div className="text-center py-16 px-4">
                 <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 max-w-md mx-auto">
                   <div className="text-gray-400 mb-4">
@@ -410,7 +342,7 @@ const SearchPage = () => {
                   </p>
                   {isMobile && (
                     <MobileFilterSheet
-                      products={allProducts}
+                      products={products}
                       onFiltersChange={handleFiltersChange}
                       activeFiltersCount={activeFiltersCount}
                     />

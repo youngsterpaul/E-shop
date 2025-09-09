@@ -80,7 +80,7 @@ export const useOptimizedProductsData = ({
           isNew: Math.random() > 0.7,
           isSale: Math.random() > 0.7,
           rating: product.rating || Math.floor(Math.random() * 5) + 1,
-          brand: 'Unknown', // Brands table doesn't exist
+          brand: product.brands?.name || 'Unknown',
           brandId: product.brand_id ?? undefined
         };
       }) || [];

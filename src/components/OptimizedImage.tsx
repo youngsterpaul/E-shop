@@ -70,15 +70,8 @@ const OptimizedImage = ({
   return (
     <div className={cn('relative overflow-hidden', aspectRatio !== 'auto' && aspectRatioClass[aspectRatio])}>
       {!imageLoaded && (
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-100" />
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-200" />
-            </div>
-          </div>
+        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
         </div>
       )}
       <img

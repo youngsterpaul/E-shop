@@ -73,15 +73,10 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
 
     // Add product-based suggestions
     const productSuggestions: SearchSuggestion[] = products
-      ? (
-          // Flatten products from paginated response
-          Array.isArray(products.pages)
-            ? products.pages.flatMap(page => page.products).slice(0, 4).map(product => ({
-                text: product.name,
-                category: 'product' as const
-              }))
-            : []
-        )
+      ? products.slice(0, 4).map(product => ({
+          text: product.name,
+          category: 'product' as const
+        }))
       : [];
 
     allSuggestions.push(...matchingHistory, ...matchingPopular, ...productSuggestions);
