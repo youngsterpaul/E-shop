@@ -25,9 +25,15 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-8";
+    : "grid-cols-6";
 
-  const maxIndex = Math.max(0, products.length - 8);
+  const itemsPerView = {
+    mobile: 2,
+    tablet: 6,
+    desktop: 6
+  };
+
+  const maxIndex = Math.max(0, products.length - itemsPerView.desktop);
 
   const nextSlide = () => {
     setCurrentIndex(prev => Math.min(prev + 1, maxIndex));
@@ -56,12 +62,12 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
 
   return (
     <div className="mt-12">
-      <div className="mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header with title and navigation */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 px-2">You might also like</h2>
+          <h2 className="text-2xl font-bold text-gray-900">You might also like</h2>
           
-          {products.length > 8 && (
+          {products.length > itemsPerView.desktop && (
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -88,7 +94,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
 
         {/* Products Grid */}
-        <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 shadow-sm p-2`}>
+        <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
               id: product.product_id,
@@ -107,8 +113,8 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
 
         {/* Dots Indicator */}
-        {products.length > 8 && (
-          <div className="flex justify-center gap-2 mt-6">
+        {products.length > itemsPerView.desktop && (
+          <div className="hidden md:flex justify-center gap-2 mt-6">
             {Array.from({ length: maxIndex + 1 }).map((_, index) => (
               <button
                 key={index}

@@ -74,19 +74,97 @@ const EnhancedHeroSection = memo(() => {
   const currentSlideData = heroSlides[currentSlide];
 
   // Dynamic height based on device type
-  const heroHeight = isMobile ? 'min-h-[30vh]' : 'min-h-[100vh]';
+  const heroHeight = isMobile ? 'min-h-[30vh]' : 'min-h-[70vh]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
+    <section className={`relative mx-0 lg:mx-16 overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 aspect-square/ ">
+      <div className="absolute inset-0 aspect-square ">
         <LazyImage
-          src={`${currentSlideData.image}`}
+          src={`${currentSlideData.image}?auto=format&fit=crop&w=1920&q=80&fm=webp`}
           alt={currentSlideData.title}
           priority={true}
-          className="w-full h-ful object-cov"
+          className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/50" />
+      </div>
+
+      {/* Content */}
+      <div className={`relative z-10 container mx-auto px-4 h-full ${heroHeight} flex items-center`}>
+        <div className="max-w-2xl text-white">
+          {/* Badge */}
+          {currentSlideData.badge && !isMobile && (
+            <div className="inline-flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-pulse">
+              <TrendingUp size={16} />
+              {currentSlideData.badge}
+            </div>
+          )}
+          {/* Subtitle */}
+          {!isMobile && (
+          <p className="text-gray-800 font-medium mb-2 tracking-wide uppercase text-sm">
+            {currentSlideData.subtitle}
+          </p>
+          )}
+
+          {/* Title */}
+          {!isMobile && (
+          <h1 className={`font-bold mb-4 leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent ${
+            isMobile ? 'text-2xl md:text-4xl' : 'text-4xl md:text-6xl'
+          }`}>
+            {currentSlideData.title}
+          </h1>
+          )}
+
+          {/* Description */}
+          {!isMobile && (
+          <p className={`mb-8 text-gray-200 leading-relaxed ${
+            isMobile ? 'text-base md:text-lg' : 'text-lg md:text-xl'
+          }`}>
+            {currentSlideData.description}
+          </p>
+          )}
+
+          {/* CTA Buttons */}
+          {!isMobile && (
+          <div className="flex gap-4 mb-8">
+            <Button 
+              asChild 
+              size={isMobile ? "default" : "lg"}
+              className="bg-gray-800 hover:bg-gray-600 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            >
+              <Link to={currentSlideData.buttonLink}>
+                {currentSlideData.buttonText}
+              </Link>
+            </Button>
+            <Button 
+              asChild 
+              variant="outline" 
+              size={isMobile ? "default" : "lg"}
+              className="border-white text-gray-900 hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 rounded-lg transition-all duration-300"
+            >
+              <Link to="/products">
+                Browse Categories
+              </Link>
+            </Button>
+          </div>
+          )}
+
+          {/* Trust Indicators */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm text-gray-300">
+            <div className="flex items-center gap-2">
+              {!isMobile && (
+                <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-gray-400 text-gray-400" />
+                ))}
+              </div>
+            )}
+              <span className="hidden sm:block">4.8/5 Customer Rating</span>
+            </div>
+            <div className="hidden sm:block">•</div>
+            <div className="hidden sm:block">Free Delivery KES 10,000+</div>
+          </div>
+        </div>
       </div>
 
       {/* Slide Indicators */}
