@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
 }
@@ -142,9 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (
     email: string, 
-    password: string, 
-    firstName: string, 
-    lastName: string
+    password: string
   ) => {
     try {
       setLoading(true);
@@ -157,10 +155,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/signin`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          }
         }
       });
 

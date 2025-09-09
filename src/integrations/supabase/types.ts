@@ -291,6 +291,7 @@ export type Database = {
           shipping_address: string | null
           status: string
           tracking_number: string | null
+          delivery_fee: number | null
           updated_at: string
           user_id: string | null
           username: string | null
@@ -306,6 +307,7 @@ export type Database = {
           shipping_address?: string | null
           status: string
           tracking_number?: string | null
+          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           shipping_address?: string | null
           status?: string
           tracking_number?: string | null
+          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
@@ -439,6 +442,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "products_subcategory_id_fkey"
             columns: ["subcategory_id"]
             isOneToOne: false
@@ -456,6 +466,9 @@ export type Database = {
           is_admin: boolean | null
           last_name: string | null
           phone: string | null
+          county: string | null
+          city: string | null
+          address: string | null
           updated_at: string | null
           user_id: string
         }
@@ -467,6 +480,9 @@ export type Database = {
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
+          county: string | null
+          city: string | null
+          address: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -478,6 +494,9 @@ export type Database = {
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
+          county?: string | null
+          city?: string | null
+          address?: string | null
           updated_at?: string | null
           user_id?: string
         }

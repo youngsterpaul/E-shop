@@ -152,7 +152,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
     }
 
     return (
-      <div className="mt-1 space-y-1">
+      <div className="flex space-x-1">
         {Object.entries(item.variant_selections).map(([type, value]) => (
           <p key={`${type}-${value}`} className="text-xs sm:text-sm text-gray-600">
             <span className="capitalize font-medium">{type}:</span> {value}

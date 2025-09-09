@@ -1,6 +1,5 @@
-
 import { useNavigate } from 'react-router-dom';
-import { LucideIcon } from 'lucide-react';
+import { Car, HardDrive, Home, Keyboard, LucideIcon, Mouse, Printer, Usb, Wifi } from 'lucide-react';
 import { 
   Smartphone, 
   Laptop, 
@@ -26,6 +25,10 @@ interface CategoryIcon {
   color: string;
   iconColor: string;
   productImage?: string;
+}
+
+interface CategoryIconsProps {
+  showAll?: boolean; // New prop to control whether to show all categories
 }
 
 const categoryIcons: CategoryIcon[] = [
@@ -124,7 +127,7 @@ const categoryIcons: CategoryIcon[] = [
     name: 'Network',
     icon: Router,
     searchQuery: 'router',
-   color: 'bg-emerald-50',
+    color: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
     productImage: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?auto=format&fit=crop&w=400&q=80'
   },
@@ -136,15 +139,95 @@ const categoryIcons: CategoryIcon[] = [
     color: 'bg-gray-50',
     iconColor: 'text-gray-600',
     productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'keyboards',
+    name: 'Keyboards',
+    icon: Keyboard,
+    searchQuery: 'keyboard',
+    color: 'bg-purple-50',
+    iconColor: 'text-purple-600',
+    productImage: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'mice',
+    name: 'Mice',
+    icon: Mouse,
+    searchQuery: 'mouse',
+    color: 'bg-rose-50',
+    iconColor: 'text-rose-600',
+    productImage: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'storage',
+    name: 'Storage',
+    icon: HardDrive,
+    searchQuery: 'hard drive ssd',
+    color: 'bg-slate-50',
+    iconColor: 'text-slate-600',
+    productImage: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'usb',
+    name: 'USB & Cables',
+    icon: Usb,
+    searchQuery: 'usb cable',
+    color: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'printers',
+    name: 'Printers',
+    icon: Printer,
+    searchQuery: 'printer',
+    color: 'bg-lime-50',
+    iconColor: 'text-lime-600',
+    productImage: 'https://images.unsplash.com/photo-1612198188060-c7c2a3b66eae?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'wifi',
+    name: 'WiFi & Internet',
+    icon: Wifi,
+    searchQuery: 'wifi router modem',
+    color: 'bg-sky-50',
+    iconColor: 'text-sky-600',
+    productImage: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'automotive',
+    name: 'Car Tech',
+    icon: Car,
+    searchQuery: 'car electronics',
+    color: 'bg-red-50',
+    iconColor: 'text-red-600',
+    productImage: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'smart-home',
+    name: 'Smart Home',
+    icon: Home,
+    searchQuery: 'smart home automation',
+    color: 'bg-violet-50',
+    iconColor: 'text-violet-600',
+    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
   }
 ];
 
-const CategoryIcons = () => {
+const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
+  
+  // Determine which categories to show based on the showAll prop and mobile state
+  const categoriesToShow = isMobile && !showAll 
+    ? categoryIcons.slice(0, 8) 
+    : categoryIcons;
+  
   const gridCols = isMobile 
-    ? "grid-cols-2" 
-    : "grid-cols-6 xl:grid-cols-8";
+    ? "grid-cols-4" 
+    : showAll || categoriesToShow.length > 10
+      ? "grid-cols-10"  // Use 6 columns for category page or when showing all
+      : "grid-cols-10";
 
   const handleCategoryClick = (searchQuery: string) => {
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -153,8 +236,8 @@ const CategoryIcons = () => {
   if (isMobile) {
     // Mobile version with modern icons
     return (
-      <div className="md:hidden grid grid-cols-4 gap-3 mx-2 my-4">
-        {categoryIcons.slice(0, 8).map((category) => {
+      <div className="grid grid-cols-4 gap-3 mx-2 my-4">
+        {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
@@ -177,12 +260,12 @@ const CategoryIcons = () => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="/hidden block absolute bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-200/50 shadow-sm">
-      <h2 className="border-b items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+    <section className="container mx-auto px-0 block bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200/50">
+      <h2 className="border-b my-4 items-center text-gray-600 mx-auto px-4 py-2 text-xl font-bold bg-white">
         SHOP BY CATEGORY
       </h2>
-      <div className={`grid ${gridCols} gap-3 /md:gap-4 bg-white p-4 shadow-sm`}>
-        {categoryIcons.map((category) => {
+      <div className={`grid ${gridCols} gap-3 bg-white p-4 shadow-sm`}>
+        {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
@@ -190,7 +273,7 @@ const CategoryIcons = () => {
               onClick={() => handleCategoryClick(category.searchQuery)}
               className="flex flex-col items-center justify-center cursor-pointer group"
             >
-              <div className="relative w-44 h-44 /md:w-28 /md:h-28 /lg:w-32 /lg:h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
+              <div className="relative w-32 h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
                 {category.productImage ? (
                   <>
                     <OptimizedImage

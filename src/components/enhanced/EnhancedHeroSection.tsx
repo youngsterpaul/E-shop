@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
     title: "New Arrivals",
     subtitle: "Cutting-Edge Technology",
     description: "Discover the latest innovations in tech. Premium quality, best prices guaranteed.",
-    image: "/hero2.webp",
+    image: "/hero2.jpg",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
@@ -74,17 +74,19 @@ const EnhancedHeroSection = memo(() => {
   const currentSlideData = heroSlides[currentSlide];
 
   // Dynamic height based on device type
-  const heroHeight = isMobile ? 'min-h-[30vh]' : 'min-h-[100vh]';
+  const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-4' }`}>
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? '' : 'mx-2 rounded-lg mt-2' }`}>
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 aspect-square/ ">
+      <div className="/absolute inset-0 aspect-square/ ">
         <LazyImage
           src={`${currentSlideData.image}`}
           alt={currentSlideData.title}
           priority={true}
-          className="w-full h-ful object-cov"
+          width={100}
+          height={100}
+          className="w-full h-2/3 object-cover"
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>

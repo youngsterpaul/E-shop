@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Trash2, ShoppingCart, ArrowLeft, Settings } from 'lucide-react';
 import Header from '@/components/Header';
@@ -32,6 +31,22 @@ const WishlistPage = () => {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Grid layout configuration similar to EnhancedFeaturedProducts
+  const gridConfig = useMemo(() => {
+    if (isMobile) {
+      return {
+        cols: "grid-cols-2",
+        gap: "gap-2",
+        padding: "p-2"
+      };
+    }
+    return {
+      cols: "grid-cols-7",
+      gap: "gap-1",
+      padding: "px-0 lg:px-1"
+    };
+  }, [isMobile]);
 
   useEffect(() => {
     if (user) {
@@ -144,7 +159,7 @@ const WishlistPage = () => {
               <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign in to view your wishlist</h2>
               <p className="text-gray-600 mb-6">Save your favorite items for later</p>
-              <Link to="/auth">
+              <Link to="/auth/signin">
                 <Button className="bg-primary hover:bg-primary/90">
                   Sign In
                 </Button>
@@ -189,35 +204,40 @@ const WishlistPage = () => {
       </script>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader 
-          title={'My Wishlist'}
-          backTo="/"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
+        {!isMobile && <Header />}
+        {isMobile && (
+          <MobileHeader 
+            title={'My Wishlist'}
+            backTo="/"
+            rightAction={
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            }
+          />
+        )}
         
         <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
-          <div className="container mx-auto px-4 py-8">
-            {/* Breadcrumb */}
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Wishlist' }
-              ]}
-              className="mb-6"
-            />
+          <div className={`container mx-auto ${gridConfig.padding} py-8`}>
+            {/* Breadcrumb - Desktop only */}
+            {!isMobile && (
+              <SiteBreadcrumb 
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Wishlist' }
+                ]}
+                className="mb-6"
+              />
+            )}
 
-            <div className="flex items-center justify-between mb-4">
+            {/* Header section */}
+            <div className={`flex items-center justify-between mb-4 ${isMobile ? 'px-2' : ''}`}>
               <h1 className="text-2xl font-bold text-gray-900">My Wishlist</h1>
-              <Link to="/products" className="text-primary hover:text-primary/80 flex items-center">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
-              </Link>
+              {!isMobile && (
+                <Link to="/products" className="text-primary hover:text-primary/80 flex items-center">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
+                </Link>
+              )}
             </div>
 
             {loading ? (
@@ -234,44 +254,66 @@ const WishlistPage = () => {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {wishlistItems.map((item) => (
-                  <Card key={item.product_id}>
-                    <CardContent className="p-4">
-                      <div className="relative">
-                        <img
-                          src={item.products.image_urls?.[0] || '/placeholder.svg'}
-                          alt={item.products.name}
-                          className="w-full h-48 object-cover rounded-md mb-4"
-                        />
-                        <Button 
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white shadow-md"
-                          onClick={() => removeFromWishlist(item.product_id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 truncate mb-2">{item.products.name}</h3>
-                      <p className="text-primary font-semibold mb-3">{formatPrice(item.products.price)}</p>
-                      <div className="flex justify-between">
-                        <Button onClick={() => moveToCart(item)} className="bg-green-600 hover:bg-green-700 text-white">
-                          <ShoppingCart className="mr-2 h-4 w-4" />
-                          Move to Cart
-                        </Button>
-                        <Link to={`/product/name/${item.product_id}`}>
-                          <Button variant="outline">View Product</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className={`${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
+                {/* Products Grid with responsive layout */}
+                <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
+                  {wishlistItems.map((item) => (
+                    <Card key={item.product_id} className={`${isMobile ? 'rounded-lg' : 'rounded-none border-r border-b border-gray-200'}`}>
+                      <CardContent className={`${isMobile ? 'p-3' : 'p-2'} relative`}>
+                        <div className="relative">
+                          <img
+                            src={item.products.image_urls?.[0] || '/placeholder.svg'}
+                            alt={item.products.name}
+                            className={`w-full object-cover rounded-md mb-2 ${isMobile ? 'h-32' : 'h-24'}`}
+                          />
+                          <Button 
+                            variant="destructive"
+                            size="icon"
+                            className={`absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white shadow-md ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`}
+                            onClick={() => removeFromWishlist(item.product_id)}
+                          >
+                            <Trash2 className={`${isMobile ? 'h-3 w-3' : 'h-2.5 w-2.5'}`} />
+                          </Button>
+                        </div>
+                        
+                        <h3 className={`font-semibold text-gray-900 line-clamp-2 mb-1 ${isMobile ? 'text-sm' : 'text-xs'}`}>
+                          {item.products.name}
+                        </h3>
+                        
+                        <p className={`text-primary font-semibold mb-2 ${isMobile ? 'text-sm' : 'text-xs'}`}>
+                          {formatPrice(item.products.price)}
+                        </p>
+                        
+                        <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-col gap-1'}`}>
+                          <Button 
+                            onClick={() => moveToCart(item)} 
+                            className={`bg-green-600 hover:bg-green-700 text-white ${isMobile ? 'text-xs py-1.5' : 'text-xs py-1 px-2'}`}
+                            size={isMobile ? "sm" : "sm"}
+                          >
+                            <ShoppingCart className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-2.5 w-2.5'}`} />
+                            {isMobile ? 'Move to Cart' : 'Add'}
+                          </Button>
+                          
+                          <Link to={`/product/name/${item.product_id}`}>
+                            <Button 
+                              variant="outline" 
+                              className={`w-full ${isMobile ? 'text-xs py-1.5' : 'text-xs py-1 px-2'}`}
+                              size={isMobile ? "sm" : "sm"}
+                            >
+                              {isMobile ? 'View Product' : 'View'}
+                            </Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </main>
 
+        <MobileNav />
       </div>
     </>
   );

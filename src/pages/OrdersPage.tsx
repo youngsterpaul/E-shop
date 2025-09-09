@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { format } from 'date-fns';
-import { FileText, Download, Settings, Package, ShoppingBag, Search, RefreshCw, Eye } from 'lucide-react';
+import { FileText, Download, Settings, Package, ShoppingBag, Search, RefreshCw, Eye, ChevronDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -41,6 +41,8 @@ interface Order {
 }
 
 const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
+const INITIAL_DISPLAY_COUNT = 10;
+const LOAD_MORE_COUNT = 10;
 
 // Loading skeleton component for the table
 const TableLoadingSkeleton = () => (
@@ -122,7 +124,10 @@ const OrdersPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
@@ -159,6 +164,11 @@ const OrdersPage = () => {
       applyFilters();
     }
   }, [searchQuery, statusFilter, orders, loading]);
+
+  // Update displayed orders when filteredOrders or displayCount changes
+  useEffect(() => {
+    setDisplayedOrders(filteredOrders.slice(0, displayCount));
+  }, [filteredOrders, displayCount]);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -226,6 +236,24 @@ const OrdersPage = () => {
     }
     
     setFilteredOrders(result);
+    
+    // Reset display count when filters change
+    setDisplayCount(INITIAL_DISPLAY_COUNT);
+  };
+
+  const handleShowMore = () => {
+    setLoadingMore(true);
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setDisplayCount(prev => prev + LOAD_MORE_COUNT);
+      setLoadingMore(false);
+    }, 500);
+  };
+
+  const handleReset = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setDisplayCount(INITIAL_DISPLAY_COUNT);
   };
 
   const getStatusColor = (status: string) => {
@@ -286,6 +314,8 @@ const OrdersPage = () => {
       </>
     );
   }
+
+  const hasMoreOrders = displayedOrders.length < filteredOrders.length;
 
   return (
     <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
@@ -413,10 +443,7 @@ const OrdersPage = () => {
                   <Button 
                     variant="outline"
                     className="flex items-center gap-2 w-full md:w-auto"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setStatusFilter('all');
-                    }}
+                    onClick={handleReset}
                   >
                     Reset
                   </Button>
@@ -429,7 +456,8 @@ const OrdersPage = () => {
               <CardHeader>
                 <CardTitle>Order History</CardTitle>
                 <CardDescription>
-                  {filteredOrders.length} of {orders.length} orders
+                  Showing {displayedOrders.length} of {filteredOrders.length} orders
+                  {filteredOrders.length !== orders.length && ` (${orders.length} total)`}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -446,7 +474,7 @@ const OrdersPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredOrders.length === 0 ? (
+                      {displayedOrders.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10">
                             <div className="flex flex-col items-center gap-2">
@@ -459,7 +487,7 @@ const OrdersPage = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredOrders.map((order) => (
+                        displayedOrders.map((order) => (
                           <TableRow 
                             key={order.order_id} 
                             className="cursor-pointer hover:bg-muted/50" 
@@ -509,6 +537,35 @@ const OrdersPage = () => {
                     </TableBody>
                   </Table>
                 </div>
+                
+                {/* Show More Button */}
+                {hasMoreOrders && displayedOrders.length > 0 && (
+                  <div className="p-6 border-t bg-gray-50/50">
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {displayedOrders.length} of {filteredOrders.length} orders
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleShowMore}
+                        disabled={loadingMore}
+                        className="flex items-center gap-2 min-w-[120px]"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4" />
+                            Show More ({Math.min(LOAD_MORE_COUNT, filteredOrders.length - displayedOrders.length)})
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </>

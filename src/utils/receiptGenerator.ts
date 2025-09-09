@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 
 interface OrderItem {
@@ -20,6 +21,7 @@ interface Order {
   phone_number: string | null;
   status: string;
   amount: number | null;
+  delivery_fee: number | null;
   items: OrderItem[] | null;
   shipping_address: string | null;
   created_at: string;
@@ -30,44 +32,16 @@ interface Order {
 
 export const generatePDFReceipt = async (order: Order): Promise<void> => {
   try {
-    // Standard receipt width: 80mm
     const receiptWidth = 80;
-    
-    // Calculate dynamic height based on content
-    const baseHeight = 100; // Base height for header, customer info, footer, etc.
-    const itemHeight = 4; // Height per item line
-    const itemCount = order.items?.length || 0;
-    
-    // Calculate additional height needed for long item names (if text wraps)
-    let additionalWrappingHeight = 0;
-    if (order.items && order.items.length > 0) {
-      order.items.forEach((item) => {
-        const itemName = item.name || 'Unknown Item';
-        const itemPrice = item.price || 0;
-        const itemQuantity = item.quantity || 0;
-        const lineTotal = itemPrice * itemQuantity;
-        const fullText = `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`;
-        
-        // Rough estimation: if text is longer than ~60 characters, it might wrap
-        // This is a simple estimation - you might need to adjust based on testing
-        const estimatedCharsPerLine = 60;
-        if (fullText.length > estimatedCharsPerLine) {
-          const extraLines = Math.ceil(fullText.length / estimatedCharsPerLine) - 1;
-          additionalWrappingHeight += extraLines * 4; // 4mm per extra line
-        }
-      });
-    }
-    
-    // Calculate total height needed
-    const calculatedHeight = baseHeight + (itemCount * itemHeight) + additionalWrappingHeight;
-    const receiptHeight = Math.max(160, calculatedHeight); // Minimum 160mm, or calculated height
 
     const doc = new jsPDF({
-      format: [receiptWidth, receiptHeight],
+      format: [receiptWidth, 400], // Height will expand if needed
       unit: 'mm',
     });
 
     let y = 8;
+
+    // Header
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('SMARTKENYA', receiptWidth / 2, y, { align: 'center' });
@@ -87,16 +61,17 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.line(4, y, receiptWidth - 4, y);
     y += 4;
 
-    doc.setFont('helvetica', 'normal');
+    // Order Info
     doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
     doc.text(`Receipt #: ${order.order_id}`, 4, y); y += 4;
     doc.text(`Order Date: ${format(new Date(order.created_at), 'PPP p')}`, 4, y); y += 4;
     doc.text(`Status: ${order.status.toUpperCase()}`, 4, y); y += 4;
 
-    doc.setLineWidth(0.1);
     doc.line(4, y, receiptWidth - 4, y);
     y += 4;
 
+    // Customer Info
     doc.setFont('helvetica', 'bold');
     doc.text('Customer:', 4, y); y += 4;
 
@@ -106,65 +81,92 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.text(`Phone: ${order.phone_number || 'N/A'}`, 4, y); y += 4;
     doc.text(`Address: ${order.shipping_address || 'N/A'}`, 4, y); y += 4;
 
-    doc.setLineWidth(0.1);
     doc.line(4, y, receiptWidth - 4, y);
     y += 4;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Items:', 4, y); y += 4;
+    // Items Table
+    const items = order.items || [];
 
+    const tableBody = items.map((item) => {
+      const qty = item.quantity || 0;
+      const price = item.price || 0;
+      const total = qty * price;
+
+      return [
+        qty.toString(),
+        item.name || 'Unknown Item',
+        `KES ${price.toLocaleString()}`,
+        `KES ${total.toLocaleString()}`
+      ];
+    });
+
+    autoTable(doc, {
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 1 },
+      headStyles: { fillColor: [240, 240, 240] },
+      margin: { left: 4, right: 4 },
+      head: [['QTY', 'ITEM', 'PRICE', 'TOTAL']],
+      body: tableBody.length > 0 ? tableBody : [['', 'No items in order.', '', '']],
+      didDrawPage: (data) => {
+        if (data.cursor) {
+          y = data.cursor.y + 4;
+        }
+      }
+    });
+
+    // Summary Section
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0);
+    const deliveryFee = order.delivery_fee ?? 0; // Use 0 if null or undefined
+    const grandTotal = subtotal + deliveryFee;
+
+    // Spacing from items table
+    y += 6;
+
+    // Subtotal line
     doc.setFont('helvetica', 'normal');
-    if (order.items && order.items.length > 0) {
-      order.items.forEach((item, idx) => {
-        // Add null checks and default values
-        const itemPrice = item.price || 0;
-        const itemQuantity = item.quantity || 0;
-        const itemName = item.name || 'Unknown Item';
-        const lineTotal = itemPrice * itemQuantity;
-        
-        // Get the text dimensions to calculate how many lines it will take
-        const fullText = `${itemQuantity} × ${itemName} @ KES ${itemPrice.toLocaleString()} = KES ${lineTotal.toLocaleString()}`;
-        const splitText = doc.splitTextToSize(fullText, receiptWidth - 8);
-        
-        // Add text (this handles wrapping automatically)
-        doc.text(splitText, 6, y);
-        
-        // Adjust y position based on how many lines the text actually took
-        y += splitText.length * 4; // 4mm per line
-      });
-    } else {
-      doc.text('No items in order.', 6, y); y += 4;
-    }
+    doc.setFontSize(9);
+    doc.text('Subtotal:', 10, y);  // Left aligned a bit more inside
+    doc.text(`KES ${subtotal.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
+    y += 6;
 
-    y += 4;
-    doc.line(4, y, receiptWidth - 4, y);
-    y += 4;
+    // Delivery line
+    doc.text('Delivery:', 10, y);
+    doc.text(`KES ${deliveryFee.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
+    y += 6;
 
-    const subtotal = order.amount || 0;
-    const total = subtotal;
+    // Draw line above total
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
+    doc.line(10, y, receiptWidth - 10, y);
+    y += 6;
+
+    // TOTAL line (bigger and bold)
     doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL: KES ${total.toLocaleString()}`, 4, y);
-    y += 7;
+    doc.setFontSize(11);
+    doc.text('TOTAL:', 10, y);
+    doc.text(`KES ${grandTotal.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
+    y += 10; // some extra space after total
 
-    // Generate the QR code as a data URL (encode order ID or payment link, etc)
-    const qrValue = `https://www.smartkenya.co.ke/order/${order.order_id}`; // You may encode a url or payment statement instead.
+
+
+    // QR Code
+    const qrValue = `https://www.smartkenya.co.ke/order/${order.order_id}`;
     const qrDataUrl = await QRCode.toDataURL(qrValue, { width: 80, margin: 1 });
-
-    // Insert QR code image (centered)
     doc.addImage(qrDataUrl, 'PNG', (receiptWidth - 24) / 2, y, 24, 24);
     y += 28;
 
     // Footer
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text('Thank you for shopping with us!', receiptWidth / 2, y, { align: 'center' });
-    y += 4;
+    doc.text('Thank you for shopping with us!', receiptWidth / 2, y, { align: 'center' }); y += 4;
     doc.text('www.smartkenya.co.ke', receiptWidth / 2, y, { align: 'center' });
 
+    // Save
     const fileName = `receipt-${order.order_id}.pdf`;
     doc.save(fileName);
   } catch (error) {
-    console.error('Error generating POS PDF:', error);
+    console.error('Error generating PDF receipt:', error);
     throw error;
   }
 };

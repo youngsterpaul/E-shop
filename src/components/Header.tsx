@@ -83,10 +83,12 @@ const Header = () => {
     { label: 'Home', href: '/', description: 'Return to homepage' },
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
+    { label: 'Wishlist', href: '/wishlist', description: 'Check your wishlist products' },
     { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
     { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
     { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },
     { label: 'Privacy Policy', href: '/privacy', description: 'Know your privacy at smartkenya' },
+    { label: 'Returns', href: '/returns', description: 'Return policy' },
     { label: 'T&C', href: '/terms', description: 'Terms and Conditions of Smartkenya' },
   ];
 
@@ -120,7 +122,7 @@ const Header = () => {
       {/* Main navigation for desktop - important for sitelinks */}
 
 
-        <div className={`/container px-4 mx-auto ${isMobile ? 'py-2 border-b border-gray-200' : 'py-4'}`}>
+        <div className={`container mx-auto ${isMobile ? 'py-2 px-3 border-b border-gray-200' : 'px-4 py-4'}`}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
@@ -230,7 +232,7 @@ const Header = () => {
 
         {!isMobile && (
         <nav className="block bg-gray-50 /border-b" role="navigation" aria-label="Main Navigation">
-          <div className="/container mx-auto px-4">
+          <div className="container mx-auto px-4">
             <ul className="flex items-center /justify-center space-x-8 pt-2 pb-4">
               {mainNavItems.map((item) => (
                 <li key={item.href}>

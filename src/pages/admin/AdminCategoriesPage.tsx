@@ -2,7 +2,7 @@
 
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Loader2 } from 'lucide-react';
-import CategoryForm from '@/components/admin/CategoryFor';
+import CategoryForm from '@/components/admin/CategoryForm';
 import CategoriesList from '@/components/admin/CategoryList';
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 

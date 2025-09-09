@@ -21,7 +21,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Categories', href: '/categories' },
         { label: 'Best Sellers', href: '/categories' },
         { label: 'Featured Deals', href: '/categories' },
-        { label: 'Brands', href: '/categories' },
       ]
     },
     {
@@ -30,7 +29,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Help Center', href: '/faq' },
         { label: 'Contact Us', href: '/contact' },
         { label: 'Track Your Order', href: '/orders' },
-        { label: 'Shipping Information', href: '/shipping' },
         { label: 'Returns Policy', href: '/returns' },
       ]
     },
@@ -41,7 +39,6 @@ const Footer = ({ className }: FooterProps) => {
         { label: 'Order History', href: '/orders' },
         { label: 'Wishlist', href: '/wishlist' },
         { label: 'Profile Settings', href: '/profile' },
-        { label: 'Sign In', href: '/auth/signin' },
       ]
     },
     {
@@ -89,16 +86,16 @@ const Footer = ({ className }: FooterProps) => {
       </script>
 
       <footer className={cn("bg-gray-900 text-white w-full", className)}>
-        <div className="w-full mx-auto px-4 /sm:px-6 /lg:px-8 py-12">
+        <div className={`w-full container mx-auto px-4 /sm:px-6 /lg:px-8 py-12 ${!isMobile ? 'min-w-max' : ''}`}>
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>
-              <p className="text-center text-gray-900 text-xs leading-relaxed">
-                SmartKenya Your one-stop shop for quality electronics and gadgets. We deliver …
+              <p className="font-semibold text-gray-400 text-xs leading-relaxed">
+                SmartKenya Your one-stop shop for quality electronics and gadgets.
               </p>
             </div>
               
-            <div className="grid grid-cols-6 gap-8 mb-8">
+            <div className="grid grid-cols-6 mb-8">
               
               {/* Dynamic Footer Sections */}
               {footerSections.map((section) => (

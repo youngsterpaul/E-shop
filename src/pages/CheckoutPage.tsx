@@ -99,6 +99,14 @@ const CheckoutPage = () => {
       user_id: profile?.user_id || '',
       phone: profile?.phone || ''
     });
+
+    // Add this to initialize delivery data from profile
+    setDeliveryData({
+      address: profile?.address || '',
+      city: profile?.city || '',
+      county: profile?.county || '',
+      deliveryMethod: 'standard'
+    });
   }, [profile, user]);
 
   // Check if user has items to checkout
@@ -114,7 +122,7 @@ const CheckoutPage = () => {
     { value: 'murangaa', label: "Murang'a" }
   ];
 
-  const cityOptions = {
+  const cityOptions: Record<string, { value: string; label: string }[]> = {
     embu: [
       { value: 'runyenjes', label: 'Runyenjes' },
       { value: 'manyatta', label: 'Manyatta' },
@@ -180,6 +188,12 @@ const CheckoutPage = () => {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
     } else if (currentStep === 2 && validateStep2()) {
+      // Save all delivery data to profile before moving to step 3
+      updateProfileDeliveryInfo({
+        address: deliveryData.address,
+        city: deliveryData.city,
+        county: deliveryData.county
+      });
       setCurrentStep(3);
     } else if (currentStep === 3) {
       setShowPaymentModal(true);
@@ -208,10 +222,21 @@ const CheckoutPage = () => {
       [field]: value,
       ...(field === 'county' ? { city: '' } : {})
     }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+  
+  if (errors[field]) {
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  }
+
+  // Update profile with new delivery information - fix the typing here
+  const updates: { [key: string]: string } = { [field]: value };
+  
+  // If county changes, also clear city in profile
+  if (field === 'county') {
+    updates.city = '';
+  }
+  
+  updateProfileDeliveryInfo(updates);
+};
 
   // Get available cities based on selected county
   const getAvailableCities = () => {
@@ -256,7 +281,8 @@ const CheckoutPage = () => {
           shipping_address: `${deliveryData.county}, ${deliveryData.city}, ${deliveryData.address}`,
           username: customerData.userName,
           discount_amount: calculations.discount,
-          tracking_number: newOrderId.slice(-8).toUpperCase(),
+          delivery_fee: calculations.shipping,
+          tracking_number: newOrderId.slice(-5).toUpperCase(),
         })
         .select('order_id')
         .single();
@@ -333,6 +359,27 @@ const CheckoutPage = () => {
 
   const handleRetryPayment = () => {
     setPaymentStatus({ status: 'idle', message: '', checkoutRequestId: null });
+  };
+
+  // Add this function after your existing handler functions
+  const updateProfileDeliveryInfo = async (updates) => {
+    if (!user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating profile delivery info:', error);
+      }
+    } catch (error) {
+      console.error('Error updating profile delivery info:', error);
+    }
   };
 
   // Calculate totals
@@ -487,6 +534,7 @@ const CheckoutPage = () => {
             )}
           </div>
         </CardContent>
+        
       </Card>
     </div>
   );
@@ -769,33 +817,45 @@ const CheckoutPage = () => {
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Items */}
-                <ScrollArea className="max-h-60">
-                  <div className="space-y-3">
-                    {selectedItems.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <img
-                          src={item.product.image}
-                          alt={item.product.name}
-                          className="w-12 h-12 object-cover rounded border"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium truncate">
-                            {item.product.name}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs text-gray-500">
-                              Qty: {item.quantity}
-                            </p>
-                            <p className="text-sm font-medium">
-                              KES {(item.product.price * item.quantity).toLocaleString()}
-                            </p>
+              {/* Items */}
+              <ScrollArea className="max-h-60">
+                <div className="space-y-3">
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <img
+                        src={item.product.image}
+                        alt={item.product.name}
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {item.product.name}
+                        </p>
+                        
+                        {/* Variant display */}
+                        {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.variant_selections as Record<string, string>).map(([type, value]) => (
+                              <span key={`${type}-${value}`} className="text-xs text-gray-500">
+                                <span className="capitalize font-medium">{type}:</span> {value}
+                              </span>
+                            ))}
                           </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-500">
+                            Qty: {item.quantity}
+                          </p>
+                          <p className="text-sm font-medium">
+                            KES {(item.product.price * item.quantity).toLocaleString()}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
 
                 <Separator />
 

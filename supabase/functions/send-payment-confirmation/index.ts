@@ -36,7 +36,7 @@ const handler = async (req)=>{
     }
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
-    const { email, orderId, amount, userName } = requestBody;
+    const { email, orderId, amount, customerName, trackingId } = requestBody;
     if (!email || !orderId || !amount) {
       console.error('Missing required fields:', {
         email: !!email,
@@ -68,7 +68,7 @@ const handler = async (req)=>{
           
           <div style="background: #fff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px;">
             <p style="font-size: 18px; margin-bottom: 20px;">
-              Hello ${userName || 'Valued Customer'},
+              Hello ${customerName || 'Valued Customer'},
             </p>
             
             <p style="font-size: 16px; margin-bottom: 25px;">
@@ -78,6 +78,7 @@ const handler = async (req)=>{
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
               <h3 style="color: #f97316; margin-top: 0;">Payment Details</h3>
               <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
+              <p style="margin: 8px 0;"><strong>Tracking Number:</strong> ${trackingId}</p>
               <p style="margin: 8px 0;"><strong>Amount Paid:</strong> Ksh ${amount.toLocaleString()}</p>
               <p style="margin: 8px 0;"><strong>Payment Method:</strong> M-Pesa</p>
               <p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #22c55e; font-weight: bold;">Confirmed</span></p>
