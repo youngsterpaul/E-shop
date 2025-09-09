@@ -18,7 +18,7 @@ const ResetPasswordPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
-  const [hasAutoFocused, setHasAutoFocused] = useState(false);
+  const [hasAutoFocused, setHasAutoFocused] = useState(true);
   
   const passwordRef = useRef<HTMLInputElement>(null);
 
