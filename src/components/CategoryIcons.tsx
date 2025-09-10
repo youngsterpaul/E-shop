@@ -174,7 +174,7 @@ const categoryIcons: CategoryIcon[] = [
     searchQuery: 'usb cable',
     color: 'bg-amber-50',
     iconColor: 'text-amber-600',
-    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+    productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80'
   },
   {
     id: 'printers',
@@ -210,7 +210,7 @@ const categoryIcons: CategoryIcon[] = [
     searchQuery: 'smart home automation',
     color: 'bg-violet-50',
     iconColor: 'text-violet-600',
-    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+    productImage: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80'
   }
 ];
 
