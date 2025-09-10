@@ -88,11 +88,20 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then(response => {
           // Cache successful responses - clone BEFORE checking status
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then(cache => cache.put(event.request, responseClone))
-              .catch(error => console.log('Cache put failed:', error));
+          if (response.ok && response.status === 200) {
+            try {
+              const responseClone = response.clone();
+              caches.open(DYNAMIC_CACHE)
+                .then(cache => cache.put(event.request, responseClone))
+                .catch(error => {
+                  // Silently handle cache errors to prevent console spam
+                  if (error.name !== 'QuotaExceededError') {
+                    console.log('Cache put failed:', error.message);
+                  }
+                });
+            } catch (error) {
+              // Ignore cloning errors
+            }
           }
           return response;
         })
@@ -115,10 +124,20 @@ self.addEventListener('fetch', (event) => {
           return fetch(event.request)
             .then(response => {
               // Clone immediately after fetch
-              const responseClone = response.clone();
-              caches.open(STATIC_CACHE)
-                .then(cache => cache.put(event.request, responseClone))
-                .catch(error => console.log('Cache put failed:', error));
+              if (response.ok) {
+                try {
+                  const responseClone = response.clone();
+                  caches.open(STATIC_CACHE)
+                    .then(cache => cache.put(event.request, responseClone))
+                    .catch(error => {
+                      if (error.name !== 'QuotaExceededError') {
+                        console.log('Cache put failed:', error.message);
+                      }
+                    });
+                } catch (error) {
+                  // Ignore cloning errors
+                }
+              }
               return response;
             });
         })
@@ -133,10 +152,20 @@ self.addEventListener('fetch', (event) => {
         const fetchPromise = fetch(event.request)
           .then(networkResponse => {
             // Clone IMMEDIATELY after fetch, before any other operations
-            const responseClone = networkResponse.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then(cache => cache.put(event.request, responseClone))
-              .catch(error => console.log('Cache put failed:', error));
+            if (networkResponse.ok) {
+              try {
+                const responseClone = networkResponse.clone();
+                caches.open(DYNAMIC_CACHE)
+                  .then(cache => cache.put(event.request, responseClone))
+                  .catch(error => {
+                    if (error.name !== 'QuotaExceededError') {
+                      console.log('Cache put failed:', error.message);
+                    }
+                  });
+              } catch (error) {
+                // Ignore cloning errors
+              }
+            }
             return networkResponse;
           })
           .catch(error => {

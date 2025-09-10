@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { 
-  preloadCriticalResources, 
   optimizeImageLoading,
   networkOptimizations,
   memoryOptimizations
@@ -10,10 +9,7 @@ export const ProductionOptimizer = () => {
   useEffect(() => {
     // Only run optimizations in production
     if (process.env.NODE_ENV === 'production') {
-      // Preload critical resources
-      preloadCriticalResources();
-      
-      // Add preconnects to external domains
+      // Add preconnects to external domains (avoid duplicates with HTML)
       networkOptimizations.addPreconnects();
       
       // Register service worker

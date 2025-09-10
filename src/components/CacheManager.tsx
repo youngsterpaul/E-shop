@@ -41,32 +41,40 @@ export const CacheManager = () => {
     // Add version meta tag (you can update this with actual version)
     addMetaTag('app-version', '1.0.0');
 
-    // Preconnect to critical domains
-    const addPreconnect = (href: string, crossorigin = false) => {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = href;
-      if (crossorigin) {
-        link.crossOrigin = 'anonymous';
-      }
-      document.head.appendChild(link);
-    };
+    // Only add preconnects if not already present
+    if (!document.querySelector('link[data-preconnect="cache-manager"]')) {
+      // Preconnect to critical domains
+      const addPreconnect = (href: string, crossorigin = false) => {
+        const existing = document.querySelector(`link[rel="preconnect"][href="${href}"]`);
+        if (existing) return;
+        
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = href;
+        link.dataset.preconnect = 'cache-manager';
+        if (crossorigin) {
+          link.crossOrigin = 'anonymous';
+        }
+        document.head.appendChild(link);
+      };
 
-    // Add preconnects for external resources
-    addPreconnect('https://fonts.googleapis.com');
-    addPreconnect('https://fonts.gstatic.com', true);
-    addPreconnect('https://sgpjnbdrmwrupeqhjqpj.supabase.co');
+      // Add preconnects for external resources (avoid duplicates)
+      addPreconnect('https://sgpjnbdrmwrupeqhjqpj.supabase.co');
 
-    // DNS prefetch for faster subsequent requests
-    const addDnsPrefetch = (href: string) => {
-      const link = document.createElement('link');
-      link.rel = 'dns-prefetch';
-      link.href = href;
-      document.head.appendChild(link);
-    };
+      // DNS prefetch for faster subsequent requests
+      const addDnsPrefetch = (href: string) => {
+        const existing = document.querySelector(`link[rel="dns-prefetch"][href="${href}"]`);
+        if (existing) return;
+        
+        const link = document.createElement('link');
+        link.rel = 'dns-prefetch';
+        link.href = href;
+        link.dataset.preconnect = 'cache-manager';
+        document.head.appendChild(link);
+      };
 
-    addDnsPrefetch('//fonts.googleapis.com');
-    addDnsPrefetch('//fonts.gstatic.com');
+      addDnsPrefetch('//fonts.gstatic.com');
+    }
     
     // Clear localStorage cache on version mismatch
     const clearCacheOnVersionMismatch = () => {
