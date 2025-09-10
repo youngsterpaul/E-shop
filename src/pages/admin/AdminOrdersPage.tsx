@@ -361,7 +361,8 @@ const AdminOrdersPage = () => {
             price: normalizedItem.product.price,
             image: normalizedItem.product.image
           } as LegacyOrderItem;
-        }) || null
+        }) || null,
+        delivery_fee: 0 // Add default delivery fee
       };
 
       downloadReceipt(transformedOrder);

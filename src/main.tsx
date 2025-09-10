@@ -13,6 +13,8 @@ import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
+import { UpdateNotification } from '@/components/UpdateNotification';
+import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 //import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App.tsx';
@@ -22,8 +24,10 @@ const AppWithAnalytics = () => {
   useErrorReporting();
   return (
     <>
+      <CacheManager />
       <App />
       <ProductionAnalytics />
+      <UpdateNotification />
     </>
   );
 };

@@ -1,7 +1,10 @@
-// Service Worker for SmartKenya
-const CACHE_NAME = 'smartkenya-v1';
-const STATIC_CACHE = 'smartkenya-static-v1';
-const DYNAMIC_CACHE = 'smartkenya-dynamic-v1';
+// Service Worker for SmartKenya - Enhanced with cache busting
+const CACHE_NAME = 'smartkenya-v2';
+const STATIC_CACHE = 'smartkenya-static-v2';
+const DYNAMIC_CACHE = 'smartkenya-dynamic-v2';
+
+// Build timestamp for cache versioning
+const BUILD_TIMESTAMP = new Date().getTime();
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -27,27 +30,46 @@ const CACHE_FIRST_URLS = [
   'https://fonts.gstatic.com'
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets with versioning
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker with build timestamp:', BUILD_TIMESTAMP);
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
+      .then(cache => {
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('[SW] Static assets cached, skipping waiting');
+        return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('[SW] Failed to cache static assets:', error);
+      })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and notify clients of updates
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Take control of all clients immediately
+      self.clients.claim(),
+      // Notify all clients about the update
+      notifyClientsOfUpdate()
+    ])
   );
 });
 
@@ -164,5 +186,25 @@ async function submitData(data) {
 }
 
 async function removeOfflineData(id) {
-  // Remove synced data from IndexedDB
+// Remove synced data from IndexedDB
 }
+
+// Notify clients of service worker updates
+async function notifyClientsOfUpdate() {
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    client.postMessage({
+      type: 'SW_UPDATE',
+      message: 'New version available',
+      timestamp: BUILD_TIMESTAMP
+    });
+  });
+}
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message');
+    self.skipWaiting();
+  }
+});
