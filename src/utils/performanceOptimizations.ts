@@ -2,20 +2,43 @@
 
 // Preload critical resources
 export const preloadCriticalResources = () => {
-  // Preload fonts
-  const fontLink = document.createElement('link');
-  fontLink.rel = 'preload';
-  fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
-  fontLink.as = 'style';
-  fontLink.crossOrigin = 'anonymous';
-  document.head.appendChild(fontLink);
+  // Avoid duplicate preloads
+  if (document.querySelector('link[data-preload="critical"]')) {
+    return;
+  }
+
+  // Preload and load fonts immediately
+  const fontPreload = document.createElement('link');
+  fontPreload.rel = 'preload';
+  fontPreload.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+  fontPreload.as = 'style';
+  fontPreload.crossOrigin = 'anonymous';
+  fontPreload.dataset.preload = 'critical';
   
-  // Preload hero images
-  const heroImageLink = document.createElement('link');
-  heroImageLink.rel = 'preload';
-  heroImageLink.href = '/placeholder.svg';
-  heroImageLink.as = 'image';
-  document.head.appendChild(heroImageLink);
+  // Load the font stylesheet immediately after preload
+  fontPreload.onload = () => {
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = fontPreload.href;
+    fontLink.crossOrigin = 'anonymous';
+    document.head.appendChild(fontLink);
+  };
+  
+  document.head.appendChild(fontPreload);
+
+  // Only preload hero images that are actually used
+  const hasHeroSection = document.querySelector('[data-hero]') || 
+                        document.querySelector('.hero') ||
+                        window.location.pathname === '/';
+                        
+  if (hasHeroSection) {
+    const heroImageLink = document.createElement('link');
+    heroImageLink.rel = 'preload';
+    heroImageLink.href = '/hero1.webp';
+    heroImageLink.as = 'image';
+    heroImageLink.dataset.preload = 'critical';
+    document.head.appendChild(heroImageLink);
+  }
 };
 
 // Database query optimization
@@ -122,32 +145,57 @@ export const cacheManager = {
 
 // Network optimization
 export const networkOptimizations = {
-  // Enable service worker for caching
+  // Enable service worker for caching with better error handling
   registerServiceWorker: async () => {
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       try {
-        await navigator.serviceWorker.register('/sw.js');
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          updateViaCache: 'none' // Always check for updates
+        });
         console.log('Service Worker registered successfully');
+        
+        // Handle updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New update available
+                window.dispatchEvent(new CustomEvent('sw-update-available'));
+              }
+            });
+          }
+        });
+        
+        return registration;
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        console.warn('Service Worker registration failed:', error);
+        return null;
       }
     }
+    return null;
   },
   
-  // Preconnect to external domains
+  // Preconnect to external domains (avoid duplicates)
   addPreconnects: () => {
+    if (document.querySelector('link[data-preconnect="added"]')) {
+      return;
+    }
+
     const domains = [
       'https://sgpjnbdrmwrupeqhjqpj.supabase.co',
-      'https://fonts.googleapis.com',
       'https://fonts.gstatic.com'
     ];
     
     domains.forEach(domain => {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = domain;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
+      if (!document.querySelector(`link[href="${domain}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = domain;
+        link.crossOrigin = 'anonymous';
+        link.dataset.preconnect = 'added';
+        document.head.appendChild(link);
+      }
     });
   }
 };

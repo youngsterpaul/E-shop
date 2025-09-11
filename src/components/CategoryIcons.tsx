@@ -174,7 +174,7 @@ const categoryIcons: CategoryIcon[] = [
     searchQuery: 'usb cable',
     color: 'bg-amber-50',
     iconColor: 'text-amber-600',
-    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+    productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=400&q=80'
   },
   {
     id: 'printers',
@@ -210,7 +210,7 @@ const categoryIcons: CategoryIcon[] = [
     searchQuery: 'smart home automation',
     color: 'bg-violet-50',
     iconColor: 'text-violet-600',
-    productImage: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?auto=format&fit=crop&w=400&q=80'
+    productImage: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80'
   }
 ];
 
@@ -260,8 +260,8 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="container mx-auto px-0 block bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200/50">
-      <h2 className="border-b my-4 items-center text-gray-600 mx-auto px-4 py-2 text-xl font-bold bg-white">
+    <section className="container shadow-sm mx-auto px-8 block bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200/50">
+      <h2 className="border-b my-4 items-center text-gray-600 mx-auto py-2 text-xl font-bold bg-white">
         SHOP BY CATEGORY
       </h2>
       <div className={`grid ${gridCols} gap-3 bg-white p-4 shadow-sm`}>
@@ -273,7 +273,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
               onClick={() => handleCategoryClick(category.searchQuery)}
               className="flex flex-col items-center justify-center cursor-pointer group"
             >
-              <div className="relative w-32 h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
+              <div className="relative w-24 h-24 mb-4 overflow-hidden bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 /border /border-gray-200">
                 {category.productImage ? (
                   <>
                     <OptimizedImage

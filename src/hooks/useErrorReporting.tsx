@@ -10,11 +10,35 @@ interface ErrorReport {
   userAgent: string;
 }
 
+// Error throttling to prevent spam
+const errorThrottle = new Map<string, number>();
+const THROTTLE_DURATION = 30000; // 30 seconds
+
+const shouldReportError = (message: string): boolean => {
+  const now = Date.now();
+  const lastReported = errorThrottle.get(message);
+  
+  if (!lastReported || now - lastReported > THROTTLE_DURATION) {
+    errorThrottle.set(message, now);
+    return true;
+  }
+  
+  return false;
+};
+
 export const useErrorReporting = () => {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') return;
 
     const reportError = (error: ErrorReport) => {
+      // Skip service worker errors and common development noise
+      if (error.message.includes('ServiceWorker') || 
+          error.message.includes('Cache.put') ||
+          error.message.includes('ChunkLoadError') ||
+          !shouldReportError(error.message)) {
+        return;
+      }
+
       // In production, you would send this to your error reporting service
       // e.g., Sentry, LogRocket, Bugsnag, etc.
       console.error('Production Error Report:', error);
@@ -44,6 +68,14 @@ export const useErrorReporting = () => {
 
     // Unhandled promise rejection handler
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Skip service worker related rejections
+      const reason = String(event.reason);
+      if (reason.includes('ServiceWorker') || 
+          reason.includes('Cache') ||
+          reason.includes('fetch')) {
+        return;
+      }
+
       reportError({
         message: `Unhandled Promise Rejection: ${event.reason}`,
         stack: event.reason?.stack,
