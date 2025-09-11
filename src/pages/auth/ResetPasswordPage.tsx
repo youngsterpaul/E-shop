@@ -220,7 +220,7 @@ const ResetPasswordPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center /py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-lg rounded-lg sm:px-10">
-          {/* SmartKenya Logo/Brand */}
+          {/* SmartKenya Logo */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">SmartKenya</h1>
           </div>
