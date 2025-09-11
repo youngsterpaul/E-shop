@@ -349,26 +349,6 @@ const EnhancedHeroSection = memo(() => {
         <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Hero Content */}
-      <div className={`absolute inset-0 flex items-center justify-center ${!isMobile ? 'pl-48' : ''} z-20`}>
-        <div className="text-center text-white px-4">
-          {currentSlideData.badge && (
-            <div className="inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold mb-4">
-              {currentSlideData.badge}
-            </div>
-          )}
-          <h1 className={`font-bold mb-4 ${isMobile ? 'text-2xl' : 'text-5xl'}`}>
-            {currentSlideData.title}
-          </h1>
-          <Button
-            onClick={() => handleCategoryClick('featured products')}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-          >
-            {currentSlideData.buttonText}
-          </Button>
-        </div>
-      </div>
-
       {/* Slide Indicators */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
         {heroSlides.map((_, index) => (

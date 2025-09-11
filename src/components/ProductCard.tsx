@@ -64,7 +64,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const displayReviewCount = totalReviews > 0 ? totalReviews : product.reviews;
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[200px] mx-auto ${isMobile ? 'rounded-lg':'hover:rounded-lg'}`}>
+    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full max-w-[400px] mx-auto ${isMobile ? 'rounded-lg':'hover:rounded-lg'}`}>
       <CardContent className={`h-full flex flex-col ${isMobile ? 'p-0' : 'p-2'}`}>
         <Link to={`/product/${productSlug}/${product.id}`} className="block">
           <div className="relative overflow-hidden bg-white aspect-square /rounded-sm">
