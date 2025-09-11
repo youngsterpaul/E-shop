@@ -38,9 +38,9 @@ const EnhancedFeaturedProducts = memo(() => {
       };
     }
     return {
-      cols: "grid-cols-8",
+      cols: "grid-cols-6",
       gap: "gap-1",
-      padding: "px-0"
+      padding: "p-8"
     };
   }, [isMobile]);
   
@@ -190,11 +190,11 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4' : 'mb-12'}`}>
-        <div className="bg-white">
+      <section className={`${gridConfig.padding} shadow-sm bg-white ${!isMobile ? 'pt-4 pb-4' : 'mb-12'}`}>
+        <div className={`bg-white`}>
           {/* Section Header - Desktop only */}
           {!isMobile && (
-            <div className="my-4 border-b flex items-center text-gray-600 mx-auto px-4 py-2 text-xl font-bold bg-white">
+            <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
               <TrendingUp size={16} className="mr-2" />
               HOT DEALS
               {totalCount > 0 && (
@@ -206,7 +206,7 @@ const EnhancedFeaturedProducts = memo(() => {
           )}
           
           {/* Products Grid */}
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} ${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
+          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} ${!isMobile ? 'bg-white' : 'bg-gray-50'}`}>
             {transformedProducts.map((product, index) => (
               <ProductCard 
                 key={`${product.id}-${index}`}

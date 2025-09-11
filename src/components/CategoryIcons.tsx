@@ -260,8 +260,8 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="container mx-auto px-0 block bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200/50">
-      <h2 className="border-b my-4 items-center text-gray-600 mx-auto px-4 py-2 text-xl font-bold bg-white">
+    <section className="container shadow-sm mx-auto px-8 block bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200/50">
+      <h2 className="border-b my-4 items-center text-gray-600 mx-auto py-2 text-xl font-bold bg-white">
         SHOP BY CATEGORY
       </h2>
       <div className={`grid ${gridCols} gap-3 bg-white p-4 shadow-sm`}>
@@ -273,7 +273,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
               onClick={() => handleCategoryClick(category.searchQuery)}
               className="flex flex-col items-center justify-center cursor-pointer group"
             >
-              <div className="relative w-32 h-32 mb-4 overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border border-gray-200">
+              <div className="relative w-24 h-24 mb-4 overflow-hidden bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 /border /border-gray-200">
                 {category.productImage ? (
                   <>
                     <OptimizedImage
