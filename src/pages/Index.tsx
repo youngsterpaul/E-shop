@@ -60,17 +60,16 @@ const Index = () => {
         <Header />
         
         <main className={`flex-grow pb-8 ${!isMobile ? 'container xl:px-24' : ''}`}>
-          <div className="absolut">
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'z-1000'}>
+          <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'relative z-40'}> {/* Added relative z-40 for desktop */}
               <EnhancedHeroSection />
             </div>
             
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8'}>
-              {/* Show limited categories on index page (will slice to 8 on mobile) */}
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative z-10'}> {/* Added relative z-10 */}
               <CategoryIcons showAll={false} />
             </div>
             
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : ''}>
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : 'relative z-10'}> {/* Added relative z-10 */}
               <EnhancedFeaturedProducts />
             </div>
           </div>

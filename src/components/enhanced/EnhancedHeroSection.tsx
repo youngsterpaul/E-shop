@@ -236,9 +236,9 @@ const CategorySidebar = memo(() => {
 
   if (isMobile) return null;
 
-  return (
-    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-30 border-r">
-      <div className="p-3 bg-orange-500 text-white font-semibold text-sm">
+ return (
+    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-50 border-r"> {/* Changed from z-30 to z-50 */}
+      <div className="p-3 bg-green-500 text-white font-semibold text-sm">
         ALL CATEGORIES
       </div>
       
@@ -255,15 +255,15 @@ const CategorySidebar = memo(() => {
               className="flex items-center justify-between px-3 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors border-b border-gray-100 cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <span className="text-orange-500">{category.icon}</span>
+                <span className="text-gray-900">{category.icon}</span>
                 <span className="truncate">{category.name}</span>
               </div>
               <ChevronRight size={12} className="text-gray-400" />
             </div>
 
-            {/* Subcategories Dropdown */}
+            {/* Subcategories Dropdown - Increased z-index */}
             {hoveredCategory === category.id && (
-              <div className="absolute left-full top-0 w-56 bg-white shadow-xl border border-gray-200 z-40 rounded-r-md">
+              <div className="absolute left-full top-0 w-56 bg-white shadow-xl border border-gray-200 z-[60] rounded-r-md"> {/* Changed from z-40 to z-[60] */}
                 <div className="p-2 bg-gray-50 border-b border-gray-200">
                   <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                     {category.name}
@@ -332,7 +332,7 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'mx-2 rounded-lg mt-2'}`}>
+    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-40 ${!isMobile ? 'shadow-sm' : 'mx-2 rounded-lg mt-2'}`}>
       {/* Categories Sidebar */}
       <CategorySidebar />
       {/* Background Image with Overlay */}
