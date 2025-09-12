@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PhoneIcon, Mail, MapPin, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
+import InteractiveMap from '@/components/InteractiveMap';
 
 const ContactPage = () => {
   const isMobile = isMobileUserAgent();
@@ -62,7 +63,7 @@ const ContactPage = () => {
             </Button>
           }
         />)}
-        <main className="flex-grow mx-auto px-4 container py-8">
+        <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
           <p className="text-gray-600 mb-8">
             Have a question, suggestion, or concern? We're here to help!
@@ -193,15 +194,7 @@ const ContactPage = () => {
             </form>
           </div>
           
-          <div className="mt-10">
-            <h2 className="text-2xl font-semibold mb-6">Our Location</h2>
-            <div className="w-full h-80 bg-gray-200 rounded-lg">
-              {/* Placeholder for map - In a real app, insert Google Maps or other map service */}
-              <div className="h-full w-full flex items-center justify-center bg-gray-100 rounded-lg">
-                <p className="text-gray-500">Map Loading...</p>
-              </div>
-            </div>
-          </div>
+          <InteractiveMap />
       </main>
 
     </div>

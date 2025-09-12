@@ -32,7 +32,7 @@ const SearchPage = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-5";
+    : "grid-cols-4";
 
   // Desktop: Use regular query with pagination
   const desktopQuery = useQuery({
@@ -272,7 +272,7 @@ const SearchPage = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-grow mx-auto px-0 container py-8">
+      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && allProducts && allProducts.length > 0 && (
@@ -322,10 +322,10 @@ const SearchPage = () => {
               <div className="space-y-6">
                 <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-4'} ${isMobile ? 'bg-white rounded-lg shadow-md p-4' : ''}`}>
                   <p className="text-gray-600 text-lg">
-                    <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span> 
+                    <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span>
                     {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
                     {searchQuery && (
-                      <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery}</span>"</span>
+                      <span> for "<span className="font-medium text-orange-600 truncate">{searchQuery.split(' ').slice(0, 3).join(' ')}</span>"</span>
                     )}
                     {isMobile && mobileQuery.hasNextPage && (
                       <span className="text-sm text-gray-500"> • Loading more...</span>

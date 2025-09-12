@@ -23,7 +23,7 @@ const TermsPage = () => {
           }
         />
       )}
-      <main className="flex-grow mx-auto px-4 container py-8">
+      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
           <h1 className="text-3xl font-bold mb-6">Terms & Conditions</h1>
           <div className="bg-white rounded-lg shadow-md p-6 prose prose-orange max-w-none">
             <p className="text-sm text-gray-500 mb-6">Last Updated: May 20, 2025</p>

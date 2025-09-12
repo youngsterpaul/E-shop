@@ -146,7 +146,7 @@ const WishlistPage = () => {
         <Header />
         
         <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
-          <div className="container mx-auto px-4 py-8">
+          <div className={`container mx-auto px-4 py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
             <SiteBreadcrumb 
               items={[
                 { label: 'Home', href: '/' },

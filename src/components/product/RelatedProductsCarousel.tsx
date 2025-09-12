@@ -25,7 +25,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-8";
+    : "grid-cols-6";
 
   const maxIndex = Math.max(0, products.length - 8);
 

@@ -190,7 +190,7 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} shadow-sm bg-white ${!isMobile ? 'pt-4 pb-4' : 'mb-12'}`}>
+      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4 shadow-sm' : 'mb-12'}`}>
         <div className={`bg-white`}>
           {/* Section Header - Desktop only */}
           {!isMobile && (
@@ -206,7 +206,7 @@ const EnhancedFeaturedProducts = memo(() => {
           )}
           
           {/* Products Grid */}
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} ${!isMobile ? 'bg-white' : 'bg-gray-50'}`}>
+          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white`}>
             {transformedProducts.map((product, index) => (
               <ProductCard 
                 key={`${product.id}-${index}`}

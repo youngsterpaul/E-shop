@@ -52,7 +52,7 @@ const AboutPage = () => {
         }
       />
       )}
-        <main className="flex-grow mx-auto px-4 container py-8">
+        <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           {/* Breadcrumb */}
           {!isMobile && ( 
             <SiteBreadcrumb 

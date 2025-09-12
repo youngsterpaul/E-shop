@@ -167,7 +167,7 @@ const ProductDetailsPage = () => {
             </div>
           }
         />)}
-        <div className="container mx-auto px-4 py-8">
+      <div className={`container mx-auto px-4 py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           {/* Breadcrumb Skeleton */}
           <div className="mb-6">
             <Skeleton className="h-6 w-64" />
@@ -349,7 +349,7 @@ const ProductDetailsPage = () => {
         />)}         
         
 
-      <main className={`${isMobile ? 'pb-16 px-0' : 'py-6 px-2'} container mx-auto /px-2`}>
+      <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto /px-2`}>
 
         {/* Breadcrumb */}
           {!isMobile && (

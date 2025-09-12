@@ -306,7 +306,7 @@ const OrderDetailPage = () => {
         />
       )}
       
-      <main className="flex-grow container py-8 px-4">
+      <main className={`flex-grow container py-8 px-4 ${!isMobile ? 'xl:px-24' : ''}`}>
         {/* Back Button for Desktop */}
         {!isMobile && (
           <Button 

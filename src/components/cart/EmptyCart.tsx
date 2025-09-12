@@ -15,7 +15,7 @@ const EmptyCart = () => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile 
     ? "grid-cols-2" 
-    : "grid-cols-7";
+    : "grid-cols-6";
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
@@ -31,9 +31,9 @@ const EmptyCart = () => {
         />
       } 
       <MobileNav /> 
-      <div className={`w-full px-0 py-12 ${!isMobile ? 'container' : ''} mx-auto`}>
+      <div className={`w-full ${!isMobile ? 'container xl:px-24 px-4 py-12' : 'px-0 pb-12'} mx-auto`}>
         {/* Empty Cart Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 bg-white p-8">
           <div className="relative mb-8">
             <div className="w-32 h-32 mx-auto bg-gradient-to-r from-orange-100 to-pink-100 rounded-full flex items-center justify-center relative overflow-hidden">
               <ShoppingCart size={48} className="text-orange-500 z-10" />
@@ -50,8 +50,8 @@ const EmptyCart = () => {
         </div>
 
         {/* Featured Products Section */}
-      <div className={`mx-auto`}>
-          <h2 className="text-2xl font-bold text-gray-900 mx-2 my-4">You might also like</h2>
+      <div className={`mx-auto bg-white ${!isMobile ? 'p-8':''}`}>
+          <h2 className={`text-2xl font-bold text-gray-900 mx-2 my-4 ${isMobile ? 'p-2 border-b':''}`}>You might also like</h2>
           {isLoading ? (
             <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (

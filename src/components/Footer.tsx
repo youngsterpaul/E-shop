@@ -85,12 +85,12 @@ const Footer = ({ className }: FooterProps) => {
         })}
       </script>
 
-      <footer className={cn("bg-gray-900 text-white w-full", className)}>
-        <div className={`w-full container mx-auto  /sm:px-6 /lg:px-8 py-12 ${!isMobile ? 'min-w-max px-24' : 'px-4'}`}>
+      <footer className={cn("bg-gray-50 text-white w-full", className)}>
+        <div className={`w-full container /mx-auto  /sm:px-6 /lg:px-8 py-12 ${!isMobile ? 'min-w-max xl:px-24' : 'px-4'}`}>
           {/* Main Footer Content */}
           <div className="mb-8">
-              <h3 className="font-bold text-xl mb-4">SmartKenya</h3>
-              <p className="font-semibold text-gray-400 text-xs leading-relaxed">
+              <h3 className="font-bold text-2xl mb-4 text-gray-900">SmartKenya Online Shopping - Kenya</h3>
+              <p className="font-semibold text-gray-600 text-xs leading-relaxed">
                 SmartKenya Your one-stop shop for quality electronics and gadgets.
               </p>
             </div>
@@ -100,13 +100,13 @@ const Footer = ({ className }: FooterProps) => {
               {/* Dynamic Footer Sections */}
               {footerSections.map((section) => (
                 <div key={section.title} className="min-w-0">
-                  <h3 className="font-semibold text-white mb-4">{section.title}</h3>
+                  <h3 className="font-semibold text-gray-900 text-xl mb-4">{section.title}</h3>
                   <ul className="space-y-2">
                     {section.links.map((link) => (
                       <li key={link.href}>
                         <Link 
                           to={link.href} 
-                          className="text-gray-400 hover:text-orange-500 transition-colors text-sm block truncate"
+                          className="text-gray-600 hover:text-orange-500 transition-colors text-sm block truncate"
                         >
                           {link.label}
                         </Link>
@@ -118,32 +118,32 @@ const Footer = ({ className }: FooterProps) => {
 
             <div>
               
-                <h4 className="font-medium text-sm mb-3">Follow Us</h4>
+                <h4 className="font-medium text-gray-900 text-xl mb-3">Follow Us</h4>
                 <div className="flex space-x-4">
                   <a 
                     href="https://facebook.com/smartkenya" 
-                    className="text-gray-400 hover:text-orange-500 transition-colors"
+                    className="text-gray-500 hover:text-orange-500 transition-colors"
                     aria-label="Follow us on Facebook"
                   >
                     <Facebook className="h-5 w-5" />
                   </a>
                   <a 
                     href="https://twitter.com/smartkenya" 
-                    className="text-gray-400 hover:text-orange-500 transition-colors"
+                    className="text-gray-500 hover:text-orange-500 transition-colors"
                     aria-label="Follow us on Twitter"
                   >
                     <Twitter className="h-5 w-5" />
                   </a>
                   <a 
                     href="https://instagram.com/smartkenya" 
-                    className="text-gray-400 hover:text-orange-500 transition-colors"
+                    className="text-gray-500 hover:text-orange-500 transition-colors"
                     aria-label="Follow us on Instagram"
                   >
                     <Instagram className="h-5 w-5" />
                   </a>
                   <a 
                     href="https://youtube.com/smartkenya" 
-                    className="text-gray-400 hover:text-orange-500 transition-colors"
+                    className="text-gray-500 hover:text-orange-500 transition-colors"
                     aria-label="Subscribe to our YouTube channel"
                   >
                     <Youtube className="h-5 w-5" />
@@ -153,7 +153,7 @@ const Footer = ({ className }: FooterProps) => {
               
               {/* Payment Methods */}
               <div className="order-1 sm:order-2">
-                <h4 className="font-medium text-sm mb-3">We Accept</h4>
+                <h4 className="font-medium text-xl text-gray-900 mb-3">We Accept</h4>
                 <div className="flex flex-wrap gap-2">
                   <div className="bg-green-800 text-white px-3 py-1 rounded text-xs font-bold">M-PESA</div>
                   <div className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold">Card</div>
@@ -163,7 +163,7 @@ const Footer = ({ className }: FooterProps) => {
           </div>
         {/* Copyright - takes full width on mobile, aligned right on larger screens */}
         <div className="border-t border-gray-700 py-4">
-          <p className="text-center text-white-500 text-xs leading-relaxed">
+          <p className="text-center text-gray-700 text-xs leading-relaxed">
             © {new Date().getFullYear()} SmartKenya. All rights reserved. Designed for Kenya, Built with ❤️
           </p>
         </div>

@@ -198,7 +198,7 @@ const CareersPage = () => {
         />
         )}
          {/* Hero Section */}
-        <section className="container relative py-20 px-4 text-center overflow-hidden">
+        <section className={`container relative py-20 px-4 text-center overflow-hidden ${!isMobile ? 'xl:px-24' : ''}`}>
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
           <div className="relative max-w-4xl mx-auto">
             {/* Breadcrumb */}

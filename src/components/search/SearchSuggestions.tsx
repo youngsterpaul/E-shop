@@ -154,7 +154,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                     "text-gray-800 truncate block",
                     isMobile ? "text-base leading-relaxed" : "text-sm"
                   )}>
-                    {highlightMatch(suggestion.text, query)}
+                    {highlightMatch(suggestion.text.split(' ').slice(0, 3).join(' '), query)}
                   </span>
                   {isMobile && suggestion.category === 'popular' && (
                     <span className="text-xs text-gray-400 mt-1 block">

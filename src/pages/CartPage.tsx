@@ -70,7 +70,7 @@ const CartPage = () => {
         />
       )}
 
-      <div className="container mx-auto px-4 py-6">
+      <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">

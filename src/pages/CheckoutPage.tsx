@@ -723,7 +723,7 @@ const CheckoutPage = () => {
         />
       )}
 
-      <div className="container mx-auto px-4 py-6">
+      <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <Button 
