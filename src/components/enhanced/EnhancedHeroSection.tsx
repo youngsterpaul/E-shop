@@ -49,7 +49,7 @@ const heroSlides: HeroSlide[] = [
   {
     id: 2,
     title: "New Arrivals",
-    image: "/hero2.jpg",
+    image: "/hero2.webp",
     buttonText: "Explore Collection",
     buttonLink: "/products",
     badge: "NEW"
@@ -332,19 +332,18 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-40 ${!isMobile ? 'shadow-sm' : 'mx-2 rounded-lg mt-2'}`}>
+    <section className={`relative /overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-40 ${!isMobile ? 'shadow-sm' : 'mx-2 rounded-lg mt-2'}`}>
       {/* Categories Sidebar */}
       <CategorySidebar />
       {/* Background Image with Overlay */}
-    <div className='ml-64'>
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 ml-64">
         <LazyImage
           src={currentSlideData.image}
           alt={currentSlideData.title}
           priority={true}
           width={100}
           height={100}
-          className="w-full h-full object-cover"
+          className={`max-w-[full] object-contai ${!isMobile ? 'max-h-[500px]' : 'max-h-[180px]'}`}
         />
         <div className="absolute inset-0 bg-black/50" />
       </div>
@@ -364,7 +363,6 @@ const EnhancedHeroSection = memo(() => {
           />
         ))}
       </div>
-    </div>
     </section>
   );
 });
