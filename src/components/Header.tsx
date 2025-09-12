@@ -36,11 +36,45 @@ const Header = () => {
   const isMobile = isMobileUserAgent();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNav, setShowNav] = useState(true);
+const [lastScrollY, setLastScrollY] = useState(0);
   
   // Safely get cart data with fallback
   let items: any[] = [];
   let totalItems = 0;
   
+const [showTopHeader, setShowTopHeader] = useState(true);
+const [showBottomNav, setShowBottomNav] = useState(true);
+
+useEffect(() => {
+  let lastScrollY = window.scrollY;
+
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY === 0) {
+      // At top of page — show both
+      setShowTopHeader(true);
+      setShowBottomNav(true);
+    } else if (currentScrollY > lastScrollY) {
+      // Scrolling down
+      setShowTopHeader(true);
+      setShowBottomNav(false);
+    } else {
+      // Scrolling up
+      setShowTopHeader(false);
+      setShowBottomNav(false);
+    }
+
+    lastScrollY = currentScrollY;
+  };
+
+  window.addEventListener('scroll', handleScroll);
+
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
+
   try {
     const cartData = useCart();
     items = cartData.cartItems || [];
@@ -118,11 +152,44 @@ const Header = () => {
         })}
       </script>
 
-      <header className="w-full bg-white shadow-sm sticky top-0 z-50">
+        <header className={`w-full bg-white shadow-sm /sticky top-0 z-50`}>
       {/* Main navigation for desktop - important for sitelinks */}
+      {!isMobile && (
+        <nav
+          className={`p-1 bg-white border-b transition-transform duration-300 ease-in-out ${
+            showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+          }`}
+          role="navigation"
+          aria-label="Main Navigation"
+        >
+          <div className="container xl:px-24">
+            <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
+              {mainNavItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    to={item.href}
+                    className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors"
+                    title={item.description}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      )}
 
 
-        <div className={`container /mx-auto ${isMobile ? 'py-2 px-3 border-b border-gray-200' : 'xl:px-24 py-4'}`}>
+        <div
+          className={`container mx-auto ${
+            isMobile
+              ? 'py-2 px-3 border-b border-gray-200'
+              : `xl:px-24 py-4 transition-all duration-300 ${
+                  showNav ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'
+                } bg-white border-b shadow-sm /fixed top-0 left-0 right-0 z-50`
+          }`}>
+
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
@@ -229,26 +296,7 @@ const Header = () => {
         )}           
           </div>
         </div>   
-
-        {!isMobile && (
-        <nav className="block bg-gray-50 /border-b" role="navigation" aria-label="Main Navigation">
-          <div className="container /mx-auto xl:px-24">
-            <ul className="flex items-center /justify-center space-x-8 pt-2 pb-4">
-              {mainNavItems.map((item) => (
-                <li key={item.href}>
-                  <Link 
-                    to={item.href}
-                    className="text-sm text-gray-700 hover:text-orange-500 transition-colors"
-                    title={item.description}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-        )}  
+ 
       </header>
     </>
   );
