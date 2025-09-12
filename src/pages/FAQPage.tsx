@@ -116,7 +116,7 @@ const FAQPage = () => {
           }
         /> 
         )}
-      <main className="flex-grow mx-auto px-4 container py-8">
+      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">
             Find answers to commonly asked questions about our products, ordering, shipping, and more.

@@ -332,7 +332,7 @@ const OrdersPage = () => {
         />
       )}
       
-      <main className="flex-grow container py-8 px-4">
+      <main className={`flex-grow container py-8 px-4 ${!isMobile ? 'xl:px-24' : ''}`}>
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <div className="flex items-center gap-3 mb-4 md:mb-0">

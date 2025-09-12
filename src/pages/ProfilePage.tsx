@@ -376,7 +376,7 @@ const ProfilePage = () => {
         />
       )}
       
-      <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4':''}`}>
+      <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
         <div className="/max-w-md mx-auto space-y-6">
           
           {/* Error/Success Messages */}

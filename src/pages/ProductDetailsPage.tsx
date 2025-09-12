@@ -167,7 +167,7 @@ const ProductDetailsPage = () => {
             </div>
           }
         />)}
-        <div className="container mx-auto px-4 py-8">
+      <div className={`container mx-auto px-4 py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           {/* Breadcrumb Skeleton */}
           <div className="mb-6">
             <Skeleton className="h-6 w-64" />

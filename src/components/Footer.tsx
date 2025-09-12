@@ -86,7 +86,7 @@ const Footer = ({ className }: FooterProps) => {
       </script>
 
       <footer className={cn("bg-gray-900 text-white w-full", className)}>
-        <div className={`w-full container mx-auto  /sm:px-6 /lg:px-8 py-12 ${!isMobile ? 'min-w-max px-24' : 'px-4'}`}>
+        <div className={`w-full container /mx-auto  /sm:px-6 /lg:px-8 py-12 ${!isMobile ? 'min-w-max xl:px-24' : 'px-4'}`}>
           {/* Main Footer Content */}
           <div className="mb-8">
               <h3 className="font-bold text-xl mb-4">SmartKenya</h3>

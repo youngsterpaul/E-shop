@@ -266,7 +266,7 @@ const WriteReviewPage = () => {
           }
         />
       )}
-      <main className="flex-grow mx-auto px-4 container py-8">
+      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
         <div className="mb-6">
           <Button 
             variant="ghost" 

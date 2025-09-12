@@ -80,7 +80,8 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
       case 'Enter':
         e.preventDefault();
         if (selectedIndex >= 0) {
-          handleSubmit(suggestions[selectedIndex].text);
+          const truncatedSuggestion = suggestions[selectedIndex].text.split(' ').slice(0, 3).join(' ');
+          handleSubmit(truncatedSuggestion);
         } else {
           handleSubmit();
         }
@@ -94,8 +95,9 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    onChange(suggestion);
-    handleSubmit(suggestion);
+    const truncatedSuggestion = suggestion.split(' ').slice(0, 3).join(' ');
+    onChange(truncatedSuggestion);
+    handleSubmit(truncatedSuggestion);
   };
 
   const handleClear = () => {

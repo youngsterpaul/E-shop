@@ -237,7 +237,7 @@ const CategorySidebar = memo(() => {
   if (isMobile) return null;
 
   return (
-    <div className="absolute left-0 top-0 w-48 h-full bg-white shadow-lg z-30 border-r">
+    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-30 border-r">
       <div className="p-3 bg-orange-500 text-white font-semibold text-sm">
         ALL CATEGORIES
       </div>
@@ -335,8 +335,8 @@ const EnhancedHeroSection = memo(() => {
     <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'mx-2 rounded-lg mt-2'}`}>
       {/* Categories Sidebar */}
       <CategorySidebar />
-
       {/* Background Image with Overlay */}
+    <div className='ml-64'>
       <div className="absolute inset-0">
         <LazyImage
           src={currentSlideData.image}
@@ -364,13 +364,7 @@ const EnhancedHeroSection = memo(() => {
           />
         ))}
       </div>
-
-      {/* Scroll Indicator - Only show on desktop */}
-      {!isMobile && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
-          <ChevronDown size={24} />
-        </div>
-      )}
+    </div>
     </section>
   );
 });
