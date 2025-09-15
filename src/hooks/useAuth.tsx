@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,13 +24,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const cleanupAuthState = () => {
-    // Clear all auth-related localStorage items
     const keysToRemove = Object.keys(localStorage).filter(key => 
       key.startsWith('supabase.auth.') || key.includes('sb-')
     );
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
-    // Clear sessionStorage if available
     if (typeof sessionStorage !== 'undefined') {
       const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
         key.startsWith('supabase.auth.') || key.includes('sb-')
@@ -41,14 +38,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle profile fetching asynchronously to avoid blocking
         if (session?.user?.id) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -57,12 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
         }
         
-        // Set loading to false after handling the auth state
         setLoading(false);
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
       setSession(session);
@@ -104,15 +97,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      
-      // Clean up existing state
       cleanupAuthState();
       
-      // Attempt to sign out any existing session
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
-        // Continue even if this fails
         console.warn('Failed to sign out existing session:', err);
       }
       
@@ -140,21 +129,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (
-    email: string, 
-    password: string
-  ) => {
+  const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
-      
-      // Clean up existing state
       cleanupAuthState();
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/signin`,
+          emailRedirectTo: `${window.location.origin}/`,
         }
       });
 
@@ -186,11 +170,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       setLoading(true);
-      
-      // Clean up auth state
       cleanupAuthState();
       
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
@@ -203,7 +184,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "You've been successfully logged out.",
       });
       
-      // Force page reload for a clean state
       window.location.href = '/';
     } catch (error: any) {
       console.error('Logout error:', error);

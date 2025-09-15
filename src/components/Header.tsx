@@ -277,7 +277,7 @@ useEffect(() => {
                 <Button 
                   variant="ghost" 
                   className="px-2"
-                  onClick={() => navigate('/auth/signin')}
+                  onClick={() => navigate('/auth')}
                 >
                   <User className="h-6 w-6" /> Sign In
                 </Button>

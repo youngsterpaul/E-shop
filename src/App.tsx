@@ -10,6 +10,7 @@ import AdminRoute from "@/components/AdminRoute";
 //import Header from './components/Header';
 
 // Lazy load pages for better performance
+const Auth = lazy(() => import("./pages/Auth"));
 const Index = lazy(() => import("./pages/Index"));
 const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
@@ -65,6 +66,7 @@ function App() {
           <main id="main-content">
             <Routes>
             {/* Public Routes */}
+            <Route path="auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
             <Route path="/category" element={<CategoryPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
