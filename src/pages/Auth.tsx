@@ -104,43 +104,51 @@ const AuthPage = () => {
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; confirmPassword?: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Only validate password for signin and signup modes
-    if (authMode !== 'forgot') {
-      if (authMode === 'reset') {
-        if (!newPassword.trim()) {
-          newErrors.password = 'New password is required';
-        } else if (newPassword.length < 8) {
-          newErrors.password = 'Password must be at least 8 characters';
-        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-          newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
-        }
-        if (newPassword !== confirmNewPassword) {
-          newErrors.confirmPassword = 'Passwords do not match';
-        }
-      } else {
-        if (!password.trim()) {
-          newErrors.password = 'Password is required';
-        } else if (password.length < 8) {
-          newErrors.password = 'Password must be at least 8 characters';
-        }
+    // Email validation for non-reset modes
+    if (authMode !== 'reset') {
+      if (!email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = 'Please enter a valid email address';
       }
     }
 
-    if (authMode === 'signup') {
-      if (password.length < 8) {
+    // Password validation
+    if (authMode === 'reset') {
+      // Validate new password for reset mode
+      if (!newPassword.trim()) {
+        newErrors.password = 'New password is required';
+      } else if (newPassword.length < 8) {
         newErrors.password = 'Password must be at least 8 characters';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
         newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
       }
       
-      if (password !== confirmPassword) {
+      // Validate confirm password for reset mode
+      if (!confirmNewPassword.trim()) {
+        newErrors.confirmPassword = 'Please confirm your new password';
+      } else if (newPassword !== confirmNewPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
+      }
+    } else if (authMode !== 'forgot') {
+      // Validate password for signin and signup modes
+      if (!password.trim()) {
+        newErrors.password = 'Password is required';
+      } else if (password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      }
+      
+      // Additional validation for signup
+      if (authMode === 'signup') {
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+          newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+        }
+        
+        if (!confirmPassword.trim()) {
+          newErrors.confirmPassword = 'Please confirm your password';
+        } else if (password !== confirmPassword) {
+          newErrors.confirmPassword = 'Passwords do not match';
+        }
       }
     }
 
@@ -168,12 +176,19 @@ const AuthPage = () => {
 
   const handlePasswordReset = async () => {
     try {
+      console.log('Starting password reset with password:', newPassword);
+      
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
 
+      console.log('Password reset successful');
+      
       toast({
         title: "Password updated",
         description: "Your password has been successfully updated. You will be redirected to the homepage.",
@@ -187,6 +202,7 @@ const AuthPage = () => {
         navigate('/');
       }, 2000);
     } catch (error: any) {
+      console.error('Password reset failed:', error);
       setAuthError(error.message || 'Failed to update password');
     }
   };
@@ -194,21 +210,31 @@ const AuthPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('Form submitted, mode:', authMode);
+    console.log('Validation result:', validateForm());
+    
+    if (!validateForm()) {
+      console.log('Form validation failed:', errors);
+      return;
+    }
 
     setIsSubmitting(true);
     setAuthError('');
     
     try {
       if (authMode === 'forgot') {
+        console.log('Handling forgot password');
         await handleForgotPassword();
         return;
       } else if (authMode === 'reset') {
+        console.log('Handling password reset');
         await handlePasswordReset();
         return;
       } else if (authMode === 'signup') {
+        console.log('Handling signup');
         await signUp(email, password);
       } else {
+        console.log('Handling signin');
         await signIn(email, password);
         
         if (rememberMe) {
@@ -252,6 +278,26 @@ const AuthPage = () => {
     setPassword(e.target.value);
     if (errors.password) {
       setErrors(prev => ({ ...prev, password: undefined }));
+    }
+    if (authError) {
+      setAuthError('');
+    }
+  };
+
+  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPassword(e.target.value);
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: undefined }));
+    }
+    if (authError) {
+      setAuthError('');
+    }
+  };
+
+  const handleConfirmNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmNewPassword(e.target.value);
+    if (errors.confirmPassword) {
+      setErrors(prev => ({ ...prev, confirmPassword: undefined }));
     }
     if (authError) {
       setAuthError('');
@@ -350,7 +396,7 @@ const AuthPage = () => {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your new password"
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={handleNewPasswordChange}
                       className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                       autoComplete="new-password"
                       autoFocus
@@ -379,13 +425,20 @@ const AuthPage = () => {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="confirmNewPassword"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Confirm your new password"
                       value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      className={`pl-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
+                      onChange={handleConfirmNewPasswordChange}
+                      className={`pl-10 pr-10 h-12 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
                       autoComplete="new-password"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {errors.confirmPassword && (
                     <p className="text-sm text-red-600">{errors.confirmPassword}</p>
@@ -489,7 +542,6 @@ const AuthPage = () => {
               )}
             </Button>
 
-            {/* Rest of the form remains the same */}
             {authMode !== 'forgot' && authMode !== 'reset' && !resetEmailSent && (
               <div className="text-center pt-4">
                 <p className="text-sm text-gray-600">
