@@ -152,7 +152,8 @@ useEffect(() => {
         })}
       </script>
 
-        <header className={`w-full bg-white shadow-sm /sticky top-0 z-50`}>
+      <header className={`w-full bg-white shadow-sm top-0 z-50 ${!isMobile ? '':'sticky'}`}>
+            
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && (
         <nav
@@ -185,9 +186,7 @@ useEffect(() => {
           className={`container mx-auto ${
             isMobile
               ? 'py-2 px-3 border-b border-gray-200'
-              : `xl:px-24 py-4 transition-all duration-300 ${
-                  showNav ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'
-                } bg-white border-b shadow-sm /fixed top-0 left-0 right-0 z-50`
+              : `xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
           }`}>
 
           <div className="flex items-center justify-between">
@@ -277,7 +276,7 @@ useEffect(() => {
                 <Button 
                   variant="ghost" 
                   className="px-2"
-                  onClick={() => navigate('/auth/signin')}
+                  onClick={() => navigate('/auth')}
                 >
                   <User className="h-6 w-6" /> Sign In
                 </Button>

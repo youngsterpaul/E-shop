@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,25 +12,149 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
+  lastActivity: number;
+  refreshSession: () => Promise<void>;
+}
+
+interface FailedAttempt {
+  email: string;
+  timestamp: number;
+  attempts: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Security constants
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+const ACTIVITY_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastActivity, setLastActivity] = useState(Date.now());
   const { toast } = useToast();
 
+  // Security: Track failed login attempts
+  const getFailedAttempts = (email: string): FailedAttempt | null => {
+    const stored = localStorage.getItem(`failed_attempts_${email}`);
+    if (!stored) return null;
+    
+    const attempt = JSON.parse(stored) as FailedAttempt;
+    // Clear old attempts
+    if (Date.now() - attempt.timestamp > LOCKOUT_DURATION) {
+      localStorage.removeItem(`failed_attempts_${email}`);
+      return null;
+    }
+    return attempt;
+  };
+
+  const recordFailedAttempt = (email: string) => {
+    const existing = getFailedAttempts(email);
+    const newAttempt: FailedAttempt = {
+      email,
+      timestamp: Date.now(),
+      attempts: existing ? existing.attempts + 1 : 1
+    };
+    localStorage.setItem(`failed_attempts_${email}`, JSON.stringify(newAttempt));
+  };
+
+  const clearFailedAttempts = (email: string) => {
+    localStorage.removeItem(`failed_attempts_${email}`);
+  };
+
+  const isAccountLocked = (email: string): boolean => {
+    const attempts = getFailedAttempts(email);
+    return attempts ? attempts.attempts >= MAX_FAILED_ATTEMPTS : false;
+  };
+
+  // Security: Input sanitization
+  const sanitizeInput = (input: string): string => {
+    return input.trim().toLowerCase().replace(/[<>\"']/g, '');
+  };
+
+  // Security: Password strength validation
+  const validatePasswordStrength = (password: string): string[] => {
+    const errors: string[] = [];
+    
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      errors.push('Password must contain at least one number');
+    }
+    if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+      errors.push('Password must contain at least one special character');
+    }
+    if (password.length > 128) {
+      errors.push('Password must not exceed 128 characters');
+    }
+    
+    // Check for common passwords
+    const commonPasswords = ['password', '12345678', 'qwerty', 'admin', 'letmein'];
+    if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
+      errors.push('Password cannot contain common words');
+    }
+    
+    return errors;
+  };
+
+  // Security: Session activity tracking
+  const updateActivity = () => {
+    setLastActivity(Date.now());
+    localStorage.setItem('lastActivity', Date.now().toString());
+  };
+
+  // Security: Check session validity
+  const checkSessionValidity = async () => {
+    if (!session || !user) return true;
+    
+    const lastActivityTime = parseInt(localStorage.getItem('lastActivity') || '0');
+    const timeSinceActivity = Date.now() - lastActivityTime;
+    
+    if (timeSinceActivity > SESSION_TIMEOUT) {
+      toast({
+        title: "Session expired",
+        description: "You have been logged out due to inactivity.",
+        variant: "destructive",
+      });
+      await signOut();
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Security: Refresh session periodically
+  const refreshSession = async () => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error('Session refresh error:', error);
+        if (error.message.includes('refresh_token_not_found') || error.message.includes('invalid_refresh_token')) {
+          await signOut();
+        }
+      }
+    } catch (error) {
+      console.error('Session refresh failed:', error);
+    }
+  };
+
   const cleanupAuthState = () => {
-    // Clear all auth-related localStorage items
     const keysToRemove = Object.keys(localStorage).filter(key => 
       key.startsWith('supabase.auth.') || key.includes('sb-')
     );
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
-    // Clear sessionStorage if available
     if (typeof sessionStorage !== 'undefined') {
       const sessionKeysToRemove = Object.keys(sessionStorage).filter(key => 
         key.startsWith('supabase.auth.') || key.includes('sb-')
@@ -41,14 +164,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener first
+    // Activity tracking
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const handleActivity = () => updateActivity();
+    
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleActivity);
+    });
+
+    // Periodic session check
+    const sessionCheckInterval = setInterval(checkSessionValidity, ACTIVITY_CHECK_INTERVAL);
+    
+    // Session refresh interval
+    const refreshInterval = setInterval(refreshSession, 30 * 60 * 1000); // 30 minutes
+
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      clearInterval(sessionCheckInterval);
+      clearInterval(refreshInterval);
+    };
+  }, [session, user]);
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle profile fetching asynchronously to avoid blocking
+        if (event === 'SIGNED_IN') {
+          updateActivity();
+        }
+        
         if (session?.user?.id) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -57,12 +206,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
         }
         
-        // Set loading to false after handling the auth state
         setLoading(false);
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
       setSession(session);
@@ -70,6 +217,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user?.id) {
         fetchProfile(session.user.id);
+        updateActivity();
       }
       setLoading(false);
     }).catch((error) => {
@@ -105,28 +253,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      // Clean up existing state
+      // Security: Sanitize input
+      const sanitizedEmail = sanitizeInput(email);
+      
+      // Security: Check if account is locked
+      if (isAccountLocked(sanitizedEmail)) {
+        const attempts = getFailedAttempts(sanitizedEmail);
+        const timeRemaining = Math.ceil((LOCKOUT_DURATION - (Date.now() - attempts!.timestamp)) / 60000);
+        throw new Error(`Account temporarily locked. Try again in ${timeRemaining} minutes.`);
+      }
+      
       cleanupAuthState();
       
-      // Attempt to sign out any existing session
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
-        // Continue even if this fails
         console.warn('Failed to sign out existing session:', err);
       }
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: sanitizedEmail,
         password,
       });
       
       if (error) {
         console.error('Sign in error:', error);
+        recordFailedAttempt(sanitizedEmail);
         throw error;
       }
       
       if (data.user) {
+        clearFailedAttempts(sanitizedEmail);
+        updateActivity();
+        
+        // Security: Log successful login
+        console.log(`User ${sanitizedEmail} logged in successfully at ${new Date().toISOString()}`);
+        
         toast({
           title: "Welcome back!",
           description: "You've been successfully logged in.",
@@ -140,21 +302,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (
-    email: string, 
-    password: string
-  ) => {
+  const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
       
-      // Clean up existing state
+      // Security: Sanitize input
+      const sanitizedEmail = sanitizeInput(email);
+      
+      // Security: Validate password strength
+      const passwordErrors = validatePasswordStrength(password);
+      if (passwordErrors.length > 0) {
+        throw new Error(passwordErrors[0]);
+      }
+      
       cleanupAuthState();
       
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email: sanitizedEmail,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/signin`,
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            email_confirm: true,
+          }
         }
       });
 
@@ -169,6 +339,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: "We've sent you a confirmation link. Please check your email to complete registration.",
         });
       } else {
+        updateActivity();
         toast({
           title: "Registration successful",
           description: "Your account has been created.",
@@ -187,10 +358,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      // Clean up auth state
+      // Security: Clear all auth-related data
       cleanupAuthState();
+      localStorage.removeItem('lastActivity');
+      localStorage.removeItem('rememberMe');
       
-      // Sign out from Supabase
+      // Clear failed attempt records for current user
+      if (user?.email) {
+        clearFailedAttempts(user.email);
+      }
+      
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
@@ -198,12 +375,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
+      // Security: Log successful logout
+      console.log(`User logged out successfully at ${new Date().toISOString()}`);
+      
       toast({
         title: "Logged out",
         description: "You've been successfully logged out.",
       });
       
-      // Force page reload for a clean state
+      // Force page refresh to clear any cached data
       window.location.href = '/';
     } catch (error: any) {
       console.error('Logout error:', error);
@@ -225,14 +405,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Not authenticated');
       }
       
+      // Security: Sanitize profile data
+      const sanitizedData = Object.keys(data).reduce((acc, key) => {
+        if (typeof data[key] === 'string') {
+          acc[key] = data[key].trim().replace(/[<>\"']/g, '');
+        } else {
+          acc[key] = data[key];
+        }
+        return acc;
+      }, {} as any);
+      
       const { error } = await supabase
         .from('profiles')
-        .update(data)
+        .update(sanitizedData)
         .eq('user_id', user.id);
       
       if (error) throw error;
       
       await fetchProfile(user.id);
+      updateActivity();
       
       toast({
         title: "Profile updated",
@@ -259,7 +450,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signIn,
     signUp,
     signOut,
-    updateProfile
+    updateProfile,
+    lastActivity,
+    refreshSession
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
