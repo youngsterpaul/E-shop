@@ -32,11 +32,14 @@ const AuthPage = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [resetLinkError, setResetLinkError] = useState<string>('');
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [passwordResetComplete, setPasswordResetComplete] = useState(false);
   
   useEffect(() => {
     // Listen for auth state changes to detect password recovery
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event, 'Session:', !!session);
+        
         if (event === 'PASSWORD_RECOVERY') {
           setIsPasswordRecovery(true);
           setAuthMode('reset');
@@ -45,6 +48,7 @@ const AuthPage = () => {
           setAuthMode('reset');
         } else if (event === 'SIGNED_OUT') {
           setIsPasswordRecovery(false);
+          setPasswordResetComplete(false);
         }
       }
     );
@@ -78,20 +82,22 @@ const AuthPage = () => {
     const mode = searchParams.get('mode');
     if (mode === 'reset') {
       setAuthMode('reset');
+      setIsPasswordRecovery(true); // Set recovery state for reset mode
       return; // Don't redirect to homepage, stay for password reset
     }
     
     // Only redirect to homepage if user exists and we're not in password recovery or reset flow
-    if (user && authMode !== 'reset' && mode !== 'reset' && !isPasswordRecovery) {
+    if (user && authMode !== 'reset' && mode !== 'reset' && !isPasswordRecovery && !passwordResetComplete) {
       navigate('/');
     }
-  }, [user, navigate, searchParams, authMode, isPasswordRecovery]);
+  }, [user, navigate, searchParams, authMode, isPasswordRecovery, passwordResetComplete]);
 
   useEffect(() => {
     // Set initial mode based on URL parameter
     const mode = searchParams.get('mode');
     if (mode === 'reset') {
       setAuthMode('reset');
+      setIsPasswordRecovery(true);
     }
   }, [searchParams]);
 
@@ -109,8 +115,10 @@ const AuthPage = () => {
       if (authMode === 'reset') {
         if (!newPassword.trim()) {
           newErrors.password = 'New password is required';
-        } else if (newPassword.length < 6) {
-          newErrors.password = 'Password must be at least 6 characters';
+        } else if (newPassword.length < 8) {
+          newErrors.password = 'Password must be at least 8 characters';
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+          newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
         }
         if (newPassword !== confirmNewPassword) {
           newErrors.confirmPassword = 'Passwords do not match';
@@ -118,14 +126,22 @@ const AuthPage = () => {
       } else {
         if (!password.trim()) {
           newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
-          newErrors.password = 'Password must be at least 6 characters';
+        } else if (password.length < 8) {
+          newErrors.password = 'Password must be at least 8 characters';
         }
       }
     }
 
-    if (authMode === 'signup' && password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    if (authMode === 'signup') {
+      if (password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      }
+      
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
     }
 
     setErrors(newErrors);
@@ -160,12 +176,16 @@ const AuthPage = () => {
 
       toast({
         title: "Password updated",
-        description: "Your password has been successfully updated.",
+        description: "Your password has been successfully updated. You will be redirected to the homepage.",
       });
 
-      // Reset the recovery state and redirect to homepage
+      // Set completion state and redirect after a short delay
+      setPasswordResetComplete(true);
       setIsPasswordRecovery(false);
-      navigate('/');
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     } catch (error: any) {
       setAuthError(error.message || 'Failed to update password');
     }
@@ -208,6 +228,8 @@ const AuthPage = () => {
         errorMessage = 'An account with this email already exists. Please sign in instead.';
       } else if (errorMessage.includes('Too many requests')) {
         errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+      } else if (errorMessage.includes('Password should be at least')) {
+        errorMessage = 'Password must be at least 8 characters long with uppercase, lowercase, and number.';
       }
       
       setAuthError(errorMessage);
@@ -236,6 +258,17 @@ const AuthPage = () => {
     }
   };
 
+  const handleHomeNavigation = () => {
+    if (isPasswordRecovery && authMode === 'reset' && !passwordResetComplete) {
+      // Warn user they haven't completed password reset
+      if (confirm('You have not completed your password reset. Are you sure you want to leave this page?')) {
+        navigate('/');
+      }
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -245,12 +278,20 @@ const AuthPage = () => {
               variant="ghost"
               size="sm"
               className="absolute left-0 p-2 h-8 w-8"
-              onClick={() => navigate("/")}
+              onClick={handleHomeNavigation}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold text-gray-900">SmartKenya</h1>
           </div>
+
+          {passwordResetComplete && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+              <div className="text-sm text-green-600">
+                Password successfully updated! Redirecting to homepage...
+              </div>
+            </div>
+          )}
 
           <div className="mb-6 text-center">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -325,6 +366,9 @@ const AuthPage = () => {
                   {errors.password && (
                     <p className="text-sm text-red-600">{errors.password}</p>
                   )}
+                  <p className="text-xs text-gray-500">
+                    Password must be at least 8 characters with uppercase, lowercase, and number
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -377,6 +421,11 @@ const AuthPage = () => {
                 {errors.password && (
                   <p className="text-sm text-red-600">{errors.password}</p>
                 )}
+                {authMode === 'signup' && (
+                  <p className="text-xs text-gray-500">
+                    Password must be at least 8 characters with uppercase, lowercase, and number
+                  </p>
+                )}
               </div>
             )}
 
@@ -421,7 +470,7 @@ const AuthPage = () => {
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 h-12 rounded-lg font-medium transition-colors"
-              disabled={isSubmitting || loading}
+              disabled={isSubmitting || loading || passwordResetComplete}
             >
               {isSubmitting || loading ? (
                 <div className="flex items-center justify-center">
@@ -440,6 +489,7 @@ const AuthPage = () => {
               )}
             </Button>
 
+            {/* Rest of the form remains the same */}
             {authMode !== 'forgot' && authMode !== 'reset' && !resetEmailSent && (
               <div className="text-center pt-4">
                 <p className="text-sm text-gray-600">
