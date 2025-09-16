@@ -14,7 +14,7 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
-import { UpdateNotification } from '@/components/UpdateNotification';
+//import { UpdateNotification } from '@/components/UpdateNotification';
 import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 //import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -29,7 +29,7 @@ const AppWithAnalytics = () => {
       <ProductionOptimizer />
       <App />
       <ProductionAnalytics />
-      <UpdateNotification />
+      {/* <UpdateNotification /> */}
     </>
   );
 };
