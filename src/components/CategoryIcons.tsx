@@ -260,7 +260,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
 
   // Desktop version with product images (Kilimall-style)
   return (
-    <section className="container shadow-sm mx-auto px-8 block bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200/50"> {/* Keep z-10 or lower */}
+    <section className="container shadow-sm mx-auto px-8 block bottom-0 left-0 right-0 /z-10 bg-white border-t border-gray-200/50"> {/* Keep z-10 or lower */}
       <h2 className="border-b my-4 items-center text-gray-600 mx-auto py-2 text-xl font-bold bg-white">
         SHOP BY CATEGORY
       </h2>
