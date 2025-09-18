@@ -11,6 +11,7 @@ import { useProductReviews } from '@/hooks/useReviews';
 //import { getCartDisplayAttributes } from '@/data/categoryAttributes';
 //import DynamicAttributeSelector from './DynamicAttributeSelector';
 import OptimizedImage from '../OptimizedImage';
+import VariantSelector from '@/components/product/VariantSelector';
 
 interface MobileAddToCartModalProps {
   isOpen: boolean;
@@ -49,7 +50,6 @@ const MobileAddToCartModal = ({
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [variantsInitialized, setVariantsInitialized] = useState(false);
   const { toast } = useToast();
   const { addToCart } = useCart();
   const { variants, getVariantsByType, getVariantTypes } = useProductVariants(product.product_id);
@@ -69,33 +69,6 @@ const MobileAddToCartModal = ({
 
   // Use real review count or fallback to product.reviews
   const displayReviewCount = totalReviews > 0 ? totalReviews : (product.reviews || 0);
-
-  // Auto-select first variant for each type when modal opens
-  useEffect(() => {
-    if (isOpen && hasVariants && !variantsInitialized) {
-      const variantTypes = getVariantTypes();
-      
-      variantTypes.forEach(type => {
-        // Only auto-select if no variant is already selected for this type
-        if (!selectedVariants[type]) {
-          const variantsForType = getVariantsByType(type);
-          if (variantsForType.length > 0) {
-            // Select the first variant
-            onVariantChange(type, variantsForType[0].variant_value);
-          }
-        }
-      });
-      
-      setVariantsInitialized(true);
-    }
-  }, [isOpen, hasVariants, variantsInitialized, selectedVariants, getVariantTypes, getVariantsByType, onVariantChange]);
-
-  // Reset initialization state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setVariantsInitialized(false);
-    }
-  }, [isOpen]);
 
   // Handle modal animations and body scroll
   useEffect(() => {
@@ -295,105 +268,138 @@ const MobileAddToCartModal = ({
 
             {/* Variants Selection */}
             <div className="p-6 space-y-6">
-              {getVariantTypes().map(type => (
-                <div key={type}>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <span className="capitalize">{type}</span>
+              {hasVariants && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center">
+                    <span>Select Options</span>
                     <span className="text-red-500 ml-1">*</span>
                   </h4>
                   
-                  {type === 'color' ? (
-                    <div className="flex gap-3 flex-wrap">
-                      {getVariantsByType(type).map((variant) => (
-                        <button
-                          key={variant.id}
-                          onClick={() => onVariantChange(type, variant.variant_value)}
-                          className={`relative w-12 h-12 rounded-full border-3 transition-all ${
-                            selectedVariants[type] === variant.variant_value
-                              ? 'border-orange-500 ring-2 ring-orange-200'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          style={{ backgroundColor: variant.variant_value.toLowerCase() }}
-                          title={variant.variant_value}
-                        >
-                          {selectedVariants[type] === variant.variant_value && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full shadow-sm"></div>
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex gap-2 flex-wrap">
-                      {getVariantsByType(type).map((variant) => (
-                        <button
-                          key={variant.id}
-                          onClick={() => onVariantChange(type, variant.variant_value)}
-                          className={`px-4 py-2.5 border-2 rounded-xl text-sm font-medium transition-all ${
-                            selectedVariants[type] === variant.variant_value
-                              ? 'border-orange-500 bg-orange-50 text-orange-700'
-                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                          }`}
-                        >
-                          {variant.variant_value}
-                          {variant.price_modifier !== 0 && (
-                            <span className="ml-1 text-xs opacity-75">
-                              ({variant.price_modifier > 0 ? '+' : ''}{formatPrice(variant.price_modifier)})
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Dynamic Product Attributes */}
-              {/*
-              {dynamicAttributes.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Options</h4>
-                  <DynamicAttributeSelector
-                    attributes={dynamicAttributes}
-                    selectedAttributes={selectedAttributes}
-                    onAttributeChange={handleAttributeChange}
+                  {/* Use the new VariantSelector component */}
+                  <VariantSelector
+                    variants={(() => {
+                      // Transform variants for VariantSelector
+                      const transformedVariants = getVariantTypes().reduce((acc, type) => {
+                        const typeVariants = getVariantsByType(type);
+                        
+                        // Determine variant type more intelligently
+                        let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
+                        const lowerType = type.toLowerCase();
+                        
+                        if (lowerType.includes('color') || lowerType.includes('colour')) {
+                          variantType = 'color';
+                        } else if (lowerType.includes('size')) {
+                          variantType = 'size';
+                        } else if (lowerType.includes('material') || lowerType.includes('fabric') || lowerType.includes('texture')) {
+                          variantType = 'material';
+                        }
+                        
+                        // For colors, try to get actual color values
+                        const colorMap: Record<string, string> = {
+                          'red': '#ef4444',
+                          'blue': '#3b82f6',
+                          'green': '#10b981',
+                          'black': '#1f2937',
+                          'white': '#ffffff',
+                          'gray': '#6b7280',
+                          'grey': '#6b7280',
+                          'yellow': '#f59e0b',
+                          'orange': '#f97316',
+                          'purple': '#8b5cf6',
+                          'pink': '#ec4899',
+                          'brown': '#92400e',
+                          'navy': '#1e3a8a',
+                          'maroon': '#7f1d1d',
+                          'gold': '#d97706',
+                          'silver': '#9ca3af',
+                          'beige': '#f5f5dc',
+                          'cream': '#fffdd0',
+                          'turquoise': '#06b6d4',
+                          'lime': '#65a30d',
+                        };
+                        
+                        acc.push({
+                          id: type,
+                          name: type.charAt(0).toUpperCase() + type.slice(1),
+                          type: variantType,
+                          values: typeVariants.map(variant => ({
+                            id: variant.variant_value,
+                            name: variant.variant_value,
+                            value: variantType === 'color' 
+                              ? (colorMap[variant.variant_value.toLowerCase()] || '#6b7280')
+                              : variant.variant_value,
+                            available: variant.stock_quantity > 0,
+                            priceModifier: variant.price_modifier || 0
+                          }))
+                        });
+                        
+                        return acc;
+                      }, [] as any[]);
+                      
+                      return transformedVariants;
+                    })()}
+                    selectedVariants={selectedVariants}
+                    onVariantChange={onVariantChange}
+                    stockInfo={(() => {
+                      // Create stock info for VariantSelector
+                      const stockInfo: Record<string, number> = {};
+                      getVariantTypes().forEach(type => {
+                        getVariantsByType(type).forEach(variant => {
+                          const stockKey = `${type}-${variant.variant_value}`;
+                          stockInfo[stockKey] = variant.stock_quantity;
+                        });
+                      });
+                      return stockInfo;
+                    })()}
                   />
                 </div>
               )}
-              */}
 
-              {/* Quantity Selector */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Quantity</h4>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4 text-gray-600" />
-                    </button>
-                    <span className="px-6 py-3 font-medium text-gray-900 bg-gray-50 min-w-[60px] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="p-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Plus className="h-4 w-4 text-gray-600" />
-                    </button>
-                  </div>
-                  
-                  <div className="text-sm text-gray-500">
-                    <span className={`font-medium ${product.inStock ? 'text-green-600' : 'text-red-600'}`}>
-                      {product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+  {/* Dynamic Product Attributes - Keep existing code */}
+  {/*
+  {dynamicAttributes.length > 0 && (
+    <div>
+      <h4 className="text-sm font-medium text-gray-900 mb-3">Additional Options</h4>
+      <DynamicAttributeSelector
+        attributes={dynamicAttributes}
+        selectedAttributes={selectedAttributes}
+        onAttributeChange={handleAttributeChange}
+      />
+    </div>
+  )}
+  */}
+
+  {/* Quantity Selector - Keep existing code as is */}
+  <div>
+    <h4 className="text-sm font-medium text-gray-900 mb-3">Quantity</h4>
+    <div className="flex items-center gap-4">
+      <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+        <button
+          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+          className="p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          disabled={quantity <= 1}
+        >
+          <Minus className="h-4 w-4 text-gray-600" />
+        </button>
+        <span className="px-6 py-3 font-medium text-gray-900 bg-gray-50 min-w-[60px] text-center">
+          {quantity}
+        </span>
+        <button
+          onClick={() => setQuantity(quantity + 1)}
+          className="p-3 hover:bg-gray-50 transition-colors"
+        >
+          <Plus className="h-4 w-4 text-gray-600" />
+        </button>
+      </div>
+      
+      <div className="text-sm text-gray-500">
+        <span className={`font-medium ${product.inStock ? 'text-green-600' : 'text-red-600'}`}>
+          {product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
           </div>
 
           {/* Fixed Bottom Actions */}

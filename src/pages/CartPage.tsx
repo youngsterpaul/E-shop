@@ -12,6 +12,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
 import MobileNav from '@/components/MobileNav';
 import CartSkeleton from '@/components/cart/CartSkeleton';
+import Footer from '@/components/Footer';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -113,8 +114,11 @@ const CartPage = () => {
           <div className="lg:col-span-1">
             <CartSummary />
           </div>
+
+          
         </div>
       </div>
+      {!isMobile && <Footer />}
       <MobileNav />
     </div>
   );
