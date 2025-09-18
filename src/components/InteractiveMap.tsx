@@ -132,8 +132,8 @@ const InteractiveMap: React.FC = () => {
         </p>
         <div className="mt-3">
           <p className="text-sm text-gray-600">
-            <strong>Phone:</strong> +254 xxx xxx xxx<br />
-            <strong>Email:</strong> info@business.co.ke<br />
+            <strong>Phone:</strong> +254 798 229 783<br />
+            <strong>Email:</strong> info@smartkenya.co.ke<br />
             <strong>Hours:</strong> Mon-Fri 8AM-5PM
           </p>
         </div>

@@ -71,34 +71,34 @@ const ContactPage = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-              <div className="p-3 bg-orange-100 rounded-full mb-4">
-                <PhoneIcon className="h-6 w-6 text-orange-500" />
+              <div className="p-3 bg-gray-100 rounded-full mb-4">
+                <PhoneIcon className="h-6 w-6 text-green-500" />
               </div>
               <h3 className="font-semibold mb-2">Call Us</h3>
               <p className="text-gray-700 mb-3">Mon-Fri from 8am to 5pm</p>
-              <a href="tel:+254798229783" className="text-orange-500 hover:text-orange-600">
+              <a href="tel:+254798229783" className="text-green-500 hover:text-orange-600">
                 +254 798 229 783
               </a>
             </div>
             
             <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-              <div className="p-3 bg-orange-100 rounded-full mb-4">
-                <Mail className="h-6 w-6 text-orange-500" />
+              <div className="p-3 bg-gray-100 rounded-full mb-4">
+                <Mail className="h-6 w-6 text-green-500" />
               </div>
               <h3 className="font-semibold mb-2">Email Us</h3>
               <p className="text-gray-700 mb-3">We'll respond within 24 hours</p>
-              <a href="mailto:support@smartkenya.co.ke" className="text-orange-500 hover:text-orange-600">
+              <a href="mailto:support@smartkenya.co.ke" className="text-green-500 hover:text-orange-600">
                 support@smartkenya.co.ke
               </a>
             </div>
             
             <div className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-              <div className="p-3 bg-orange-100 rounded-full mb-4">
-                <MapPin className="h-6 w-6 text-orange-500" />
+              <div className="p-3 bg-gray-100 rounded-full mb-4">
+                <MapPin className="h-6 w-6 text-green-500" />
               </div>
               <h3 className="font-semibold mb-2">Visit Us</h3>
               <p className="text-gray-700 mb-3">Our headquarters</p>
-              <address className="not-italic text-orange-500">
+              <address className="not-italic text-green-500">
                 SmartKenya, Embu, Kenya
               </address>
             </div>
@@ -186,7 +186,7 @@ const ContactPage = () => {
               
               <Button 
                 type="submit"
-                className="w-full md:w-auto bg-orange-500 hover:bg-orange-600"
+                className="w-full md:w-auto bg-green-500 hover:bg-green-600"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
