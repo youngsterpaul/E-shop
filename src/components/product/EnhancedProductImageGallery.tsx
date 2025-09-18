@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Video, ZoomIn, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Video } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import OptimizedImage from '../OptimizedImage';
 
@@ -17,18 +15,14 @@ interface EnhancedProductImageGalleryProps {
 
 const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showMagnifier, setShowMagnifier] = useState(false);
-  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   
   const isMobile = isMobileUserAgent();
   const mainImageRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
-  const magnifierRef = useRef<HTMLDivElement>(null);
+
   
   const allMedia = [
     product.image,
@@ -37,9 +31,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   ];
 
   const minSwipeDistance = 50;
-  const magnifierSize = 200;
-  const zoomLevel = 2.5;
-
   const nextImage = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
@@ -89,41 +80,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     if (isRightSwipe) prevImage();
   };
 
-  const handleImageClick = () => {
-    if (!isVideo(allMedia[currentIndex]) && !showMagnifier) {
-      setIsZoomOpen(true);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mainImageRef.current || isVideo(allMedia[currentIndex]) || isMobile) return;
-
-    const rect = mainImageRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Keep magnifier within bounds
-    const magnifierX = Math.max(magnifierSize / 2, Math.min(rect.width - magnifierSize / 2, x));
-    const magnifierY = Math.max(magnifierSize / 2, Math.min(rect.height - magnifierSize / 2, y));
-
-    // Calculate percentage position for the zoomed image
-    const imageX = (x / rect.width) * 100;
-    const imageY = (y / rect.height) * 100;
-
-    setMagnifierPosition({ x: magnifierX, y: magnifierY });
-    setImagePosition({ x: imageX, y: imageY });
-  };
-
-  const handleMouseEnter = () => {
-    if (!isVideo(allMedia[currentIndex]) && !isMobile) {
-      setShowMagnifier(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setShowMagnifier(false);
-  };
-
 
   if (isMobile) {
     return (
@@ -135,7 +91,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          onClick={handleImageClick}
         >
           {isVideo(allMedia[currentIndex]) ? (
             <video
@@ -191,10 +146,6 @@ return (
           width: '100%',
           height: 'auto'
         }}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={handleImageClick}
       >
         {isVideo(allMedia[currentIndex]) ? (
           <video
@@ -224,19 +175,6 @@ return (
           </div>
         )}
 
-        {/* Desktop Image Counter */}
-        {allMedia.length > 1 && (
-          <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
-            {currentIndex + 1}/{allMedia.length}
-          </div>
-        )}
-
-        {/* Zoom Icon */}
-        {!isVideo(allMedia[currentIndex]) && !showMagnifier && (
-          <div className="absolute bottom-4 right-4 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <ZoomIn size={16} />
-          </div>
-        )}
       </div>
     </div>
 
@@ -284,33 +222,6 @@ return (
         ))}
       </div>
     )}
-
-    {/* Zoom Dialog */}
-    <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-      <DialogContent className="max-w-4xl w-full h-full max-h-screen p-0 bg-black">
-        <div className="relative w-full h-full flex items-center justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full z-50"
-            onClick={() => setIsZoomOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          
-          {!isVideo(allMedia[currentIndex]) && (
-            <OptimizedImage
-              src={allMedia[currentIndex]}
-              alt={`${product.name} - Zoomed view`}
-              width={1000}
-              height={1000}
-              aspectRatio="square"
-              className="max-w-full max-h-full object-contain"
-            />
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
   </div>
 );
 }
