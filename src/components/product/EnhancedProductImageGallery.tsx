@@ -176,146 +176,143 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     );
   }
 
-  // Desktop Kilimall-exact style layout
-  return (
-<div className="flex gap-6 w-full max-w-none">
-      {/* Desktop Thumbnail Strip - Left Side (Kilimall style) */}
-      {allMedia.length > 1 && (
-        <div className="flex flex-col gap-3 w-20">
-          <div 
-            ref={thumbnailsRef}
-            className="flex flex-col gap-3 overflow-y-auto max-h-96 scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+// Desktop Kilimall-exact style layout
+return (
+  <div className="flex flex-col gap-4 w-full items-center">
+    
+    {/* Main Image */}
+    <div className="flex-1 max-w-lg w-full">
+      <div 
+        ref={mainImageRef}
+        className="relative bg-white overflow-hidden cursor-pointer group border rounded-lg"
+        style={{ 
+          aspectRatio: '1/1',
+          maxWidth: '500px',
+          width: '100%',
+          height: 'auto'
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleImageClick}
+      >
+        {isVideo(allMedia[currentIndex]) ? (
+          <video
+            src={allMedia[currentIndex]}
+            controls
+            className={`w-full h-full object-contain transition-transform duration-300 ${
+              isTransitioning ? 'scale-105' : 'scale-100'
+            }`}
+            poster={product.image}
+            preload="metadata"
           >
-            {allMedia.map((media, index) => (
-              <button
-                key={index}
-                onClick={() => handleThumbnailClick(index)}
-                disabled={isTransitioning}
-                className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
-                  currentIndex === index 
-                    ? 'border-orange-500 ring-2 ring-orange-200' 
-                    : 'border-gray-200 hover:border-gray-300'
-                } ${isTransitioning ? 'opacity-50' : ''}`}
-              >
-                {isVideo(media) ? (
-                  <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                    <Video size={16} className="text-gray-600 z-10" />
-                    <OptimizedImage
-                      src={product.image}
-                      alt="Video thumbnail"
-                      width={80}
-                      height={80}
-                      aspectRatio="square"
-                      className="absolute inset-0 w-full h-full object-cover opacity-60"
-                    />
-                  </div>
-                ) : (
-                  <OptimizedImage
-                    src={media}
-                    alt={`${product.name} thumbnail ${index + 1}`}
-                    width={80}
-                    height={80}
-                    aspectRatio="square"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Desktop Main Image - Right Side */}
-      <div className="flex-1 max-w-lg">
-        <div 
-          ref={mainImageRef}
-          className="relative bg-white overflow-hidden cursor-pointer group border rounded-lg"
-          style={{ 
-            aspectRatio: '1/1',
-            maxWidth: '500px',
-            width: '100%',
-            height: 'auto'
-          }}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={handleImageClick}
-        >
-          {isVideo(allMedia[currentIndex]) ? (
-            <video
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
+            <OptimizedImage
               src={allMedia[currentIndex]}
-              controls
-              className={`w-full h-full object-contain transition-transform duration-300 ${
-                isTransitioning ? 'scale-105' : 'scale-100'
+              alt={`${product.name} - Image ${currentIndex + 1}`}
+              width={500}
+              height={500}
+              aspectRatio="square"
+              className={`max-w-full max-h-full object-contain transition-all duration-300 ${
+                isTransitioning ? 'scale-105 opacity-90' : 'scale-100 opacity-100'
               }`}
-              poster={product.image}
-              preload="metadata"
-            >
-              Your browser does not support the video tag.
-            </video>
-          ) : (
-            <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
-              <OptimizedImage
-                src={allMedia[currentIndex]}
-                alt={`${product.name} - Image ${currentIndex + 1}`}
-                width={500}
-                height={500}
-                aspectRatio="square"
-                className={`max-w-full max-h-full object-contain transition-all duration-300 ${
-                  isTransitioning ? 'scale-105 opacity-90' : 'scale-100 opacity-100'
-                }`}
-                priority={currentIndex === 0}
-              />
-            </div>
-          )}
-          
-          {/* Desktop Image Counter */}
-          {allMedia.length > 1 && (
-            <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
-              {currentIndex + 1}/{allMedia.length}
-            </div>
-          )}
+              priority={currentIndex === 0}
+            />
+          </div>
+        )}
 
+        {/* Desktop Image Counter */}
+        {allMedia.length > 1 && (
+          <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+            {currentIndex + 1}/{allMedia.length}
+          </div>
+        )}
 
-
-          {/* Zoom Icon */}
-          {!isVideo(allMedia[currentIndex]) && !showMagnifier && (
-            <div className="absolute bottom-4 right-4 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <ZoomIn size={16} />
-            </div>
-          )}
-        </div>
+        {/* Zoom Icon */}
+        {!isVideo(allMedia[currentIndex]) && !showMagnifier && (
+          <div className="absolute bottom-4 right-4 bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <ZoomIn size={16} />
+          </div>
+        )}
       </div>
+    </div>
 
-      {/* Zoom Dialog */}
-      <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
-        <DialogContent className="max-w-4xl w-full h-full max-h-screen p-0 bg-black">
-          <div className="relative w-full h-full flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full z-50"
-              onClick={() => setIsZoomOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            
-            {!isVideo(allMedia[currentIndex]) && (
+    {/* Thumbnails Below Main Image */}
+    {allMedia.length > 1 && (
+      <div 
+        ref={thumbnailsRef}
+        className="flex flex-row gap-3 mt-2 overflow-x-auto max-w-full scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {allMedia.map((media, index) => (
+          <button
+            key={index}
+            onClick={() => handleThumbnailClick(index)}
+            disabled={isTransitioning}
+            className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
+              currentIndex === index 
+                ? 'border-orange-500 ring-2 ring-orange-200' 
+                : 'border-gray-200 hover:border-gray-300'
+            } ${isTransitioning ? 'opacity-50' : ''}`}
+          >
+            {isVideo(media) ? (
+              <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
+                <Video size={16} className="text-gray-600 z-10" />
+                <OptimizedImage
+                  src={product.image}
+                  alt="Video thumbnail"
+                  width={80}
+                  height={80}
+                  aspectRatio="square"
+                  className="absolute inset-0 w-full h-full object-cover opacity-60"
+                />
+              </div>
+            ) : (
               <OptimizedImage
-                src={allMedia[currentIndex]}
-                alt={`${product.name} - Zoomed view`}
-                width={1000}
-                height={1000}
+                src={media}
+                alt={`${product.name} thumbnail ${index + 1}`}
+                width={80}
+                height={80}
                 aspectRatio="square"
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+          </button>
+        ))}
+      </div>
+    )}
+
+    {/* Zoom Dialog */}
+    <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
+      <DialogContent className="max-w-4xl w-full h-full max-h-screen p-0 bg-black">
+        <div className="relative w-full h-full flex items-center justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full z-50"
+            onClick={() => setIsZoomOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          
+          {!isVideo(allMedia[currentIndex]) && (
+            <OptimizedImage
+              src={allMedia[currentIndex]}
+              alt={`${product.name} - Zoomed view`}
+              width={1000}
+              height={1000}
+              aspectRatio="square"
+              className="max-w-full max-h-full object-contain"
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
+);
+}
 
 export default EnhancedProductImageGallery;

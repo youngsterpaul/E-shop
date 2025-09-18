@@ -15,7 +15,7 @@ const Footer = ({ className }: FooterProps) => {
   if (isMobile) return null;
 
   // List of paths where you want to hide main footer content
-  const hideMainFooterOnPaths = ['/search', '/some-other-page'];
+  const hideMainFooterOnPaths = ['/search', '/product/:productName/:id'];
 
   // Check if current path matches any in the hide list
   const hideMainFooter = hideMainFooterOnPaths.includes(location.pathname);
