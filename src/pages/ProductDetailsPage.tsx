@@ -402,7 +402,6 @@ const ProductDetailsPage = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">Price includes VAT</p>
               </div>
 
               {/* Variant Selector */}

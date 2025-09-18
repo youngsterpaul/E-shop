@@ -237,7 +237,7 @@ const CategorySidebar = memo(() => {
   if (isMobile) return null;
 
  return (
-    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-50 border-r"> {/* Changed from z-30 to z-50 */}
+    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r"> {/* Changed from z-30 to z-50 */}
       <div className="p-3 bg-green-500 text-white font-semibold text-sm">
         ALL CATEGORIES
       </div>

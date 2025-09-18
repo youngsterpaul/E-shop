@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import Header from '@/components/Header';
+import Header2 from '@/components/Header2';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings, Upload, X } from 'lucide-react';
 
@@ -364,7 +364,7 @@ const ProfilePage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
+      {!isMobile && <Header2 />}
       {isMobile && (
         <MobileHeader 
           title={'Update Profile'}
