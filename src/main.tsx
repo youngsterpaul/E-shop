@@ -17,7 +17,7 @@ import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 //import { UpdateNotification } from '@/components/UpdateNotification';
 import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
-//import { SpeedInsights } from '@vercel/speed-insights/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import App from './App.tsx';
 import './index.css';
 
@@ -56,6 +56,7 @@ createRoot(document.getElementById('root')!).render(
                     <AccessibilitySkipLink />
                     <AppWithAnalytics />
                     {/* <CookieConsent /> */}
+                    <SpeedInsights />
                     {/* <PWAInstallPrompt /> */}
                     <OfflineIndicator />
                   </CheckoutProvider>

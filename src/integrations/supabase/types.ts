@@ -10,13 +10,14 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
       admin_settings: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
           setting_key: string
           setting_value: Json | null
@@ -283,6 +284,7 @@ export type Database = {
         Row: {
           amount: number | null
           created_at: string
+          delivery_fee: number | null
           discount_amount: number | null
           email: string | null
           items: Json | null
@@ -291,7 +293,6 @@ export type Database = {
           shipping_address: string | null
           status: string
           tracking_number: string | null
-          delivery_fee: number | null
           updated_at: string
           user_id: string | null
           username: string | null
@@ -299,6 +300,7 @@ export type Database = {
         Insert: {
           amount?: number | null
           created_at?: string
+          delivery_fee?: number | null
           discount_amount?: number | null
           email?: string | null
           items?: Json | null
@@ -307,7 +309,6 @@ export type Database = {
           shipping_address?: string | null
           status: string
           tracking_number?: string | null
-          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
@@ -315,6 +316,7 @@ export type Database = {
         Update: {
           amount?: number | null
           created_at?: string
+          delivery_fee?: number | null
           discount_amount?: number | null
           email?: string | null
           items?: Json | null
@@ -323,7 +325,6 @@ export type Database = {
           shipping_address?: string | null
           status?: string
           tracking_number?: string | null
-          delivery_fee?: number | null
           updated_at?: string
           user_id?: string | null
           username?: string | null
@@ -379,6 +380,7 @@ export type Database = {
           brand_id: string | null
           categories: string | null
           created_at: string | null
+          description: string | null
           featured: boolean | null
           features: Json | null
           image_urls: string[] | null
@@ -442,13 +444,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "products_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_subcategory_id_fkey"
             columns: ["subcategory_id"]
             isOneToOne: false
@@ -459,44 +454,44 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
+          city: string | null
+          county: string | null
           created_at: string | null
           email: string
           first_name: string | null
           is_admin: boolean | null
           last_name: string | null
           phone: string | null
-          county: string | null
-          city: string | null
-          address: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
+          city?: string | null
+          county?: string | null
           created_at?: string | null
           email: string
           first_name?: string | null
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
-          county: string | null
-          city: string | null
-          address: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
+          city?: string | null
+          county?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
           is_admin?: boolean | null
           last_name?: string | null
           phone?: string | null
-          county?: string | null
-          city?: string | null
-          address?: string | null
           updated_at?: string | null
           user_id?: string
         }

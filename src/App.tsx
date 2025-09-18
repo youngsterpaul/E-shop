@@ -1,19 +1,16 @@
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
-//import ErrorBoundary from '@/components/ErrorBoundary';
 import React, { lazy, Suspense } from "react";
 //import { Toaster } from "@/components/ui/toaster";
 //import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
-//import CheckoutModal from '@/components/checkout/CheckoutModal';
 //import Header from './components/Header';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
 const Index = lazy(() => import("./pages/Index"));
 const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const WishlistPage = lazy(() => import("./pages/WishlistPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
@@ -23,12 +20,6 @@ const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-
-// New auth pages
-const SignInPage = lazy(() => import("./pages/auth/SignInPage"));
-const SignUpPage = lazy(() => import("./pages/auth/SignUpPage"));
-const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
-
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
 
 const AboutPage = lazy(() => import("./pages/AboutPage"));
@@ -58,7 +49,6 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 
 function App() {
   return (
-
       <TooltipProvider>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
@@ -71,13 +61,6 @@ function App() {
             <Route path="/category" element={<CategoryPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
-            
-            {/* Auth Routes */}
-            <Route path="/auth/signin" element={<SignInPage />} />
-            <Route path="/auth/signup" element={<SignUpPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
@@ -118,7 +101,6 @@ function App() {
       {/*<Toaster />*/}
       </div>
       </TooltipProvider>
-
   );
 }
 

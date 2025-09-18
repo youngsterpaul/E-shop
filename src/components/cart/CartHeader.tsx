@@ -1,4 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface CartHeaderProps {
   totalItems: number;
@@ -9,9 +10,10 @@ interface CartHeaderProps {
 
 const CartHeader = ({ totalItems, selectedCount, onSelectAll, allSelected }: CartHeaderProps) => {
   const isIndeterminate = selectedCount > 0 && selectedCount < totalItems;
+  const isMobile = isMobileUserAgent();
   
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+    <div className={`flex items-center justify-between p-4 border-b border-gray-200 ${isMobile ? 'bg-gray-50':'bg-white pb-4'}`}>
       <div className="flex items-center gap-3">
         <Checkbox
           checked={allSelected}
