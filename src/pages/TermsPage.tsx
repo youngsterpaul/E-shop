@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Header from '@/components/Header';
+import Header2 from '@/components/Header2';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
@@ -11,7 +11,7 @@ const TermsPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
+      {!isMobile && <Header2 />}
       {isMobile && (
         <MobileHeader 
           title={'Terms & Conditions'}

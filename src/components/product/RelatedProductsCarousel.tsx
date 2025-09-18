@@ -8,6 +8,7 @@ import { useOptimizedRelatedProducts } from '@/hooks/useOptimizedRelatedProducts
 import { Skeleton } from '@/components/ui/skeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ProductSkeleton from '../products/ProductSkeleton';
+import Footer from '../Footer';
 
 interface RelatedProductsCarouselProps {
   currentProduct: {
@@ -56,7 +57,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
 
   return (
     <div className="mt-12">
-      <div className="mx-auto">
+      <div className={`mx-auto bg-white pt-4 ${!isMobile ? 'px-4':''}`}>
         {/* Header with title and navigation */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900 px-2">You might also like</h2>

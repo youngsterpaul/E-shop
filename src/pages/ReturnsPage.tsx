@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Header from '@/components/Header';
+import Header2 from '@/components/Header2';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ const ReturnsPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
+      {!isMobile && <Header2 />}
       {isMobile && (
         <MobileHeader 
           title={'Returns'}

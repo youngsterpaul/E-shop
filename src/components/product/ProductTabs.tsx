@@ -238,7 +238,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         <div 
           ref={tabsRef}
           className={`bg-white transition-all duration-200 ease-in-out z-40 ${
-            isSticky 
+            isSticky && isMobile 
               ? 'fixed left-0 right-0 shadow-lg px-4 py-3 border-b border-gray-200' 
               : 'relative py-2'
           }`}

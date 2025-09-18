@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
+import Footer from '@/components/Footer';
 
 const ProductDetailsPage = () => {
   const { productName, id } = useParams();
@@ -67,35 +68,75 @@ const ProductDetailsPage = () => {
     }
   }, [product, productName, id, navigate]);
 
-  // Transform variants for VariantSelector
+// Enhanced variant transformation with better color handling
   const transformedVariants = variants.reduce((acc, variant) => {
     const existingType = acc.find(v => v.id === variant.variant_type);
+    
+    // Determine variant type more intelligently
+    let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
+    const lowerType = variant.variant_type.toLowerCase();
+    
+    if (lowerType.includes('color') || lowerType.includes('colour')) {
+      variantType = 'color';
+    } else if (lowerType.includes('size')) {
+      variantType = 'size';
+    } else if (lowerType.includes('material') || lowerType.includes('fabric') || lowerType.includes('texture')) {
+      variantType = 'material';
+    }
+    
+    // For colors, try to get actual color values or use defaults
+    let colorValue = variant.variant_value;
+    if (variantType === 'color') {
+      const colorMap: Record<string, string> = {
+        'red': '#ef4444',
+        'blue': '#3b82f6',
+        'green': '#10b981',
+        'black': '#1f2937',
+        'white': '#ffffff',
+        'gray': '#6b7280',
+        'grey': '#6b7280',
+        'yellow': '#f59e0b',
+        'orange': '#f97316',
+        'purple': '#8b5cf6',
+        'pink': '#ec4899',
+        'brown': '#92400e',
+        // Add more colors as needed
+      };
+      colorValue = colorMap[variant.variant_value.toLowerCase()] || '#6b7280';
+    }
     
     if (existingType) {
       existingType.values.push({
         id: variant.variant_value,
         name: variant.variant_value,
-        value: variant.variant_value,
+        value: colorValue,
         available: variant.stock_quantity > 0,
-        priceModifier: variant.price_modifier
+        priceModifier: variant.price_modifier || 0
       });
     } else {
       acc.push({
         id: variant.variant_type,
         name: variant.variant_type.charAt(0).toUpperCase() + variant.variant_type.slice(1),
-        type: variant.variant_type === 'color' ? 'color' : variant.variant_type === 'size' ? 'size' : 'other',
+        type: variantType,
         values: [{
           id: variant.variant_value,
           name: variant.variant_value,
-          value: variant.variant_value,
+          value: colorValue,
           available: variant.stock_quantity > 0,
-          priceModifier: variant.price_modifier
+          priceModifier: variant.price_modifier || 0
         }]
       });
     }
     
     return acc;
   }, [] as any[]);
+
+  // Create stock info mapping for the VariantSelector
+  const stockInfo = variants.reduce((acc, variant) => {
+    const stockKey = `${variant.variant_type}-${variant.variant_value}`;
+    acc[stockKey] = variant.stock_quantity;
+    return acc;
+  }, {} as Record<string, number>);
 
   const requiredVariants = transformedVariants.map(v => v.id);
 
@@ -112,7 +153,7 @@ const ProductDetailsPage = () => {
     
     Object.entries(selectedVariants).forEach(([type, value]) => {
       const variant = variants.find(v => v.variant_type === type && v.variant_value === value);
-      if (variant) {
+      if (variant && variant.price_modifier) {
         totalModifier += variant.price_modifier;
       }
     });
@@ -359,7 +400,7 @@ const ProductDetailsPage = () => {
           )}
 
           {/* Product Layout */}
-        <div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto`}>
+        <div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4':''}`}>
             {/* Enhanced Image Gallery */}
             <div className=''>
               <EnhancedProductImageGallery product={productWithImages} />
@@ -369,7 +410,7 @@ const ProductDetailsPage = () => {
           <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
               {/* Product Title and Rating */}
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                <h1 className="text-xl font-bold text-gray-900 mb-3" style={{ textAlign: 'justify' }}>
                   {product.name}
                 </h1>
                 
@@ -402,15 +443,15 @@ const ProductDetailsPage = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">Price includes VAT</p>
               </div>
 
-              {/* Variant Selector */}
+              {/* Variant Selector - Desktop */}
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector
                   variants={transformedVariants}
                   selectedVariants={selectedVariants}
                   onVariantChange={handleVariantChange}
+                  stockInfo={stockInfo}
                 />
               )}
 

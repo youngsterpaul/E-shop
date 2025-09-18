@@ -14,6 +14,7 @@ import ProductSort from '@/components/products/ProductSort';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
+import Footer from '@/components/Footer';
 
 const SearchPage = () => {
   const location = useLocation();
@@ -236,7 +237,7 @@ const SearchPage = () => {
   }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile]);
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
         {isMobile && (
@@ -320,7 +321,7 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className="space-y-6">
-                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-4'} ${isMobile ? 'bg-white rounded-lg shadow-md p-4' : ''}`}>
+                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-4'} ${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-4'}`}>
                   <p className="text-gray-600 text-lg">
                     <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span>
                     {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
@@ -350,7 +351,7 @@ const SearchPage = () => {
                   </div>
                 </div>
                 
-                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-6 shadow-sm rounded-lg'}`}>
+                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-6 /shadow-sm'}`}>
                   <div className={`grid ${gridCols} gap-4`}>
                     {displayProducts.map((product) => {
                       const productData = {
@@ -461,6 +462,7 @@ const SearchPage = () => {
           </div>
         </div>
       </main>
+      {!isMobile && <Footer />}
     </div>
   );
 };

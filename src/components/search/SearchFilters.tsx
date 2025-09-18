@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Product } from '@/hooks/useProducts';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface SearchFiltersProps {
   products: Product[];
@@ -28,6 +29,8 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     specifications: {},
     ratings: [],
   });
+
+  const isMobile = isMobileUserAgent();
 
   const [openSections, setOpenSections] = useState({
     price: true,
@@ -135,7 +138,7 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     (filters.priceRange[0] > 0 || filters.priceRange[1] < filterOptions.maxPrice ? 1 : 0);
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg ${className}`}>
+    <div className={`bg-white border border-gray-200 ${isMobile ? 'rounded-lg':''} ${className}`}>
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -160,7 +163,7 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
         </div>
       </div>
 
-      <ScrollArea className="h-[600px]">
+      <ScrollArea className="max-h-[1000px]">
         <div className="p-4 space-y-6">
           {/* Price Range Filter */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
