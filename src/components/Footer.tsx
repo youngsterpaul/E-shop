@@ -98,30 +98,26 @@ const Footer = ({ className }: FooterProps) => {
           
           {/* Conditionally render main footer content */}
           {!hideMainFooter && (
-            <div className="mb-8" style={{ textAlign: 'justify' }}>
+            <div className="mb-8 bg-gray-50" style={{ textAlign: 'justify' }}>
               <h3 className="font-bold text-2xl mb-4 text-gray-900">SmartKenya Online Shopping - Kenya</h3>
               <p className="font-semibold text-gray-600 text-base leading-relaxed">
-                SmartKenya is Kenya's leading online shopping platform, launched in 2025 with the mission to make high-quality electronics, gadgets, and accessories accessible to every Kenyan. Our journey began with a simple yet powerful vision: to provide a seamless online shopping experience that offers convenience, variety, and competitive prices. Over the years, SmartKenya has expanded its offerings to include a wide range of product categories, including smartphones, laptops, home appliances, fashion, beauty products, baby items, and more.
+                SmartKenya is Kenya's leading online shopping platform, launched in 2025 with the mission to make high-quality electronics, gadgets, and accessories accessible to every Kenyan. Our journey began with a simple yet powerful vision: to provide a seamless online shopping experience that offers convenience, variety, and competitive prices. SmartKenya offers wide range of product categories, including smartphones, laptops, home appliances, fashion, beauty products, baby items and more.
               </p>
               <p className="font-semibold text-gray-600 text-base leading-relaxed mt-2">
-                As we continue to grow, we remain dedicated to enriching the lives of our customers by providing them with top-tier products, exceptional customer service, and a shopping experience that is second to none. Our platform supports a wide array of secure payment options, including M-Pesa, Airtel Money, Visa, and MasterCard, ensuring convenience and flexibility for our customers. With our robust delivery and tracking system, shoppers can enjoy peace of mind as they monitor their orders from start to finish.
+                As we continue to grow, we remain dedicated to enriching the lives of our customers by providing them with top-tier products, exceptional customer service and a shopping experience that is second to none. Our platform supports a secure M-Pesa payment options, ensuring convenience and flexibility for our customers.
               </p>
               <p className="font-semibold text-gray-600 text-base leading-relaxed mt-2">
-                SmartKenya’s commitment to innovation means we’re constantly evolving to meet the needs of the modern shopper. We have curated partnerships with leading local and international brands to bring you the latest products at the best prices, while also offering exclusive discounts and promotional deals. Our customer-first approach is reflected in our dedicated customer support, easy returns process, and loyalty rewards programs.
-              </p>
-              <p className="font-semibold text-gray-600 text-base leading-relaxed mt-2">
-                Shopping with SmartKenya means more than just great products; it’s about the trust, value, and reliability you can count on. Explore millions of products across diverse categories, enjoy unbeatable deals, and experience hassle-free shopping with SmartKenya today.
+                SmartKenya's commitment to innovation means we're constantly evolving to meet the needs of the modern shopper. We have curated partnerships with leading local brands to bring you the latest products at the best prices, while also offering exclusive discounts and promotional deals. Our customer-first approach is reflected in our dedicated customer support.
               </p>
               <p className="font-bold text-gray-900 text-xl py-3">Why Choose SmartKenya?</p>
               <ul className="font-semibold text-gray-600 leading-relaxed text-base list-disc list-inside space-y-2" style={{ textAlign: 'justify' }}>
                 <li>Verified Reviews: Browse genuine customer reviews to make informed purchasing decisions.</li>
-                <li>Secure Payments: Enjoy local payment methods like M-Pesa, Airtel Money, Visa, and MasterCard.</li>
+                <li>Secure Payments: Enjoy Mpesa payment method.</li>
                 <li>Order Tracking: Track your deliveries from picking to final destination for complete transparency.</li>
                 <li>Trusted Sellers: Shop with confidence from certified sellers across various categories.</li>
-                <li>Competitive Prices: Enjoy discounts on high-quality electronics, gadgets, home appliances, and more.</li>
-                <li>Premium Brands: Find top brands such as Samsung, Huawei, Apple, LG, Sony, Xiaomi, Tecno, and more.</li>
-                <li>Reward Programs: Earn loyalty points and enjoy exclusive offers and promotions.</li>
-                <li>Convenient Shopping: Browse and shop from a wide selection of mobile phones, fashion, beauty products, home & kitchen items, sports goods, and more.</li>
+                <li>Competitive Prices: Enjoy discounts on high-quality electronics, gadgets, home appliances and more.</li>
+                <li>Premium Brands: Find top brands such as Samsung, Huawei, Apple, LG, Sony, Xiaomi, Tecno and more.</li>
+                <li>Convenient Shopping: Browse and shop from a wide selection of mobile phones, fashion, beauty products, home & kitchen items, sports goods and more.</li>
               </ul>
             </div>
           )}

@@ -55,7 +55,7 @@ const Index = () => {
       <CriticalCSS />
       <ProductionOptimizer />
       
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : 'bg-gray-50'}`}>
         <PerformanceMonitor />
         <Header />
         
@@ -65,7 +65,7 @@ const Index = () => {
               <EnhancedHeroSection />
             </div>
             
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative z-10'}> {/* Added relative z-10 */}
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
               <CategoryIcons showAll={false} />
             </div>
             

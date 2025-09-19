@@ -320,9 +320,9 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white/80 backdrop-blur-sm py-10 px-6 shadow-2xl rounded-2xl sm:px-12 border border-white/20">
+        <div className="bg-white/80 backdrop-blur-sm py-10 px-6 shadow-2xl /rounded-2xl sm:px-12 border border-white/20">
           {/* Header with brand and navigation */}
           <div className="mb-8 flex items-center justify-center relative">
             <Button
@@ -334,10 +334,13 @@ const AuthPage = () => {
               <ChevronLeft className="h-5 w-5 text-gray-600" />
             </Button>
             <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-green-600" />
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                SmartKenya
-              </h1>
+              <div className="flex-shrink-0">
+              <img
+                src="/smartkenya-logo.png"
+                alt="SmartKenya Logo"
+                className="h-14 w-64 object-fill"
+              />
+            </div>
             </div>
           </div>
 

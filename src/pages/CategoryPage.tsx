@@ -40,7 +40,7 @@ const CategoryPage = () => {
         })}
       </script>
       
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : 'bg-gray-50'}`}>
         {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader

@@ -247,9 +247,6 @@ const MobileAddToCartModal = ({
                         `(${displayReviewCount})`
                       )}
                     </span>
-                    <Badge variant={product.inStock ? "default" : "destructive"} className="text-xs">
-                      {product.inStock ? "In Stock" : "Out of Stock"}
-                    </Badge>
                   </div>
                   
                   <div className="flex items-center gap-2">

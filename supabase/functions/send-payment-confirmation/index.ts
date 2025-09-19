@@ -1,17 +1,31 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
-const handler = async (req)=>{
+
+// Define interface for request body
+interface PaymentConfirmationRequest {
+  email: string;
+  orderId: string;
+  amount: number;
+  customerName?: string;
+  trackingId?: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
   console.log('Payment confirmation email function called');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: corsHeaders
     });
   }
+  
   if (req.method !== 'POST') {
     console.log('Method not allowed:', req.method);
     return new Response('Method not allowed', {
@@ -19,6 +33,7 @@ const handler = async (req)=>{
       headers: corsHeaders
     });
   }
+  
   try {
     // Check if RESEND_API_KEY exists
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -34,9 +49,12 @@ const handler = async (req)=>{
         }
       });
     }
+    
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
-    const { email, orderId, amount, customerName, trackingId } = requestBody;
+    
+    const { email, orderId, amount, customerName, trackingId }: PaymentConfirmationRequest = requestBody;
+    
     if (!email || !orderId || !amount) {
       console.error('Missing required fields:', {
         email: !!email,
@@ -53,12 +71,12 @@ const handler = async (req)=>{
         }
       });
     }
+    
     console.log('Sending email to:', email, 'for order:', orderId);
+    
     const emailResponse = await resend.emails.send({
       from: "SmartKenya <info@smartkenya.co.ke>",
-      to: [
-        email
-      ],
+      to: [email],
       subject: `Payment Confirmation - Order #${orderId}`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -78,7 +96,7 @@ const handler = async (req)=>{
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
               <h3 style="color: #f97316; margin-top: 0;">Payment Details</h3>
               <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
-              <p style="margin: 8px 0;"><strong>Tracking Number:</strong> ${trackingId}</p>
+              <p style="margin: 8px 0;"><strong>Tracking Number:</strong> ${trackingId || 'N/A'}</p>
               <p style="margin: 8px 0;"><strong>Amount Paid:</strong> Ksh ${amount.toLocaleString()}</p>
               <p style="margin: 8px 0;"><strong>Payment Method:</strong> M-Pesa</p>
               <p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #22c55e; font-weight: bold;">Confirmed</span></p>
@@ -95,12 +113,12 @@ const handler = async (req)=>{
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://smartkenya.co.ke/order/${orderId}" 
-                 background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                 style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order Status
               </a>
             </div>
             
-            <hr style="border: none; border-top: 1px solid #291f1fff; margin: 30px 0;">
+            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
             
             <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
               Need help? Contact our customer support:
@@ -121,6 +139,7 @@ const handler = async (req)=>{
         </div>
       `
     });
+    
     console.log("Payment confirmation email sent successfully:", emailResponse);
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
@@ -129,10 +148,15 @@ const handler = async (req)=>{
         ...corsHeaders
       }
     });
-  } catch (error) {
+    
+  } catch (error: unknown) {
     console.error("Error sending payment confirmation email:", error);
+    
+    // Type guard to safely access error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return new Response(JSON.stringify({
-      error: error.message
+      error: errorMessage
     }), {
       status: 500,
       headers: {
@@ -142,4 +166,5 @@ const handler = async (req)=>{
     });
   }
 };
+
 serve(handler);

@@ -2,6 +2,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+
+const MPESA_ENVIRONMENT = Deno.env.get('MPESA_ENVIRONMENT') || 'sandbox';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -18,13 +21,20 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+function getMpesaBaseUrl(): string {
+  return MPESA_ENVIRONMENT === 'production' 
+    ? 'https://api.safaricom.co.ke' 
+    : 'https://sandbox.safaricom.co.ke';
+}
+
 async function getMpesaAccessToken() {
   const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
   const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
   
   console.log('M-Pesa credentials check:', {
     hasConsumerKey: !!consumerKey,
-    hasConsumerSecret: !!consumerSecret
+    hasConsumerSecret: !!consumerSecret,
+    environment: MPESA_ENVIRONMENT // Add this for debugging
   });
   
   if (!consumerKey || !consumerSecret) {
@@ -32,10 +42,11 @@ async function getMpesaAccessToken() {
   }
 
   const auth = btoa(`${consumerKey}:${consumerSecret}`);
+  const baseUrl = getMpesaBaseUrl();
   
-  console.log('Requesting M-Pesa access token...');
+  console.log('Requesting M-Pesa access token from:', `${baseUrl}/oauth/v1/generate`);
   
-  const response = await fetch('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
+  const response = await fetch(`${baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
     method: 'GET',
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -101,7 +112,8 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     callbackUrl
   });
 
-  const response = await fetch('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', {
+  const baseUrl = getMpesaBaseUrl();
+  const response = await fetch(`${baseUrl}/mpesa/stkpush/v1/processrequest`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
