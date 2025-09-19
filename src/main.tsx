@@ -58,7 +58,7 @@ createRoot(document.getElementById('root')!).render(
                     <AppWithAnalytics />
                     {/* <CookieConsent /> */}
                     <SpeedInsights />
-                    <Analytics />
+                    {/* <Analytics />*/}
                     {/* <PWAInstallPrompt /> */}
                     <OfflineIndicator />
                   </CheckoutProvider>

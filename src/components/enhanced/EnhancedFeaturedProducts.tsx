@@ -134,12 +134,12 @@ const EnhancedFeaturedProducts = memo(() => {
         </div>
       )}
       <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
-        {Array.from({ length: pageSize }).map((_, i) => (
+        {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
         ))}
       </div>
     </div>
-  ), [gridConfig, pageSize, isMobile]);
+  ), [gridConfig, 12, isMobile]);
   
   // Error state
   if (isError) {
