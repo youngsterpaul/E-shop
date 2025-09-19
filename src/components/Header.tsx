@@ -185,16 +185,20 @@ useEffect(() => {
         <div
           className={`container mx-auto ${
             isMobile
-              ? 'py-2 px-3 border-b border-gray-200'
+              ? 'py-2 px-3 /border-b /border-gray-200'
               : `xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
           }`}>
 
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-800">SmartKenya</h1>
+              <img
+                src="/smartkenya-logo.png"
+                alt="SmartKenya Logo"
+                className={`object-fill  ${!isMobile ? 'h-12 w-48':'h-8 w-34'}`}
+              />
             </Link>
-            
+    
             {/* Desktop Search */}
             {!isMobile && (
               <>

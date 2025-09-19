@@ -41,7 +41,7 @@ const AccountPage = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth/signin');
+      navigate('/auth');
     }
   }, [user, navigate]);
 

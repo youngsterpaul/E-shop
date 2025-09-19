@@ -237,7 +237,7 @@ const SearchPage = () => {
   }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile]);
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : 'bg-gray-50'}`}>
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
         {isMobile && (
@@ -273,7 +273,7 @@ const SearchPage = () => {
       </div>
 
       {/* Main Content */}
-      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
+      <main className={`flex-grow mx-auto container py-8 ${!isMobile ? 'xl:px-24 px-4' : 'px-0'}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && allProducts && allProducts.length > 0 && (
@@ -294,7 +294,7 @@ const SearchPage = () => {
                   <span className="ml-3 text-gray-600">Searching products...</span>
                 </div>
                 
-                <div className={`grid ${gridCols} gap-4 ${isMobile ? '' : 'bg-white p-6 shadow-sm rounded-lg'}`}>
+                <div className={`grid ${gridCols} gap-4 ${isMobile ? '' : 'bg-white p-6 /shadow-sm rounded-lg'}`}>
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 aspect-square rounded-lg mb-3" />
@@ -321,7 +321,7 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts && sortedProducts.length > 0 ? (
               <div className="space-y-6">
-                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-4'} ${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-4'}`}>
+                <div className={`${!isMobile ? 'flex flex-row items-center justify-between gap-4' : 'space-y-2'} ${isMobile ? 'bg-white /shadow-md p-2' : 'bg-white p-4'}`}>
                   <p className="text-gray-600 text-lg">
                     <span className="font-semibold text-gray-900">{isMobile ? displayProducts.length : totalCount}</span>
                     {' '}product{(isMobile ? displayProducts.length : totalCount) !== 1 ? 's' : ''} found
@@ -351,8 +351,8 @@ const SearchPage = () => {
                   </div>
                 </div>
                 
-                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-4' : 'bg-white p-6 /shadow-sm'}`}>
-                  <div className={`grid ${gridCols} gap-4`}>
+                <div className={`${isMobile ? 'rounded-lg px-2' : 'bg-white p-6 shadow-sm'}`}>
+                  <div className={`grid ${gridCols} ${isMobile ? 'gap-1' :'gap-4'}`}>
                     {displayProducts.map((product) => {
                       const productData = {
                         id: product.product_id,
@@ -446,7 +446,7 @@ const SearchPage = () => {
               </div>
             ) : (
               <div className="text-center py-16">
-                <div className={`${isMobile ? 'bg-white rounded-lg shadow-md p-8' : ''} max-w-md mx-auto`}>
+                <div className={`${isMobile ? 'bg-white /rounded-lg /shadow-md p-8' : ''} max-w-md mx-auto`}>
                   <div className="text-gray-400 mb-4">
                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

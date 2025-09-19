@@ -190,65 +190,63 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} bg-white ${!isMobile ? 'pt-4 pb-4 shadow-sm' : 'mb-12'}`}>
-        <div className={`bg-white`}>
-          {/* Section Header - Desktop only */}
-          {!isMobile && (
-            <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
-              <TrendingUp size={16} className="mr-2" />
-              HOT DEALS
-              {totalCount > 0 && (
-                <span className="ml-auto text-xs text-gray-500">
-                  Showing {products.length} of {totalCount} products
-                </span>
-              )}
-            </div>
-          )}
-          
-          {/* Products Grid */}
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white`}>
-            {transformedProducts.map((product, index) => (
-              <ProductCard 
-                key={`${product.id}-${index}`}
-                product={product}
-              />
-            ))}
+      <section className={`${gridConfig.padding} ${!isMobile ? 'pt-4 pb-4 shadow-sm bg-white' : 'mb-12'}`}>
+        {/* Section Header - Desktop only */}
+        {!isMobile && (
+          <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
+            <TrendingUp size={16} className="mr-2" />
+            HOT DEALS
+            {totalCount > 0 && (
+              <span className="ml-auto text-xs text-gray-500">
+                Showing {products.length} of {totalCount} products
+              </span>
+            )}
           </div>
-
-          {/* Desktop Load More Button */}
-          {!isMobile && hasNextPage && (
-            <div className="flex justify-center py-6">
-              <Button 
-                onClick={handleLoadMore}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="flex items-center px-6 py-3 text-sm font-semibold transition-all duration-200 hover:shadow-md"
-              >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    Load More Products
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-          
-          {/* Mobile Loading Indicator */}
-          {isMobile && isFetchingNextPage && (
-            <div className="flex justify-center py-6">
-              <div className="flex items-center text-gray-600">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading more products...
-              </div>
-            </div>
-          )}
+        )}
+        
+        {/* Products Grid */}
+        <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
+          {transformedProducts.map((product, index) => (
+            <ProductCard 
+              key={`${product.id}-${index}`}
+              product={product}
+            />
+          ))}
         </div>
+
+        {/* Desktop Load More Button */}
+        {!isMobile && hasNextPage && (
+          <div className="flex justify-center py-6">
+            <Button 
+              onClick={handleLoadMore}
+              disabled={isFetchingNextPage}
+              variant="outline"
+              className="flex items-center px-6 py-3 text-sm font-semibold transition-all duration-200 hover:shadow-md"
+            >
+              {isFetchingNextPage ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Load More Products
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+        
+        {/* Mobile Loading Indicator */}
+        {isMobile && isFetchingNextPage && (
+          <div className="flex justify-center py-6">
+            <div className="flex items-center text-gray-600">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading more products...
+            </div>
+          </div>
+        )}
       </section>
     </LazySection>
   );
