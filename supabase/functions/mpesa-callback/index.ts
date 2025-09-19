@@ -1,6 +1,7 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const MPESA_ENVIRONMENT = Deno.env.get('MPESA_ENVIRONMENT') || 'sandbox';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
@@ -25,12 +26,13 @@ function getClientIP(req: Request): string {
   return 'unknown';
 }
 
-async function isIPWhitelisted(ip: string): Promise<boolean> {
+async function isIPWhitelisted(ip: string, environment: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
       .from('callback_ip_whitelist')
       .select('ip_address')
-      .eq('ip_address', ip);
+      .eq('ip_address', ip)
+      .eq('environment', environment);
     
     if (error) {
       console.error('Error checking IP whitelist:', error);
@@ -109,15 +111,22 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const clientIP = getClientIP(req);
-    console.log('Callback received from IP:', clientIP);
+    console.log('Callback received from IP:', clientIP, 'Environment:', MPESA_ENVIRONMENT);
 
-    // For development/testing, you might want to skip IP whitelist check
-    // Comment out these lines if you're testing locally
-    const isWhitelisted = await isIPWhitelisted(clientIP);
-    if (!isWhitelisted) {
-      console.warn('Unauthorized callback attempt from IP:', clientIP);
-      // In development, you might want to allow this for testing
-      // return new Response('Unauthorized', { status: 401 });
+    // Environment-aware IP checking
+    if (MPESA_ENVIRONMENT === 'production') {
+      const isWhitelisted = await isIPWhitelisted(clientIP, MPESA_ENVIRONMENT);
+      if (!isWhitelisted) {
+        console.warn('Unauthorized callback attempt from IP:', clientIP);
+        return new Response('Unauthorized', { status: 401 });
+      }
+    } else {
+      // In sandbox, log but don't block (for easier testing)
+      const isWhitelisted = await isIPWhitelisted(clientIP, MPESA_ENVIRONMENT);
+      if (!isWhitelisted) {
+        console.warn('Non-whitelisted IP in sandbox mode:', clientIP);
+        // Continue processing instead of blocking
+      }
     }
 
     const callbackData = await req.json();
