@@ -237,7 +237,7 @@ const SearchPage = () => {
   }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile]);
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       <div className="mb-8 pb-8">       
         {isMobile && (
@@ -273,7 +273,7 @@ const SearchPage = () => {
       </div>
 
       {/* Main Content */}
-      <main className={`flex-grow mx-auto container py-8 ${!isMobile ? 'xl:px-24 px-4' : 'px-0'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8' : 'px-0 py-8'}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters Sidebar */}
           {!isMobile && allProducts && allProducts.length > 0 && (

@@ -163,7 +163,7 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
         </div>
       </div>
 
-      <ScrollArea className="max-h-[1000px]">
+      <ScrollArea className={`${isMobile ? 'h-[600]':'max-h-[1800px]'}`}>
         <div className="p-4 space-y-6">
           {/* Price Range Filter */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>

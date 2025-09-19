@@ -185,7 +185,7 @@ const CareersPage = () => {
         <meta name="description" content="Explore exciting career opportunities at our company. Join our team and help shape the future of digital commerce." />
       </Helmet>
 
-      <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
         {!isMobile && <Header2 />}
         {isMobile && ( 
           <MobileHeader
@@ -198,9 +198,8 @@ const CareersPage = () => {
         />
         )}
          {/* Hero Section */}
-        <section className={`container relative py-20 px-4 text-center overflow-hidden ${!isMobile ? 'xl:px-24' : ''}`}>
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
-          <div className="relative max-w-4xl mx-auto">
+        <section className={`relative py-20 mb-8 px-4 text-center overflow-hidden ${!isMobile ? 'max-w-6xl container xl:px-24 px-4 bg-white' : ''}`}>
+          <div className="">
             {/* Breadcrumb */}
             {!isMobile && (
               <SiteBreadcrumb 
@@ -208,11 +207,10 @@ const CareersPage = () => {
                 { label: 'Home', href: '/' },
                 { label: 'Careers' }
               ]}
-              className="mb-6"
+              className="mb-6 hidden"
             />
             )}
 
-          <h1 className="text-3xl font-bold mb-6">Careers at SmartKenya</h1>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in">
               Join Our Growing Team
             </h1>
@@ -231,7 +229,7 @@ const CareersPage = () => {
         </section>
 
         {/* Company Values Section */}
-        <section className="py-16 px-4 bg-white">
+        <section className="py-16 px-4 bg-white max-w-6xl mx-auto container xl:px-24 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
