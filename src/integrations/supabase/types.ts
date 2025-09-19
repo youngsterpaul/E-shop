@@ -335,10 +335,10 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          price_modifier: number | null
+          price_modifier: Json | null
           product_id: string | null
           sku_suffix: string | null
-          stock_quantity: number | null
+          stock_quantity: Json | null
           updated_at: string | null
           variant_type: string
           variant_value: Json | null
@@ -346,10 +346,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          price_modifier?: number | null
+          price_modifier?: Json | null
           product_id?: string | null
           sku_suffix?: string | null
-          stock_quantity?: number | null
+          stock_quantity?: Json | null
           updated_at?: string | null
           variant_type: string
           variant_value?: Json | null
@@ -357,10 +357,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          price_modifier?: number | null
+          price_modifier?: Json | null
           product_id?: string | null
           sku_suffix?: string | null
-          stock_quantity?: number | null
+          stock_quantity?: Json | null
           updated_at?: string | null
           variant_type?: string
           variant_value?: Json | null
