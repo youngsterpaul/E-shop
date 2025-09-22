@@ -58,8 +58,12 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
         variant_value: Array.isArray(variant.variant_value) 
           ? variant.variant_value.join('\n') 
           : String(variant.variant_value || ''),
-        price_modifier: variant.price_modifier || 0,
-        stock_quantity: variant.stock_quantity || 0,
+        price_modifier: typeof variant.price_modifier === 'number' 
+          ? variant.price_modifier 
+          : Number(variant.price_modifier) || 0,
+        stock_quantity: typeof variant.stock_quantity === 'number' 
+          ? variant.stock_quantity 
+          : Number(variant.stock_quantity) || 0,
         sku_suffix: variant.sku_suffix || undefined
       })) || [];
       
