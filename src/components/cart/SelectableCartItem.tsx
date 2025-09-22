@@ -169,7 +169,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
 
   return (
     <div className={`bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ${
-      isSelected ? 'ring-2 ring-primary/20 bg-primary/5 border-primary/30' : ''
+      isSelected ? 'ring-2 ring-red/20 bg-red/5 border-red/30' : ''
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
       
       {/* Mobile Layout */}
@@ -255,7 +255,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
             </div>
 
             <div className="text-right">
-              <p className="text-base font-semibold text-primary">
+              <p className="text-base font-semibold text-primar text-red-600">
                 {totalPrice}
               </p>
             </div>
@@ -294,7 +294,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
             <p className="text-sm text-gray-600">
               Unit Price: {formattedPrice}
             </p>
-            <p className="text-lg font-semibold text-primary">
+            <p className="text-lg font-semibold text-primar text-red-600">
               Total: {totalPrice}
             </p>
           </div>
