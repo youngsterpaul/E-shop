@@ -40,8 +40,12 @@ export const useProductVariants = (productId: string) => {
               id: variant.id,
               variant_type: variant.variant_type,
               variant_value: String(value),
-              price_modifier: variant.price_modifier || 0,
-              stock_quantity: variant.stock_quantity || 0
+              price_modifier: typeof variant.price_modifier === 'number' 
+                ? variant.price_modifier 
+                : Number(variant.price_modifier) || 0,
+              stock_quantity: typeof variant.stock_quantity === 'number' 
+                ? variant.stock_quantity 
+                : Number(variant.stock_quantity) || 0
             });
           });
         } else {
@@ -49,8 +53,12 @@ export const useProductVariants = (productId: string) => {
             id: variant.id,
             variant_type: variant.variant_type,
             variant_value: String(variantValue || ''),
-            price_modifier: variant.price_modifier || 0,
-            stock_quantity: variant.stock_quantity || 0
+            price_modifier: typeof variant.price_modifier === 'number' 
+              ? variant.price_modifier 
+              : Number(variant.price_modifier) || 0,
+            stock_quantity: typeof variant.stock_quantity === 'number' 
+              ? variant.stock_quantity 
+              : Number(variant.stock_quantity) || 0
           });
         }
       });
