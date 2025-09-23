@@ -52,7 +52,7 @@ function App() {
       <TooltipProvider>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
-        <Suspense fallback={<LoadingSpinner />}>
+        <Suspense fallback={<LoadingSpinner variant="shopping-cart" size="lg" />}>
           <main id="main-content">
             <Routes>
             {/* Public Routes */}

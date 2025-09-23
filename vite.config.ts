@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -11,19 +10,18 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Add this for iOS Safari compatibility
   build: {
-    // Enable long-term caching with content-based hashing
+    target: ['es2015', 'safari11'], // Add Safari 11+ support
     rollupOptions: {
       output: {
-        // Generate unique filenames for better cache busting
         entryFileNames: `assets/[name]-[hash].js`,
         chunkFileNames: `assets/[name]-[hash].js`,
         assetFileNames: (assetInfo) => {
@@ -39,11 +37,15 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Generate manifest for runtime asset resolution
     manifest: true,
-    // Ensure smaller chunks for better caching
     chunkSizeWarningLimit: 500,
-    // Source maps for production debugging (optional)
     sourcemap: mode === 'production' ? false : true,
+    assetsInlineLimit: 0,
+    // Add polyfills for older browsers
+    polyfillDynamicImport: false,
+  },
+  // Add legacy browser support
+  esbuild: {
+    target: 'es2015'
   },
 }));
