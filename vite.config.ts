@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import { resolve } from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
@@ -14,12 +14,11 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": resolve(process.cwd(), "./src"),
     },
   },
-  // Add this for iOS Safari compatibility
   build: {
-    target: ['es2015', 'safari11'], // Add Safari 11+ support
+    target: ['es2015', 'safari11'],
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name]-[hash].js`,
@@ -37,14 +36,10 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    manifest: true,
     chunkSizeWarningLimit: 500,
     sourcemap: mode === 'production' ? false : true,
     assetsInlineLimit: 0,
-    // Add polyfills for older browsers
-    polyfillDynamicImport: false,
   },
-  // Add legacy browser support
   esbuild: {
     target: 'es2015'
   },
