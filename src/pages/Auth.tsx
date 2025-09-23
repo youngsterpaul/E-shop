@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ChevronLeft, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -336,7 +337,7 @@ const AuthPage = () => {
             <div className="flex items-center space-x-2">
               <div className="flex-shrink-0">
               <img
-                src="/smartkenya-logo.png"
+                src={smartkenyaLogo}
                 alt="SmartKenya Logo"
                 className="h-14 w-64 object-fill"
               />

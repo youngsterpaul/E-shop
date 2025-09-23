@@ -45,5 +45,7 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 500,
     // Source maps for production debugging (optional)
     sourcemap: mode === 'production' ? false : true,
+    // Add this line to ensure assets are properly hashed
+    assetsInlineLimit: 0, // This prevents small assets from being inlined as base64
   },
 }));

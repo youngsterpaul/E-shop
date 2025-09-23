@@ -28,6 +28,7 @@ import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import EnhancedSearchInput from './search/EnhancedSearchInput';
+import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -193,7 +194,7 @@ useEffect(() => {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
               <img
-                src="/smartkenya-logo.png"
+                src={smartkenyaLogo}
                 alt="SmartKenya Logo"
                 className={`object-fill  ${!isMobile ? 'h-12 w-48':'h-8 w-34'}`}
               />
