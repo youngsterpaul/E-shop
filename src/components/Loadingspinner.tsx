@@ -179,7 +179,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     "Preparing something special...",
     "Almost ready to shop...",
     "Curating the best deals...",
-    "Setting up your experience..."
+    //"Setting up your experience..."
   ];
 
   const displayText = text || motivationalTexts[Math.floor(Math.random() * motivationalTexts.length)];
