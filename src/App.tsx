@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense } from "react";
 //import { Toaster } from "@/components/ui/toaster";
 //import { Toaster as Sonner } from "@/components/ui/sonner";
