@@ -3,6 +3,8 @@ import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-quer
 import { supabase } from '@/integrations/supabase/client';
 
 export type Product = {
+  reviews: number;
+  discount_price: number;
   product_id: string;
   name: string;
   price: number;

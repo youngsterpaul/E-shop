@@ -23,18 +23,18 @@ const Index = () => {
         title="SmartKenya - Quality Electronics & Gadgets Online Shopping"
         description="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed."
         keywords="electronics, gadgets, smartphones, laptops, accessories, Kenya, online shopping, fast delivery, best prices"
-        canonical="https://smartkenya.co.ke"
+        canonical="https://www.smartkenya.co.ke"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
           "name": "SmartKenya - Quality Electronics & Gadgets Online Shopping",
           "description": "Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed.",
-          "url": "https://smartkenya.co.ke",
+          "url": "https://www.smartkenya.co.ke",
           "mainEntity": {
             "@type": "Organization",
             "name": "SmartKenya",
-            "url": "https://smartkenya.co.ke",
-            "logo": "https://smartkenya.co.ke/apple-touch-icon.png",
+            "url": "https://www.smartkenya.co.ke",
+            "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
             "sameAs": [
               "https://twitter.com/Smartkenya_Online_Shopping"
             ]
@@ -46,7 +46,7 @@ const Index = () => {
                 "@type": "ListItem",
                 "position": 1,
                 "name": "Home",
-                "item": "https://smartkenya.co.ke"
+                "item": "https://www.smartkenya.co.ke"
               }
             ]
           }

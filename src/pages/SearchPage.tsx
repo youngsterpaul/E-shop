@@ -198,7 +198,7 @@ const SearchPage = () => {
         </div>
       )}
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8' : 'px-0 py-8'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0 py-8'}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {!isMobile && allProducts.length > 0 && (
             <div className="w-72 flex-shrink-0">
@@ -218,12 +218,12 @@ const SearchPage = () => {
               </div>
             ) : sortedProducts.length > 0 ? (
               <>
-                <div className={`${!isMobile ? 'flex justify-between' : 'space-y-2 bg-white p-2'}`}>
-                  <p className="text-gray-600 text-lg">
+                <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'mt-14 mb-4 px-2 py-2 bg-white'}`}>
+                  <p className={`text-gray-600 text-lg ${!isMobile ? '':'hidden'}`}>
                     <span className="font-semibold text-gray-900">{sortedProducts.length}</span> product
                     {sortedProducts.length !== 1 && 's'} found
                   </p>
-                  <div className="flex gap-4">
+                  <div className="flex justify-between items-center gap-4">
                     <ProductSort sortOption={sortOption} onSortChange={handleSortChange} />
                     {isMobile && (
                       <MobileFilterSheet
@@ -270,6 +270,7 @@ const SearchPage = () => {
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
                     pageSizeOptions={[12, 24, 48, 96]}
+                    className='bg-white p-4 mt-2'
                   />
                 )}
               </>
