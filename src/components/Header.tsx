@@ -283,7 +283,7 @@ useEffect(() => {
                   className="px-2"
                   onClick={() => navigate('/auth')}
                 >
-                  <User className="h-6 w-6" /> Sign In
+                  <User className="h-6 w-6" /> Account
                 </Button>
               )}
             </div>  

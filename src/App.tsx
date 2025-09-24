@@ -1,10 +1,10 @@
 import { Routes, Route } from 'react-router-dom';
-import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense } from "react";
 //import { Toaster } from "@/components/ui/toaster";
 //import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
+import TopProgressBar from './components/TopProgressBar';
 //import Header from './components/Header';
 
 // Lazy load pages for better performance
@@ -50,9 +50,10 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 function App() {
   return (
       <TooltipProvider>
+      <TopProgressBar/>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
-        <Suspense fallback={<LoadingSpinner variant="shopping-cart" size="lg" />}>
+        <Suspense>
           <main id="main-content">
             <Routes>
             {/* Public Routes */}

@@ -19,17 +19,16 @@ import {
 } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import hero1Image from '@/assets/images/hero1.webp';
+import hero1Image from '@/assets/images/hero1.png';
 import hero2Image from '@/assets/images/hero2.webp';
 import hero3Image from '@/assets/images/hero3.webp';
+import hero4Image from '@/assets/images/hero4.png';
+import hero5Image from '@/assets/images/hero5.png';
 
 interface HeroSlide {
   id: number;
   title: string;
   image: string;
-  buttonText: string;
-  buttonLink: string;
-  badge?: string;
 }
 
 interface Category {
@@ -44,26 +43,27 @@ const heroSlides: HeroSlide[] = [
   {
     id: 1,
     title: "Summer Tech Sale",
-    image: hero1Image, // Use the imported variable
-    buttonText: "Shop Now",
-    buttonLink: "/products",
-    badge: "50% OFF"
+    image: hero1Image,
   },
   {
     id: 2,
     title: "New Arrivals",
-    image: hero2Image, // Use the imported variable
-    buttonText: "Explore Collection",
-    buttonLink: "/products",
-    badge: "NEW"
+    image: hero2Image,
   },
   {
     id: 3,
     title: "Smart Living",
-    image: hero3Image, // Use the imported variable
-    buttonText: "Discover More",
-    buttonLink: "/products",
-    badge: "TRENDING"
+    image: hero3Image,
+  },
+  {
+    id: 4,
+    title: "Smart Living",
+    image: hero4Image,
+  },
+    {
+    id: 5,
+    title: "Smart Living",
+    image: hero5Image,
   },
 ];
 

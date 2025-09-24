@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
 import ProductTabs from '@/components/product/ProductTabs';
@@ -11,253 +11,210 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, ShoppingCart, Search, Settings, ShoppingBag, Star } from 'lucide-react';
+import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import { Button } from "@/components/ui/button"
-import { Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
-import Footer from '@/components/Footer';
 
-const ProductDetailsPage = () => {
-  const { productName, id } = useParams();
+interface Variant {
+  variant_type: string;
+  variant_value: string;
+  stock_quantity: number;
+  price_modifier?: number;
+}
+
+interface Product {
+  product_id: string;
+  name: string;
+  description?: string;
+  categories?: string;
+  features?: string[] | string;
+  specification?: string | Record<string, unknown>;
+  price: number;
+  discount_price?: number;
+  image_urls?: string[];
+  stock?: number;
+  rating?: number;
+  reviews?: number;
+  video?: string;
+}
+
+const ProductDetailsPage: React.FC = () => {
+  const { productName, id } = useParams<{ productName: string; id: string }>();
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-    const gridCols = isMobile 
-    ? "grid-cols-1" 
-    : "grid-cols-2";
 
   const { data: product, isLoading: loading, error } = useProduct(id || '');
   const { variants } = useProductVariants(id || '');
-  
+
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  // Safely get cart data with fallback
-  let items: any[] = [];
+  // ------------------ Cart Safe Handling ------------------
   let totalItems = 0;
-  
   try {
-    const cartData = useCart();
-    items = cartData.cartItems || [];
-    totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  } catch (error) {
-    console.error('Cart context not available:', error);
-    // Fallback to empty cart if context is not available
-    items = [];
+    const { cartItems } = useCart();
+    totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
+  } catch {
     totalItems = 0;
   }
 
-  // Generate SEO-friendly slug
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  };
+  // ------------------ Slug Redirect ------------------
+  const generateSlug = (name: string) =>
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-  // Redirect to correct URL if product name doesn't match
   useEffect(() => {
     if (product && productName && id) {
       const correctSlug = generateSlug(product.name);
-      
       if (productName !== correctSlug) {
         navigate(`/products/${product.categories || 'general'}/${correctSlug}/${id}`, { replace: true });
       }
     }
   }, [product, productName, id, navigate]);
 
-// Enhanced variant transformation with better color handling
-  const transformedVariants = variants.reduce((acc, variant) => {
-    const existingType = acc.find(v => v.id === variant.variant_type);
-    
-    // Determine variant type more intelligently
-    let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
-    const lowerType = variant.variant_type.toLowerCase();
-    
-    if (lowerType.includes('color') || lowerType.includes('colour')) {
-      variantType = 'color';
-    } else if (lowerType.includes('size')) {
-      variantType = 'size';
-    } else if (lowerType.includes('material') || lowerType.includes('fabric') || lowerType.includes('texture')) {
-      variantType = 'material';
-    }
-    
-    // For colors, try to get actual color values or use defaults
-    let colorValue = variant.variant_value;
-    if (variantType === 'color') {
-      const colorMap: Record<string, string> = {
-        'red': '#ef4444',
-        'blue': '#3b82f6',
-        'green': '#10b981',
-        'black': '#1f2937',
-        'white': '#ffffff',
-        'gray': '#6b7280',
-        'grey': '#6b7280',
-        'yellow': '#f59e0b',
-        'orange': '#f97316',
-        'purple': '#8b5cf6',
-        'pink': '#ec4899',
-        'brown': '#92400e',
-        // Add more colors as needed
-      };
-      colorValue = colorMap[variant.variant_value.toLowerCase()] || '#6b7280';
-    }
-    
-    if (existingType) {
-      existingType.values.push({
-        id: variant.variant_value,
-        name: variant.variant_value,
+  // ------------------ Optimized Variants Transformation ------------------
+  const transformedVariants = useMemo(() => {
+    if (!variants?.length) return [];
+
+    const colorMap: Record<string, string> = {
+      red: '#ef4444', blue: '#3b82f6', green: '#10b981', black: '#1f2937',
+      white: '#ffffff', gray: '#6b7280', grey: '#6b7280', yellow: '#f59e0b',
+      orange: '#f97316', purple: '#8b5cf6', pink: '#ec4899', brown: '#92400e'
+    };
+
+    return variants.reduce((acc: any[], v: Variant) => {
+      const type = v.variant_type.toLowerCase();
+      let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
+      if (type.includes('color') || type.includes('colour')) variantType = 'color';
+      else if (type.includes('size')) variantType = 'size';
+      else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
+
+      const colorValue = variantType === 'color'
+        ? colorMap[v.variant_value.toLowerCase()] || '#6b7280'
+        : v.variant_value;
+
+      const existing = acc.find((x) => x.id === v.variant_type);
+      const valueObj = {
+        id: v.variant_value,
+        name: v.variant_value,
         value: colorValue,
-        available: variant.stock_quantity > 0,
-        priceModifier: variant.price_modifier || 0
-      });
-    } else {
-      acc.push({
-        id: variant.variant_type,
-        name: variant.variant_type.charAt(0).toUpperCase() + variant.variant_type.slice(1),
-        type: variantType,
-        values: [{
-          id: variant.variant_value,
-          name: variant.variant_value,
-          value: colorValue,
-          available: variant.stock_quantity > 0,
-          priceModifier: variant.price_modifier || 0
-        }]
-      });
-    }
-    
-    return acc;
-  }, [] as any[]);
+        available: v.stock_quantity > 0,
+        priceModifier: v.price_modifier || 0
+      };
 
-  // Create stock info mapping for the VariantSelector
-  const stockInfo = variants.reduce((acc, variant) => {
-    const stockKey = `${variant.variant_type}-${variant.variant_value}`;
-    acc[stockKey] = variant.stock_quantity;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const requiredVariants = transformedVariants.map(v => v.id);
-
-  const handleVariantChange = (variantTypeId: string, variantValueId: string) => {
-    setSelectedVariants(prev => ({
-      ...prev,
-      [variantTypeId]: variantValueId
-    }));
-  };
-
-  const calculatePrice = () => {
-    if (!product) return 0;
-    let totalModifier = 0;
-    
-    Object.entries(selectedVariants).forEach(([type, value]) => {
-      const variant = variants.find(v => v.variant_type === type && v.variant_value === value);
-      if (variant && variant.price_modifier) {
-        totalModifier += variant.price_modifier;
+      if (existing) {
+        existing.values.push(valueObj);
+      } else {
+        acc.push({
+          id: v.variant_type,
+          name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
+          type: variantType,
+          values: [valueObj]
+        });
       }
-    });
-    
-    return product.price + totalModifier;
-  };
+      return acc;
+    }, []);
+  }, [variants]);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES'
-    }).format(price);
-  };
+  const stockInfo = useMemo(() => {
+    return variants.reduce((acc: Record<string, number>, v: Variant) => {
+      acc[`${v.variant_type}-${v.variant_value}`] = v.stock_quantity;
+      return acc;
+    }, {});
+  }, [variants]);
 
-  // SEO Meta Data
-  const generateMetaData = () => {
-    if (!product) return {};
-    
-    const title = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
-    const description = `${product.description || product.name.split('(')[0].trim()} - Starting from KES ${product.price}. ${product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''}`;
-    const image = product.image_urls?.[0] || '/placeholder.svg';
-    
-    return { title, description, image };
-  };
+  const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
 
-  const { title, description, image } = generateMetaData();
+  const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
+    setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  // Loading State
+  // ------------------ Optimized Price Calculation ------------------
+  const price = useMemo(() => {
+    if (!product) return 0;
+    let total = product.discount_price ?? product.price ?? 0;
+
+    for (const [type, value] of Object.entries(selectedVariants)) {
+      const variant = variants.find((v) => v.variant_type === type && v.variant_value === value);
+      if (variant?.price_modifier) total += variant.price_modifier;
+    }
+    return total;
+  }, [product, selectedVariants, variants]);
+
+  const formatPrice = (p: number) =>
+    new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(p);
+
+  // ------------------ SEO ------------------
+  const { title, description, image } = useMemo(() => {
+    if (!product) return { title: '', description: '', image: '' };
+    const t = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
+    const d = `${product.description || product.name} - Starting from KES ${product.price}. ${
+      product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''
+    }`;
+    const img = product.image_urls?.[0] || '/placeholder.svg';
+    return { title: t, description: d, image: img };
+  }, [product]);
+
+  const structuredData = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product?.name,
+    description: product?.description,
+    image: product?.image_urls || [],
+    brand: { "@type": "Brand", name: "Smartkenya Online Shopping" },
+    offers: {
+      "@type": "Offer",
+      price: price,
+      priceCurrency: "KES",
+      availability: product?.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" }
+    },
+    aggregateRating: product?.rating
+      ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews || 0 }
+      : undefined
+  }), [product, price]);
+
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  // ------------------ LOADING ------------------
   if (loading) {
     return (
-      <div className={`min-h-screen bg-gray-50`}>
+      <div className="min-h-screen bg-gray-50">
         {!isMobile && <Header />}
-        {isMobile && (<MobileHeader
-          title={"Product Details"}
-          backTo="/"
-          rightAction={
-            <div className='flex items-center gap-2'>
-              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
-                <Heart className="h-4 w-4" />
-              </Button>
-              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
-                <ShoppingCart size={16} />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </span>
-                )}
-              </Link>
-            </div>
-          }
-        />)}
-      <div className={`container mx-auto px-4 py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
-          {/* Breadcrumb Skeleton */}
-          <div className="mb-6">
-            <Skeleton className="h-6 w-64" />
-          </div>
-          
+        {isMobile && (
+          <MobileHeader
+            title="Product Details"
+            backTo="/"
+            rightAction={
+              <div className="flex items-center gap-2">
+                <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                  <Heart className="h-4 w-4" />
+                </Button>
+                <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
+                  <ShoppingCart size={16} />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
+                      {totalItems > 99 ? '99+' : totalItems}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            }
+          />
+        )}
+        {/* Skeleton UI */}
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-6 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Product Image Skeleton */}
-            <div className="space-y-4">
-              <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-lg" />
-              <div className="flex gap-2 justify-center">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="w-16 h-16 rounded-lg" />
-                ))}
-              </div>
-            </div>
-            
-            {/* Product Info Skeleton */}
+            <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-lg" />
             <div className="space-y-6">
-              <div className="space-y-4">
-                <Skeleton className="h-8 w-3/4" />
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-6 w-24" />
-                  <Skeleton className="h-6 w-20" />
-                </div>
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-8 w-32" />
-                  <Skeleton className="h-6 w-24" />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-20" />
-                <div className="flex gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-10 w-16" />
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-12 w-32" />
-              </div>
-              
-              <div className="flex gap-4">
-                <Skeleton className="h-12 flex-1" />
-                <Skeleton className="h-12 w-12" />
-                <Skeleton className="h-12 w-12" />
-              </div>
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-8 w-32" />
             </div>
           </div>
         </div>
@@ -265,85 +222,53 @@ const ProductDetailsPage = () => {
     );
   }
 
-  // Error State
+  // ------------------ ERROR ------------------
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-            <p className="text-gray-600 mb-4">
-              {error ? 'There was an error loading the product.' : 'The product you\'re looking for doesn\'t exist.'}
-            </p>
-            <button 
-              onClick={() => navigate('/')} 
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Return to homepage
-            </button>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
+          <p className="text-gray-600 mb-4">
+            {error ? 'There was an error loading the product.' : 'The product you\'re looking for doesn\'t exist.'}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Return to homepage
+          </button>
         </div>
       </div>
     );
   }
 
-  // Breadcrumb items
+  // ------------------ DATA PREP ------------------
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
     { label: product.name }
   ];
 
-  // Transform product for components
   const productWithImages = {
     id: product.product_id,
     name: product.name.split('(')[0].trim(),
     image: product.image_urls?.[0] || '/placeholder.svg',
     images: product.image_urls || [],
-    video: (product as any).video,
   };
 
-  // Transform product for ProductTabs with proper features handling
   const productForTabs = {
     ...product,
-    features: typeof product.features === 'string' 
-      ? [product.features] 
-      : Array.isArray(product.features) 
-        ? product.features 
+    features: typeof product.features === 'string'
+      ? [product.features]
+      : Array.isArray(product.features)
+        ? product.features
         : [],
     specification: typeof product.specification === 'string' && product.specification
       ? JSON.parse(product.specification)
       : product.specification || {}
   };
 
-  // Structured Data for SEO
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": product.name,
-    "description": product.description,
-    "image": product.image_urls || [],
-    "brand": {
-      "@type": "Brand",
-      "name": "Smartkenya Online Shopping"
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": calculatePrice(),
-      "priceCurrency": "KES",
-      "availability": product.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "seller": {
-        "@type": "Organization",
-        "name": "Smartkenya Online Shopping"
-      }
-    },
-    "aggregateRating": product.rating ? {
-      "@type": "AggregateRating",
-      "ratingValue": product.rating,
-      "reviewCount": (product as any).reviews || 0
-    } : undefined
-  };
-
+  // ------------------ RENDER ------------------
   return (
     <>
       <Helmet>
@@ -353,99 +278,77 @@ const ProductDetailsPage = () => {
         <meta property="og:description" content={description} />
         <meta property="og:image" content={image} />
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={currentUrl} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={image} />
-        <link rel="canonical" href={window.location.href} />
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        <link rel="canonical" href={currentUrl} />
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
-        {isMobile && (<MobileHeader
-          title={"Product Details"}
-          backTo="/"
-          rightAction={
-            <div className='flex items-center gap-2'>
-              <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
-                <Heart className="h-4 w-4" />
-              </Button>
-              <Link to="/cart" aria-label='View Cart' className="relative text-gray-700 hover:text-primary transition-colors p-2">
-                <ShoppingCart size={16} />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </span>
-                )}
-              </Link>
-            </div>
-          }
-        />)}         
-        
+        {isMobile && (
+          <MobileHeader
+            title="Product Details"
+            backTo="/"
+            rightAction={
+              <div className="flex items-center gap-2">
+                <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
+                  <Heart className="h-4 w-4" />
+                </Button>
+                <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
+                  <ShoppingCart size={16} />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
+                      {totalItems > 99 ? '99+' : totalItems}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            }
+          />
+        )}
 
-      <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto /px-2`}>
+        <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto`}>
+          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 
-        {/* Breadcrumb */}
-          {!isMobile && (
-            <div className='min-w-0 hidden'>
-              <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />
-            </div>
-          )}
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4' : ''}`}>
+            <EnhancedProductImageGallery product={productWithImages} />
 
-          {/* Product Layout */}
-        <div className={`grid ${gridCols} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4':''}`}>
-            {/* Enhanced Image Gallery */}
-            <div className=''>
-              <EnhancedProductImageGallery product={productWithImages} />
-            </div>
-
-            {/* Product Information */}
-          <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
-              {/* Product Title and Rating */}
+            <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 mb-3" style={{ textAlign: 'justify' }}>
                   {product.name}
                 </h1>
-                
                 {product.rating && (
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-5 h-5 ${
-                            i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          }`}
+                          className={`w-5 h-5 ${i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600">({(product as any).reviews || 0} reviews)</span>
+                    <span className="text-sm text-gray-600">({product.reviews || 0} reviews)</span>
                   </div>
                 )}
               </div>
 
-              {/* Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl font-bold text-orange-500">
-                    {formatPrice(calculatePrice())}
-                  </span>
-                  {calculatePrice() !== product.price && (
-                    <span className="text-xl text-gray-500 line-through">
-                      {formatPrice(product.price)}
-                    </span>
+                  <span className="text-3xl font-bold text-orange-500">{formatPrice(price)}</span>
+                  {price !== product.price && (
+                    <span className="text-xl text-gray-500 line-through">{formatPrice(product.price)}</span>
                   )}
                 </div>
               </div>
 
-              {/* Variant Selector - Desktop */}
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector
                   variants={transformedVariants}
@@ -455,13 +358,12 @@ const ProductDetailsPage = () => {
                 />
               )}
 
-              {/* Add to Cart Section - Desktop only */}
               {!isMobile && (
                 <AddToCartSection
                   product={{
                     product_id: product.product_id,
                     name: product.name,
-                    price: calculatePrice(),
+                    price: price,
                     stock: product.stock
                   }}
                   selectedVariants={selectedVariants}
@@ -471,57 +373,52 @@ const ProductDetailsPage = () => {
                 />
               )}
 
-              {/* Additional Info */}
               {isMobile && (
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>✓ Free shipping on orders over KES 10,000</p>
-                <p>✓ 7-days return policy</p>
-                <p>✓ Secure payment options</p>
-              </div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>✓ Free shipping on orders over KES 10,000</p>
+                  <p>✓ 7-days return policy</p>
+                  <p>✓ Secure payment options</p>
+                </div>
               )}
             </div>
           </div>
-          
-          {/* Tabbed Content */}
+
           <ProductTabs product={productForTabs} />
 
-          {/* Related Products */}
-          <RelatedProductsCarousel 
-            currentProduct={{ 
-              id: product.product_id, 
-              category: product.categories || 'general' 
-            }} 
+          <RelatedProductsCarousel
+            currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
           />
         </main>
 
-        {/* Mobile Bottom Actions */}
         {isMobile && (
           <MobileBottomActions
             product={{
               product_id: product.product_id,
               name: product.name,
-              image: (product as any).image_urls || null,
+              image: product.image_urls || '/placeholde.svg',
               price: product.price,
               originalPrice: undefined,
               description: product.description,
               rating: product.rating || 0,
-              reviews: (product as any).reviews || 0,
+              reviews: product.reviews || 0,
               inStock: product.stock ? product.stock > 0 : true,
               category: product.categories || 'general',
               subcategory: undefined,
-              attributes: typeof product.specification === 'string' && product.specification
-                ? JSON.parse(product.specification)
-                : product.specification || {},
-              features: typeof product.features === 'string' 
-                ? [product.features] 
-                : Array.isArray(product.features) 
-                  ? product.features 
-                  : []
+              attributes:
+                typeof product.specification === 'string' && product.specification
+                  ? JSON.parse(product.specification)
+                  : product.specification || {},
+              features:
+                typeof product.features === 'string'
+                  ? [product.features]
+                  : Array.isArray(product.features)
+                    ? product.features
+                    : []
             }}
             selectedVariants={selectedVariants}
             requiredVariants={requiredVariants}
             onVariantChange={handleVariantChange}
-            calculatePrice={calculatePrice}
+            calculatePrice={() => price}
           />
         )}
       </div>
