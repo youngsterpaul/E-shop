@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Upload, FileText, Send } from 'lucide-react';
-import LoadingSpinner from '@/components/Loadingspinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface Job {
   id: string;
@@ -302,3 +302,4 @@ const ApplicationModal = ({ job, isOpen, onClose }: ApplicationModalProps) => {
 };
 
 export default ApplicationModal;
+
