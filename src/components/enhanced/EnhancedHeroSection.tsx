@@ -241,11 +241,11 @@ const CategorySidebar = memo(() => {
 
  return (
     <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r"> {/* Changed from z-30 to z-50 */}
-      <div className="p-3 bg-green-500 text-white font-semibold text-sm">
+      <div className="p-3 bg-green-500 text-white font-semibold text-sm pl-8 xl:pl-3">
         ALL CATEGORIES
       </div>
       
-      <div className="relative">
+      <div className="relative pl-4 xl:pl-0">
         {categories.map((category) => (
           <div
             key={category.id}

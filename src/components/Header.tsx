@@ -187,7 +187,7 @@ useEffect(() => {
           className={`container mx-auto ${
             isMobile
               ? 'py-2 px-3 /border-b /border-gray-200'
-              : `xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
+              : `px-4 xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
           }`}>
 
           <div className="flex items-center justify-between">

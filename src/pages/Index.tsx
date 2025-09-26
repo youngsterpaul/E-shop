@@ -59,7 +59,7 @@ const Index = () => {
         <PerformanceMonitor />
         <Header />
         
-        <main className={`flex-grow pb-8 ${!isMobile ? 'container xl:px-24' : ''}`}>
+        <main className={`flex-grow pb-8 ${!isMobile ? 'container px-0 xl:px-24' : ''}`}>
           <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'mb-8 relative /z-40'}> {/* Added relative z-40 for desktop */}
               <EnhancedHeroSection />
