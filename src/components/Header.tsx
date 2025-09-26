@@ -134,21 +134,21 @@ useEffect(() => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          "url": "https://smartkenya.co.ke",
+          "url": "https://www.smartkenya.co.ke",
           "name": "SmartKenya Online Shopping",
           "alternateName": "SmartKenya",
           "potentialAction": {
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": "https://smartkenya.co.ke/search?q={search_term_string}"
+              "urlTemplate": "https://www.smartkenya.co.ke/search?q={search_term_string}"
             },
             "query-input": "required name=search_term_string"
           },
           "mainEntity": {
             "@type": "Organization",
             "name": "SmartKenya",
-            "url": "https://smartkenya.co.ke"
+            "url": "https://www.smartkenya.co.ke"
           }
         })}
       </script>
