@@ -134,21 +134,21 @@ useEffect(() => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          "url": "https://smartkenya.co.ke",
+          "url": "https://www.smartkenya.co.ke",
           "name": "SmartKenya Online Shopping",
           "alternateName": "SmartKenya",
           "potentialAction": {
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": "https://smartkenya.co.ke/search?q={search_term_string}"
+              "urlTemplate": "https://www.smartkenya.co.ke/search?q={search_term_string}"
             },
             "query-input": "required name=search_term_string"
           },
           "mainEntity": {
             "@type": "Organization",
             "name": "SmartKenya",
-            "url": "https://smartkenya.co.ke"
+            "url": "https://www.smartkenya.co.ke"
           }
         })}
       </script>
@@ -187,7 +187,7 @@ useEffect(() => {
           className={`container mx-auto ${
             isMobile
               ? 'py-2 px-3 /border-b /border-gray-200'
-              : `xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
+              : `px-4 xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
           }`}>
 
           <div className="flex items-center justify-between">

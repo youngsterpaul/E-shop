@@ -302,4 +302,3 @@ const ApplicationModal = ({ job, isOpen, onClose }: ApplicationModalProps) => {
 };
 
 export default ApplicationModal;
-
