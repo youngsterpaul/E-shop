@@ -27,8 +27,7 @@ const Footer = ({ className }: FooterProps) => {
       links: [
         { label: 'All Products', href: '/products' },
         { label: 'Categories', href: '/categories' },
-        { label: 'Best Sellers', href: '/categories' },
-        { label: 'Featured Deals', href: '/categories' },
+        { label: 'Featured Deals', href: '/' },
       ]
     },
     {

@@ -170,13 +170,13 @@ export const useImageUpload = () => {
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath, {
-            transform: {
-              width: 800,
-              height: 600,
-              resize: 'contain',
+            //transform: {
+              //width: 800,
+              //height: 600,
+              //resize: 'contain',
               // format: 'webp' // Use WebP for better compression
-              format: 'origin' // Use original format as required by Supabase type
-            }
+              //format: 'origin' // Use original format as required by Supabase type
+            //}
           });
 
         return publicUrl;
