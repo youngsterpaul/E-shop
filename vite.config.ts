@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import viteCompression from 'vite-plugin-compression';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -12,37 +11,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    // Add Gzip compression
-    viteCompression({
-      verbose: true,
-      disable: false,
-      threshold: 10240, // Only compress files larger than 10kb
-      algorithm: 'gzip',
-      ext: '.gz',
-      deleteOriginFile: false,
-    }),
-    // Add Brotli compression (better than gzip)
-    viteCompression({
-      verbose: true,
-      disable: false,
-      threshold: 10240,
-      algorithm: 'brotliCompress',
-      ext: '.br',
-      deleteOriginFile: false,
-    }),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ['react', 'react-dom'],
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
-    exclude: ['lovable-tagger'],
-  },
+  // Add this for iOS Safari compatibility
   build: {
-    target: ['es2015', 'safari11'],
+    target: ['es2015', 'safari11'], // Add Safari 11+ support
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name]-[hash].js`,
@@ -58,27 +35,17 @@ export default defineConfig(({ mode }) => ({
           }
           return `assets/[name]-[hash][extname]`;
         },
-        // Split vendor chunks for better caching
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            return 'vendor';
-          }
-        },
       },
     },
     manifest: true,
     chunkSizeWarningLimit: 500,
     sourcemap: mode === 'production' ? false : true,
     assetsInlineLimit: 0,
+    // Add polyfills for older browsers
     polyfillDynamicImport: false,
-    // Enable minification for better compression
-    minify: 'esbuild', // Use esbuild instead of terser for faster builds
   },
+  // Add legacy browser support
   esbuild: {
-    target: 'es2015',
-    drop: mode === 'production' ? ['console', 'debugger'] : [],
+    target: 'es2015'
   },
 }));
