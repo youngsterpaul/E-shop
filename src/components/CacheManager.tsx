@@ -1,128 +1,71 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
+
+/**
+ * CacheManager:
+ * - Keeps your app always up to date with the latest deployment
+ * - Clears stale caches on version change
+ * - Avoids infinite reload loops
+ * - Adds lightweight preconnects for performance
+ */
 
 export const CacheManager = () => {
   useEffect(() => {
-    // Add cache-control meta tags dynamically
-    const addMetaTag = (name: string, content: string) => {
-      // Remove existing tag if present
-      const existing = document.querySelector(`meta[name="${name}"]`);
-      if (existing) {
-        existing.remove();
-      }
-      
-      // Add new tag
-      const meta = document.createElement('meta');
-      meta.name = name;
-      meta.content = content;
-      document.head.appendChild(meta);
-    };
+    const appVersion = import.meta.env.VITE_APP_VERSION ?? "1.0.0";
+    const storedVersion = localStorage.getItem("app_version");
 
-    // Add HTTP-EQUIV meta tags
-    const addHttpEquivTag = (httpEquiv: string, content: string) => {
-      const existing = document.querySelector(`meta[http-equiv="${httpEquiv}"]`);
-      if (existing) {
-        existing.remove();
-      }
-      
-      const meta = document.createElement('meta');
-      meta.setAttribute('http-equiv', httpEquiv);
-      meta.content = content;
-      document.head.appendChild(meta);
-    };
+    /**
+     * 🧹 Clear stale cache when version changes
+     */
+    const clearStaleCache = () => {
+      console.info("[CacheManager] App version updated:", storedVersion, "→", appVersion);
 
-    // Add cache control meta tags
-    addHttpEquivTag('Cache-Control', 'no-cache, no-store, must-revalidate');
-    addHttpEquivTag('Pragma', 'no-cache');
-    addHttpEquivTag('Expires', '0');
-    
-    // Add build timestamp for cache busting
-    addMetaTag('build-timestamp', Date.now().toString());
-    
-    // Add version meta tag (you can update this with actual version)
-    addMetaTag('app-version', '1.0.0');
-
-    // Only add preconnects if not already present
-    if (!document.querySelector('link[data-preconnect="cache-manager"]')) {
-      // Preconnect to critical domains
-      const addPreconnect = (href: string, crossorigin = false) => {
-        const existing = document.querySelector(`link[rel="preconnect"][href="${href}"]`);
-        if (existing) return;
-        
-        const link = document.createElement('link');
-        link.rel = 'preconnect';
-        link.href = href;
-        link.dataset.preconnect = 'cache-manager';
-        if (crossorigin) {
-          link.crossOrigin = 'anonymous';
-        }
-        document.head.appendChild(link);
-      };
-
-      // Add preconnects for external resources (avoid duplicates)
-      addPreconnect('https://sgpjnbdrmwrupeqhjqpj.supabase.co');
-
-      // DNS prefetch for faster subsequent requests
-      const addDnsPrefetch = (href: string) => {
-        const existing = document.querySelector(`link[rel="dns-prefetch"][href="${href}"]`);
-        if (existing) return;
-        
-        const link = document.createElement('link');
-        link.rel = 'dns-prefetch';
-        link.href = href;
-        link.dataset.preconnect = 'cache-manager';
-        document.head.appendChild(link);
-      };
-
-      addDnsPrefetch('//fonts.gstatic.com');
-    }
-    
-    // Clear localStorage cache on version mismatch
-    const clearCacheOnVersionMismatch = () => {
-      const currentVersion = '1.0.0'; // Update this with your app version
-      const storedVersion = localStorage.getItem('app_version');
-      
-      if (storedVersion && storedVersion !== currentVersion) {
-        console.log('[Cache] Version mismatch, clearing cache');
-        
-        // Clear all cache entries
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('cache_') || key.startsWith('query_')) {
-            localStorage.removeItem(key);
-          }
-        });
-        
-        // Clear session storage
+      try {
+        localStorage.clear();
         sessionStorage.clear();
-        
-        // Update stored version
-        localStorage.setItem('app_version', currentVersion);
-      } else if (!storedVersion) {
-        localStorage.setItem('app_version', currentVersion);
-      }
-    };
+        localStorage.setItem("app_version", appVersion);
 
-    clearCacheOnVersionMismatch();
-
-    // Force reload if critical resources fail to load
-    const handleResourceError = (event: Event) => {
-      const target = event.target as HTMLElement;
-      
-      // Check if it's a critical resource
-      if (target.tagName === 'SCRIPT' || target.tagName === 'LINK') {
-        console.error('[Cache] Critical resource failed to load, forcing reload');
-        // Add a small delay to prevent infinite reload loops
+        // 👋 Give the browser a moment before reload to flush changes
         setTimeout(() => {
           window.location.reload();
         }, 1000);
+      } catch (error) {
+        console.warn("[CacheManager] Cache clear failed:", error);
       }
     };
 
-    // Listen for resource loading errors
-    window.addEventListener('error', handleResourceError, true);
+    /**
+     * 🧠 Version management
+     */
+    if (!storedVersion) {
+      // First-time visitor → store current version
+      localStorage.setItem("app_version", appVersion);
+    } else if (storedVersion !== appVersion) {
+      clearStaleCache();
+    }
 
-    return () => {
-      window.removeEventListener('error', handleResourceError, true);
+    /**
+     * ⚡ Performance optimizations
+     * Add preconnects and DNS prefetch for external APIs/CDNs
+     */
+    const addLinkTag = (rel: string, href: string, crossorigin = false) => {
+      if (!document.querySelector(`link[rel="${rel}"][href="${href}"]`)) {
+        const link = document.createElement("link");
+        link.rel = rel;
+        link.href = href;
+        if (crossorigin) link.crossOrigin = "anonymous";
+        document.head.appendChild(link);
+      }
     };
+
+    // Example: Preconnect to your Supabase project
+    addLinkTag("preconnect", "https://sgpjnbdrmwrupeqhjqpj.supabase.co");
+
+    // Example: Prefetch for Google Fonts
+    addLinkTag("dns-prefetch", "//fonts.gstatic.com");
+
+    // Optional: Add others as needed (e.g. analytics, CDN)
+    addLinkTag("preconnect", "https://cdn.www.smartkenya.co.ke", true);
+
   }, []);
 
   return null;

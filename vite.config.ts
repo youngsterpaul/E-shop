@@ -2,112 +2,95 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import viteCompression from "vite-plugin-compression";
+import { execSync } from "child_process";
 
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
+export default defineConfig(({ mode }) => {
+  // ✅ Get version info (from package.json or Git commit)
+  const packageVersion = process.env.npm_package_version || "1.0.0";
+  const gitHash = (() => {
+    try {
+      return execSync("git rev-parse --short HEAD").toString().trim();
+    } catch {
+      return "unknown";
+    }
+  })();
 
-  plugins: [
-    react(),
-    mode === "development" && componentTagger(),
+  const appVersion = `${packageVersion}-${gitHash}`;
 
-    // Gzip
-    viteCompression({
-      verbose: true,
-      disable: false,
-      threshold: 10240,
-      algorithm: "gzip",
-      ext: ".gz",
-    }),
-
-    // Brotli (better)
-    viteCompression({
-      verbose: true,
-      disable: false,
-      threshold: 10240,
-      algorithm: "brotliCompress",
-      ext: ".br",
-    }),
-  ].filter(Boolean),
-
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      open: false,
     },
-    dedupe: ["react", "react-dom"],
-  },
 
-  optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "@radix-ui/react-accordion",
-      "@radix-ui/react-alert-dialog",
-      "@radix-ui/react-avatar",
-      "@radix-ui/react-checkbox",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-label",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-select",
-      "@radix-ui/react-slot",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-toast",
-      "@radix-ui/react-tooltip",
-    ],
-    exclude: ["lovable-tagger"],
-    esbuildOptions: {
-      define: {
-        global: "globalThis",
+    plugins: [
+      react(),
+      // Only include tagger in dev mode
+      mode === "development" && componentTagger(),
+    ].filter(Boolean),
+
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
       },
     },
-  },
 
-  build: {
-    target: ["es2015", "safari11"],
-    manifest: true,
-    sourcemap: mode === "production" ? false : true,
-    assetsInlineLimit: 0,
-    polyfillDynamicImport: false,
-    chunkSizeWarningLimit: 500,
-    minify: "esbuild",
+    define: {
+      // ✅ Inject version info into client build
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
+      "import.meta.env.VITE_BUILD_MODE": JSON.stringify(mode),
+    },
 
-    rollupOptions: {
-      output: {
-        entryFileNames: "assets/[name]-[hash].js",
-        chunkFileNames: "assets/[name]-[hash].js",
-        assetFileNames: (assetInfo) => {
-          const ext = assetInfo.name?.split(".").pop();
-          if (/png|jpe?g|svg|gif|ico/i.test(ext ?? "")) {
-            return "assets/images/[name]-[hash][extname]";
-          }
-          if (/css/i.test(ext ?? "")) {
-            return "assets/css/[name]-[hash][extname]";
-          }
-          return "assets/[name]-[hash][extname]";
-        },
+    build: {
+      // ✅ Target modern browsers (and Safari 11+)
+      target: ["es2015", "safari11"],
 
-        // ✅ React is now always shared globally
-        manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("react")) return "react-vendor";
-            if (id.includes("@radix-ui")) return "radix-vendor";
-            if (id.includes("recharts") || id.includes("d3")) return "chart-vendor";
-            if (id.includes("lodash") || id.includes("@supabase") || id.includes("@tanstack"))
-              return "libs-vendor";
-            return "vendor";
-          }
+      // ✅ Control chunk naming for cache-safety
+      rollupOptions: {
+        output: {
+          entryFileNames: `assets/[name]-[hash].js`,
+          chunkFileNames: `assets/[name]-[hash].js`,
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name?.split(".");
+            const ext = info?.[info.length - 1] ?? "";
+
+            // Images go to /assets/images
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+              return `assets/images/[name]-[hash][extname]`;
+            }
+
+            // CSS goes to /assets/css
+            if (/css/i.test(ext)) {
+              return `assets/css/[name]-[hash][extname]`;
+            }
+
+            // Everything else stays in /assets
+            return `assets/[name]-[hash][extname]`;
+          },
         },
       },
-    },
-  },
 
-  esbuild: {
-    target: "es2015",
-    drop: mode === "production" ? ["console", "debugger"] : [],
-  },
-}));
+      // ✅ Include manifest.json for SSR or deployment platforms
+      manifest: true,
+
+      // ✅ Performance tuning
+      chunkSizeWarningLimit: 500,
+      sourcemap: mode !== "production",
+      assetsInlineLimit: 0, // Always separate assets for better caching
+
+      // ✅ Safari/iOS & legacy compatibility
+      polyfillDynamicImport: false,
+    },
+
+    esbuild: {
+      target: "es2015",
+    },
+
+    // ✅ Recommended cache control for local dev only
+    // (Production caching handled by Vercel)
+    optimizeDeps: {
+      include: [],
+    },
+  };
+});
