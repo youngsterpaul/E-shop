@@ -60,6 +60,10 @@
         {
           "key": "Vary",
           "value": "Accept-Encoding"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         }
       ]
     }
