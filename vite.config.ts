@@ -9,9 +9,6 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  define: {
-    __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
-  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
@@ -30,13 +27,11 @@ export default defineConfig(({ mode }) => ({
         ]
       : []),
   ].filter(Boolean),
-  resolve: {
+    resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      react: path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom"],
+    dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
     include: [
