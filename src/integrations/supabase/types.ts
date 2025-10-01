@@ -44,21 +44,21 @@ export type Database = {
       callback_ip_whitelist: {
         Row: {
           created_at: string | null
+          environment: string | null
           id: string
           ip_address: unknown
-          environment: string | null
         }
         Insert: {
           created_at?: string | null
+          environment?: string | null
           id?: string
           ip_address: unknown
-          environment: string | null
         }
         Update: {
           created_at?: string | null
+          environment?: string | null
           id?: string
           ip_address?: unknown
-          environment?: string | null
         }
         Relationships: []
       }
@@ -67,7 +67,6 @@ export type Database = {
           added_at: string | null
           cart_id: string | null
           id: string
-          items: Json | null
           product_id: string | null
           quantity: number
           updated_at: string | null
@@ -78,7 +77,6 @@ export type Database = {
           added_at?: string | null
           cart_id?: string | null
           id?: string
-          items?: Json | null
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -89,7 +87,6 @@ export type Database = {
           added_at?: string | null
           cart_id?: string | null
           id?: string
-          items?: Json | null
           product_id?: string | null
           quantity?: number
           updated_at?: string | null
@@ -380,7 +377,6 @@ export type Database = {
       }
       products: {
         Row: {
-          brand_id: string | null
           categories: string | null
           created_at: string | null
           description: string | null
@@ -389,20 +385,16 @@ export type Database = {
           image_urls: string[] | null
           is_digital: boolean | null
           low_stock_threshold: number | null
-          meta_description: string | null
-          meta_title: string | null
           name: string
           price: number | null
           product_id: string
           rating: number | null
-          review_count: number | null
           specification: Json | null
           stock: number | null
           subcategory_id: number | null
           updated_at: string | null
         }
         Insert: {
-          brand_id?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
@@ -411,20 +403,16 @@ export type Database = {
           image_urls?: string[] | null
           is_digital?: boolean | null
           low_stock_threshold?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
           name: string
           price?: number | null
           product_id?: string
           rating?: number | null
-          review_count?: number | null
           specification?: Json | null
           stock?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
         Update: {
-          brand_id?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
@@ -433,13 +421,10 @@ export type Database = {
           image_urls?: string[] | null
           is_digital?: boolean | null
           low_stock_threshold?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
           name?: string
           price?: number | null
           product_id?: string
           rating?: number | null
-          review_count?: number | null
           specification?: Json | null
           stock?: number | null
           subcategory_id?: number | null

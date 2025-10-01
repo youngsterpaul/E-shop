@@ -55,11 +55,7 @@ export const useOptimizedProductsData = ({
           categories,
           rating,
           featured,
-          stock,
-          brand_id,
-          brands:brand_id (
-            name
-          )
+          stock
         `);
       
       if (error) throw error;
@@ -80,8 +76,7 @@ export const useOptimizedProductsData = ({
           isNew: Math.random() > 0.7,
           isSale: Math.random() > 0.7,
           rating: product.rating || Math.floor(Math.random() * 5) + 1,
-          brand: 'Unknown', // TODO: Add proper brand relation
-          brandId: product.brand_id ?? undefined
+          brand: 'Unknown'
         };
       }) || [];
     },
