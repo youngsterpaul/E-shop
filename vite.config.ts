@@ -40,7 +40,24 @@ export default defineConfig(({ mode }) => ({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+    ],
     exclude: ['lovable-tagger'],
     esbuildOptions: {
       define: {
@@ -72,9 +89,17 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
             }
-            // Put other large libraries in their own chunks
-            if (id.includes('lodash') || id.includes('axios')) {
-              return 'libs';
+            // Radix UI components in their own chunk
+            if (id.includes('@radix-ui')) {
+              return 'radix-vendor';
+            }
+            // Chart libraries
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'chart-vendor';
+            }
+            // Other large libraries
+            if (id.includes('lodash') || id.includes('@supabase') || id.includes('@tanstack')) {
+              return 'libs-vendor';
             }
             return 'vendor';
           }
