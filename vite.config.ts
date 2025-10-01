@@ -34,12 +34,19 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
     },
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
     exclude: ['lovable-tagger'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
   },
   build: {
     target: ['es2015', 'safari11'],
@@ -61,8 +68,13 @@ export default defineConfig(({ mode }) => ({
         // Split vendor chunks for better caching
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
+            // Keep React in a separate chunk
             if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
+            }
+            // Put other large libraries in their own chunks
+            if (id.includes('lodash') || id.includes('axios')) {
+              return 'libs';
             }
             return 'vendor';
           }
