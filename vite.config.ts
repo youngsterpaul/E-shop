@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  define: {
+    __BUILD_TIMESTAMP__: JSON.stringify(Date.now()),
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
