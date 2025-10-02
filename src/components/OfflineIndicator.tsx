@@ -4,26 +4,23 @@ import { WifiOff, Wifi } from 'lucide-react';
 
 export const OfflineIndicator = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showOffline, setShowOffline] = useState(false);
+  const [visible, setVisible] = useState(!navigator.onLine);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      setShowOffline(false);
+      setVisible(true);
+      // Hide after 3 seconds
+      setTimeout(() => setVisible(false), 3000);
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      setShowOffline(true);
+      setVisible(true);
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Show offline indicator if already offline
-    if (!navigator.onLine) {
-      setShowOffline(true);
-    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -31,25 +28,15 @@ export const OfflineIndicator = () => {
     };
   }, []);
 
-  // Auto-hide online indicator after 3 seconds
-  useEffect(() => {
-    if (isOnline && !showOffline) {
-      const timer = setTimeout(() => {
-        setShowOffline(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOnline, showOffline]);
+  if (!visible) return null;
 
-  if (!showOffline && isOnline) return null;
+  const statusStyles = isOnline
+    ? 'bg-success/90 text-success-foreground'
+    : 'bg-destructive/90 text-destructive-foreground';
 
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-      <Card className={`border-border shadow-lg ${
-        isOnline 
-          ? 'bg-success/90 text-success-foreground' 
-          : 'bg-destructive/90 text-destructive-foreground'
-      }`}>
+      <Card className={`border-border shadow-lg ${statusStyles}`}>
         <CardContent className="px-4 py-2">
           <div className="flex items-center gap-2 text-sm">
             {isOnline ? (
@@ -60,7 +47,7 @@ export const OfflineIndicator = () => {
             ) : (
               <>
                 <WifiOff className="h-4 w-4" />
-                <span>You're offline</span>
+                <span>You’re offline</span>
               </>
             )}
           </div>

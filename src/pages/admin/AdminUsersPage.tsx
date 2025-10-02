@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -11,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash2, FileUp, X, Check, Mail, Phone } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, FileUp, Mail, Phone, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -38,6 +37,10 @@ const AdminUsersPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
+  // Pagination state
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  
   const roles = [
     "All Roles",
     "Admin",
@@ -48,7 +51,8 @@ const AdminUsersPage = () => {
   const fetchUsers = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
       
     if (error) throw error;
     return data as User[];
@@ -73,13 +77,41 @@ const AdminUsersPage = () => {
     
     return searchMatch && roleMatch;
   });
+
+  // Get users to display (with pagination)
+  const displayedUsers = filteredUsers.slice(0, displayedItemsCount);
+  const hasMoreUsers = filteredUsers.length > displayedItemsCount;
+
+  // Reset displayed items when filters change
+  useEffect(() => {
+    setDisplayedItemsCount(itemsPerPage);
+    setSelectedUsers([]); // Clear selection when filters change
+    setIsAllSelected(false);
+  }, [searchQuery, selectedRole, itemsPerPage]);
+
+  // Handle "Show More" button
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => prev + itemsPerPage);
+  };
+
+  // Handle "Show All" button
+  const handleShowAll = () => {
+    setDisplayedItemsCount(filteredUsers.length);
+  };
+
+  // Handle "Show Less" button
+  const handleShowLess = () => {
+    setDisplayedItemsCount(itemsPerPage);
+    // Scroll to top of table
+    document.querySelector('[data-table-container]')?.scrollIntoView({ behavior: 'smooth' });
+  };
   
-  // Handle bulk selection
+  // Handle bulk selection (only for displayed users)
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(user => user.user_id));
+      setSelectedUsers(displayedUsers.map(user => user.user_id));
     }
     setIsAllSelected(!isAllSelected);
   };
@@ -91,6 +123,14 @@ const AdminUsersPage = () => {
       setSelectedUsers([...selectedUsers, userId]);
     }
   };
+
+  // Update isAllSelected based on current selection
+  useEffect(() => {
+    const displayedUserIds = displayedUsers.map(u => u.user_id);
+    const allDisplayedSelected = displayedUserIds.length > 0 && 
+      displayedUserIds.every(id => selectedUsers.includes(id));
+    setIsAllSelected(allDisplayedSelected);
+  }, [selectedUsers, displayedUsers]);
   
   // Handle delete
   const handleDeleteClick = (userId: string) => {
@@ -120,6 +160,7 @@ const AdminUsersPage = () => {
         });
         setSelectedUsers([]);
       }
+      refetch(); // Refresh the data
     } catch (error: any) {
       console.error('Error deleting users:', error);
       toast({
@@ -168,7 +209,7 @@ const AdminUsersPage = () => {
               disabled={selectedUsers.length === 0}
               onClick={handleBulkDeleteClick}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected ({selectedUsers.length})
             </Button>
             
             <Button variant="outline">
@@ -203,6 +244,18 @@ const AdminUsersPage = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                <SelectTrigger className="w-full md:w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="25">25 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                  <SelectItem value="100">100 per page</SelectItem>
+                </SelectContent>
+              </Select>
               
               <Button variant="outline" onClick={resetFilters}>
                 Reset Filters
@@ -211,12 +264,30 @@ const AdminUsersPage = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card data-table-container>
           <CardHeader className="pb-0">
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              {filteredUsers.length} users found
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>
+                  Showing {displayedUsers.length} of {filteredUsers.length} users
+                  {selectedUsers.length > 0 && (
+                    <span className="ml-2 text-orange-600 font-medium">
+                      • {selectedUsers.length} selected
+                    </span>
+                  )}
+                </CardDescription>
+              </div>
+              {filteredUsers.length > itemsPerPage && (
+                <div className="text-sm text-muted-foreground">
+                  {hasMoreUsers ? (
+                    <span>{displayedItemsCount} of {filteredUsers.length} shown</span>
+                  ) : (
+                    <span>All {filteredUsers.length} users shown</span>
+                  )}
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -225,7 +296,7 @@ const AdminUsersPage = () => {
                   <TableRow>
                     <TableHead className="w-[50px]">
                       <Checkbox 
-                        checked={isAllSelected && filteredUsers.length > 0}
+                        checked={isAllSelected && displayedUsers.length > 0}
                         onCheckedChange={toggleSelectAll}
                       />
                     </TableHead>
@@ -265,7 +336,7 @@ const AdminUsersPage = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredUsers.map((user) => (
+                    displayedUsers.map((user) => (
                       <TableRow key={user.user_id}>
                         <TableCell>
                           <Checkbox 
@@ -342,6 +413,46 @@ const AdminUsersPage = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredUsers.length > itemsPerPage && !isLoading && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-6 border-t bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                  {hasMoreUsers && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleShowMore}
+                        className="flex items-center gap-2"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                        Show More ({Math.min(itemsPerPage, filteredUsers.length - displayedItemsCount)} more)
+                      </Button>
+                      
+                      {filteredUsers.length - displayedItemsCount > itemsPerPage && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleShowAll}
+                          className="text-orange-600 hover:text-orange-700"
+                        >
+                          Show All ({filteredUsers.length})
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  
+                  {!hasMoreUsers && displayedItemsCount > itemsPerPage && (
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowLess}
+                      className="flex items-center gap-2"
+                    >
+                      Show Less
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
