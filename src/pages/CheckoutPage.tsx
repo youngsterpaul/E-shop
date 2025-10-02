@@ -186,6 +186,12 @@ const CheckoutPage = () => {
   // Navigation functions
   const handleNext = () => {
     if (currentStep === 1 && validateStep1()) {
+      // Save customer data to profile before moving to step 2
+      updateProfileDeliveryInfo({
+        first_name: customerData.firstName,
+        last_name: customerData.lastName,
+        phone: customerData.phone
+      });
       setCurrentStep(2);
     } else if (currentStep === 2 && validateStep2()) {
       // Save all delivery data to profile before moving to step 3
@@ -209,12 +215,13 @@ const CheckoutPage = () => {
   };
 
   // Input change handlers
-  const handleCustomerChange = (field, value) => {
-    setCustomerData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+const handleCustomerChange = (field, value) => {
+  const trimmedValue = value.trim();
+  setCustomerData((prev) => ({
+    ...prev,
+    [field]: trimmedValue,
+  }));
+};
 
   const handleDeliveryChange = (field, value) => {
     setDeliveryData(prev => ({ 
@@ -428,8 +435,7 @@ const CheckoutPage = () => {
               id="email"
               type="email"
               value={customerData.email}
-              onChange={(e) => handleCustomerChange('email', e.target.value)}
-              placeholder="Enter your email address"
+              readOnly
               className={errors.email ? 'border-red-500' : ''}
             />
             {errors.email && (
