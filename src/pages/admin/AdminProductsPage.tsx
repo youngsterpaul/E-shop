@@ -240,11 +240,10 @@ const AdminProductsPage = () => {
             </Button>
 
             <Button 
-              onClick={fetchProducts} 
+              onClick={() => refetch()}
               variant="outline"
-              className="flex items-center gap-2 w-full md:w-auto"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
             
