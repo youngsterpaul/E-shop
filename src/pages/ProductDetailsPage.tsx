@@ -338,7 +338,7 @@ const ProductDetailsPage: React.FC = () => {
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
             <EnhancedProductImageGallery product={productWithImages} />
 
-            <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
+            <div className={`space-y-6 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 mb-3" style={{ textAlign: 'justify' }}>
                   {product.name}

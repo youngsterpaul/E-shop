@@ -54,18 +54,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const next = useCallback(() => changeImage((currentIndex + 1) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
   const prev = useCallback(() => changeImage((currentIndex - 1 + allMedia.length) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
 
-  /** ✅ Mouse wheel navigation (desktop) */
-  useEffect(() => {
-    if (isMobile || !mainRef.current) return;
-    const node = mainRef.current;
-    const onWheel = (e: WheelEvent) => {
-      if (e.deltaY > 0) next();
-      if (e.deltaY < 0) prev();
-    };
-    node.addEventListener("wheel", onWheel, { passive: true });
-    return () => node.removeEventListener("wheel", onWheel);
-  }, [isMobile, next, prev]);
-
   /** ✅ Keyboard navigation */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
