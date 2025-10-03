@@ -167,13 +167,31 @@ const ProductDetailsPage: React.FC = () => {
       "@type": "Offer",
       price: price,
       priceCurrency: "KES",
-      availability: product?.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" }
+      availability:
+        product?.stock && product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" },
+
+      // ✅ Add Merchant Return Policy
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "KE", // Kenya
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7, // Example: 7-day return policy
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn"
+      }
     },
     aggregateRating: product?.rating
-      ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews || 0 }
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: product.rating,
+          reviewCount: product.reviews || 0
+        }
       : undefined
   }), [product, price]);
+
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
