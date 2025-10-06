@@ -335,7 +335,7 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
-    <section className={`relative overflow-hidden ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 /z-40 ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg'}`}>
+    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 /z-40 ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
       {/* Categories Sidebar */}
       <CategorySidebar />
       {/* Background Image with Overlay */}
@@ -348,7 +348,7 @@ const EnhancedHeroSection = memo(() => {
           height={100}
           className={`object-cove ${!isMobile ? 'max-h-[500px] max-w-[full]' : 'max-h-[180px]'}`}
         />
-        <div className="absolute inset-0 bg-black/50 overflow-hidden" />
+        <div className={`absolute inset-0 bg-black/50 ${isMobile ? 'overflow-hidden' : ''}`} />
       </div>
 
       {/* Slide Indicators */}
@@ -371,5 +371,6 @@ const EnhancedHeroSection = memo(() => {
 });
 
 EnhancedHeroSection.displayName = 'EnhancedHeroSection';
+
 
 export default EnhancedHeroSection;
