@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash2, FileUp, Mail, Phone, ChevronDown } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, FileUp, Mail, Phone, ChevronDown, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -210,6 +210,14 @@ const AdminUsersPage = () => {
               onClick={handleBulkDeleteClick}
             >
               <Trash2 className="mr-2 h-4 w-4" /> Delete Selected ({selectedUsers.length})
+            </Button>
+
+            <Button 
+              onClick={() => refetch()}
+              variant="outline"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
             </Button>
             
             <Button variant="outline">
