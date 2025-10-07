@@ -28,7 +28,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
           description: "Please sign in to access admin area",
           variant: "destructive",
         });
-        navigate('/login');
+        navigate('/auth');
         return;
       }
 
