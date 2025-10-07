@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
+import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 
@@ -30,6 +31,24 @@ interface Order {
   payment_id?: string;
 }
 
+async function getBase64ImageFromURL(url: string): Promise<string> {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to convert image to base64 string'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+
 export const generatePDFReceipt = async (order: Order): Promise<void> => {
   try {
     const receiptWidth = 80;
@@ -42,6 +61,18 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     let y = 8;
 
     // Header
+  const base64Logo = await getBase64ImageFromURL(smartkenyaLogo);
+
+  // Calculate position to center the logo
+  const logoWidth = 48;  // Adjust width
+  const logoHeight = 12; // Adjust height
+  const xPos = (receiptWidth / 2) - (logoWidth / 2);
+
+  // Add logo to PDF
+  doc.addImage(base64Logo, 'PNG', xPos, y, logoWidth, logoHeight);
+
+  y += logoHeight + 6;
+
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('SMARTKENYA', receiptWidth / 2, y, { align: 'center' });

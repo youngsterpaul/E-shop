@@ -222,14 +222,14 @@ export const memoryOptimizations = {
   },
   
   // Monitor memory usage
-  monitorMemory: () => {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      console.log('Memory usage:', {
-        used: `${Math.round(memory.usedJSHeapSize / 1048576)} MB`,
-        total: `${Math.round(memory.totalJSHeapSize / 1048576)} MB`,
-        limit: `${Math.round(memory.jsHeapSizeLimit / 1048576)} MB`
-      });
-    }
-  }
+  //monitorMemory: () => {
+    //if ('memory' in performance) {
+      //const memory = (performance as any).memory;
+      //console.log('Memory usage:', {
+        //used: `${Math.round(memory.usedJSHeapSize / 1048576)} MB`,
+        //total: `${Math.round(memory.totalJSHeapSize / 1048576)} MB`,
+        //limit: `${Math.round(memory.jsHeapSizeLimit / 1048576)} MB`
+      //});
+    //}
+  //}
 };
