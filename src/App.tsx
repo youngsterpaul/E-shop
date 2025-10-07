@@ -43,6 +43,7 @@ const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage
 const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
+const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 // Add the lazy import for CategoryPage
@@ -92,6 +93,7 @@ function App() {
             <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
+            <Route path="/admin/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
             <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}
