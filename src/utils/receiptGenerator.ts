@@ -61,27 +61,17 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     let y = 8;
 
     // Header
-  const base64Logo = await getBase64ImageFromURL(smartkenyaLogo);
+    const base64Logo = await getBase64ImageFromURL(smartkenyaLogo);
 
-  // Calculate position to center the logo
-  const logoWidth = 48;  // Adjust width
-  const logoHeight = 12; // Adjust height
-  const xPos = (receiptWidth / 2) - (logoWidth / 2);
+    // Calculate position to center the logo
+    const logoWidth = 48;  // Adjust width
+    const logoHeight = 12; // Adjust height
+    const xPos = (receiptWidth / 2) - (logoWidth / 2);
 
-  // Add logo to PDF
-  doc.addImage(base64Logo, 'PNG', xPos, y, logoWidth, logoHeight);
+    // Add logo to PDF
+    doc.addImage(base64Logo, 'PNG', xPos, y, logoWidth, logoHeight);
 
-  y += logoHeight + 6;
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SMARTKENYA', receiptWidth / 2, y, { align: 'center' });
-    y += 6;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Online Shopping Platform', receiptWidth / 2, y, { align: 'center' });
-    y += 6;
+    y += logoHeight + 6;
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
