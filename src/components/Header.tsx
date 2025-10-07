@@ -13,7 +13,9 @@ import {
   Settings,
   MapPin,
   ShoppingBag,
-  Search
+  Search,
+  Heart,
+  Truck
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -257,6 +259,16 @@ useEffect(() => {
                     <DropdownMenuItem asChild>
                       <Link to="/orders" className="cursor-pointer flex items-center">
                         <ShoppingBag className="mr-2 h-4 w-4" /> My Orders
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/track-order" className="cursor-pointer flex items-center">
+                        <Truck className="mr-2 h-4 w-4" /> Track Order
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/wishlist" className="cursor-pointer flex items-center">
+                        <Heart className="mr-2 h-4 w-4" /> Wishlist
                       </Link>
                     </DropdownMenuItem>
                     {profile?.is_admin && (

@@ -21,7 +21,8 @@ import {
   Info,
   LucideMessageCircleQuestion,
   CarTaxiFront,
-  GraduationCap
+  GraduationCap,
+  Truck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -66,6 +67,12 @@ const AccountPage = () => {
       title: 'My Orders',
       description: 'Track and manage your orders',
       href: '/orders',
+    },
+    {
+      icon: Truck,
+      title: 'Track order',
+      description: 'Track and manage your orders',
+      href: '/track-order',
     },
     {
       icon: Heart,
