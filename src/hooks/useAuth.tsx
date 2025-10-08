@@ -139,13 +139,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
-        console.error('Session refresh error:', error);
+        ////console.error('Session refresh error:', error);
         if (error.message.includes('refresh_token_not_found') || error.message.includes('invalid_refresh_token')) {
           await signOut();
         }
       }
     } catch (error) {
-      console.error('Session refresh failed:', error);
+      ////console.error('Session refresh failed:', error);
     }
   };
 
@@ -190,7 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id);
+        //console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -211,7 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
+      //console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -221,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       setLoading(false);
     }).catch((error) => {
-      console.error('Error getting initial session:', error);
+      //console.error('Error getting initial session:', error);
       setLoading(false);
     });
 
@@ -239,13 +239,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        //console.error('Error fetching profile:', error);
         return;
       }
 
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      //console.error('Error fetching profile:', error);
     }
   };
 
@@ -268,7 +268,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await supabase.auth.signOut({ scope: 'global' });
       } catch (err) {
-        console.warn('Failed to sign out existing session:', err);
+        //console.warn('Failed to sign out existing session:', err);
       }
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -277,7 +277,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) {
-        console.error('Sign in error:', error);
+        //console.error('Sign in error:', error);
         recordFailedAttempt(sanitizedEmail);
         throw error;
       }
@@ -287,7 +287,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         updateActivity();
         
         // Security: Log successful login
-        console.log(`User ${sanitizedEmail} logged in successfully at ${new Date().toISOString()}`);
+        //console.log(`User ${sanitizedEmail} logged in successfully at ${new Date().toISOString()}`);
         
         toast({
           title: "Welcome back!",
@@ -295,7 +295,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      //console.error('Login error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -329,7 +329,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error('Sign up error:', error);
+        //console.error('Sign up error:', error);
         throw error;
       }
 
@@ -347,7 +347,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
     } catch (error: any) {
-      console.error('Registration error:', error);
+      //console.error('Registration error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -371,12 +371,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Sign out error:', error);
+        //console.error('Sign out error:', error);
         throw error;
       }
       
       // Security: Log successful logout
-      console.log(`User logged out successfully at ${new Date().toISOString()}`);
+      //console.log(`User logged out successfully at ${new Date().toISOString()}`);
       
       toast({
         title: "Logged out",
@@ -386,7 +386,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Force page refresh to clear any cached data
       window.location.href = '/';
     } catch (error: any) {
-      console.error('Logout error:', error);
+      //console.error('Logout error:', error);
       toast({
         title: "Logout failed",
         description: "Please try again.",
@@ -430,7 +430,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Your profile has been successfully updated.",
       });
     } catch (error: any) {
-      console.error('Profile update error:', error);
+      //console.error('Profile update error:', error);
       toast({
         title: "Update failed",
         description: error.message,

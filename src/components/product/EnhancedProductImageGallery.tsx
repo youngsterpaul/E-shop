@@ -27,7 +27,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   
   // Zoom configuration
   const lensSize = 150;
-  const zoomLevel = 2.5;
+  const zoomLevel = 1.8;
 
   /** ✅ Combine product media (main image → other images → video) */
   const allMedia = useMemo(() => {
@@ -189,14 +189,14 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
           {/* ✅ Lens Overlay (follows cursor) */}
           {showLens && !isVideo(allMedia[currentIndex]) && (
             <div
-              className="absolute border-2 border-white shadow-lg pointer-events-none"
+              className="absolute border-2 border-gray-200 shadow-lg pointer-events-none"
               style={{
                 width: `${lensSize}px`,
                 height: `${lensSize}px`,
                 left: `${lensPos.x}px`,
                 top: `${lensPos.y}px`,
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
-                boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
+                //boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
               }}
             />
           )}
@@ -205,7 +205,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
         {/* ✅ Floating Zoom Preview (absolute on the right) */}
         {showLens && !isVideo(allMedia[currentIndex]) && (
           <div
-            className="hidden md:block absolute top-0 right-[-420px] w-[400px] h-[500px] border-2 border-gray-300 /rounded-lg overflow-hidden /shadow-xl bg-white z-50"
+            className="hidden md:block absolute top-0 right-[-520px] w-[500px] h-[600px] border-2 border-gray-300 /rounded-lg overflow-hidden /shadow-xl bg-white z-50"
             style={{
               backgroundImage: `url(${allMedia[currentIndex]})`,
               backgroundRepeat: "no-repeat",
