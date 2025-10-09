@@ -180,7 +180,7 @@ const WishlistPage = () => {
           />
         )}
         
-        <main className={`${isMobile ? 'pb-20' : 'pb-8 px-4 xl:px-24'}`}>
+        <main className={`${isMobile ? 'pb-20' : 'container pb-8 px-4 xl:px-24'}`}>
           <div className={`container mx-auto ${gridConfig.padding} py-8`}>
            {/* Header section */}
             <div className={`flex items-center justify-between mb-4 ${isMobile ? 'px-2' : ''}`}>

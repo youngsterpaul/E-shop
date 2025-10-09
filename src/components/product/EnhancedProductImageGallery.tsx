@@ -26,7 +26,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const minSwipe = 50;
   
   // Zoom configuration
-  const lensSize = 150;
+  const lensSize = 220;
   const zoomLevel = 1.8;
 
   /** ✅ Combine product media (main image → other images → video) */
@@ -205,7 +205,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
         {/* ✅ Floating Zoom Preview (absolute on the right) */}
         {showLens && !isVideo(allMedia[currentIndex]) && (
           <div
-            className="hidden md:block absolute top-0 right-[-520px] w-[500px] h-[600px] border-2 border-gray-300 /rounded-lg overflow-hidden /shadow-xl bg-white z-50"
+            className="hidden md:block absolute top-0 right-[-420px] w-[400px] h-[500px] border-2 border-gray-300 /rounded-lg overflow-hidden /shadow-xl bg-white z-50"
             style={{
               backgroundImage: `url(${allMedia[currentIndex]})`,
               backgroundRepeat: "no-repeat",
