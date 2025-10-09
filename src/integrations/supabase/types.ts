@@ -527,6 +527,26 @@ export type Database = {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: string
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
@@ -538,6 +558,18 @@ export type Database = {
       notify_admin_no_reply: {
         Args: { message_text: string; user_id: string; user_message_id: string }
         Returns: undefined
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       update_order_first_name: {
         Args: { first_name: string; order_id: number }
