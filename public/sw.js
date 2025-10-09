@@ -34,26 +34,26 @@ const CACHE_FIRST_URLS = [
 
 // Install event - cache static assets with versioning
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker with build timestamp:', BUILD_TIMESTAMP);
+  //console.log('[SW] Installing service worker with build timestamp:', BUILD_TIMESTAMP);
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => {
-        console.log('[SW] Caching static assets');
+        //console.log('[SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('[SW] Static assets cached, skipping waiting');
+        //console.log('[SW] Static assets cached, skipping waiting');
         return self.skipWaiting();
       })
       .catch(error => {
-        console.error('[SW] Failed to cache static assets:', error);
+        //console.error('[SW] Failed to cache static assets:', error);
       })
   );
 });
 
 // Activate event - clean up old caches and notify clients of updates
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker');
+  //console.log('[SW] Activating service worker');
   event.waitUntil(
     Promise.all([
       // Clean up old caches
@@ -98,7 +98,7 @@ self.addEventListener('fetch', (event) => {
                 .catch(error => {
                   // Silently handle cache errors to prevent console spam
                   if (error.name !== 'QuotaExceededError') {
-                    console.log('Cache put failed:', error.message);
+                    //console.log('Cache put failed:', error.message);
                   }
                 });
             } catch (error) {
@@ -133,7 +133,7 @@ self.addEventListener('fetch', (event) => {
                     .then(cache => cache.put(event.request, responseClone))
                     .catch(error => {
                       if (error.name !== 'QuotaExceededError') {
-                        console.log('Cache put failed:', error.message);
+                        //console.log('Cache put failed:', error.message);
                       }
                     });
                 } catch (error) {
@@ -161,7 +161,7 @@ self.addEventListener('fetch', (event) => {
                   .then(cache => cache.put(event.request, responseClone))
                   .catch(error => {
                     if (error.name !== 'QuotaExceededError') {
-                      console.log('Cache put failed:', error.message);
+                      //console.log('Cache put failed:', error.message);
                     }
                   });
               } catch (error) {
@@ -171,7 +171,7 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
           })
           .catch(error => {
-            console.log('Network fetch failed:', error);
+            //console.log('Network fetch failed:', error);
             return response; // Return cached response if available
           });
         
@@ -196,7 +196,7 @@ async function syncData() {
         await submitData(data);
         await removeOfflineData(data.id);
       } catch (error) {
-        console.error('Sync failed for:', data, error);
+        //console.error('Sync failed for:', data, error);
       }
     }
   }
@@ -235,7 +235,7 @@ async function notifyClientsOfUpdate() {
 // Handle messages from clients
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[SW] Received SKIP_WAITING message');
+    //console.log('[SW] Received SKIP_WAITING message');
     self.skipWaiting();
   }
 });

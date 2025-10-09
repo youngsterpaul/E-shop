@@ -9,11 +9,12 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import { Settings, Upload, X } from 'lucide-react';
+import { Settings, Upload, X, User, Mail, Phone, MapPin, Camera, CheckCircle2, AlertCircle } from 'lucide-react';
 
 // Simple avatar cache implementation
 const avatarCache = {
@@ -52,7 +53,6 @@ async function resizeImage(file: File, maxWidth: number, maxHeight: number, qual
       let width = img.width;
       let height = img.height;
 
-      // Calculate new dimensions
       if (width > maxWidth || height > maxHeight) {
         const aspect = width / height;
         if (width > height) {
@@ -99,9 +99,9 @@ const ProfilePage = () => {
   const [filename, setFilename] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
   const isMobile = isMobileUserAgent();
 
-  // County and city mapping
   const countyOptions = [
     { value: 'embu', label: 'Embu' },
     { value: 'murangaa', label: "Murang'a" }
@@ -119,7 +119,6 @@ const ProfilePage = () => {
     ]
   };
 
-  // Initialize form data when profile loads
   useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name || '');
@@ -133,7 +132,6 @@ const ProfilePage = () => {
     }
   }, [profile]);
 
-  // Generate avatar URL with caching
   const generateAvatarUrl = useCallback(async (filename) => {
     if (!filename) return null;
     
@@ -150,7 +148,6 @@ const ProfilePage = () => {
         .getPublicUrl(filename);
       
       if (data?.publicUrl) {
-        // Add cache busting parameter for updated images
         const urlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
         avatarCache.set(cacheKey, urlWithCacheBuster);
         return urlWithCacheBuster;
@@ -162,7 +159,6 @@ const ProfilePage = () => {
     return null;
   }, []);
 
-  // Update avatar URL when filename changes
   useEffect(() => {
     const updateAvatarUrl = async () => {
       const url = await generateAvatarUrl(filename);
@@ -172,7 +168,6 @@ const ProfilePage = () => {
     updateAvatarUrl();
   }, [filename, generateAvatarUrl]);
 
-  // Clear messages after 5 seconds
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
@@ -184,7 +179,6 @@ const ProfilePage = () => {
     }
   }, [error, success]);
 
-  // Get available cities based on selected county
   const getAvailableCities = () => {
     if (!county) return [];
     return cityOptions[county] || [];
@@ -219,11 +213,9 @@ const ProfilePage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Clear previous messages
     setError(null);
     setSuccess(null);
 
-    // Validate file
     const validation = validateImageFile(file);
     if (!validation.isValid) {
       setError(validation.errors.join(', '));
@@ -239,11 +231,9 @@ const ProfilePage = () => {
     setUploadProgress(0);
 
     try {
-      // Step 1: Resize image (25% progress)
       setUploadProgress(25);
       const resizedBlob = await resizeImage(file, 400, 400, 0.8);
       
-      // Step 2: Remove old avatar if exists (50% progress)
       setUploadProgress(50);
       if (filename) {
         try {
@@ -251,19 +241,16 @@ const ProfilePage = () => {
             .from('avatars')
             .remove([filename]);
           
-          // Invalidate cache for old image
           avatarCache.invalidate(`avatar_${filename}`);
         } catch (error) {
           console.warn('Could not remove old avatar:', error);
         }
       }
 
-      // Step 3: Generate unique filename (60% progress)
       setUploadProgress(60);
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const newFilename = `${user.id}/${Date.now()}.${fileExt}`;
       
-      // Step 4: Upload new avatar (80% progress)
       setUploadProgress(80);
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -277,7 +264,6 @@ const ProfilePage = () => {
         throw uploadError;
       }
 
-      // Step 5: Update profile (90% progress)
       setUploadProgress(90);
       const { error: updateError } = await supabase
         .from('profiles')
@@ -291,7 +277,6 @@ const ProfilePage = () => {
         throw updateError;
       }
 
-      // Step 6: Update local state (100% progress)
       setUploadProgress(100);
       setFilename(newFilename);
       setSuccess('Avatar updated successfully!');
@@ -302,7 +287,6 @@ const ProfilePage = () => {
       setUploading(false);
       setUploadProgress(0);
       
-      // Clear file input
       if (event.target) {
         event.target.value = '';
       }
@@ -316,12 +300,10 @@ const ProfilePage = () => {
       setError(null);
       setUploading(true);
       
-      // Remove from storage
       await supabase.storage
         .from('avatars')
         .remove([filename]);
       
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
@@ -334,7 +316,6 @@ const ProfilePage = () => {
         throw updateError;
       }
       
-      // Clear local state and cache
       setFilename(null);
       setAvatarUrl(null);
       avatarCache.invalidate(`avatar_${filename}`);
@@ -350,24 +331,99 @@ const ProfilePage = () => {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Loading profile...</p>
+      <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>
+        {!isMobile && <Header />}
+        {isMobile && (
+          <MobileHeader 
+            title={'My Profile'}
+            rightAction={
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4" />
+              </Button>
+            }
+          />
+        )}
+        
+        <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24' : 'px-4'}`}>
+          <div className="max-w-4xl mx-auto space-y-6">
+            
+            {/* Profile Header Card Skeleton */}
+            <Card className="shadow-xl border-0 overflow-hidden">
+              <div className="h-32 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse"></div>
+              <CardContent className="relative pt-0 pb-8">
+                <div className="flex flex-col items-center -mt-16">
+                  {/* Avatar Skeleton */}
+                  <div className="w-32 h-32 rounded-full bg-gray-300 animate-pulse border-4 border-white shadow-2xl ring-4 ring-gray-100"></div>
+                  
+                  <div className="text-center mt-4 space-y-2 w-full max-w-xs">
+                    <div className="h-8 bg-gray-300 rounded animate-pulse w-48 mx-auto"></div>
+                    <div className="h-5 bg-gray-300 rounded animate-pulse w-64 mx-auto"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Information Card Skeleton */}
+            <Card className="shadow-xl border-0">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                <div className="h-6 bg-gray-300 rounded animate-pulse w-48"></div>
+                <div className="h-4 bg-gray-300 rounded animate-pulse w-64 mt-2"></div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="h-4 bg-gray-300 rounded animate-pulse w-24"></div>
+                      <div className="h-11 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Location Card Skeleton */}
+            <Card className="shadow-xl border-0">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                <div className="h-6 bg-gray-300 rounded animate-pulse w-40"></div>
+                <div className="h-4 bg-gray-300 rounded animate-pulse w-56 mt-2"></div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[...Array(2)].map((_, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="h-4 bg-gray-300 rounded animate-pulse w-20"></div>
+                        <div className="h-11 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-300 rounded animate-pulse w-28"></div>
+                    <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Update Button Skeleton */}
+            <div className="flex justify-end">
+              <div className="h-11 w-40 bg-gray-300 rounded animate-pulse"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 
-          title={'Update Profile'}
+          title={'My Profile'}
           rightAction={
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
@@ -376,208 +432,293 @@ const ProfilePage = () => {
         />
       )}
       
-      <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
-        <div className="/max-w-md mx-auto space-y-6">
+      <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24' : 'px-4'}`}>
+        <div className="max-w-4xl mx-auto space-y-6">
           
           {/* Error/Success Messages */}
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="shadow-lg">
+              <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           
           {success && (
-            <Alert className="border-green-200 bg-green-50">
+            <Alert className="border-green-500 bg-green-50 shadow-lg">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
           )}
 
-          {/* Avatar Section */}
-          <div className="text-center space-y-4">
-            <div className="relative inline-block">
-              <Avatar className="w-32 h-32 mx-auto border-4 border-gray-200">
-                {avatarUrl ? (
-                  <AvatarImage 
-                    src={avatarUrl} 
-                    alt="Profile Avatar"
-                    className="object-cover"
-                    onError={(e) => {
-                      console.error('Avatar failed to load:', avatarUrl);
-                      setAvatarUrl(null);
-                    }}
-                  />
-                ) : (
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                    {firstName?.[0] || ''}{lastName?.[0] || ''}
-                  </AvatarFallback>
+          {/* Profile Header Card */}
+          <Card className="shadow-xl border-0 overflow-hidden">
+            <div className="h-32 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+            <CardContent className="relative pt-0 pb-8">
+              <div className="flex flex-col items-center -mt-16">
+                {/* Avatar Section */}
+                <div 
+                  className="relative group"
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                >
+                  <Avatar className="w-32 h-32 border-4 border-white shadow-2xl ring-4 ring-gray-100">
+                    {avatarUrl ? (
+                      <AvatarImage 
+                        src={avatarUrl} 
+                        alt="Profile Avatar"
+                        className="object-cover"
+                        onError={(e) => {
+                          console.error('Avatar failed to load:', avatarUrl);
+                          setAvatarUrl(null);
+                        }}
+                      />
+                    ) : (
+                      <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                        {firstName?.[0] || ''}{lastName?.[0] || ''}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  
+                  {/* Upload Button Overlay */}
+                  <label 
+                    htmlFor="avatar-upload"
+                    className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full cursor-pointer transition-opacity duration-200 ${isHovering || isMobile ? 'opacity-100' : 'opacity-0'}`}
+                  >
+                    <Camera className="h-8 w-8 text-white" />
+                    <input 
+                      type="file" 
+                      id="avatar-upload" 
+                      accept="image/*" 
+                      onChange={handleAvatarChange}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  
+                  {avatarUrl && !uploading && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-8 w-8 rounded-full p-0 shadow-lg"
+                      onClick={handleRemoveAvatar}
+                      title="Remove avatar"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Upload Progress */}
+                {uploading && (
+                  <div className="w-full max-w-xs mt-4 space-y-2">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-sm text-center font-medium text-blue-600">
+                      {uploadProgress < 25 ? 'Preparing image...' :
+                       uploadProgress < 50 ? 'Optimizing...' :
+                       uploadProgress < 80 ? 'Uploading...' :
+                       uploadProgress < 100 ? 'Saving...' : 'Complete!'}
+                    </p>
+                  </div>
                 )}
-              </Avatar>
-              
-              {avatarUrl && !uploading && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute -top-2 -right-2 h-8 w-8 rounded-full p-0"
-                  onClick={handleRemoveAvatar}
-                  title="Remove avatar"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="avatar" className="text-sm font-medium block">
-                {avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
-              </Label>
-              
-              <div className="flex items-center gap-2">
-                <Input 
-                  type="file" 
-                  id="avatar" 
-                  accept="image/*" 
-                  onChange={handleAvatarChange} 
-                  disabled={uploading}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={uploading}
-                  onClick={() => document.getElementById('avatar')?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {uploading && (
-                <div className="space-y-2">
-                  <Progress value={uploadProgress} className="w-full" />
-                  <p className="text-sm text-blue-600">
-                    {uploadProgress < 25 ? 'Preparing image...' :
-                     uploadProgress < 50 ? 'Optimizing...' :
-                     uploadProgress < 80 ? 'Uploading...' :
-                     uploadProgress < 100 ? 'Saving...' : 'Complete!'}
+                
+                <div className="text-center mt-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {firstName} {lastName}
+                  </h2>
+                  <p className="text-gray-600 mt-1 flex items-center justify-center gap-1">
+                    <Mail className="h-4 w-4" />
+                    {email}
                   </p>
                 </div>
-              )}
-              
-              <p className="text-xs text-gray-500">
-                Supported: JPEG, PNG, WebP (max 10MB)
-              </p>
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Profile Form */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                type="text"
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Enter your first name"
-                disabled={loading}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                type="text"
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Enter your last name"
-                disabled={loading}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled
-                className="bg-gray-50"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Email cannot be changed from this page
-              </p>
-            </div>
-            
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <PhoneInput
-                id="phone"
-                value={phone}
-                onChange={(value) => setPhone(value)}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="county">County</Label>
-                <Select value={county} onValueChange={(value) => {
-                  setCounty(value);
-                  setCity(''); // Reset city when county changes
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select county" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countyOptions.map((countyOption) => (
-                      <SelectItem key={countyOption.value} value={countyOption.value}>
-                        {countyOption.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Profile Information Card */}
+          <Card className="shadow-xl border-0">
+            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-gray-100">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <User className="h-5 w-5 text-primary" />
+                Personal Information
+              </CardTitle>
+              <CardDescription>Update your personal details and contact information</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* First Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">
+                    First Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="text"
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Enter your first name"
+                      disabled={loading}
+                      className="pl-10 h-11 border-gray-300 focus:border-primary focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                
+                {/* Last Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">
+                    Last Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="text"
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Enter your last name"
+                      disabled={loading}
+                      className="pl-10 h-11 border-gray-300 focus:border-primary focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled
+                      className="pl-10 h-11 bg-gray-50 border-gray-200"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Email cannot be changed from this page
+                  </p>
+                </div>
+                
+                {/* Phone */}
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">
+                    Phone Number
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                    <PhoneInput
+                      id="phone"
+                      value={phone}
+                      onChange={(value) => setPhone(value)}
+                      disabled={loading}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </div>
-              
-              <div>
-                <Label htmlFor="city">City/Town</Label>
-                <Select 
-                  value={city} 
-                  onValueChange={(value) => setCity(value)}
-                  disabled={!county}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={county ? "Select city" : "Select county first"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableCities().map((cityOption) => (
-                      <SelectItem key={cityOption.value} value={cityOption.value}>
-                        {cityOption.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            </CardContent>
+          </Card>
+
+          {/* Location Card */}
+          <Card className="shadow-xl border-0">
+            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-gray-100">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <MapPin className="h-5 w-5 text-primary" />
+                Location Details
+              </CardTitle>
+              <CardDescription>Manage your delivery and contact address</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                {/* County and City */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="county" className="text-sm font-semibold text-gray-700">
+                      County
+                    </Label>
+                    <Select value={county} onValueChange={(value) => {
+                      setCounty(value);
+                      setCity('');
+                    }}>
+                      <SelectTrigger className="h-11 border-gray-300 focus:border-primary focus:ring-primary">
+                        <SelectValue placeholder="Select county" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countyOptions.map((countyOption) => (
+                          <SelectItem key={countyOption.value} value={countyOption.value}>
+                            {countyOption.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-sm font-semibold text-gray-700">
+                      City/Town
+                    </Label>
+                    <Select 
+                      value={city} 
+                      onValueChange={(value) => setCity(value)}
+                      disabled={!county}
+                    >
+                      <SelectTrigger className="h-11 border-gray-300 focus:border-primary focus:ring-primary">
+                        <SelectValue placeholder={county ? "Select city" : "Select county first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableCities().map((cityOption) => (
+                          <SelectItem key={cityOption.value} value={cityOption.value}>
+                            {cityOption.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Address */}
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-sm font-semibold text-gray-700">
+                    Street Address
+                  </Label>
+                  <Textarea
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter your complete street address"
+                    disabled={loading}
+                    rows={3}
+                    className="border-gray-300 focus:border-primary focus:ring-primary resize-none"
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="address">Street Address</Label>
-              <Textarea
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter your street address"
-                disabled={loading}
-                rows={3}
-              />
-            </div>
-            
+            </CardContent>
+          </Card>
+
+          {/* Update Button */}
+          <div className="flex justify-end">
             <Button 
               onClick={handleUpdateProfile} 
               disabled={loading || uploading}
-              className="w-full"
+              size="lg"
+              className="px-8 shadow-lg hover:shadow-xl transition-shadow"
             >
-              {loading ? 'Updating...' : 'Update Profile'}
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Update Profile
+                </>
+              )}
             </Button>
           </div>
         </div>

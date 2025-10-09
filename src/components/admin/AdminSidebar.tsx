@@ -99,8 +99,8 @@ const AdminSidebar = () => {
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex h-16 items-center justify-center border-b px-6">
-            <h2 className="text-xl font-bold text-orange-600">Admin Panel</h2>
+          <div className="flex h-16 items-center //justify-center border-b /px-6 px-3">
+            <h2 className="text-xl font-bold text-orange-600">SmartKenya Admin</h2>
           </div>
           
           {/* Navigation */}
