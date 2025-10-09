@@ -72,7 +72,7 @@ const Footer = ({ className }: FooterProps) => {
           "contactPoint": [
             {
               "@type": "ContactPoint",
-              "telephone": "+254798229783",
+              "telephone": "+254101762132",
               "contactType": "customer service",
               "email": "info@smartkenya.co.ke",
               "availableLanguage": ["English", "Swahili"]

@@ -3,7 +3,7 @@ import { MessageCircle, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const RealtimeChat = () => {
-  const phoneNumber = "+254798229783";
+  const phoneNumber = "+254101762132";
   const email = "support@smartkenya.co.ke";
   
   const handleWhatsAppClick = () => {

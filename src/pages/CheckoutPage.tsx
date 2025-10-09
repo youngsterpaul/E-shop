@@ -348,7 +348,7 @@ const CheckoutPage = () => {
             }
           }
         } catch (error) {
-          console.error('Error checking payment status:', error);
+          //console.error('Error checking payment status:', error);
         }
       }, 1000);
 
@@ -369,7 +369,7 @@ const CheckoutPage = () => {
       }, 15000);
 
     } catch (error) {
-      console.error('Payment error:', error);
+      //console.error('Payment error:', error);
       setPaymentStatus({
         status: 'failed',
         message: typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message || 'Payment failed. Please try again.' : 'Payment failed. Please try again.',
@@ -396,10 +396,10 @@ const CheckoutPage = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error updating profile delivery info:', error);
+        //console.error('Error updating profile delivery info:', error);
       }
     } catch (error) {
-      console.error('Error updating profile delivery info:', error);
+      //console.error('Error updating profile delivery info:', error);
     }
   };
 

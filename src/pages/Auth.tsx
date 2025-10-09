@@ -45,7 +45,7 @@ const AuthPage = () => {
     // Listen for auth state changes to detect password recovery
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event, 'Session:', !!session);
+        //console.log('Auth event:', event, 'Session:', !!session);
         
         if (event === 'PASSWORD_RECOVERY') {
           setIsPasswordRecovery(true);
@@ -183,18 +183,18 @@ const AuthPage = () => {
 
   const handlePasswordReset = async () => {
     try {
-      console.log('Starting password reset with password:', newPassword);
+      //console.log('Starting password reset with password:', newPassword);
       
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (error) {
-        console.error('Password reset error:', error);
+        //console.error('Password reset error:', error);
         throw error;
       }
 
-      console.log('Password reset successful');
+      //console.log('Password reset successful');
       
       toast({
         title: "Password updated",
@@ -209,7 +209,7 @@ const AuthPage = () => {
         navigate('/');
       }, 2000);
     } catch (error: any) {
-      console.error('Password reset failed:', error);
+      //console.error('Password reset failed:', error);
       setAuthError(error.message || 'Failed to update password');
     }
   };
@@ -217,11 +217,11 @@ const AuthPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submitted, mode:', authMode);
-    console.log('Validation result:', validateForm());
+    //console.log('Form submitted, mode:', authMode);
+    //console.log('Validation result:', validateForm());
     
     if (!validateForm()) {
-      console.log('Form validation failed:', errors);
+      //console.log('Form validation failed:', errors);
       return;
     }
 
@@ -230,18 +230,18 @@ const AuthPage = () => {
     
     try {
       if (authMode === 'forgot') {
-        console.log('Handling forgot password');
+        //console.log('Handling forgot password');
         await handleForgotPassword();
         return;
       } else if (authMode === 'reset') {
-        console.log('Handling password reset');
+        //console.log('Handling password reset');
         await handlePasswordReset();
         return;
       } else if (authMode === 'signup') {
-        console.log('Handling signup');
+        //console.log('Handling signup');
         await signUp(email, password);
       } else {
-        console.log('Handling signin');
+        //console.log('Handling signin');
         await signIn(email, password);
         
         if (rememberMe) {
@@ -249,7 +249,7 @@ const AuthPage = () => {
         }
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
+      //console.error('Auth error:', error);
       
       let errorMessage = error.message || 'Authentication failed';
       
