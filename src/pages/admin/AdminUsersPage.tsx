@@ -23,6 +23,7 @@ interface User {
   avatar_url: string | null;
   is_admin: boolean | null;
   created_at: string | null;
+  last_sign_in_at: string | null;
 }
 
 const AdminUsersPage = () => {
@@ -312,6 +313,7 @@ const AdminUsersPage = () => {
                     <TableHead>Contact</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Joined</TableHead>
+                     <TableHead>Last Sign In</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -397,6 +399,7 @@ const AdminUsersPage = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(user.created_at)}</TableCell>
+                        <TableCell>{formatDate(user.last_sign_in_at)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button 
