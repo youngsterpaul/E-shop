@@ -68,7 +68,8 @@ const AdminUsersPage = () => {
   const filteredUsers = users.filter(user => {
     // Search filter
     const searchMatch = searchQuery === '' || 
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.last_sign_in_at?.toLowerCase().includes(searchQuery.toLowerCase()) ||  
       `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Role filter

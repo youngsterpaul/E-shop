@@ -391,6 +391,7 @@ export type Database = {
           rating: number | null
           specification: Json | null
           stock: number | null
+          phone: number | null
           subcategory_id: number | null
           updated_at: string | null
         }
@@ -409,6 +410,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
@@ -427,6 +429,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }

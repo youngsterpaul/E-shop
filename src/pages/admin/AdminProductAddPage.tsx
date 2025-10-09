@@ -19,6 +19,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   features: string;
@@ -35,6 +36,7 @@ const AdminProductAdd = () => {
       description: '',
       price: 0,
       stock: 0,
+      phone: 0,
       categories: '',
       featured: false,
       features: '',
@@ -149,6 +151,7 @@ const AdminProductAdd = () => {
           price: data.price,
           description: data.description,
           stock: data.stock,
+          phone: data.phone,
           categories: categoryToStore,
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,

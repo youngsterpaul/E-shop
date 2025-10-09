@@ -21,6 +21,7 @@ interface Product {
   name: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   created_at: string;
@@ -339,6 +340,7 @@ const AdminProductsPage = () => {
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
+                    <TableHead>Seller's Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -388,6 +390,7 @@ const AdminProductsPage = () => {
                             {product.stock}
                           </span>
                         </TableCell>
+                        <TableCell>{product.phone}</TableCell>
                         <TableCell>
                           {product.featured ? (
                             <Badge className="bg-orange-500">Featured</Badge>

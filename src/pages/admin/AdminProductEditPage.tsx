@@ -19,6 +19,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   features: string;
@@ -42,6 +43,7 @@ const AdminProductEdit = () => {
       description: '',
       price: 0,
       stock: 0,
+      phone: 0,
       categories: '',
       featured: false,
       features: '',
@@ -103,6 +105,7 @@ const AdminProductEdit = () => {
         form.setValue('description', ''); // Description not in Row type, will be set during updates
         form.setValue('price', data.price || 0);
         form.setValue('stock', data.stock || 0);
+        form.setValue('phone', data.phone || 0);
         form.setValue('categories', data.categories || '');
         form.setValue('featured', data.featured || false);
         
@@ -290,6 +293,7 @@ const AdminProductEdit = () => {
           price: data.price,
           description: data.description,
           stock: data.stock,
+          phone: data.phone,
           categories: categoryToStore,
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
