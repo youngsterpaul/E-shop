@@ -183,8 +183,22 @@ const AdminUsersPage = () => {
   // Format date
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'Africa/Nairobi', // EAT (UTC+3)
+    };
+
+    // Generate formatted string
+    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+
+    return formatted.replace(/\sGMT.*$/, ''); // Remove time zone suffix if it appears
   };
 
   return (
