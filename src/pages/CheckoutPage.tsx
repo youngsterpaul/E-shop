@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
@@ -43,6 +43,13 @@ const CheckoutPage = () => {
   const { calculations, getSelectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
+
+  // Refs for cleanup
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isPaymentCompletedRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -89,6 +96,23 @@ const CheckoutPage = () => {
   const freeDeliveryThreshold = 10000;
   const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
 
+  // Cleanup function using useCallback for stability
+  const cleanupPaymentPolling = useCallback(() => {
+    console.log('🧹 Cleaning up payment polling...');
+    
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    isPaymentCompletedRef.current = true;
+  }, []);
+
   // Initialize form data
   useEffect(() => {
     setCustomerData({
@@ -100,7 +124,6 @@ const CheckoutPage = () => {
       phone: profile?.phone || ''
     });
 
-    // Add this to initialize delivery data from profile
     setDeliveryData({
       address: profile?.address || '',
       city: profile?.city || '',
@@ -115,6 +138,13 @@ const CheckoutPage = () => {
       navigate('/cart');
     }
   }, [calculations.selectedItemsCount, navigate]);
+
+  // Cleanup on unmount or when modal closes
+  useEffect(() => {
+    return () => {
+      cleanupPaymentPolling();
+    };
+  }, [cleanupPaymentPolling]);
 
   // County and city mapping
   const countyOptions = [
@@ -186,7 +216,6 @@ const CheckoutPage = () => {
   // Navigation functions
   const handleNext = () => {
     if (currentStep === 1 && validateStep1()) {
-      // Save customer data to profile before moving to step 2
       updateProfileDeliveryInfo({
         first_name: customerData.firstName,
         last_name: customerData.lastName,
@@ -194,7 +223,6 @@ const CheckoutPage = () => {
       });
       setCurrentStep(2);
     } else if (currentStep === 2 && validateStep2()) {
-      // Save all delivery data to profile before moving to step 3
       updateProfileDeliveryInfo({
         address: deliveryData.address,
         city: deliveryData.city,
@@ -215,35 +243,33 @@ const CheckoutPage = () => {
   };
 
   // Input change handlers
-const handleCustomerChange = (field, value) => {
-  const trimmedValue = value.trim();
-  setCustomerData((prev) => ({
-    ...prev,
-    [field]: trimmedValue,
-  }));
-};
+  const handleCustomerChange = (field: string, value: string) => {
+    const trimmedValue = value.trim();
+    setCustomerData((prev) => ({
+      ...prev,
+      [field]: trimmedValue,
+    }));
+  };
 
-  const handleDeliveryChange = (field, value) => {
+  const handleDeliveryChange = (field: string, value: string) => {
     setDeliveryData(prev => ({ 
       ...prev, 
       [field]: value,
       ...(field === 'county' ? { city: '' } : {})
     }));
   
-  if (errors[field]) {
-    setErrors(prev => ({ ...prev, [field]: '' }));
-  }
+    if (errors[field as keyof ErrorsType]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
 
-  // Update profile with new delivery information - fix the typing here
-  const updates: { [key: string]: string } = { [field]: value };
-  
-  // If county changes, also clear city in profile
-  if (field === 'county') {
-    updates.city = '';
-  }
-  
-  updateProfileDeliveryInfo(updates);
-};
+    const updates: { [key: string]: string } = { [field]: value };
+    
+    if (field === 'county') {
+      updates.city = '';
+    }
+    
+    updateProfileDeliveryInfo(updates);
+  };
 
   // Get available cities based on selected county
   const getAvailableCities = () => {
@@ -251,10 +277,37 @@ const handleCustomerChange = (field, value) => {
     return cityOptions[deliveryData.county] || [];
   };
 
-  // Payment handling
+  // Enhanced payment status checking with retry logic
+  const checkPaymentStatusWithRetry = useCallback(async (checkoutRequestId: string) => {
+    try {
+      const status = await checkPaymentStatus(checkoutRequestId);
+      retryCountRef.current = 0; // Reset retry count on success
+      return status;
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      retryCountRef.current += 1;
+      
+      if (retryCountRef.current >= maxRetries) {
+        console.error('Max retries reached for payment status check');
+        return null;
+      }
+      
+      return null;
+    }
+  }, [checkPaymentStatus]);
+
+  // Payment handling with improved state management
   const handleMpesaPayment = async () => {
     const newOrderId = `ORD-${Date.now()}`;
     setOrderId(newOrderId);
+    
+    // Reset refs
+    isPaymentCompletedRef.current = false;
+    retryCountRef.current = 0;
+    
+    // Clean up any existing polling
+    cleanupPaymentPolling();
+    
     setPaymentStatus({ status: 'processing', message: '', checkoutRequestId: null });
 
     try {
@@ -274,6 +327,8 @@ const handleCustomerChange = (field, value) => {
       const deliveryCost = deliveryData.deliveryMethod === 'express' ? 1200 : 0;
       const finalTotal = calculations.total + deliveryCost;
 
+      console.log('📝 Creating order in database...');
+      
       // Create order in database
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -298,6 +353,9 @@ const handleCustomerChange = (field, value) => {
         throw new Error('Failed to create order. Please try again.');
       }
 
+      console.log('✅ Order created successfully:', newOrderId);
+      console.log('💳 Initiating M-Pesa payment...');
+
       // Initiate M-Pesa payment
       const result = await initiatePayment({
         phone: customerData.phone,
@@ -305,71 +363,118 @@ const handleCustomerChange = (field, value) => {
         orderId: newOrderId
       });
 
-      if (!result.success) {
+      if (!result.success || !result.checkoutRequestId) {
         throw new Error(result.error || 'Payment initiation failed');
       }
 
+      console.log('✅ M-Pesa STK Push sent:', result.checkoutRequestId);
+
       setPaymentStatus({
         status: 'waiting',
-        checkoutRequestId: result.checkoutRequestId ?? null,
+        checkoutRequestId: result.checkoutRequestId,
         message: 'Check your phone and enter your M-Pesa PIN'
       });
 
       // Start polling for payment status
-      const pollPayment = setInterval(async () => {
-        try {
-          if (result.checkoutRequestId) {
-            const status = await checkPaymentStatus(result.checkoutRequestId);
-          if (result.checkoutRequestId) {
-            const status = await checkPaymentStatus(result.checkoutRequestId);
+      let pollCount = 0;
+      const maxPolls = 30; // 30 polls * 2 seconds = 60 seconds max
 
-            if (status?.status === 'success') {
-              setPaymentStatus({ status: 'success', message: '', checkoutRequestId: null });
-              clearCart();
-              clearInterval(pollPayment);
-              setTimeout(() => {
-                setShowPaymentModal(false);
-                navigate(`/order/${newOrderId}`);
-              }, 2000);
-            } else if (status?.status === 'failed') {
-              setPaymentStatus({ 
-                status: 'failed',
-                message: status.result_desc || 'Payment failed',
-                checkoutRequestId: null
-              });
-              clearInterval(pollPayment);
-            }
+      pollIntervalRef.current = setInterval(async () => {
+        if (isPaymentCompletedRef.current) {
+          cleanupPaymentPolling();
+          return;
+        }
+
+        pollCount++;
+        console.log(`🔄 Polling payment status (attempt ${pollCount}/${maxPolls})...`);
+        
+        try {
+          const status = await checkPaymentStatusWithRetry(result.checkoutRequestId!);
+
+          if (!status) {
+            // If we hit max retries or no status, continue polling
+            return;
           }
+
+          console.log('📊 Payment status:', status);
+
+          if (status.status === 'success') {
+            console.log('✅ Payment successful!');
+            cleanupPaymentPolling();
+            
+            setPaymentStatus({ 
+              status: 'success', 
+              message: 'Payment completed successfully!', 
+              checkoutRequestId: null 
+            });
+            
+            // Update order status
+            await supabase
+              .from('orders')
+              .update({ status: 'paid' })
+              .eq('order_id', newOrderId);
+            
+            clearCart();
+            
+            setTimeout(() => {
+              setShowPaymentModal(false);
+              navigate(`/order/${newOrderId}`);
+            }, 2000);
+            
+          } else if (status.status === 'failed') {
+            console.log('❌ Payment failed:', status.result_desc);
+            cleanupPaymentPolling();
+            
+            setPaymentStatus({ 
+              status: 'failed',
+              message: status.result_desc || 'Payment failed. Please try again.',
+              checkoutRequestId: null
+            });
+            
+            // Update order status
+            await supabase
+              .from('orders')
+              .update({ status: 'failed' })
+              .eq('order_id', newOrderId);
           }
         } catch (error) {
-          console.error('Error checking payment status:', error);
+          console.error('Error in payment polling:', error);
         }
-      }, 1000);
+      }, 2000);
 
-      // Set timeout for payment
-      setTimeout(() => {
-        clearInterval(pollPayment);
-        if (paymentStatus.status === 'waiting') {
-          setPaymentStatus({ status: 'timeout', message: 'Payment request timed out', checkoutRequestId: null });
+      // Set timeout for payment (60 seconds)
+      timeoutRef.current = setTimeout(() => {
+        if (!isPaymentCompletedRef.current) {
+          console.log('⏱️ Payment timeout reached');
+          cleanupPaymentPolling();
+          
+          setPaymentStatus({ 
+            status: 'timeout', 
+            message: 'Payment request timed out. Please check your phone or try again.', 
+            checkoutRequestId: null 
+          });
         }
-      }, 15000);
+      }, 60000);
 
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('❌ Payment error:', error);
+      cleanupPaymentPolling();
+      
       setPaymentStatus({
         status: 'failed',
-        message: typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message || 'Payment failed. Please try again.' : 'Payment failed. Please try again.',
+        message: error instanceof Error ? error.message : 'Payment failed. Please try again.',
         checkoutRequestId: null
       });
     }
   };
 
   const handleRetryPayment = () => {
+    console.log('🔄 Retrying payment...');
+    cleanupPaymentPolling();
     setPaymentStatus({ status: 'idle', message: '', checkoutRequestId: null });
   };
 
-  // Add this function after your existing handler functions
-  const updateProfileDeliveryInfo = async (updates) => {
+  const updateProfileDeliveryInfo = async (updates: Record<string, string>) => {
     if (!user?.id) return;
     
     try {
@@ -540,7 +645,6 @@ const handleCustomerChange = (field, value) => {
             )}
           </div>
         </CardContent>
-        
       </Card>
     </div>
   );
@@ -554,7 +658,6 @@ const handleCustomerChange = (field, value) => {
         </p>
       </div>
 
-      {/* Customer Details Summary */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Customer Details</CardTitle>
@@ -566,7 +669,6 @@ const handleCustomerChange = (field, value) => {
         </CardContent>
       </Card>
 
-      {/* Delivery Details Summary */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Delivery Details</CardTitle>
@@ -607,12 +709,15 @@ const handleCustomerChange = (field, value) => {
               </div>
               <h3 className="text-lg font-semibold mb-2">Waiting for Payment</h3>
               <p className="text-gray-600 mb-4">
-                Check your phone and enter your M-Pesa PIN to complete the payment
+                {paymentStatus.message}
               </p>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
                 <p className="text-sm text-gray-600">Phone: {customerData.phone}</p>
               </div>
+              <p className="text-xs text-gray-500 mt-4">
+                This may take up to 60 seconds
+              </p>
             </div>
           );
 
@@ -621,7 +726,7 @@ const handleCustomerChange = (field, value) => {
             <div className="text-center py-8">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-green-600 mb-2">Payment Successful!</h3>
-              <p className="text-gray-600 mb-4">Your payment has been processed successfully.</p>
+              <p className="text-gray-600 mb-4">{paymentStatus.message || 'Your payment has been processed successfully.'}</p>
               <div className="flex items-center justify-center">
                 <Loader2 className="h-4 w-4 animate-spin text-green-600 mr-2" />
                 <span className="text-sm text-green-600">Redirecting to order details...</span>
@@ -638,10 +743,7 @@ const handleCustomerChange = (field, value) => {
                 {paymentStatus.status === 'timeout' ? 'Payment Timeout' : 'Payment Failed'}
               </h3>
               <p className="text-gray-600 mb-4">
-                {paymentStatus.status === 'timeout' 
-                  ? 'Payment request timed out. Please try again.'
-                  : paymentStatus.message || 'Payment could not be processed.'
-                }
+                {paymentStatus.message}
               </p>
               <Button onClick={handleRetryPayment} className="bg-red-600 hover:bg-red-700">
                 Try Again
@@ -697,8 +799,9 @@ const handleCustomerChange = (field, value) => {
     };
 
     return (
-      <Dialog open={showPaymentModal} onOpenChange={() => {
-        if (paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
+      <Dialog open={showPaymentModal} onOpenChange={(open) => {
+        if (!open && paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
+          cleanupPaymentPolling();
           setShowPaymentModal(false);
         }
       }}>
