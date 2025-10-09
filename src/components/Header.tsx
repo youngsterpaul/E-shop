@@ -39,15 +39,19 @@ const Header = () => {
   const isMobile = isMobileUserAgent();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNav, setShowNav] = useState(true);
-const [lastScrollY, setLastScrollY] = useState(0);
-  
+
   // Safely get cart data with fallback
   let items: any[] = [];
   let totalItems = 0;
   
-const [showTopHeader, setShowTopHeader] = useState(true);
-const [showBottomNav, setShowBottomNav] = useState(true);
+  const [showTopHeader, setShowTopHeader] = useState(true);
+  const [showBottomNav, setShowBottomNav] = useState(true);
+
+    // List of paths where you want to hide main Header content
+  const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
+
+  // Check if current path matches any in the hide list
+  const hideMainHeader = hideMainHeaderOnPaths.includes(location.pathname);
 
 useEffect(() => {
   let lastScrollY = window.scrollY;
@@ -203,7 +207,7 @@ useEffect(() => {
             </Link>
     
             {/* Desktop Search */}
-            {!isMobile && (
+            {!isMobile && !hideMainHeader && (
               <>
               <div className="flex flex-1 mx-4 lg:mx-8 relative">
                 <EnhancedSearchInput
@@ -273,7 +277,7 @@ useEffect(() => {
                     </DropdownMenuItem>
                     {profile?.is_admin && (
                       <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer flex items-center">
+                        <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center">
                           <Settings className="mr-2 h-4 w-4" /> Admin Dashboard
                         </Link>
                       </DropdownMenuItem>

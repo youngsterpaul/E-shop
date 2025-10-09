@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Header2 from '@/components/Header2';
+import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import {
   Accordion,
@@ -105,7 +105,7 @@ const FAQPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header2 />}
+      {!isMobile && <Header />}
         {isMobile && ( 
          <MobileHeader
           title="FAQs"

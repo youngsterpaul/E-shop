@@ -166,7 +166,7 @@ const AdminProductAdd = () => {
       form.reset();
       clearImages();
       
-      navigate('/admin/products');
+      navigate('/supersmartkenyaadmin123/products');
       
     } catch (error: any) {
       console.error('Error creating product:', error);
@@ -193,7 +193,7 @@ const AdminProductAdd = () => {
             <p className="text-muted-foreground">Add a new product to your inventory</p>
           </div>
           
-          <Button onClick={() => navigate('/admin/products')} variant="outline">
+          <Button onClick={() => navigate('/supersmartkenyaadmin123/products')} variant="outline">
             Cancel
           </Button>
         </div>

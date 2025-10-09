@@ -207,7 +207,7 @@ const AccountPage = () => {
         {profile?.is_admin && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
             <CardContent className="p-4">
-              <Link to="/admin" className="flex items-center gap-3">
+              <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Settings className="h-5 w-5 text-orange-600" />
                 </div>

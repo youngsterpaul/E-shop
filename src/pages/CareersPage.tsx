@@ -13,7 +13,7 @@ import ApplicationModal from '@/components/careers/ApplicationModal';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import Header2 from '@/components/Header2';
+import Header from '@/components/Header';
 
 interface Job {
   id: string;
@@ -186,7 +186,7 @@ const CareersPage = () => {
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
-        {!isMobile && <Header2 />}
+        {!isMobile && <Header />}
         {isMobile && ( 
           <MobileHeader
           title="Careers"

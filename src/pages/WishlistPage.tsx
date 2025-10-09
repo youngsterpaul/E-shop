@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Heart, Trash2, ShoppingCart, ArrowLeft, Settings } from 'lucide-react';
 import Header from '@/components/Header';
 import MobileNav from '@/components/MobileNav';
-import SiteBreadcrumb from '@/components/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { MobileHeader } from '@/components/ui/mobile-header';
+import Footer from '@/components/Footer';
 
 interface WishlistItem {
   id: string;
@@ -143,23 +143,14 @@ const WishlistPage = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
+        <Header />     
         <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
           <div className={`container mx-auto px-4 py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
-            <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Wishlist' }
-              ]}
-              className="mb-6"
-            />
-
             <div className="text-center py-12">
               <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign in to view your wishlist</h2>
               <p className="text-gray-600 mb-6">Save your favorite items for later</p>
-              <Link to="/auth/signin">
+              <Link to="/auth">
                 <Button className="bg-primary hover:bg-primary/90">
                   Sign In
                 </Button>
@@ -175,34 +166,6 @@ const WishlistPage = () => {
 
   return (
     <>
-      {/* Wishlist Page Schema */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "My Wishlist - SmartKenya",
-          "description": "View and manage your wishlist at SmartKenya. Save your favorite items for later.",
-          "url": "https://smartkenya.co.ke/wishlist",
-          "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://smartkenya.co.ke"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "My Wishlist",
-                "item": "https://smartkenya.co.ke/wishlist"
-              }
-            ]
-          }
-        })}
-      </script>
-
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         {!isMobile && <Header />}
         {isMobile && (
@@ -217,31 +180,39 @@ const WishlistPage = () => {
           />
         )}
         
-        <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
+        <main className={`${isMobile ? 'pb-20' : 'pb-8 px-4 xl:px-24'}`}>
           <div className={`container mx-auto ${gridConfig.padding} py-8`}>
-            {/* Breadcrumb - Desktop only */}
-            {!isMobile && (
-              <SiteBreadcrumb 
-                items={[
-                  { label: 'Home', href: '/' },
-                  { label: 'Wishlist' }
-                ]}
-                className="mb-6"
-              />
-            )}
-
-            {/* Header section */}
+           {/* Header section */}
             <div className={`flex items-center justify-between mb-4 ${isMobile ? 'px-2' : ''}`}>
               <h1 className="text-2xl font-bold text-gray-900">My Wishlist</h1>
-              {!isMobile && (
-                <Link to="/products" className="text-primary hover:text-primary/80 flex items-center">
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
-                </Link>
-              )}
             </div>
 
             {loading ? (
-              <div className="text-center py-8">Loading wishlist...</div>
+              <div className={`${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
+                <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
+                  {[...Array(isMobile ? 6 : 14)].map((_, index) => (
+                    <Card key={index} className={`${isMobile ? 'rounded-lg' : 'rounded-none border-r border-b border-gray-200'}`}>
+                      <CardContent className={`${isMobile ? 'p-3' : 'p-2'}`}>
+                        {/* Image skeleton */}
+                        <div className={`w-full bg-gray-200 rounded-md mb-2 animate-pulse ${isMobile ? 'h-32' : 'h-24'}`} />
+                        
+                        {/* Title skeleton */}
+                        <div className={`bg-gray-200 rounded mb-1 animate-pulse ${isMobile ? 'h-4' : 'h-3'}`} />
+                        <div className={`bg-gray-200 rounded mb-2 animate-pulse ${isMobile ? 'h-4 w-3/4' : 'h-3 w-3/4'}`} />
+                        
+                        {/* Price skeleton */}
+                        <div className={`bg-gray-200 rounded mb-2 animate-pulse ${isMobile ? 'h-4 w-1/3' : 'h-3 w-1/3'}`} />
+                        
+                        {/* Buttons skeleton */}
+                        <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-col gap-1'}`}>
+                          <div className={`bg-gray-200 rounded animate-pulse ${isMobile ? 'h-8' : 'h-7'}`} />
+                          <div className={`bg-gray-200 rounded animate-pulse ${isMobile ? 'h-8' : 'h-7'}`} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ) : wishlistItems.length === 0 ? (
               <div className="text-center py-12">
                 <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -312,7 +283,7 @@ const WishlistPage = () => {
             )}
           </div>
         </main>
-
+        {!isMobile && <Footer />}
         <MobileNav />
       </div>
     </>

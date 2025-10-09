@@ -48,7 +48,7 @@ const AdminProductsPage = () => {
   const categoryOptions = [{ id: 0, category: 'All Categories' }, ...categories];
 
   const handleEdit = (productId: string) => {
-    navigate(`/admin/products/edit/${productId}`);
+    navigate(`/supersmartkenyaadmin123/products/edit/${productId}`);
   };
 
   // Fetch products from database
@@ -226,7 +226,7 @@ const AdminProductsPage = () => {
           <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
             <Button 
               className="bg-orange-500 hover:bg-orange-600"
-              onClick={() => navigate('/admin/products/add')}
+              onClick={() => navigate('/supersmartkenyaadmin123/products/add')}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Product
             </Button>

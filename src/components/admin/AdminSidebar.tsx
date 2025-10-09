@@ -33,37 +33,37 @@ const AdminSidebar = () => {
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
-      path: '/admin',
+      path: '/supersmartkenyaadmin123',
     },
     {
       name: 'Products',
       icon: Package,
-      path: '/admin/products',
+      path: '/supersmartkenyaadmin123/products',
       action: {
         name: 'Add Product',
         icon: Plus,
-        path: '/admin/products/add',
+        path: '/supersmartkenyaadmin123/products/add',
       },
     },
 {
       name: 'Categories',
       icon: Tags,
-      path: '/admin/categories',
+      path: '/supersmartkenyaadmin123/categories',
     },
     {
       name: 'Orders',
       icon: ShoppingCart,
-      path: '/admin/orders',
+      path: '/supersmartkenyaadmin123/orders',
     },
     {
       name: 'Users',
       icon: Users,
-      path: '/admin/users',
+      path: '/supersmartkenyaadmin123/users',
     },
     {
       name: 'Settings',
       icon: Settings,
-      path: '/admin/settings',
+      path: '/supersmartkenyaadmin123/settings',
     },
   ];
   

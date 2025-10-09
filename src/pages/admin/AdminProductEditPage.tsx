@@ -306,7 +306,7 @@ const AdminProductEdit = () => {
         description: `"${data.name}" has been updated with ${finalImageUrls.length} image(s).`,
       });
       
-      navigate('/admin/products');
+      navigate('/supersmartkenyaadmin123/products');
       
     } catch (error: any) {
       console.error('Error updating product:', error);
@@ -350,7 +350,7 @@ const AdminProductEdit = () => {
             <p className="text-muted-foreground">Update product information</p>
           </div>
           
-          <Button onClick={() => navigate('/admin/products')} variant="outline">
+          <Button onClick={() => navigate('/supersmartkenyaadmin123/products')} variant="outline">
             Cancel
           </Button>
         </div>

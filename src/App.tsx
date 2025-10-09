@@ -87,16 +87,16 @@ function App() {
             <Route path="/careers" element={<CareersPage />} />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
-            <Route path="/admin/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
-            <Route path="/admin/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
-            <Route path="/admin/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
-            <Route path="/admin/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
-            <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/admin/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
-            <Route path="/admin/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
-            <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

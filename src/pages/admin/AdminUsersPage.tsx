@@ -199,7 +199,7 @@ const AdminUsersPage = () => {
           <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
             <Button 
               className="bg-orange-500 hover:bg-orange-600"
-              onClick={() => navigate('/admin/users/add')}
+              onClick={() => navigate('/supersmartkenyaadmin123/users/add')}
             >
               <Plus className="mr-2 h-4 w-4" /> Add User
             </Button>
@@ -402,7 +402,7 @@ const AdminUsersPage = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => navigate(`/admin/users/edit/${user.user_id}`)}
+                              onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>

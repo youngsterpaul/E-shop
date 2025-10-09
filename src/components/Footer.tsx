@@ -15,7 +15,7 @@ const Footer = ({ className }: FooterProps) => {
   if (isMobile) return null;
 
   // List of paths where you want to hide main footer content
-  const hideMainFooterOnPaths = ['/search', '/cart'];
+  const hideMainFooterOnPaths = ['/search', '/cart', '/wishlist'];
 
   // Check if current path matches any in the hide list
   const hideMainFooter = hideMainFooterOnPaths.includes(location.pathname);
@@ -25,8 +25,8 @@ const Footer = ({ className }: FooterProps) => {
     {
       title: 'Shop',
       links: [
-        { label: 'All Products', href: '/products' },
-        { label: 'Categories', href: '/categories' },
+        { label: 'All Products', href: '/' },
+        { label: 'Categories', href: '/' },
         { label: 'Featured Deals', href: '/' },
       ]
     },
