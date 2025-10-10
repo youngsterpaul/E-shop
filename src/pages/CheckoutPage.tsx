@@ -743,7 +743,11 @@ const CheckoutPage = () => {
         />
       )}
 
-      <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
+        <div
+          className={`container mx-auto px-4 py-6 ${
+            !isMobile ? 'xl:px-24' : 'pb-32'
+          }`}
+        >
         {!isMobile && (
           <div className="mb-6">
             <Button 
@@ -811,17 +815,24 @@ const CheckoutPage = () => {
               </div>
 
               {/* Navigation */}
-              <div className="p-6 border-t bg-gray-50">
-                <div className="flex justify-between">
-                  <Button 
-                    variant="outline" 
+              <div
+                className={`p-6 border-t bg-gray-50 ${
+                  isMobile
+                    ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg'
+                    : ''
+                }`}
+              >
+                <div className="flex justify-between max-w-md mx-auto">
+                  <Button
+                    variant="outline"
                     onClick={handleBack}
+                    className="flex-1 mr-2"
                   >
                     {currentStep === 1 ? 'Back to Cart' : 'Back'}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleNext}
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600"
                   >
                     {currentStep === 3 ? 'Proceed to Payment' : 'Continue'}
                   </Button>
