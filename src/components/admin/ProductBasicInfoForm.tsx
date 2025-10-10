@@ -10,6 +10,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   features: string;
@@ -65,19 +66,20 @@ const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => 
           />
         </div>
 
+        <div className="grid md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="stock"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Seller's Phone*</FormLabel>
+              <FormLabel>Stock*</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
                   min="0"
                   value={field.value}
                   onChange={e => field.onChange(parseInt(e.target.value))}
-                  placeholder="e.g., 0712345678" 
+                  placeholder="e.g., 100" 
                 />
               </FormControl>
               <FormMessage />
@@ -85,19 +87,26 @@ const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => 
           )}
         />
         
-        {/*<FormField
+        <FormField
           control={form.control}
-          name="description"
+          name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description*</FormLabel>
+              <FormLabel>Phone*</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Describe your product" required rows={5} />
+                <Input 
+                  type="number" 
+                  min="0"
+                  value={field.value}
+                  onChange={e => field.onChange(parseInt(e.target.value))}
+                  placeholder="e.g., 100" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />*/}
+        />
+      </div>
       </CardContent>
     </Card>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
@@ -56,6 +56,7 @@ const CheckoutPage = () => {
     message: '',
     checkoutRequestId: null
   });
+  const paymentStatusRef = useRef(paymentStatus);
   const [orderId, setOrderId] = useState('');
 
   // Form data states
@@ -186,6 +187,12 @@ const CheckoutPage = () => {
   // Navigation functions
   const handleNext = () => {
     if (currentStep === 1 && validateStep1()) {
+      // Save customer data to profile before moving to step 2
+      updateProfileDeliveryInfo({
+        first_name: customerData.firstName,
+        last_name: customerData.lastName,
+        phone: customerData.phone
+      });
       setCurrentStep(2);
     } else if (currentStep === 2 && validateStep2()) {
       // Save all delivery data to profile before moving to step 3
@@ -210,10 +217,11 @@ const CheckoutPage = () => {
 
   // Input change handlers
   const handleCustomerChange = (field, value) => {
-    setCustomerData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    const trimmedValue = value.trim();
+    setCustomerData((prev) => ({
+      ...prev,
+      [field]: trimmedValue,
+    }));
   };
 
   const handleDeliveryChange = (field, value) => {
@@ -302,22 +310,26 @@ const CheckoutPage = () => {
         throw new Error(result.error || 'Payment initiation failed');
       }
 
-      setPaymentStatus({
+      const newStatus = {
         status: 'waiting',
         checkoutRequestId: result.checkoutRequestId ?? null,
         message: 'Check your phone and enter your M-Pesa PIN'
-      });
+      };
+      setPaymentStatus(newStatus);
+      paymentStatusRef.current = newStatus;
 
       // Start polling for payment status
       const pollPayment = setInterval(async () => {
         try {
           if (result.checkoutRequestId) {
             const status = await checkPaymentStatus(result.checkoutRequestId);
-          if (result.checkoutRequestId) {
-            const status = await checkPaymentStatus(result.checkoutRequestId);
 
             if (status?.status === 'success') {
-              setPaymentStatus({ status: 'success', message: '', checkoutRequestId: null });
+              const successStatus = { status: 'success', message: '', checkoutRequestId: null };
+              setPaymentStatus(successStatus);
+              paymentStatusRef.current = successStatus;
+
+              paymentStatusRef.current = successStatus;
               clearCart();
               clearInterval(pollPayment);
               setTimeout(() => {
@@ -325,30 +337,39 @@ const CheckoutPage = () => {
                 navigate(`/order/${newOrderId}`);
               }, 2000);
             } else if (status?.status === 'failed') {
-              setPaymentStatus({ 
+              const failedStatus = {
                 status: 'failed',
                 message: status.result_desc || 'Payment failed',
                 checkoutRequestId: null
-              });
+              };
+              setPaymentStatus(failedStatus);
+              paymentStatusRef.current = failedStatus;
               clearInterval(pollPayment);
             }
           }
-          }
         } catch (error) {
-          console.error('Error checking payment status:', error);
+          //console.error('Error checking payment status:', error);
         }
       }, 1000);
 
       // Set timeout for payment
       setTimeout(() => {
         clearInterval(pollPayment);
-        if (paymentStatus.status === 'waiting') {
-          setPaymentStatus({ status: 'timeout', message: 'Payment request timed out', checkoutRequestId: null });
+
+        // Always check the current status, not the stale state
+        if (paymentStatusRef.current.status === 'waiting') {
+          const timeoutStatus = { 
+            status: 'timeout', 
+            message: 'Payment request timed out', 
+            checkoutRequestId: null 
+          };
+          setPaymentStatus(timeoutStatus);
+          paymentStatusRef.current = timeoutStatus;
         }
       }, 15000);
 
     } catch (error) {
-      console.error('Payment error:', error);
+      //console.error('Payment error:', error);
       setPaymentStatus({
         status: 'failed',
         message: typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message || 'Payment failed. Please try again.' : 'Payment failed. Please try again.',
@@ -375,10 +396,10 @@ const CheckoutPage = () => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error updating profile delivery info:', error);
+        //console.error('Error updating profile delivery info:', error);
       }
     } catch (error) {
-      console.error('Error updating profile delivery info:', error);
+      //console.error('Error updating profile delivery info:', error);
     }
   };
 
@@ -428,8 +449,7 @@ const CheckoutPage = () => {
               id="email"
               type="email"
               value={customerData.email}
-              onChange={(e) => handleCustomerChange('email', e.target.value)}
-              placeholder="Enter your email address"
+              readOnly
               className={errors.email ? 'border-red-500' : ''}
             />
             {errors.email && (

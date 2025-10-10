@@ -19,6 +19,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   features: string;
@@ -35,6 +36,7 @@ const AdminProductAdd = () => {
       description: '',
       price: 0,
       stock: 0,
+      phone: 0,
       categories: '',
       featured: false,
       features: '',
@@ -149,6 +151,7 @@ const AdminProductAdd = () => {
           price: data.price,
           description: data.description,
           stock: data.stock,
+          phone: data.phone,
           categories: categoryToStore,
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
@@ -166,7 +169,7 @@ const AdminProductAdd = () => {
       form.reset();
       clearImages();
       
-      navigate('/admin/products');
+      navigate('/supersmartkenyaadmin123/products');
       
     } catch (error: any) {
       console.error('Error creating product:', error);
@@ -193,7 +196,7 @@ const AdminProductAdd = () => {
             <p className="text-muted-foreground">Add a new product to your inventory</p>
           </div>
           
-          <Button onClick={() => navigate('/admin/products')} variant="outline">
+          <Button onClick={() => navigate('/supersmartkenyaadmin123/products')} variant="outline">
             Cancel
           </Button>
         </div>

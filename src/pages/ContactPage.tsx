@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import Header2 from '@/components/Header2';
+import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,7 +52,7 @@ const ContactPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header2 />}
+      {!isMobile && <Header />}
       {isMobile && ( 
         <MobileHeader
           title="Contact Us"
@@ -76,8 +76,8 @@ const ContactPage = () => {
               </div>
               <h3 className="font-semibold mb-2">Call Us</h3>
               <p className="text-gray-700 mb-3">Mon-Fri from 8am to 5pm</p>
-              <a href="tel:+254798229783" className="text-green-500 hover:text-orange-600">
-                +254 798 229 783
+              <a href="tel:+254101762132" className="text-green-500 hover:text-orange-600">
+                +254 101 762 132
               </a>
             </div>
             

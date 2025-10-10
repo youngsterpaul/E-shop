@@ -167,13 +167,31 @@ const ProductDetailsPage: React.FC = () => {
       "@type": "Offer",
       price: price,
       priceCurrency: "KES",
-      availability: product?.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" }
+      availability:
+        product?.stock && product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" },
+
+      // ✅ Add Merchant Return Policy
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "KE", // Kenya
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7, // Example: 7-day return policy
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn"
+      }
     },
     aggregateRating: product?.rating
-      ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews || 0 }
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: product.rating,
+          reviewCount: product.reviews || 0
+        }
       : undefined
   }), [product, price]);
+
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
@@ -317,10 +335,10 @@ const ProductDetailsPage: React.FC = () => {
         <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4' : ''}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
             <EnhancedProductImageGallery product={productWithImages} />
 
-            <div className={`space-y-6 ${isMobile ? 'px-2' : ''}`}>
+            <div className={`space-y-6 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 mb-3" style={{ textAlign: 'justify' }}>
                   {product.name}

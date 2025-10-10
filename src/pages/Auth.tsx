@@ -11,6 +11,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, ChevronLeft, Shield } from 'lucide
 import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -38,12 +39,13 @@ const AuthPage = () => {
   const [resetLinkError, setResetLinkError] = useState<string>('');
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
+  const isMobile = isMobileUserAgent();
   
   useEffect(() => {
     // Listen for auth state changes to detect password recovery
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event, 'Session:', !!session);
+        //console.log('Auth event:', event, 'Session:', !!session);
         
         if (event === 'PASSWORD_RECOVERY') {
           setIsPasswordRecovery(true);
@@ -181,18 +183,18 @@ const AuthPage = () => {
 
   const handlePasswordReset = async () => {
     try {
-      console.log('Starting password reset with password:', newPassword);
+      //console.log('Starting password reset with password:', newPassword);
       
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (error) {
-        console.error('Password reset error:', error);
+        //console.error('Password reset error:', error);
         throw error;
       }
 
-      console.log('Password reset successful');
+      //console.log('Password reset successful');
       
       toast({
         title: "Password updated",
@@ -207,7 +209,7 @@ const AuthPage = () => {
         navigate('/');
       }, 2000);
     } catch (error: any) {
-      console.error('Password reset failed:', error);
+      //console.error('Password reset failed:', error);
       setAuthError(error.message || 'Failed to update password');
     }
   };
@@ -215,11 +217,11 @@ const AuthPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submitted, mode:', authMode);
-    console.log('Validation result:', validateForm());
+    //console.log('Form submitted, mode:', authMode);
+    //console.log('Validation result:', validateForm());
     
     if (!validateForm()) {
-      console.log('Form validation failed:', errors);
+      //console.log('Form validation failed:', errors);
       return;
     }
 
@@ -228,18 +230,18 @@ const AuthPage = () => {
     
     try {
       if (authMode === 'forgot') {
-        console.log('Handling forgot password');
+        //console.log('Handling forgot password');
         await handleForgotPassword();
         return;
       } else if (authMode === 'reset') {
-        console.log('Handling password reset');
+        //console.log('Handling password reset');
         await handlePasswordReset();
         return;
       } else if (authMode === 'signup') {
-        console.log('Handling signup');
+        //console.log('Handling signup');
         await signUp(email, password);
       } else {
-        console.log('Handling signin');
+        //console.log('Handling signin');
         await signIn(email, password);
         
         if (rememberMe) {
@@ -247,7 +249,7 @@ const AuthPage = () => {
         }
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
+      //console.error('Auth error:', error);
       
       let errorMessage = error.message || 'Authentication failed';
       
@@ -320,211 +322,123 @@ const AuthPage = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen py-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white/80 backdrop-blur-sm py-10 px-6 shadow-2xl /rounded-2xl sm:px-12 border border-white/20">
-          {/* Header with brand and navigation */}
-          <div className="mb-8 flex items-center justify-center relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute left-0 p-2 h-10 w-10 rounded-full hover:bg-gray-100 transition-colors"
-              onClick={handleHomeNavigation}
-            >
-              <ChevronLeft className="h-5 w-5 text-gray-600" />
-            </Button>
+return (
+  <>
+    {isMobile ? (
+      // ✅ MOBILE LAYOUT
+      <div className="min-h-screen bg-white flex flex-col">
+        {/* 🔝 Fixed Header */}
+        <div className="flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="p-2 rounded-full hover:bg-gray-100"
+            onClick={handleHomeNavigation}
+          >
+            <ChevronLeft className="h-5 w-5 text-gray-600" />
+          </Button>
+          <img
+            src={smartkenyaLogo}
+            alt="SmartKenya Logo"
+            className="h-8 object-contain"
+          />
+          <div className="w-8" /> {/* spacer to balance header */}
+        </div>
+
+        {/* Success message for password reset completion */}
+        {passwordResetComplete && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
             <div className="flex items-center space-x-2">
-              <div className="flex-shrink-0">
-              <img
-                src={smartkenyaLogo}
-                alt="SmartKenya Logo"
-                className="h-14 w-64 object-fill"
-              />
-            </div>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="text-sm text-green-700 font-medium">
+                Password successfully updated! Redirecting to homepage...
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Success message for password reset completion */}
-          {passwordResetComplete && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
+        {/* Title and description */}
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {authMode === 'signup' ? 'Create Account' : 
+              authMode === 'forgot' ? 'Reset Password' : 
+              authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
+          </h2>
+          <p className="text-gray-600">
+            {authMode === 'signup' ? 'Join thousands of satisfied customers' : 
+              authMode === 'forgot' ? 'Enter your email to receive a secure reset link' : 
+              authMode === 'reset' ? 'Please enter your new password below' : 'Sign in to continue to your account'}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 px-4">
+          {/* Error display */}
+          {(authError || resetLinkError) && (
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 shadow-sm">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <div className="text-sm text-green-700 font-medium">
-                  Password successfully updated! Redirecting to homepage...
-                </div>
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="text-sm text-red-700 font-medium">{authError || resetLinkError}</div>
               </div>
             </div>
           )}
 
-          {/* Title and description */}
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {authMode === 'signup' ? 'Create Account' : 
-               authMode === 'forgot' ? 'Reset Password' : 
-               authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
-            </h2>
-            <p className="text-gray-600">
-              {authMode === 'signup' ? 'Join thousands of satisfied customers' : 
-               authMode === 'forgot' ? 'Enter your email to receive a secure reset link' : 
-               authMode === 'reset' ? 'Please enter your new password below' : 'Sign in to continue to your account'}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error display */}
-            {(authError || resetLinkError) && (
-              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <div className="text-sm text-red-700 font-medium">{authError || resetLinkError}</div>
-                </div>
+          {/* Email field (not shown in reset mode) */}
+          {authMode !== 'reset' && (
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                Email Address
+              </Label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={handleEmailChange}
+                  className={`pl-12 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete="email"
+                  autoFocus={!(authMode as AuthMode === 'reset')}
+                />
               </div>
-            )}
+              {errors.email && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.email}</span>
+                </p>
+              )}
+            </div>
+          )}
 
-            {/* Email field (not shown in reset mode) */}
-            {authMode !== 'reset' && (
+          {/* Password reset fields */}
+          {authMode === 'reset' && (
+            <>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
-                  Email Address
-                </Label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={email}
-                    onChange={handleEmailChange}
-                    className={`pl-12 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
-                      errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
-                    }`}
-                    autoComplete="email"
-                    autoFocus={!(authMode as AuthMode === 'reset')}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
-                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                    <span>{errors.email}</span>
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Forgot password link for signin mode */}
-            {authMode === 'signin' && !resetEmailSent && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode('forgot')}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
-                >
-                  Forgot your password?
-                </button>
-              </div>
-            )}
-
-            {/* Password reset fields */}
-            {authMode === 'reset' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
-                    New Password
-                  </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? 'text' : 'password'}
-                      placeholder="Enter your new password"
-                      value={newPassword}
-                      onChange={handleNewPasswordChange}
-                      className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
-                        errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
-                      }`}
-                      autoComplete="new-password"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
-                    >
-                      {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
-                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                      <span>{errors.password}</span>
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Must contain at least 8 characters with uppercase, lowercase, and number
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmNewPassword" className="text-sm font-semibold text-gray-700">
-                    Confirm New Password
-                  </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
-                    <Input
-                      id="confirmNewPassword"
-                      type={showConfirmNewPassword ? 'text' : 'password'}
-                      placeholder="Confirm your new password"
-                      value={confirmNewPassword}
-                      onChange={handleConfirmNewPasswordChange}
-                      className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
-                        errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
-                      }`}
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
-                    >
-                      {showConfirmNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
-                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                      <span>{errors.confirmPassword}</span>
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Regular password fields for signin/signup */}
-            {authMode !== 'forgot' && authMode !== 'reset' && (
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
-                  Password
+                <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
+                  New Password
                 </Label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={handlePasswordChange}
+                    id="newPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={handleNewPasswordChange}
                     className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                       errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                     }`}
-                    autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+                    autoComplete="new-password"
+                    autoFocus
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.password && (
@@ -533,28 +447,23 @@ const AuthPage = () => {
                     <span>{errors.password}</span>
                   </p>
                 )}
-                {authMode === 'signup' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Must contain at least 8 characters with uppercase, lowercase, and number
-                  </p>
-                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Must contain at least 8 characters with uppercase, lowercase, and number
+                </p>
               </div>
-            )}
 
-            {/* Confirm password for signup */}
-            {authMode === 'signup' && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
-                  Confirm Password
+                <Label htmlFor="confirmNewPassword" className="text-sm font-semibold text-gray-700">
+                  Confirm New Password
                 </Label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
                   <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    id="confirmNewPassword"
+                    type={showConfirmNewPassword ? 'text' : 'password'}
+                    placeholder="Confirm your new password"
+                    value={confirmNewPassword}
+                    onChange={handleConfirmNewPasswordChange}
                     className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                       errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                     }`}
@@ -562,10 +471,10 @@ const AuthPage = () => {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
@@ -575,141 +484,618 @@ const AuthPage = () => {
                   </p>
                 )}
               </div>
-            )}
+            </>
+          )}
 
-            {/* Remember me checkbox for signin */}
-            {authMode === 'signin' && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                    className="rounded-md"
-                  />
-                  <Label htmlFor="remember" className="text-sm text-gray-700 font-medium">
-                    Remember me for 30 days
-                  </Label>
-                </div>
-              </div>
-            )}
-
-            {/* Submit button */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 h-14 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
-              disabled={isSubmitting || loading || passwordResetComplete}
-            >
-              {isSubmitting || loading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  <span>
-                    {authMode === 'signup' ? 'Creating Account...' : 
-                     authMode === 'forgot' ? 'Sending Reset Link...' : 
-                     authMode === 'reset' ? 'Updating Password...' : 'Signing In...'}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center space-x-2">
-                  <span>
-                    {authMode === 'signup' ? 'Create Account' : 
-                     authMode === 'forgot' ? 'Send Reset Link' : 
-                     authMode === 'reset' ? 'Update Password' : 'Sign In'}
-                  </span>
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-              )}
-            </Button>
-
-            {/* Mode switching links */}
-            {authMode !== 'forgot' && authMode !== 'reset' && !resetEmailSent && (
-              <div className="text-center pt-4">
-                <p className="text-gray-600">
-                  {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
-                    className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-                  >
-                    {authMode === 'signup' ? 'Sign In' : 'Sign Up Free'}
-                  </button>
-                </p>
-              </div>
-            )}
-
-            {/* Back to signin for forgot password mode */}
-            {authMode === 'forgot' && !resetEmailSent && (
-              <div className="text-center pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('signin');
-                    setResetLinkError('');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back to Sign In</span>
-                </button>
-              </div>
-            )}
-
-            {/* Reset email sent confirmation */}
-            {resetEmailSent && (
-              <div className="text-center pt-4 space-y-3">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-blue-700 font-semibold">Check Your Email</span>
-                  </div>
-                  <p className="text-sm text-blue-600">
-                    We've sent a secure reset link to your email address
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResetEmailSent(false);
-                    setAuthMode('signin');
-                    setEmail('');
-                    setAuthError('');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Back to Sign In</span>
-                </button>
-              </div>
-            )}
-          </form>
-
-          {/* Google Sign In - only for signin/signup modes */}
+          {/* Regular password fields for signin/signup */}
           {authMode !== 'forgot' && authMode !== 'reset' && (
-            <div className="mt-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-              
-              <div className="mt-6">
-                <GoogleSignInButton />
+              {errors.password && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.password}</span>
+                </p>
+              )}
+              {authMode === 'signup' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Must contain at least 8 characters with uppercase, lowercase, and number
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Confirm password for signup */}
+          {authMode === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
+                Confirm Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.confirmPassword}</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Remember me checkbox for signin */}
+          {authMode === 'signin' && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  className="rounded-md"
+                />
+                <Label htmlFor="remember" className="text-sm text-gray-700 font-medium">
+                  Remember me for 30 days
+                </Label>
               </div>
             </div>
           )}
 
-          {/* Footer */}
-          <div className="mt-10 text-center">
-            <p className="text-xs text-gray-400">
-              © 2025 SmartKenya. All rights reserved. Secured with industry-standard encryption.
-            </p>
+          {/* Submit button */}
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 h-14 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+            disabled={isSubmitting || loading || passwordResetComplete}
+          >
+            {isSubmitting || loading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                <span>
+                  {authMode === 'signup' ? 'Creating Account...' : 
+                    authMode === 'forgot' ? 'Sending Reset Link...' : 
+                    authMode === 'reset' ? 'Updating Password...' : 'Signing In...'}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <span>
+                  {authMode === 'signup' ? 'Create Account' : 
+                    authMode === 'forgot' ? 'Send Reset Link' : 
+                    authMode === 'reset' ? 'Update Password' : 'Sign In'}
+                </span>
+                <ArrowRight className="h-5 w-5" />
+              </div>
+            )}
+          </Button>
+
+          {/* Forgot password link for signin mode */}
+          {authMode === 'signin' && !resetEmailSent && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setAuthMode('forgot')}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
+
+          {/* Mode switching links */}
+          {authMode !== 'forgot' && authMode !== 'reset' && !resetEmailSent && (
+            <div className="text-center pt-4">
+              <p className="text-gray-600">
+                {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
+                  className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                >
+                  {authMode === 'signup' ? 'Sign In' : 'Sign Up Free'}
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* Back to signin for forgot password mode */}
+          {authMode === 'forgot' && !resetEmailSent && (
+            <div className="text-center pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signin');
+                  setResetLinkError('');
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          )}
+
+          {/* Reset email sent confirmation */}
+          {resetEmailSent && (
+            <div className="text-center pt-4 space-y-3">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-blue-700 font-semibold">Check Your Email</span>
+                </div>
+                <p className="text-sm text-blue-600">
+                  We've sent a secure reset link to your email address
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmailSent(false);
+                  setAuthMode('signin');
+                  setEmail('');
+                  setAuthError('');
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          )}
+        </form>
+
+        {/* Google Sign In - only for signin/signup modes */}
+        {authMode !== 'forgot' && authMode !== 'reset' && (
+          <div className="mt-8 px-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <GoogleSignInButton />
+            </div>
           </div>
+        )}
+
+        {/* Footer */}
+        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white fixed bottom-0 left-0 right-0">
+          © 2025 SmartKenya. All rights reserved.
+        </div>
+      </div>
+    ) : (
+    <div className="min-h-screen py-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="bg-white/80 backdrop-blur-sm py-10 px-6 shadow-2xl /rounded-2xl sm:px-12 border border-white/20 max-w-md mx-auto">
+        {/* Header with brand and navigation */}
+        <div className="mb-8 flex items-center justify-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute left-0 p-2 h-10 w-10 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={handleHomeNavigation}
+          >
+            <ChevronLeft className="h-5 w-5 text-gray-600" />
+          </Button>
+          <div className="flex items-center space-x-2">
+            <div className="flex-shrink-0">
+            <img
+              src={smartkenyaLogo}
+              alt="SmartKenya Logo"
+              className="h-14 w-64 object-fill"
+            />
+          </div>
+          </div>
+        </div>
+
+        {/* Success message for password reset completion */}
+        {passwordResetComplete && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="text-sm text-green-700 font-medium">
+                Password successfully updated! Redirecting to homepage...
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Title and description */}
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {authMode === 'signup' ? 'Create Account' : 
+              authMode === 'forgot' ? 'Reset Password' : 
+              authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
+          </h2>
+          <p className="text-gray-600">
+            {authMode === 'signup' ? 'Join thousands of satisfied customers' : 
+              authMode === 'forgot' ? 'Enter your email to receive a secure reset link' : 
+              authMode === 'reset' ? 'Please enter your new password below' : 'Sign in to continue to your account'}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error display */}
+          {(authError || resetLinkError) && (
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="text-sm text-red-700 font-medium">{authError || resetLinkError}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Email field (not shown in reset mode) */}
+          {authMode !== 'reset' && (
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                Email Address
+              </Label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={handleEmailChange}
+                  className={`pl-12 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete="email"
+                  autoFocus={!(authMode as AuthMode === 'reset')}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.email}</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Forgot password link for signin mode */}
+          {authMode === 'signin' && !resetEmailSent && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setAuthMode('forgot')}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
+
+          {/* Password reset fields */}
+          {authMode === 'reset' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700">
+                  New Password
+                </Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={handleNewPasswordChange}
+                    className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                      errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                    }`}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                  >
+                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    <span>{errors.password}</span>
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Must contain at least 8 characters with uppercase, lowercase, and number
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmNewPassword" className="text-sm font-semibold text-gray-700">
+                  Confirm New Password
+                </Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                  <Input
+                    id="confirmNewPassword"
+                    type={showConfirmNewPassword ? 'text' : 'password'}
+                    placeholder="Confirm your new password"
+                    value={confirmNewPassword}
+                    onChange={handleConfirmNewPasswordChange}
+                    className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                      errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                    }`}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                  >
+                    {showConfirmNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    <span>{errors.confirmPassword}</span>
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Regular password fields for signin/signup */}
+          {authMode !== 'forgot' && authMode !== 'reset' && (
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.password}</span>
+                </p>
+              )}
+              {authMode === 'signup' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Must contain at least 8 characters with uppercase, lowercase, and number
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Confirm password for signup */}
+          {authMode === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
+                Confirm Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-green-500 transition-colors" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                  }`}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  <span>{errors.confirmPassword}</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Remember me checkbox for signin */}
+          {authMode === 'signin' && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  className="rounded-md"
+                />
+                <Label htmlFor="remember" className="text-sm text-gray-700 font-medium">
+                  Remember me for 30 days
+                </Label>
+              </div>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 h-14 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+            disabled={isSubmitting || loading || passwordResetComplete}
+          >
+            {isSubmitting || loading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                <span>
+                  {authMode === 'signup' ? 'Creating Account...' : 
+                    authMode === 'forgot' ? 'Sending Reset Link...' : 
+                    authMode === 'reset' ? 'Updating Password...' : 'Signing In...'}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center space-x-2">
+                <span>
+                  {authMode === 'signup' ? 'Create Account' : 
+                    authMode === 'forgot' ? 'Send Reset Link' : 
+                    authMode === 'reset' ? 'Update Password' : 'Sign In'}
+                </span>
+                <ArrowRight className="h-5 w-5" />
+              </div>
+            )}
+          </Button>
+
+          {/* Mode switching links */}
+          {authMode !== 'forgot' && authMode !== 'reset' && !resetEmailSent && (
+            <div className="text-center pt-4">
+              <p className="text-gray-600">
+                {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
+                  className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                >
+                  {authMode === 'signup' ? 'Sign In' : 'Sign Up Free'}
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* Back to signin for forgot password mode */}
+          {authMode === 'forgot' && !resetEmailSent && (
+            <div className="text-center pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signin');
+                  setResetLinkError('');
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          )}
+
+          {/* Reset email sent confirmation */}
+          {resetEmailSent && (
+            <div className="text-center pt-4 space-y-3">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <Mail className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-blue-700 font-semibold">Check Your Email</span>
+                </div>
+                <p className="text-sm text-blue-600">
+                  We've sent a secure reset link to your email address
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmailSent(false);
+                  setAuthMode('signin');
+                  setEmail('');
+                  setAuthError('');
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors flex items-center justify-center space-x-1 mx-auto"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          )}
+        </form>
+
+        {/* Google Sign In - only for signin/signup modes */}
+        {authMode !== 'forgot' && authMode !== 'reset' && (
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <GoogleSignInButton />
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-10 text-center">
+          <p className="text-xs text-gray-400">
+            © 2025 SmartKenya. All rights reserved. Secured with industry-standard encryption.
+          </p>
         </div>
       </div>
     </div>
+    )}
+    </>
   );
 };
 

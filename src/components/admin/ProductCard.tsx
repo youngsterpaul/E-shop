@@ -10,6 +10,7 @@ interface Product {
   description: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   image_urls: string[];
@@ -42,7 +43,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete }) 
               </p>
               <div className="flex gap-4 text-sm text-muted-foreground">
                 <span>Price: KSh {product.price?.toLocaleString()}</span>
-                <span>Phone: {product.stock}</span>
+                <span>Stock: {product.stock}</span>
+                <span>Phone: {product.phone}</span>
                 <span>Category: {product.categories}</span>
                 {product.featured && (
                   <span className="text-orange-600 font-medium">Featured</span>

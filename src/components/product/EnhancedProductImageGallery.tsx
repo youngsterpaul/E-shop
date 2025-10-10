@@ -17,12 +17,17 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [showLens, setShowLens] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
 
   const isMobile = isMobileUserAgent();
   const minSwipe = 50;
+  
+  // Zoom configuration
+  const lensSize = 220;
+  const zoomLevel = 1.8;
 
   /** ✅ Combine product media (main image → other images → video) */
   const allMedia = useMemo(() => {
@@ -48,18 +53,6 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
 
   const next = useCallback(() => changeImage((currentIndex + 1) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
   const prev = useCallback(() => changeImage((currentIndex - 1 + allMedia.length) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
-
-  /** ✅ Mouse wheel navigation (desktop) */
-  useEffect(() => {
-    if (isMobile || !mainRef.current) return;
-    const node = mainRef.current;
-    const onWheel = (e: WheelEvent) => {
-      if (e.deltaY > 0) next();
-      if (e.deltaY < 0) prev();
-    };
-    node.addEventListener("wheel", onWheel, { passive: true });
-    return () => node.removeEventListener("wheel", onWheel);
-  }, [isMobile, next, prev]);
 
   /** ✅ Keyboard navigation */
   useEffect(() => {
@@ -95,15 +88,30 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     setTouchStartX(null);
   };
 
-  /** ✅ Magnifier (desktop) */
+  /** ✅ Kilimall-style Magnifier (desktop) */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!mainRef.current) return;
     const { left, top, width, height } = mainRef.current.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    requestAnimationFrame(() => setZoomPos({ x, y }));
+    
+    // Mouse position relative to image
+    const mouseX = e.clientX - left;
+    const mouseY = e.clientY - top;
+    
+    // Lens position (centered on cursor, bounded within image)
+    const lensX = Math.max(0, Math.min(mouseX - lensSize / 2, width - lensSize));
+    const lensY = Math.max(0, Math.min(mouseY - lensSize / 2, height - lensSize));
+    
+    // Zoom position for magnified view (centered on cursor position)
+    const x = (mouseX / width) * 100;
+    const y = (mouseY / height) * 100;
+    
+    requestAnimationFrame(() => {
+      setLensPos({ x: lensX, y: lensY });
+      setZoomPos({ x, y });
+    });
     setShowLens(true);
   };
+  
   const handleMouseLeave = () => setShowLens(false);
 
   /* =================== MOBILE =================== */
@@ -148,12 +156,13 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
   /* =================== DESKTOP =================== */
   return (
     <div className="flex flex-col gap-4 items-center w-full">
-      {/* Main Media */}
-      <div className="flex-1 max-w-lg w-full">
+      {/* Main Image Container (relative for positioning the zoom modal) */}
+      <div className="relative flex justify-center items-start w-full max-w-[500px]">
+        {/* ✅ Main Image */}
         <div
           ref={mainRef}
-          className="relative bg-white overflow-hidden border rounded-lg cursor-zoom-in"
-          style={{ aspectRatio: "1/1", maxWidth: "500px" }}
+          className="relative bg-white overflow-hidden /border /rounded-lg cursor-pointer w-full"
+          style={{ aspectRatio: "1/1" }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -166,45 +175,48 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
               preload="metadata"
             />
           ) : (
-            <div className="relative w-full h-full">
-              <OptimizedImage
-                src={allMedia[currentIndex]}
-                alt={product.name}
-                width={1200}
-                height={1200}
-                aspectRatio="square"
-                className="w-full h-full object-contain"
-                priority={currentIndex === 0}
-              />
-              {showLens && (
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage: `url(${allMedia[currentIndex]})`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "200% 200%",
-                    backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
-                  }}
-                >
-                  <div
-                    className="absolute rounded-full border-2 border-gray-300 shadow-md pointer-events-none"
-                    style={{
-                      top: `${zoomPos.y}%`,
-                      left: `${zoomPos.x}%`,
-                      transform: "translate(-50%, -50%)",
-                      width: "150px",
-                      height: "150px",
-                      background: "rgba(255,255,255,0.1)",
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            <OptimizedImage
+              src={allMedia[currentIndex]}
+              alt={product.name}
+              width={1200}
+              height={1200}
+              aspectRatio="square"
+              className="w-full h-full object-contain"
+              priority={currentIndex === 0}
+            />
+          )}
+          
+          {/* ✅ Lens Overlay (follows cursor) */}
+          {showLens && !isVideo(allMedia[currentIndex]) && (
+            <div
+              className="absolute border-2 border-gray-200 shadow-lg pointer-events-none"
+              style={{
+                width: `${lensSize}px`,
+                height: `${lensSize}px`,
+                left: `${lensPos.x}px`,
+                top: `${lensPos.y}px`,
+                backgroundColor: "rgba(255, 255, 255, 0.3)",
+                //boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
+              }}
+            />
           )}
         </div>
+
+        {/* ✅ Floating Zoom Preview (absolute on the right) */}
+        {showLens && !isVideo(allMedia[currentIndex]) && (
+          <div
+            className="hidden md:block absolute top-0 right-[-420px] w-[400px] h-[500px] border-2 border-gray-300 /rounded-lg overflow-hidden /shadow-xl bg-white z-50"
+            style={{
+              backgroundImage: `url(${allMedia[currentIndex]})`,
+              backgroundRepeat: "no-repeat",
+              backgroundSize: `${zoomLevel * 100}% ${zoomLevel * 100}%`,
+              backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+            }}
+          />
+        )}
       </div>
 
-      {/* Thumbnails */}
+      {/* ✅ Thumbnails */}
       {allMedia.length > 1 && (
         <div
           ref={thumbsRef}
@@ -214,7 +226,7 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
             <button
               key={i}
               onClick={() => changeImage(i)}
-              className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 snap-center ${
+              className={`relative w-20 h-20 /rounded-lg overflow-hidden border-2 transition-all duration-200 flex-shrink-0 snap-center ${
                 currentIndex === i
                   ? "border-green-500 ring-2 ring-green-200"
                   : "border-gray-200 hover:border-gray-300"

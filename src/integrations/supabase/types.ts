@@ -109,6 +109,13 @@ export type Database = {
             referencedColumns: ["product_id"]
           },
           {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "fk_cart_items_product_id"
             columns: ["product_id"]
             isOneToOne: false
@@ -177,7 +184,15 @@ export type Database = {
           id?: number
           parent_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_sales: {
         Row: {
@@ -255,7 +270,15 @@ export type Database = {
           transaction_date?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mpesa_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -342,7 +365,15 @@ export type Database = {
           variant_type?: string
           variant_value?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -355,12 +386,12 @@ export type Database = {
           is_digital: boolean | null
           low_stock_threshold: number | null
           name: string
-          phone: number | null
           price: number | null
           product_id: string
           rating: number | null
           specification: Json | null
           stock: number | null
+          phone: number | null
           subcategory_id: number | null
           updated_at: string | null
         }
@@ -374,12 +405,12 @@ export type Database = {
           is_digital?: boolean | null
           low_stock_threshold?: number | null
           name: string
-          phone?: number | null
           price?: number | null
           product_id?: string
           rating?: number | null
           specification?: Json | null
           stock?: number | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
@@ -393,16 +424,24 @@ export type Database = {
           is_digital?: boolean | null
           low_stock_threshold?: number | null
           name?: string
-          phone?: number | null
           price?: number | null
           product_id?: string
           rating?: number | null
           specification?: Json | null
           stock?: number | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -415,9 +454,9 @@ export type Database = {
           first_name: string | null
           is_admin: boolean | null
           last_name: string | null
-          last_sign_in_at: string | null
           phone: string | null
           updated_at: string | null
+          last_sign_in_at: string | null;
           user_id: string
         }
         Insert: {
@@ -430,9 +469,9 @@ export type Database = {
           first_name?: string | null
           is_admin?: boolean | null
           last_name?: string | null
-          last_sign_in_at?: string | null
           phone?: string | null
           updated_at?: string | null
+          last_sign_in_at: string | null;
           user_id: string
         }
         Update: {
@@ -445,9 +484,9 @@ export type Database = {
           first_name?: string | null
           is_admin?: boolean | null
           last_name?: string | null
-          last_sign_in_at?: string | null
           phone?: string | null
           updated_at?: string | null
+          last_sign_in_at?: string | null;
           user_id?: string
         }
         Relationships: []
@@ -483,7 +522,22 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_reviews_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+        ]
       }
       wishlists: {
         Row: {
@@ -504,7 +558,15 @@ export type Database = {
           product_id?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+        ]
       }
     }
     Views: {
@@ -527,26 +589,6 @@ export type Database = {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: string
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       is_admin: {
         Args: { user_id?: string }
         Returns: boolean
@@ -558,18 +600,6 @@ export type Database = {
       notify_admin_no_reply: {
         Args: { message_text: string; user_id: string; user_message_id: string }
         Returns: undefined
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
       }
       update_order_first_name: {
         Args: { first_name: string; order_id: number }

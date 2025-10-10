@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash2, FileUp, X, Check, Settings, ChevronDown } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, FileUp, X, Check, Settings, ChevronDown, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
@@ -21,6 +21,7 @@ interface Product {
   name: string;
   price: number;
   stock: number;
+  phone: number;
   categories: string;
   featured: boolean;
   created_at: string;
@@ -48,7 +49,7 @@ const AdminProductsPage = () => {
   const categoryOptions = [{ id: 0, category: 'All Categories' }, ...categories];
 
   const handleEdit = (productId: string) => {
-    navigate(`/admin/products/edit/${productId}`);
+    navigate(`/supersmartkenyaadmin123/products/edit/${productId}`);
   };
 
   // Fetch products from database
@@ -226,7 +227,7 @@ const AdminProductsPage = () => {
           <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
             <Button 
               className="bg-orange-500 hover:bg-orange-600"
-              onClick={() => navigate('/admin/products/add')}
+              onClick={() => navigate('/supersmartkenyaadmin123/products/add')}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Product
             </Button>
@@ -237,6 +238,14 @@ const AdminProductsPage = () => {
               onClick={handleBulkDeleteClick}
             >
               <Trash2 className="mr-2 h-4 w-4" /> Delete Selected ({selectedProducts.length})
+            </Button>
+
+            <Button 
+              onClick={() => refetch()}
+              variant="outline"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
             </Button>
             
             <Button variant="outline">
@@ -331,6 +340,7 @@ const AdminProductsPage = () => {
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
+                    <TableHead>Seller's Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -380,6 +390,7 @@ const AdminProductsPage = () => {
                             {product.stock}
                           </span>
                         </TableCell>
+                        <TableCell>{product.phone}</TableCell>
                         <TableCell>
                           {product.featured ? (
                             <Badge className="bg-orange-500">Featured</Badge>
