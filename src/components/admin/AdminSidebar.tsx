@@ -36,6 +36,11 @@ const AdminSidebar = () => {
       path: '/supersmartkenyaadmin123',
     },
     {
+      name: 'Daily Sales',
+      icon: Bell,
+      path: '/supersmartkenyaadmin123/daily-sales',
+    },
+    {
       name: 'Products',
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
@@ -45,7 +50,7 @@ const AdminSidebar = () => {
         path: '/supersmartkenyaadmin123/products/add',
       },
     },
-{
+    {
       name: 'Categories',
       icon: Tags,
       path: '/supersmartkenyaadmin123/categories',

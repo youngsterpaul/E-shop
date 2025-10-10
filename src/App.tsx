@@ -37,6 +37,7 @@ const CareersPage = lazy(() => import("./pages/CareersPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminDailySalesPage = lazy(() => import("./pages/admin/AdminDailySalesPage"));
 const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
 const AdminProductAddPage = lazy(() => import("./pages/admin/AdminProductAddPage"));
 const AdminProductEditPage = lazy(() => import("./pages/admin/AdminProductEditPage"));
@@ -88,6 +89,7 @@ function App() {
 
             {/* Admin Routes */}
             <Route path="/supersmartkenyaadmin123" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute><AdminDailySalesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
