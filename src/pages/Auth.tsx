@@ -328,7 +328,7 @@ return (
       // ✅ MOBILE LAYOUT
       <div className="min-h-screen bg-white flex flex-col">
         {/* 🔝 Fixed Header */}
-        <div className="flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100">
+        <div className="flex sticky top-0 right-0 left-0 items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100 bg-white z-40">
           <Button
             variant="ghost"
             size="icon"
@@ -702,7 +702,7 @@ return (
         )}
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white fixed bottom-0 left-0 right-0">
+        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0">
           © 2025 SmartKenya. All rights reserved.
         </div>
       </div>
