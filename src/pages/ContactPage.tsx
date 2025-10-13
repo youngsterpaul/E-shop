@@ -99,7 +99,7 @@ const ContactPage = () => {
               <h3 className="font-semibold mb-2">Visit Us</h3>
               <p className="text-gray-700 mb-3">Our headquarters</p>
               <address className="not-italic text-green-500">
-                SmartKenya, Embu, Kenya
+                SmartKenya, Murang'a, Kenya
               </address>
             </div>
           </div>
