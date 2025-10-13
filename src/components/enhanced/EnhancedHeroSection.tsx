@@ -343,10 +343,10 @@ const EnhancedHeroSection = memo(() => {
         <LazyImage
           src={currentSlideData.image}
           alt={currentSlideData.title}
-          priority={true}
-          width={100}
-          height={100}
-          className={`object-cove ${!isMobile ? 'max-h-[500px] max-w-[full]' : 'max-h-[180px]'}`}
+          priority // ✅ high-priority eager load
+          width={1920}
+          height={1080}
+          className={`object-cover ${!isMobile ? 'max-h-[500px] w-full' : 'max-h-[180px]'}`}
         />
         <div className={`absolute inset-0 bg-black/50 ${isMobile ? 'overflow-hidden' : ''}`} />
       </div>

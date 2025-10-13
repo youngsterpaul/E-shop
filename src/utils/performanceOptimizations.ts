@@ -34,7 +34,7 @@ export const preloadCriticalResources = () => {
   if (hasHeroSection) {
     const heroImageLink = document.createElement('link');
     heroImageLink.rel = 'preload';
-    heroImageLink.href = '/hero1.webp';
+    heroImageLink.href = '/assets/images/hero1.png';
     heroImageLink.as = 'image';
     heroImageLink.dataset.preload = 'critical';
     document.head.appendChild(heroImageLink);
