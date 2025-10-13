@@ -24,7 +24,7 @@ const ChatPage = () => {
     return null;
   }
 
-  const phoneNumber = "+254101762132";
+  const phoneNumber = "+254758475467";
   const email = "support@smartkenya.co.ke";
   
   const handleWhatsAppClick = () => {
