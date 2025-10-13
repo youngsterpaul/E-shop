@@ -119,19 +119,19 @@ const CheckoutPage = () => {
 
   // County and city mapping
   const countyOptions = [
-    { value: 'embu', label: 'Embu' },
-    { value: 'murangaa', label: "Murang'a" }
+    { value: 'nyeri', label: 'Nyeri' },
+    { value: 'muranga', label: "Murang'a" }
   ];
 
   const cityOptions: Record<string, { value: string; label: string }[]> = {
-    embu: [
-      { value: 'runyenjes', label: 'Runyenjes' },
-      { value: 'manyatta', label: 'Manyatta' },
-      { value: 'embu-town', label: 'Embu Town' }
+    nyeri: [
+      { value: 'karu', label: 'KARU' },
+      { value: 'kmtc', label: 'KMTC' },
     ],
-    murangaa: [
-      { value: 'kiharu', label: 'Kiharu' },
-      { value: 'mukuyu', label: 'Mukuyu' }
+    muranga: [
+      { value: 'mut', label: 'MUT' },
+      { value: 'kmtc', label: 'KMTC' },
+      { value: 'ktcm', label: 'KTCM' }
     ]
   };
 

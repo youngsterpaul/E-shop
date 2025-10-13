@@ -364,11 +364,6 @@ return (
               authMode === 'forgot' ? 'Reset Password' : 
               authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
           </h2>
-          <p className="text-gray-600">
-            {authMode === 'signup' ? 'Join thousands of satisfied customers' : 
-              authMode === 'forgot' ? 'Enter your email to receive a secure reset link' : 
-              authMode === 'reset' ? 'Please enter your new password below' : 'Sign in to continue to your account'}
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-4">
@@ -447,9 +442,6 @@ return (
                     <span>{errors.password}</span>
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -518,11 +510,6 @@ return (
                 <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
                   <span className="w-1 h-1 bg-red-500 rounded-full"></span>
                   <span>{errors.password}</span>
-                </p>
-              )}
-              {authMode === 'signup' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
                 </p>
               )}
             </div>
@@ -845,9 +832,6 @@ return (
                     <span>{errors.password}</span>
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -916,11 +900,6 @@ return (
                 <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
                   <span className="w-1 h-1 bg-red-500 rounded-full"></span>
                   <span>{errors.password}</span>
-                </p>
-              )}
-              {authMode === 'signup' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
                 </p>
               )}
             </div>
