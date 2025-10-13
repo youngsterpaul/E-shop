@@ -19,6 +19,7 @@ import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from "@vercel/analytics/next"
+import SecurityHeaders from './components/SecurityHeaders';
 import App from './App.tsx';
 import './index.css';
 
@@ -46,6 +47,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <SecurityHeaders />
     <GlobalErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
