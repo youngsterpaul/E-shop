@@ -147,7 +147,7 @@ const OrdersPage = () => {
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth/signin');
+      navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 
