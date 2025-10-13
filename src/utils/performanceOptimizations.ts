@@ -185,7 +185,7 @@ export const networkOptimizations = {
         const registration = await navigator.serviceWorker.register('/sw.js', {
           updateViaCache: 'none' // Always check for updates
         });
-        console.log('Service Worker registered successfully');
+        //console.log('Service Worker registered successfully');
         
         // Handle updates
         registration.addEventListener('updatefound', () => {
