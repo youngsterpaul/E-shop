@@ -366,7 +366,7 @@ const OrdersPage = () => {
             </p>
             <Button 
               className="bg-primary hover:bg-primary/90 px-8 py-3 text-lg"
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/')}
             >
               Browse Products
             </Button>
