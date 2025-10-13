@@ -111,11 +111,13 @@ const ProfilePage = () => {
     nyeri: [
       { value: 'karu', label: 'KARU' },
       { value: 'kmtc', label: 'KMTC' },
+      { value: 'nyeri', label: 'Nyeri' },
     ],
     muranga: [
       { value: 'mut', label: 'MUT' },
       { value: 'kmtc', label: 'KMTC' },
-      { value: 'ktcm', label: 'KTCM' }
+      { value: 'ktcm', label: 'KTCM' },
+      { value: 'muranga', label: "Murang'a" }
     ]
   };
 
