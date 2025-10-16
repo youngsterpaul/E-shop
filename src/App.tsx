@@ -19,7 +19,6 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
-const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
@@ -75,7 +74,6 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order/:id" element={<OrderDetailPage />} />
-            <Route path="/track-order" element={<OrderTrackingPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
