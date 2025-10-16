@@ -96,22 +96,22 @@ const MobileBottomActions = ({
   return (
     <>
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 sm:p-3 xs:p-2 z-40 shadow-lg">
-        <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-            {/* Price display */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 //md:hidden shadow-lg">
+        <div className="flex items-center gap-3">
+          {/* Price display */}
           <div className="flex-1">
-           <div className="text-lg sm:text-base xs:text-sm font-bold text-orange-500">
-            {formatPrice(calculatePrice())}
-          </div>
-          {product.originalPrice && (
-            <div className="text-sm sm:text-xs xs:text-[10px] text-gray-500 line-through">
-              {formatPrice(product.originalPrice)}
+            <div className="text-lg font-bold text-orange-500">
+              {formatPrice(calculatePrice())}
             </div>
-          )}
+            {product.originalPrice && (
+              <div className="text-sm text-gray-500 line-through">
+                {formatPrice(product.originalPrice)}
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 sm:gap-1 xs:gap-1 flex-wrap sm:flex-nowrap">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -122,7 +122,7 @@ const MobileBottomActions = ({
                   : 'hover:text-red-500 hover:border-red-500'
               }`}
             >
-              <Heart className={`h-5 w-5 sm:h-4 sm:w-4 xs:h-3 xs:w-3 ${isInWishlist(product.product_id) ? 'fill-current' : ''}`} />
+              <Heart className={`h-5 w-5 ${isInWishlist(product.product_id) ? 'fill-current' : ''}`} />
             </Button>
                        
             <Button 
@@ -137,11 +137,11 @@ const MobileBottomActions = ({
             <Button
               onClick={() => setIsAddToCartModalOpen(true)}
               disabled={!product.inStock}
-              className="px-6 sm:px-4 xs:px-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
+              className="px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
               size="sm"
             >
-              <ShoppingCart className="mr-2 sm:mr-1 xs:mr-1 h-4 w-4 sm:h-3 sm:w-3 xs:h-2 xs:w-2" />
-              <span className="hidden xs:inline">Add to Cart</span>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Add to Cart
             </Button>
           </div>
         </div>

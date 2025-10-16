@@ -175,7 +175,7 @@ const AccountPage = () => {
                     : 'Welcome!'
                   }
                 </h2>
-                <p className="text-gray-600 overflow-hidden">{user.email}</p>
+                <p className="text-gray-600">{user.email}</p>
                 {profile?.phone && (
                   <p className="text-sm text-gray-500">{profile.phone}</p>
                 )}
