@@ -40,8 +40,8 @@ const MobileNav = () => {
   if (!isMobile) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-      <div className="flex justify-around items-center py-1">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="flex justify-around items-center py-1 overflow-x-auto whitespace-nowrap">
         {navItems.map(({ icon: Icon, label, path, count }) => (
           <Link
             key={path}
@@ -53,17 +53,17 @@ const MobileNav = () => {
             }`}
           >
             <div className="relative">
-              <Icon className="w-6 h-6" />
+             <Icon className="w-6 h-6 sm:w-5 sm:h-5 xs:w-4 xs:h-4" />
               {(count ?? 0) > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  className="absolute -top-2 -right-2 h-5 w-5 sm:h-4 sm:w-4 text-[10px] sm:text-[8px] p-0 flex items-center justify-center"
                 >
                   {count}
                 </Badge>
               )}
             </div>
-            <span className="text-xs">{label}</span>
+            <span className="text-xs sm:text-[10px] xs:text-[9px]">{label}</span>
           </Link>
         ))}
       </div>
