@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, DollarSign, ShoppingCart, Users, Plus } from 'lucide-react';
+import { Calendar, DollarSign, ShoppingCart, Users, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';
@@ -18,6 +18,8 @@ const AdminDailySalesPage = () => {
   const { data: dailySales, isLoading, refetch } = useDailySalesMetrics();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     total_revenue: '',
@@ -63,6 +65,94 @@ const AdminDailySalesPage = () => {
       toast({
         title: "Error",
         description: "Failed to add daily sales record",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (sale: any) => {
+    setEditingDate(sale.date);
+    setFormData({
+      date: sale.date,
+      total_revenue: sale.total_revenue?.toString() || '',
+      total_orders: sale.total_orders?.toString() || '',
+      total_customers: sale.total_customers?.toString() || ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingDate) {
+      toast({
+        title: "Error",
+        description: "No record selected for update",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('daily_sales')
+        .update({
+          total_revenue: parseFloat(formData.total_revenue),
+          total_orders: parseInt(formData.total_orders),
+          total_customers: parseInt(formData.total_customers),
+        })
+        .eq('date', editingDate); // ✅ Now TypeScript knows it's a string
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Daily sales record updated successfully",
+      });
+
+      setIsEditDialogOpen(false);
+      setEditingDate(null);
+      setFormData({
+        date: format(new Date(), 'yyyy-MM-dd'),
+        total_revenue: '',
+        total_orders: '',
+        total_customers: ''
+      });
+      refetch();
+    } catch (error) {
+      console.error('Error updating daily sales:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update daily sales record",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (date: string) => {
+    if (!confirm('Are you sure you want to delete this sales record?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('daily_sales')
+        .delete()
+        .eq('date', date);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Daily sales record deleted successfully",
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error deleting daily sales:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete daily sales record",
         variant: "destructive",
       });
     }
@@ -164,6 +254,64 @@ const AdminDailySalesPage = () => {
               </form>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Daily Sales Record</DialogTitle>
+                <DialogDescription>
+                  Update the sales data for {editingDate && format(new Date(editingDate), 'MMM dd, yyyy')}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleUpdate}>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_total_revenue">Total Revenue (KSH)</Label>
+                    <Input
+                      id="edit_total_revenue"
+                      name="total_revenue"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.total_revenue}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_total_orders">Total Orders</Label>
+                    <Input
+                      id="edit_total_orders"
+                      name="total_orders"
+                      type="number"
+                      placeholder="0"
+                      value={formData.total_orders}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_total_customers">Total Customers</Label>
+                    <Input
+                      id="edit_total_customers"
+                      name="total_customers"
+                      type="number"
+                      placeholder="0"
+                      value={formData.total_customers}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Update Record</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Summary Cards */}
@@ -245,6 +393,7 @@ const AdminDailySalesPage = () => {
                       <TableHead className="text-right">Orders</TableHead>
                       <TableHead className="text-right">Customers</TableHead>
                       <TableHead className="text-right">Avg Order Value</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
