@@ -101,9 +101,9 @@ const categories: Category[] = [
   },
   {
     id: 3,
-    name: "Home & Garden",
+    name: "Home & Kitchen",
     icon: <Home size={16} />,
-    searchQuery: "home garden furniture",
+    searchQuery: "home & kitchen appliances",
     subcategories: [
       "Furniture",
       "Home Decor",
