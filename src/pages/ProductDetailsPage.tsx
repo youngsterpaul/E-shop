@@ -14,13 +14,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
 
+// ✅ Properly typed interfaces
+interface VariantValue {
+  name: string;
+  image_url?: string; // optional to fix your type issue
+}
+
 interface Variant {
   variant_type: string;
-  variant_value: string;
+  variant_value: string | VariantValue[]; // JSON string or parsed array
   stock_quantity: number;
   price_modifier?: number;
   image_url?: string;
@@ -53,7 +59,7 @@ const ProductDetailsPage: React.FC = () => {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  // ------------------ Cart Safe Handling ------------------
+  // ------------------ Cart Handling ------------------
   let totalItems = 0;
   try {
     const { cartItems } = useCart();
@@ -80,9 +86,18 @@ const ProductDetailsPage: React.FC = () => {
     if (!variants?.length) return [];
 
     const colorMap: Record<string, string> = {
-      red: '#ef4444', blue: '#3b82f6', green: '#10b981', black: '#1f2937',
-      white: '#ffffff', gray: '#6b7280', grey: '#6b7280', yellow: '#f59e0b',
-      orange: '#f97316', purple: '#8b5cf6', pink: '#ec4899', brown: '#92400e'
+      red: '#ef4444',
+      blue: '#3b82f6',
+      green: '#10b981',
+      black: '#1f2937',
+      white: '#ffffff',
+      gray: '#6b7280',
+      grey: '#6b7280',
+      yellow: '#f59e0b',
+      orange: '#f97316',
+      purple: '#8b5cf6',
+      pink: '#ec4899',
+      brown: '#92400e',
     };
 
     return variants.reduce((acc: any[], v: Variant) => {
@@ -92,23 +107,19 @@ const ProductDetailsPage: React.FC = () => {
       else if (type.includes('size')) variantType = 'size';
       else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
 
-      // ✅ FIXED: Handle JSON array of { name, image_url }
-      let values: { name: string; image_url?: string }[] = [];
+      let values: VariantValue[] = [];
 
       try {
         if (typeof v.variant_value === 'string') {
           const parsed = JSON.parse(v.variant_value);
           if (Array.isArray(parsed)) values = parsed;
         } else if (Array.isArray(v.variant_value)) {
-          // Already parsed from Supabase
-          values = v.variant_value as any;
+          values = v.variant_value;
         }
       } catch {
-        // fallback: single value
         values = [{ name: String(v.variant_value || ''), image_url: v.image_url }];
       }
 
-      // ✅ Create variant group and values
       values.forEach((val) => {
         const valueName = val.name || '';
         const colorValue =
@@ -123,7 +134,7 @@ const ProductDetailsPage: React.FC = () => {
           value: colorValue,
           available: v.stock_quantity > 0,
           priceModifier: v.price_modifier || 0,
-          image: val.image_url || null
+          image: val.image_url ?? '', // ✅ Always a string
         };
 
         if (existing) {
@@ -133,7 +144,7 @@ const ProductDetailsPage: React.FC = () => {
             id: v.variant_type,
             name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
             type: variantType,
-            values: [valueObj]
+            values: [valueObj],
           });
         }
       });
@@ -141,6 +152,27 @@ const ProductDetailsPage: React.FC = () => {
       return acc;
     }, []);
   }, [variants]);
+
+  useEffect(() => {
+  if (!transformedVariants?.length) return;
+
+  setSelectedVariants((prev) => {
+    const updated = { ...prev };
+
+    transformedVariants.forEach((variant) => {
+      const alreadySelected = updated[variant.id];
+      if (!alreadySelected && variant.values.length > 0) {
+        const firstAvailable = variant.values.find(v => v.available);
+        if (firstAvailable) {
+          updated[variant.id] = firstAvailable.id;
+        }
+      }
+    });
+
+    return updated;
+  });
+}, [transformedVariants]);
+
 
   const stockInfo = useMemo(() => {
     return variants.reduce((acc: Record<string, number>, v: Variant) => {
@@ -154,7 +186,7 @@ const ProductDetailsPage: React.FC = () => {
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  // ------------------ Optimized Price Calculation ------------------
+  // ------------------ Price Calculation ------------------
   const price = useMemo(() => {
     if (!product) return 0;
     let total = product.discount_price ?? product.price ?? 0;
@@ -174,50 +206,52 @@ const ProductDetailsPage: React.FC = () => {
     if (!product) return { title: '', description: '', image: '' };
     const t = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
     const d = `${product.description || product.name} - Starting from KES ${product.price}. ${
-      product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''
+      product.features
+        ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features)
+        : ''
     }`;
     const img = product.image_urls?.[0] || '/placeholder.svg';
     return { title: t, description: d, image: img };
   }, [product]);
 
-  const structuredData = useMemo(() => ({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product?.name,
-    description: product?.description,
-    image: product?.image_urls || [],
-    brand: { "@type": "Brand", name: "Smartkenya Online Shopping" },
-    offers: {
-      "@type": "Offer",
-      price: price,
-      priceCurrency: "KES",
-      availability:
-        product?.stock && product.stock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" },
+  const structuredData = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product?.name,
+      description: product?.description,
+      image: product?.image_urls || [],
+      brand: { '@type': 'Brand', name: 'Smartkenya Online Shopping' },
+      offers: {
+        '@type': 'Offer',
+        price: price,
+        priceCurrency: 'KES',
+        availability:
+          product?.stock && product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: 'Smartkenya Online Shopping' },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: 'KE',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 7,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/FreeReturn',
+        },
+      },
+      aggregateRating: product?.rating
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviews || 0,
+          }
+        : undefined,
+    }),
+    [product, price]
+  );
 
-      // ✅ Add Merchant Return Policy
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "KE", // Kenya
-        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7, // Example: 7-day return policy
-        returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn"
-      }
-    },
-    aggregateRating: product?.rating
-      ? {
-          "@type": "AggregateRating",
-          ratingValue: product.rating,
-          reviewCount: product.reviews || 0
-        }
-      : undefined
-  }), [product, price]);
-
-
-  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   // ------------------ LOADING ------------------
   if (loading) {
