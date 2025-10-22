@@ -81,34 +81,21 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [product, productName, id, navigate]);
 
-  // ------------------ Optimized Variants Transformation ------------------
   const transformedVariants = useMemo(() => {
     if (!variants?.length) return [];
 
-    const colorMap: Record<string, string> = {
-      red: '#ef4444',
-      blue: '#3b82f6',
-      green: '#10b981',
-      black: '#1f2937',
-      white: '#ffffff',
-      gray: '#6b7280',
-      grey: '#6b7280',
-      yellow: '#f59e0b',
-      orange: '#f97316',
-      purple: '#8b5cf6',
-      pink: '#ec4899',
-      brown: '#92400e',
-    };
-
     return variants.reduce((acc: any[], v: Variant) => {
-      const type = v.variant_type.toLowerCase();
-      let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
-      if (type.includes('color') || type.includes('colour')) variantType = 'color';
-      else if (type.includes('size')) variantType = 'size';
-      else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
+      const type = v.variant_type;
+      const variantType: 'image' | 'size' | 'material' | 'other' =
+        Array.isArray(v.variant_value) && v.variant_value.some((vv: any) => vv.image_url)
+          ? 'image'
+          : type.toLowerCase().includes('size')
+          ? 'size'
+          : type.toLowerCase().includes('material')
+          ? 'material'
+          : 'other';
 
       let values: VariantValue[] = [];
-
       try {
         if (typeof v.variant_value === 'string') {
           const parsed = JSON.parse(v.variant_value);
@@ -117,33 +104,27 @@ const ProductDetailsPage: React.FC = () => {
           values = v.variant_value;
         }
       } catch {
-        values = [{ name: String(v.variant_value || ''), image_url: v.image_url }];
+        values = [{ name: String(v.variant_value || ''), image_url: v.image_url || '' }];
       }
 
       values.forEach((val) => {
-        const valueName = val.name || '';
-        const colorValue =
-          variantType === 'color'
-            ? colorMap[valueName.toLowerCase()] || '#6b7280'
-            : valueName;
-
-        const existing = acc.find((x) => x.id === v.variant_type);
         const valueObj = {
-          id: valueName,
-          name: valueName,
-          value: colorValue,
+          id: val.name,
+          name: val.name,
+          value: val.name, // label only (no color hex)
           available: v.stock_quantity > 0,
           priceModifier: v.price_modifier || 0,
-          image: val.image_url ?? '', // ✅ Always a string
+          image: val.image_url || '', // ✅ this is key
         };
 
+        const existing = acc.find((x) => x.id === v.variant_type);
         if (existing) {
           existing.values.push(valueObj);
         } else {
           acc.push({
             id: v.variant_type,
             name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
-            type: variantType,
+            type: variantType === 'image' ? 'color' : variantType, // 🔹 "color" triggers image swatch mode
             values: [valueObj],
           });
         }
