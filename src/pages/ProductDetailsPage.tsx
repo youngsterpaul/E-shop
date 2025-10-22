@@ -92,30 +92,50 @@ const ProductDetailsPage: React.FC = () => {
       else if (type.includes('size')) variantType = 'size';
       else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
 
-      const colorValue = variantType === 'color'
-        ? colorMap[v.variant_value.toLowerCase()] || '#6b7280'
-        : v.variant_value;
-
-      const existing = acc.find((x) => x.id === v.variant_type);
-      const valueObj = {
-        id: v.variant_value,
-        name: v.variant_value,
-        value: colorValue,
-        available: v.stock_quantity > 0,
-        priceModifier: v.price_modifier || 0,
-        image: v.image_url || null 
-      };
-
-      if (existing) {
-        existing.values.push(valueObj);
-      } else {
-        acc.push({
-          id: v.variant_type,
-          name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
-          type: variantType,
-          values: [valueObj]
-        });
+      // ✅ FIX: parse JSON variant_value
+      let values: string[] = [];
+      try {
+        if (typeof v.variant_value === 'string') {
+          const parsed = JSON.parse(v.variant_value);
+          values = Array.isArray(parsed) ? parsed : [v.variant_value];
+        } else if (Array.isArray(v.variant_value)) {
+          values = v.variant_value;
+        } else {
+          values = [String(v.variant_value)];
+        }
+      } catch {
+        values = [String(v.variant_value)];
       }
+
+      // ✅ Loop through all values inside the JSON array
+      values.forEach((val) => {
+        const colorValue =
+          variantType === 'color'
+            ? colorMap[val.toLowerCase()] || '#6b7280'
+            : val;
+
+        const existing = acc.find((x) => x.id === v.variant_type);
+        const valueObj = {
+          id: val,
+          name: val,
+          value: colorValue,
+          available: v.stock_quantity > 0,
+          priceModifier: v.price_modifier || 0,
+          image: v.image_url || null
+        };
+
+        if (existing) {
+          existing.values.push(valueObj);
+        } else {
+          acc.push({
+            id: v.variant_type,
+            name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
+            type: variantType,
+            values: [valueObj]
+          });
+        }
+      });
+
       return acc;
     }, []);
   }, [variants]);
