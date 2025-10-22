@@ -87,8 +87,28 @@ const ProductDetailsPage: React.FC = () => {
 
     return variants.reduce((acc: any[], v: Variant) => {
       const type = v.variant_type;
+      
+      let values: VariantValue[] = [];
+      try {
+        if (typeof v.variant_value === 'string') {
+          const parsed = JSON.parse(v.variant_value);
+          if (Array.isArray(parsed)) {
+            values = parsed;
+          } else {
+            values = [{ name: String(parsed), image_url: '' }];
+          }
+        } else if (Array.isArray(v.variant_value)) {
+          values = v.variant_value;
+        } else {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+      } catch {
+        values = [{ name: String(v.variant_value || ''), image_url: '' }];
+      }
+
+      // Determine variant type based on presence of images
       const variantType: 'image' | 'size' | 'material' | 'other' =
-        Array.isArray(v.variant_value) && v.variant_value.some((vv: any) => vv.image_url)
+        values.some((vv: any) => vv.image_url)
           ? 'image'
           : type.toLowerCase().includes('size')
           ? 'size'
@@ -96,40 +116,38 @@ const ProductDetailsPage: React.FC = () => {
           ? 'material'
           : 'other';
 
-      let values: VariantValue[] = [];
-      try {
-        if (typeof v.variant_value === 'string') {
-          const parsed = JSON.parse(v.variant_value);
-          if (Array.isArray(parsed)) values = parsed;
-        } else if (Array.isArray(v.variant_value)) {
-          values = v.variant_value;
-        }
-      } catch {
-        values = [{ name: String(v.variant_value || ''), image_url: v.image_url || '' }];
-      }
-
-      values.forEach((val) => {
-        const valueObj = {
-          id: val.name || String(val),
-          name: val.name || String(val),
-          value: val.image_url ? val.image_url : val.name || String(val), // ✅ always a string
-          available: v.stock_quantity > 0,
-          priceModifier: v.price_modifier || 0,
-          image: val.image_url || '', // ✅ key for image swatch
-        };
-
-        const existing = acc.find((x) => x.id === v.variant_type);
-        if (existing) {
+      // Check if this variant type already exists
+      const existing = acc.find((x) => x.id === v.variant_type);
+      
+      if (existing) {
+        // Add values to existing variant type
+        values.forEach((val) => {
+          const valueObj = {
+            id: val.name || String(val),
+            name: val.name || String(val),
+            value: val.image_url ? val.image_url : val.name || String(val),
+            available: v.stock_quantity > 0,
+            priceModifier: v.price_modifier || 0,
+            image: val.image_url || '',
+          };
           existing.values.push(valueObj);
-        } else {
-          acc.push({
-            id: v.variant_type,
-            name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
-            type: variantType === 'image' ? 'color' : variantType, // 🔹 "color" triggers image swatch mode
-            values: [valueObj],
-          });
-        }
-      });
+        });
+      } else {
+        // Create new variant type
+        acc.push({
+          id: v.variant_type,
+          name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
+          type: variantType === 'image' ? 'color' : variantType,
+          values: values.map((val) => ({
+            id: val.name || String(val),
+            name: val.name || String(val),
+            value: val.image_url ? val.image_url : val.name || String(val),
+            available: v.stock_quantity > 0,
+            priceModifier: v.price_modifier || 0,
+            image: val.image_url || '',
+          })),
+        });
+      }
 
       return acc;
     }, []);
@@ -155,31 +173,35 @@ const ProductDetailsPage: React.FC = () => {
     });
   }, [transformedVariants]);
 
-const stockInfo = useMemo(() => {
-  return variants.reduce((acc: Record<string, number>, v: Variant) => {
-    let values: VariantValue[] = [];
+  const stockInfo = useMemo(() => {
+    if (!variants?.length) return {};
     
-    // Parse variant_value properly
-    try {
-      if (typeof v.variant_value === 'string') {
-        const parsed = JSON.parse(v.variant_value);
-        values = Array.isArray(parsed) ? parsed : [parsed];
-      } else if (Array.isArray(v.variant_value)) {
-        values = v.variant_value;
+    const stockMap: Record<string, number> = {};
+    
+    variants.forEach((v: Variant) => {
+      let values: VariantValue[] = [];
+      
+      try {
+        if (typeof v.variant_value === 'string') {
+          const parsed = JSON.parse(v.variant_value);
+          values = Array.isArray(parsed) ? parsed : [{ name: String(parsed), image_url: '' }];
+        } else if (Array.isArray(v.variant_value)) {
+          values = v.variant_value;
+        } else {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+      } catch {
+        values = [{ name: String(v.variant_value || ''), image_url: '' }];
       }
-    } catch {
-      values = [{ name: String(v.variant_value || ''), image_url: '' }];
-    }
 
-    // Create stock entry for each variant value
-    values.forEach((val) => {
-      const valueName = val.name || String(val);
-      acc[`${v.variant_type}-${valueName}`] = v.stock_quantity;
+      values.forEach((val) => {
+        const valueName = val.name || String(val);
+        stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
+      });
     });
 
-    return acc;
-  }, {});
-}, [variants]);
+    return stockMap;
+  }, [variants]);
 
   const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
 
