@@ -139,7 +139,7 @@ const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => 
                   </FormControl>
                   <SelectContent>
                     {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
+                      <SelectItem key={store.id} value={store.name}>
                         {store.name} - {store.phone}
                       </SelectItem>
                     ))}
