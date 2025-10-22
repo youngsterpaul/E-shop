@@ -170,7 +170,7 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
     setEditingVariant(null);
   };
 
-  const variantTypes = ['Size', 'Color', 'Material', 'Style', 'Capacity', 'Weight'];
+  const variantTypes = ['Size', 'Color', 'Material', 'Style', 'Storage', 'Capacity', 'Weight'];
 
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading variants...</div>;
@@ -206,7 +206,7 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
                       <SelectValue placeholder="Select variant type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {['Size', 'Color', 'Material', 'Style', 'Capacity', 'Weight'].map((type) => (
+                      {variantTypes.map((type) => (
                         <SelectItem key={type} value={type}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </SelectItem>
