@@ -21,12 +21,13 @@ import { useCart } from '@/hooks/useCart';
 // ✅ Properly typed interfaces
 interface VariantValue {
   name: string;
-  image_url?: string; // optional to fix your type issue
+  image_url?: string;
 }
 
 interface Variant {
+  id?: string; // Add this if needed
   variant_type: string;
-  variant_value: string | VariantValue[]; // JSON string or parsed array
+  variant_value: string | VariantValue[];
   stock_quantity: number;
   price_modifier?: number;
   image_url?: string;
@@ -135,32 +136,50 @@ const ProductDetailsPage: React.FC = () => {
   }, [variants]);
 
   useEffect(() => {
-  if (!transformedVariants?.length) return;
+    if (!transformedVariants?.length) return;
 
-  setSelectedVariants((prev) => {
-    const updated = { ...prev };
+    setSelectedVariants((prev) => {
+      const updated = { ...prev };
 
-    transformedVariants.forEach((variant) => {
-      const alreadySelected = updated[variant.id];
-      if (!alreadySelected && variant.values.length > 0) {
-        const firstAvailable = variant.values.find(v => v.available);
-        if (firstAvailable) {
-          updated[variant.id] = firstAvailable.id;
+      transformedVariants.forEach((variant) => {
+        const alreadySelected = updated[variant.id];
+        if (!alreadySelected && variant.values.length > 0) {
+          const firstAvailable = variant.values.find(v => v.available);
+          if (firstAvailable) {
+            updated[variant.id] = firstAvailable.id;
+          }
         }
+      });
+
+      return updated;
+    });
+  }, [transformedVariants]);
+
+const stockInfo = useMemo(() => {
+  return variants.reduce((acc: Record<string, number>, v: Variant) => {
+    let values: VariantValue[] = [];
+    
+    // Parse variant_value properly
+    try {
+      if (typeof v.variant_value === 'string') {
+        const parsed = JSON.parse(v.variant_value);
+        values = Array.isArray(parsed) ? parsed : [parsed];
+      } else if (Array.isArray(v.variant_value)) {
+        values = v.variant_value;
       }
+    } catch {
+      values = [{ name: String(v.variant_value || ''), image_url: '' }];
+    }
+
+    // Create stock entry for each variant value
+    values.forEach((val) => {
+      const valueName = val.name || String(val);
+      acc[`${v.variant_type}-${valueName}`] = v.stock_quantity;
     });
 
-    return updated;
-  });
-}, [transformedVariants]);
-
-
-  const stockInfo = useMemo(() => {
-    return variants.reduce((acc: Record<string, number>, v: Variant) => {
-      acc[`${v.variant_type}-${v.variant_value}`] = v.stock_quantity;
-      return acc;
-    }, {});
-  }, [variants]);
+    return acc;
+  }, {});
+}, [variants]);
 
   const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
 
@@ -172,8 +191,25 @@ const ProductDetailsPage: React.FC = () => {
     if (!product) return 0;
     let total = product.discount_price ?? product.price ?? 0;
 
-    for (const [type, value] of Object.entries(selectedVariants)) {
-      const variant = variants.find((v) => v.variant_type === type && v.variant_value === value);
+    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
+      const variant = variants.find((v) => {
+        if (v.variant_type !== type) return false;
+        
+        let values: VariantValue[] = [];
+        try {
+          if (typeof v.variant_value === 'string') {
+            const parsed = JSON.parse(v.variant_value);
+            values = Array.isArray(parsed) ? parsed : [parsed];
+          } else if (Array.isArray(v.variant_value)) {
+            values = v.variant_value;
+          }
+        } catch {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+        
+        return values.some(val => val.name === selectedValue);
+      });
+      
       if (variant?.price_modifier) total += variant.price_modifier;
     }
     return total;
