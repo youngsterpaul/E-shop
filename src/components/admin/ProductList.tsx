@@ -8,7 +8,7 @@ interface Product {
   description: string;
   price: number;
   stock: number;
-  phone: number;
+  store: string;
   categories: string;
   featured: boolean;
   image_urls: string[];

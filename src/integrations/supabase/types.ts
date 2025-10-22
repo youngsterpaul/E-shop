@@ -194,6 +194,36 @@ export type Database = {
           },
         ]
       }
+      store: {
+        Row: {
+          id: string
+          name: string
+          phone: string
+          created_at: string | null
+          updated_at: string | null
+          address: string | null
+          email: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          phone: string
+          created_at?: string | null
+          updated_at?: string | null
+          address?: string | null
+          email?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          phone?: string
+          created_at?: string | null
+          updated_at?: string | null
+          address?: string | null
+          email?: string | null
+        }
+        Relationships: []
+      }
       daily_sales: {
         Row: {
           created_at: string | null
@@ -391,7 +421,7 @@ export type Database = {
           rating: number | null
           specification: Json | null
           stock: number | null
-          phone: number | null
+          store: string | null
           subcategory_id: number | null
           updated_at: string | null
         }
@@ -410,7 +440,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
-          phone?: number | null
+          store?: string | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
@@ -429,7 +459,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
-          phone?: number | null
+          store: string | null
           subcategory_id?: number | null
           updated_at?: string | null
         }

@@ -41,6 +41,7 @@ const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
 const AdminProductAddPage = lazy(() => import("./pages/admin/AdminProductAddPage"));
 const AdminProductEditPage = lazy(() => import("./pages/admin/AdminProductEditPage"));
 const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
+const AdminStoresPage = lazy(() => import("./pages/admin/AdminStoresPage"));
 const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
@@ -92,6 +93,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute><AdminStoresPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />

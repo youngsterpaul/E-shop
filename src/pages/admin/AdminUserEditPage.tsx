@@ -125,7 +125,7 @@ const AdminUserEditPage = () => {
         <AdminSidebar />
         <div className="ml-0 md:ml-64 p-4 md:p-6">
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-green-500" />
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ const AdminUserEditPage = () => {
                 <div className="flex gap-4 pt-4">
                   <Button 
                     type="submit" 
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-green-500 hover:bg-green-600"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Updating...' : 'Update User'}

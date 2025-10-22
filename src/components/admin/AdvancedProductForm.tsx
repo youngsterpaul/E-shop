@@ -15,7 +15,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
-  phone: number;
+  store: string;
   categories: string;
   featured: boolean;
   features: string;

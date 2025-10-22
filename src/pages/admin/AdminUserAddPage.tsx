@@ -204,7 +204,7 @@ const AdminUserAddPage = () => {
                 <div className="flex gap-4 pt-4">
                   <Button 
                     type="submit" 
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-green-500 hover:bg-green-600"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Creating...' : 'Create User'}
