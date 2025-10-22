@@ -92,36 +92,38 @@ const ProductDetailsPage: React.FC = () => {
       else if (type.includes('size')) variantType = 'size';
       else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
 
-      // ✅ FIX: parse JSON variant_value
-      let values: string[] = [];
+      // ✅ FIXED: Handle JSON array of { name, image_url }
+      let values: { name: string; image_url?: string }[] = [];
+
       try {
         if (typeof v.variant_value === 'string') {
           const parsed = JSON.parse(v.variant_value);
-          values = Array.isArray(parsed) ? parsed : [v.variant_value];
+          if (Array.isArray(parsed)) values = parsed;
         } else if (Array.isArray(v.variant_value)) {
-          values = v.variant_value;
-        } else {
-          values = [String(v.variant_value)];
+          // Already parsed from Supabase
+          values = v.variant_value as any;
         }
       } catch {
-        values = [String(v.variant_value)];
+        // fallback: single value
+        values = [{ name: String(v.variant_value || ''), image_url: v.image_url }];
       }
 
-      // ✅ Loop through all values inside the JSON array
+      // ✅ Create variant group and values
       values.forEach((val) => {
+        const valueName = val.name || '';
         const colorValue =
           variantType === 'color'
-            ? colorMap[val.toLowerCase()] || '#6b7280'
-            : val;
+            ? colorMap[valueName.toLowerCase()] || '#6b7280'
+            : valueName;
 
         const existing = acc.find((x) => x.id === v.variant_type);
         const valueObj = {
-          id: val,
-          name: val,
+          id: valueName,
+          name: valueName,
           value: colorValue,
           available: v.stock_quantity > 0,
           priceModifier: v.price_modifier || 0,
-          image: v.image_url || null
+          image: val.image_url || null
         };
 
         if (existing) {
