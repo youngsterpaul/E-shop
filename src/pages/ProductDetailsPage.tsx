@@ -109,12 +109,12 @@ const ProductDetailsPage: React.FC = () => {
 
       values.forEach((val) => {
         const valueObj = {
-          id: val.name,
-          name: val.name,
-          value: val.name, // label only (no color hex)
+          id: val.name || String(val),
+          name: val.name || String(val),
+          value: val.image_url ? val.image_url : val.name || String(val), // ✅ always a string
           available: v.stock_quantity > 0,
           priceModifier: v.price_modifier || 0,
-          image: val.image_url || '', // ✅ this is key
+          image: val.image_url || '', // ✅ key for image swatch
         };
 
         const existing = acc.find((x) => x.id === v.variant_type);
