@@ -369,6 +369,7 @@ export type Database = {
           product_id: string | null
           sku_suffix: string | null
           stock_quantity: Json | null
+          image_url: string | null
           updated_at: string | null
           variant_type: string
           variant_value: Json | null
@@ -380,6 +381,7 @@ export type Database = {
           product_id?: string | null
           sku_suffix?: string | null
           stock_quantity?: Json | null
+          image_url?: string | null
           updated_at?: string | null
           variant_type: string
           variant_value?: Json | null
@@ -391,6 +393,7 @@ export type Database = {
           product_id?: string | null
           sku_suffix?: string | null
           stock_quantity?: Json | null
+          image_url?: string | null
           updated_at?: string | null
           variant_type?: string
           variant_value?: Json | null

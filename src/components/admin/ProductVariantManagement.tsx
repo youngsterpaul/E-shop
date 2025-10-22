@@ -17,6 +17,7 @@ interface ProductVariant {
   price_modifier: number;
   stock_quantity: number;
   sku_suffix?: string;
+  image_url?: string;
 }
 
 interface ProductVariantManagementProps {
@@ -36,7 +37,8 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
     variant_value: '',
     price_modifier: '0',
     stock_quantity: '0',
-    sku_suffix: ''
+    sku_suffix: '',
+    image_url: '' 
   });
 
   const fetchVariants = async () => {
@@ -64,7 +66,8 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
         stock_quantity: typeof variant.stock_quantity === 'number' 
           ? variant.stock_quantity 
           : Number(variant.stock_quantity) || 0,
-        sku_suffix: variant.sku_suffix || undefined
+        sku_suffix: variant.sku_suffix || undefined,
+        image_url: variant.image_url || ''
       })) || [];
       
       setVariants(transformedVariants);
@@ -96,7 +99,8 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
       variant_value: variantValues, // Store as array with line breaks preserved
       price_modifier: parseFloat(formData.price_modifier),
       stock_quantity: parseInt(formData.stock_quantity),
-      sku_suffix: formData.sku_suffix || null
+      sku_suffix: formData.sku_suffix || null,
+      image_url: formData.image_url || null 
     };
 
     try {
@@ -117,7 +121,7 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
         toast({ title: "Success", description: "Variant created successfully" });
       }
 
-      setFormData({ variant_type: '', variant_value: '', price_modifier: '0', stock_quantity: '0', sku_suffix: '' });
+      setFormData({ variant_type: '', variant_value: '', price_modifier: '0', image_url: '', stock_quantity: '0', sku_suffix: '' });
       setEditingVariant(null);
       setShowAddDialog(false);
       fetchVariants();
@@ -138,7 +142,8 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
       variant_value: variant.variant_value,
       price_modifier: variant.price_modifier.toString(),
       stock_quantity: variant.stock_quantity.toString(),
-      sku_suffix: variant.sku_suffix || ''
+      sku_suffix: variant.sku_suffix || '',
+      image_url: '' 
     });
     setShowAddDialog(true);
   };
@@ -166,7 +171,7 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
   };
 
   const resetForm = () => {
-    setFormData({ variant_type: '', variant_value: '', price_modifier: '0', stock_quantity: '0', sku_suffix: '' });
+    setFormData({ variant_type: '', variant_value: '', price_modifier: '0', stock_quantity: '0', sku_suffix: '', image_url: '' });
     setEditingVariant(null);
   };
 
@@ -228,6 +233,18 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
                     Enter each variant value on a new line
                   </p>
                 </div>
+                <div>
+                <Label htmlFor="image_url">Variant Image URL (optional)</Label>
+                <Input
+                  id="image_url"
+                  value={formData.image_url || ''}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  placeholder="https://example.com/path/to/image.jpg"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  You can paste a small image link to display this variant (e.g., color or style preview).
+                </p>
+              </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="price_modifier">Price Modifier (KES)</Label>
@@ -279,14 +296,23 @@ const ProductVariantManagement = ({ productId, productName }: ProductVariantMana
           <div className="space-y-2">
             {variants.map((variant) => (
               <div key={variant.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {variant.variant_type}: {variant.variant_value.replace(/\n/g, ', ')}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Price: {variant.price_modifier >= 0 ? '+' : ''}KES {variant.price_modifier} | 
-                    Stock: {variant.stock_quantity}
-                    {variant.sku_suffix && ` | SKU: ${variant.sku_suffix}`}
+                <div className="flex items-center gap-3 flex-1">
+                  {variant.image_url && (
+                    <img
+                      src={variant.image_url}
+                      alt={variant.variant_value}
+                      className="w-10 h-10 object-cover rounded-md border"
+                    />
+                  )}
+                  <div>
+                    <div className="font-medium">
+                      {variant.variant_type}: {variant.variant_value.replace(/\n/g, ', ')}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Price: {variant.price_modifier >= 0 ? '+' : ''}KES {variant.price_modifier} | 
+                      Stock: {variant.stock_quantity}
+                      {variant.sku_suffix && ` | SKU: ${variant.sku_suffix}`}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2">

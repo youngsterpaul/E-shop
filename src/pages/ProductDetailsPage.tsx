@@ -23,6 +23,7 @@ interface Variant {
   variant_value: string;
   stock_quantity: number;
   price_modifier?: number;
+  image_url?: string;
 }
 
 interface Product {
@@ -101,7 +102,8 @@ const ProductDetailsPage: React.FC = () => {
         name: v.variant_value,
         value: colorValue,
         available: v.stock_quantity > 0,
-        priceModifier: v.price_modifier || 0
+        priceModifier: v.price_modifier || 0,
+        image: v.image_url || null 
       };
 
       if (existing) {
