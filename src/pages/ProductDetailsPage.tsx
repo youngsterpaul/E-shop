@@ -123,9 +123,9 @@ const ProductDetailsPage: React.FC = () => {
         // Add values to existing variant type
         values.forEach((val) => {
           const valueObj = {
-            id: val.name || String(val),
-            name: val.name || String(val),
-            value: val.image_url ? val.image_url : val.name || String(val),
+            id: String(val.name),
+            name: String(val.name),
+            value: val.image_url ? String(val.image_url) : String(val.name),
             available: v.stock_quantity > 0,
             priceModifier: v.price_modifier || 0,
             image: val.image_url || '',
@@ -139,9 +139,9 @@ const ProductDetailsPage: React.FC = () => {
           name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
           type: variantType === 'image' ? 'color' : variantType,
           values: values.map((val) => ({
-            id: val.name || String(val),
-            name: val.name || String(val),
-            value: val.image_url ? val.image_url : val.name || String(val),
+            id: String(val.name),
+            name: String(val.name),
+            value: val.image_url ? String(val.image_url) : String(val.name),
             available: v.stock_quantity > 0,
             priceModifier: v.price_modifier || 0,
             image: val.image_url || '',

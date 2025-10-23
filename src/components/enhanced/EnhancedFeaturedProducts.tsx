@@ -240,11 +240,22 @@ const EnhancedFeaturedProducts = memo(() => {
         
         {/* Mobile Loading Indicator */}
         {isMobile && isFetchingNextPage && (
-          <div className="flex justify-center py-6">
-            <div className="flex items-center text-gray-600">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Loading more products...
-            </div>
+          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} mt-4 px-2`}>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+              >
+                {/* Image skeleton */}
+                <div className="h-40 bg-gray-200 shimmer" />
+
+                {/* Text skeleton */}
+                <div className="p-2 space-y-2">
+                  <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
+                  <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>

@@ -43,7 +43,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
             </h3>
             {selectedVariants[variant.id] && (
               <span className="text-xs text-gray-500">
-                {selectedVariants[variant.id]}
+                {variant.values.find(v => v.id === selectedVariants[variant.id])?.name || selectedVariants[variant.id]}
               </span>
             )}
           </div>
