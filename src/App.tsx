@@ -46,6 +46,7 @@ const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
+const AdminHeroSlidesPage = lazy(() => import("./pages/admin/AdminHeroSlidesPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 // Add the lazy import for CategoryPage
@@ -57,7 +58,7 @@ function App() {
       <TopProgressBar/>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
-        <Suspense>
+        <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           <main id="main-content">
             <Routes>
             {/* Public Routes */}
@@ -98,6 +99,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute><AdminHeroSlidesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}

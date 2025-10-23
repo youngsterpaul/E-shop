@@ -16,7 +16,8 @@ import {
   Tags,
   MessageSquare,
   Bell,
-  Store
+  Store,
+  Image
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -70,6 +71,11 @@ const AdminSidebar = () => {
       name: 'Users',
       icon: Users,
       path: '/supersmartkenyaadmin123/users',
+    },
+    {
+      name: 'HeroSlides',
+      icon: Image,
+      path: '/supersmartkenyaadmin123/heroslides',
     },
     {
       name: 'Settings',

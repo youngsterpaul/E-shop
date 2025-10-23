@@ -224,6 +224,39 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_slides: {
+        Row: {
+          id: string
+          title: string
+          image_url: string
+          link: string | null
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          image_url: string
+          link?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          image_url?: string
+          link?: string | null
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_sales: {
         Row: {
           created_at: string | null

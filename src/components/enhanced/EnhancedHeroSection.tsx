@@ -19,16 +19,17 @@ import {
 } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import hero1Image from '@/assets/images/hero1.png';
-import hero2Image from '@/assets/images/hero2.webp';
-import hero3Image from '@/assets/images/hero3.webp';
-import hero4Image from '@/assets/images/hero4.png';
-import hero5Image from '@/assets/images/hero5.png';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HeroSlide {
-  id: number;
+  id: string;
   title: string;
-  image: string;
+  image_url: string;
+  link: string | null; // ✅ changed from "string | undefined"
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface Category {
@@ -38,34 +39,6 @@ interface Category {
   subcategories: string[];
   searchQuery: string; // Add search query for navigation
 }
-
-const heroSlides: HeroSlide[] = [
-  {
-    id: 1,
-    title: "Summer Tech Sale",
-    image: hero1Image,
-  },
-  {
-    id: 2,
-    title: "New Arrivals",
-    image: hero2Image,
-  },
-  {
-    id: 3,
-    title: "Smart Living",
-    image: hero3Image,
-  },
-  {
-    id: 4,
-    title: "Smart Living",
-    image: hero4Image,
-  },
-    {
-    id: 5,
-    title: "Smart Living",
-    image: hero5Image,
-  },
-];
 
 const categories: Category[] = [
   {
@@ -303,25 +276,46 @@ const CategorySidebar = memo(() => {
 CategorySidebar.displayName = 'CategorySidebar';
 
 const EnhancedHeroSection = memo(() => {
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
 
-  // Add the category click handler to the main component
-  const handleCategoryClick = (searchQuery: string) => {
-    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-  };
-
+  // Fetch hero slides from database
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    const fetchHeroSlides = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('hero_slides')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+
+        setHeroSlides(data || []);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching hero slides:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchHeroSlides();
+  }, []);
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying || heroSlides.length === 0) return;
     
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, heroSlides.length]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -329,9 +323,33 @@ const EnhancedHeroSection = memo(() => {
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
-  const currentSlideData = heroSlides[currentSlide];
+  const handleSlideClick = () => {
+    const currentSlideData = heroSlides[currentSlide];
+      if (currentSlideData?.link) {
+        if (currentSlideData.link.startsWith('http')) {
+          window.open(currentSlideData.link, '_blank');
+        } else {
+          navigate(currentSlideData.link);
+        }
+      }
+  };
 
-  // Dynamic height based on device type
+  // Loading state
+  if (loading) {
+    const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
+    return (
+      <section className={`relative ${heroHeight} bg-gray-200 animate-pulse ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
+        <CategorySidebar />
+      </section>
+    );
+  }
+
+  // No slides available
+  if (heroSlides.length === 0) {
+    return null;
+  }
+
+  const currentSlideData = heroSlides[currentSlide] ?? heroSlides[0];
   const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
 
   return (
@@ -341,9 +359,9 @@ const EnhancedHeroSection = memo(() => {
       {/* Background Image with Overlay */}
       <div className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''}`}>
         <LazyImage
-          src={currentSlideData.image}
+          src={currentSlideData.image_url}
           alt={currentSlideData.title}
-          priority // ✅ high-priority eager load
+          priority
           width={1920}
           height={1080}
           className={`object-cover ${!isMobile ? 'max-h-[500px] w-full' : 'max-h-[180px]'}`}
