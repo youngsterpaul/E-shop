@@ -122,7 +122,7 @@ const AdminHeroSlidesPage = () => {
       const filePath = `hero-slides/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images')
+        .from('hero-slides')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -131,7 +131,7 @@ const AdminHeroSlidesPage = () => {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
+        .from('hero-slides')
         .getPublicUrl(filePath);
 
       setUploadProgress(100);
@@ -177,7 +177,7 @@ const AdminHeroSlidesPage = () => {
         if (editingSlide?.image_url) {
           const oldPath = editingSlide.image_url.split('/').slice(-2).join('/');
           await supabase.storage
-            .from('product-images')
+            .from('hero-slides')
             .remove([oldPath]);
         }
       }
@@ -251,7 +251,7 @@ const AdminHeroSlidesPage = () => {
       // Delete image from storage
       const imagePath = slide.image_url.split('/').slice(-2).join('/');
       await supabase.storage
-        .from('product-images')
+        .from('hero-slides')
         .remove([imagePath]);
 
       // Delete from database
