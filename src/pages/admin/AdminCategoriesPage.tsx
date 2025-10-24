@@ -21,8 +21,8 @@ const AdminCategoriesPage = () => {
   } = useAdminCategories();
 
   // Pagination state
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(1);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(1);
 
   // Get categories to display (with pagination)
   const displayedCategories = mainCategories.slice(0, displayedItemsCount);
@@ -92,7 +92,7 @@ const AdminCategoriesPage = () => {
                     </CardDescription>
                   </div>
                   
-                  {mainCategories.length > 10 && (
+                  {mainCategories.length > 1 && (
                     <Select 
                       value={itemsPerPage.toString()} 
                       onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -101,10 +101,10 @@ const AdminCategoriesPage = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="1">1 per page</SelectItem>
+                        <SelectItem value="2">2 per page</SelectItem>
+                        <SelectItem value="5">5 per page</SelectItem>
                         <SelectItem value="10">10 per page</SelectItem>
-                        <SelectItem value="25">25 per page</SelectItem>
-                        <SelectItem value="50">50 per page</SelectItem>
-                        <SelectItem value="100">100 per page</SelectItem>
                       </SelectContent>
                     </Select>
                   )}

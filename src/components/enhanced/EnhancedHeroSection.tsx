@@ -358,7 +358,10 @@ const EnhancedHeroSection = memo(() => {
       {/* Categories Sidebar */}
       <CategorySidebar />
       {/* Background Image with Overlay */}
-      <div className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''}`}>
+      <div 
+        className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''}`}
+        onClick={handleSlideClick}
+        >
         <LazyImage
           src={currentSlideData.image_url}
           alt={currentSlideData.title}
