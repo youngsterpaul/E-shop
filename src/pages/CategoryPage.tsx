@@ -5,7 +5,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import SmartPagination from '@/components/ui/pagination';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Search } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import ProductSort from '@/components/products/ProductSort';
@@ -14,6 +14,7 @@ import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
+import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 
 interface Category {
   id: number;
@@ -27,6 +28,7 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const params = useParams();
   const isMobile = isMobileUserAgent();
+  const [Query, setSearchQuery] = useState('');
 
   const [sortOption, setSortOption] = useState('featured');
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,6 +42,11 @@ const CategoryPage = () => {
   const [categoryData, setCategoryData] = useState<Category | null>(null);
   const [parentCategoryData, setParentCategoryData] = useState<Category | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<string[]>([]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!isMobile) setCurrentPage(1);
+  };
 
   // Extract URL parameters
   const searchParams = new URLSearchParams(location.search);
@@ -180,8 +187,6 @@ const CategoryPage = () => {
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {!isMobile && <Header />}
-      
-      {/* Mobile Header */}
       {isMobile && (
         <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
           <div className="flex w-full items-center gap-3">
@@ -193,9 +198,21 @@ const CategoryPage = () => {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-lg font-semibold text-gray-900 truncate">
-              {categoryData?.category || 'Category'}
-            </h1>
+            <EnhancedSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSearch={handleSearch}
+              placeholder="Search for products..."
+              className="w-full"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleSearch(searchQuery)}
+              className="h-8 px-3"
+            >
+              <Search className="text-gray-800 h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}

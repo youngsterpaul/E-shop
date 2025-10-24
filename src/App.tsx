@@ -51,6 +51,7 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
+            <Route path="/category" element={<MobileCategoryPage />} /> 
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             
