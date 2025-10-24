@@ -15,7 +15,10 @@ import {
   Gamepad2,
   Baby,
   Heart,
-  Wrench
+  Wrench,
+  Tv,
+  Fan,
+  Refrigerator
 } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -43,13 +46,13 @@ interface Category {
 const categories: Category[] = [
   {
     id: 1,
-    name: "Phones & Tablets",
+    name: "Phones & Accessories",
     icon: <Smartphone size={16} />,
-    searchQuery: "phone tablet",
+    searchQuery: "phones & accessories",
     subcategories: [
-      "Mobile Phones",
-      "Tablets",
-      "Phone Accessories",
+      "Smart Phones",
+      "Featured Phones",
+      "Refurbished Phones",
       "Cases & Covers",
       "Screen Protectors",
       "Power Banks",
@@ -58,85 +61,84 @@ const categories: Category[] = [
   },
   {
     id: 2,
-    name: "Electronics",
+    name: "Computers & Accessories",
     icon: <Laptop size={16} />,
-    searchQuery: "electronics laptop computer",
+    searchQuery: "computers & accessories",
     subcategories: [
-      "Laptops",
+      "Brand New Laptops",
+      "Refurbished Laptops",
       "Desktop Computers",
-      "Monitors",
-      "Keyboards & Mice",
-      "Headphones",
-      "Speakers",
-      "Cameras",
-      "Gaming Consoles"
+      "Laptops Bateries",
+      "Laptops Chargers",
+      "USB Flash Drives",
+      "Keyboards & Mouse",
+      "Routers",
     ]
   },
   {
     id: 3,
     name: "Home & Kitchen",
     icon: <Home size={16} />,
-    searchQuery: "home & kitchen appliances",
+    searchQuery: "home & kitchen",
     subcategories: [
-      "Furniture",
-      "Home Decor",
-      "Kitchen Appliances",
-      "Bedding",
-      "Bath & Shower",
-      "Garden Tools",
-      "Outdoor Furniture"
+      "Sofa & Chairs",
+      "Study & Kitchen Tables",
+      "Matress & Pilows",
+      "Duvet & Blankets",
+      "Beds",
+      "Utensils & Pans",
+      "Gas Cookers",
     ]
   },
   {
     id: 4,
-    name: "Automotive",
-    icon: <Car size={16} />,
-    searchQuery: "car electronics automotive",
+    name: "TV & Audio",
+    icon: <Tv size={16} />,
+    searchQuery: "tv & audio",
     subcategories: [
-      "Car Electronics",
-      "Car Parts",
-      "Tires",
-      "Car Care",
-      "Motorcycle Parts",
-      "Car Accessories",
-      "Tools & Equipment"
+      "Smart TV",
+      "Digital TV",
+      "Home Theater Systems",
+      "Woofers",
+      "Earphones & Earpods",
+      "Power & Cables",
+      "TV Accessories"
     ]
   },
   {
     id: 5,
     name: "Fashion",
     icon: <Shirt size={16} />,
-    searchQuery: "fashion clothing shoes",
+    searchQuery: "clothing",
     subcategories: [
-      "Men's Clothing",
-      "Women's Clothing",
-      "Children's Clothing",
-      "Shoes",
+      "Men Shoes & Sneakers",
+      "Men Trousers",
+      "Shirts & Jersey",
+      "Women Shoes & Sneakers",
+      "Women Trousers",
       "Bags",
-      "Jewelry",
       "Watches",
-      "Sunglasses"
     ]
   },
   {
     id: 6,
-    name: "Books & Education",
-    icon: <Book size={16} />,
-    searchQuery: "books education stationery",
+    name: "Home Appliances",
+    icon: <Refrigerator size={16} />,
+    searchQuery: "home appliances",
     subcategories: [
-      "Academic Books",
-      "Fiction",
-      "Children's Books",
-      "Educational Toys",
-      "Stationery",
-      "Art Supplies"
+      "Refrigerators",
+      "Blenders",
+      "Fans",
+      "Electric Kettles",
+      "Microwaves",
+      "Washing Machines",
     ]
   },
   {
     id: 7,
     name: "Gaming",
     icon: <Gamepad2 size={16} />,
-    searchQuery: "gaming games console",
+    searchQuery: "gaming console",
     subcategories: [
       "PlayStation Games",
       "Xbox Games",
@@ -148,6 +150,33 @@ const categories: Category[] = [
   },
   {
     id: 8,
+    name: "Health & Beauty",
+    icon: <Heart size={16} />,
+    searchQuery: "health & skincare",
+    subcategories: [
+      "Skincare",
+      "Makeup",
+      "Hair Care & Wigs",
+      "Nail Art",
+      "Fragrance & Sprays",
+    ]
+  },
+  {
+    id: 9,
+    name: "Tools & Hardware",
+    icon: <Wrench size={16} />,
+    searchQuery: "tools hardware",
+    subcategories: [
+      "Hand Tools",
+      "Power Tools",
+      "Hardware",
+      "Safety Equipment",
+      "Measuring Tools",
+      "Tool Storage"
+    ]
+  },
+  {
+    id: 10,
     name: "Baby & Kids",
     icon: <Baby size={16} />,
     searchQuery: "baby kids toys",
@@ -159,34 +188,6 @@ const categories: Category[] = [
       "Strollers",
       "Car Seats",
       "Baby Care"
-    ]
-  },
-  {
-    id: 9,
-    name: "Health & Beauty",
-    icon: <Heart size={16} />,
-    searchQuery: "health beauty skincare",
-    subcategories: [
-      "Skincare",
-      "Makeup",
-      "Hair Care",
-      "Fragrances",
-      "Health Supplements",
-      "Medical Devices"
-    ]
-  },
-  {
-    id: 10,
-    name: "Tools & Hardware",
-    icon: <Wrench size={16} />,
-    searchQuery: "tools hardware",
-    subcategories: [
-      "Hand Tools",
-      "Power Tools",
-      "Hardware",
-      "Safety Equipment",
-      "Measuring Tools",
-      "Tool Storage"
     ]
   }
 ];

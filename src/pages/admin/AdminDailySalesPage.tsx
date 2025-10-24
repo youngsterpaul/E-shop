@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, DollarSign, ShoppingCart, Users, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, DollarSign, ShoppingCart, Users, Plus, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 
 const AdminDailySalesPage = () => {
@@ -26,6 +27,36 @@ const AdminDailySalesPage = () => {
     total_orders: '',
     total_customers: ''
   });
+
+  // Pagination state
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+
+  // Get sales records to display (with pagination)
+  const displayedSales = dailySales?.slice(0, displayedItemsCount) || [];
+  const hasMoreSales = (dailySales?.length || 0) > displayedItemsCount;
+
+  // Reset displayed items when itemsPerPage changes
+  useEffect(() => {
+    setDisplayedItemsCount(itemsPerPage);
+  }, [itemsPerPage]);
+
+  // Handle "Show More" button
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => prev + itemsPerPage);
+  };
+
+  // Handle "Show All" button
+  const handleShowAll = () => {
+    setDisplayedItemsCount(dailySales?.length || 0);
+  };
+
+  // Handle "Show Less" button
+  const handleShowLess = () => {
+    setDisplayedItemsCount(itemsPerPage);
+    // Scroll to top of table
+    document.querySelector('[data-sales-table-container]')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -101,7 +132,7 @@ const AdminDailySalesPage = () => {
           total_orders: parseInt(formData.total_orders),
           total_customers: parseInt(formData.total_customers),
         })
-        .eq('date', editingDate); // ✅ Now TypeScript knows it's a string
+        .eq('date', editingDate);
 
       if (error) throw error;
 
@@ -363,12 +394,33 @@ const AdminDailySalesPage = () => {
         </div>
 
         {/* Sales Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Records</CardTitle>
-            <CardDescription>
-              View all daily sales records
-            </CardDescription>
+        <Card data-sales-table-container>
+          <CardHeader className="pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <CardTitle>Sales Records</CardTitle>
+                <CardDescription>
+                  Showing {displayedSales.length} of {dailySales?.length || 0} records
+                </CardDescription>
+              </div>
+              
+              {(dailySales?.length || 0) > 10 && (
+                <Select 
+                  value={itemsPerPage.toString()} 
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 per page</SelectItem>
+                    <SelectItem value="25">25 per page</SelectItem>
+                    <SelectItem value="50">50 per page</SelectItem>
+                    <SelectItem value="100">100 per page</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -384,61 +436,103 @@ const AdminDailySalesPage = () => {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Revenue (KSH)</TableHead>
-                      <TableHead className="text-right">Orders</TableHead>
-                      <TableHead className="text-right">Customers</TableHead>
-                      <TableHead className="text-right">Avg Order Value</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dailySales.map((sale) => (
-                      <TableRow key={sale.date}>
-                        <TableCell className="font-medium">
-                          {format(new Date(sale.date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {(sale.total_revenue || 0).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {sale.total_orders || 0}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {sale.total_customers || 0}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {sale.total_orders 
-                            ? ((sale.total_revenue || 0) / sale.total_orders).toLocaleString(undefined, { maximumFractionDigits: 2 })
-                            : '0'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(sale)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(sale.date)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+              <>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Revenue (KSH)</TableHead>
+                        <TableHead className="text-right">Orders</TableHead>
+                        <TableHead className="text-right">Customers</TableHead>
+                        <TableHead className="text-right">Avg Order Value</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {displayedSales.map((sale) => (
+                        <TableRow key={sale.date}>
+                          <TableCell className="font-medium">
+                            {format(new Date(sale.date), 'MMM dd, yyyy')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {(sale.total_revenue || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {sale.total_orders || 0}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {sale.total_customers || 0}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {sale.total_orders 
+                              ? ((sale.total_revenue || 0) / sale.total_orders).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                              : '0'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(sale)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(sale.date)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination Controls */}
+                {(dailySales?.length || 0) > itemsPerPage && (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-6 mt-6 border-t">
+                    <div className="flex items-center gap-2">
+                      {hasMoreSales && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            onClick={handleShowMore}
+                            className="flex items-center gap-2"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                            Show More ({Math.min(itemsPerPage, (dailySales?.length || 0) - displayedItemsCount)} more)
+                          </Button>
+                          
+                          {(dailySales?.length || 0) - displayedItemsCount > itemsPerPage && (
+                            <Button 
+                              variant="ghost" 
+                              onClick={handleShowAll}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              Show All ({dailySales?.length || 0})
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      
+                      {!hasMoreSales && displayedItemsCount > itemsPerPage && (
+                        <Button 
+                          variant="outline" 
+                          onClick={handleShowLess}
+                          className="flex items-center gap-2"
+                        >
+                          Show Less
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
