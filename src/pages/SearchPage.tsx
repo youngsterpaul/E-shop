@@ -30,6 +30,22 @@ const SearchPage = () => {
     ratings: [],
   });
 
+  // Grid layout configuration
+  const gridConfig = useMemo(() => {
+    if (isMobile) {
+      return {
+        cols: "grid-cols-2",
+        gap: "gap-2",
+        padding: "p-2"
+      };
+    }
+    return {
+      cols: "grid-cols-6",
+      gap: "gap-1",
+      padding: "p-8"
+    };
+  }, [isMobile]);
+
   const { searchProducts } = useProducts();
   const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
 
@@ -255,9 +271,22 @@ const SearchPage = () => {
                 </div>
 
                 {isMobile && mobileQuery.isFetchingNextPage && (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin h-6 w-6 border-2 border-green-500 border-t-transparent rounded-full"></div>
-                    <span className="ml-2 text-gray-600">Loading more products...</span>
+                  <div className={`grid ${gridConfig.cols} ${gridConfig.gap} mt-4 px-2`}>
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                      >
+                        {/* Image skeleton */}
+                        <div className="h-40 bg-gray-200 shimmer" />
+
+                        {/* Text skeleton */}
+                        <div className="p-2 space-y-2">
+                          <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
+                          <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 

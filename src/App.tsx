@@ -64,7 +64,8 @@ function App() {
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
-            <Route path="/category" element={<CategoryPage />} />
+            <Route path="/category/:categorySlug" element={<CategoryPage />} />
+            <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             

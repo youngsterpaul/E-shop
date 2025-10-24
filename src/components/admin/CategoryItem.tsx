@@ -19,6 +19,7 @@ import {
 interface Category {
   id: number;
   category: string;
+  slug: string; 
   parent_id: number | null;
 }
 
@@ -26,7 +27,7 @@ interface CategoryItemProps {
   category: Category;
   mainCategories: Category[];
   subcategories: Category[];
-  onEdit: (id: number, name: string, parentId: string) => Promise<void>;
+  onEdit: (id: number, name: string, slug: string, parentId: string) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -47,7 +48,7 @@ const CategoryItem = ({
     if (!editName.trim()) return;
     
     const parentId = editParent === 'none' ? '' : editParent;
-    await onEdit(category.id, editName.trim(), parentId);
+    await onEdit(category.id, editName.trim(), parentId, category.slug);
     setIsEditing(false);
   };
 
