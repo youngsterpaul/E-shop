@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface Category {
   id: number;
   category: string;
+  slug: string;
   parent_id: number | null;
 }
 
@@ -40,7 +41,7 @@ export const useAdminCategories = () => {
     }
   };
 
-  const handleAddCategory = async (name: string, parentId: string) => {
+  const handleAddCategory = async (name: string, slug: string, parentId: string) => {
     try {
       setIsSubmitting(true);
       
@@ -48,6 +49,7 @@ export const useAdminCategories = () => {
         .from('categories')
         .insert({
           category: name,
+          slug: slug,
           parent_id: parentId && parentId !== 'none' ? parseInt(parentId) : null
         } as any);
 
@@ -71,7 +73,7 @@ export const useAdminCategories = () => {
     }
   };
 
-  const handleEditCategory = async (id: number, name: string, parentId: string) => {
+  const handleEditCategory = async (id: number, name: string, slug: string, parentId: string) => {
     try {
       setIsSubmitting(true);
       
@@ -79,6 +81,7 @@ export const useAdminCategories = () => {
         .from('categories')
         .update({
           category: name,
+          slug: slug,
           parent_id: parentId && parentId !== 'none' ? parseInt(parentId) : null
         } as any)
         .eq('id', id);

@@ -11,12 +11,13 @@ import { Plus, Loader2 } from 'lucide-react';
 interface Category {
   id: number;
   category: string;
+  slug: string; 
   parent_id: number | null;
 }
 
 interface CategoryFormProps {
   categories: Category[];
-  onAddCategory: (name: string, parentId: string) => Promise<void>;
+  onAddCategory: (name: string, slug: string, parentId: string) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -24,11 +25,24 @@ const CategoryForm = ({ categories, onAddCategory, isSubmitting }: CategoryFormP
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedParentCategory, setSelectedParentCategory] = useState<string>('none');
 
+  // Generate slug from category name
+  const generateSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/&/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+  };
+
   const handleSubmit = async () => {
     if (!newCategoryName.trim()) return;
     
+    const slug = generateSlug(newCategoryName);
     const parentId = selectedParentCategory === 'none' ? '' : selectedParentCategory;
-    await onAddCategory(newCategoryName.trim(), parentId);
+    
+    // Pass slug to your database insert function
+    await onAddCategory(newCategoryName.trim(), parentId, slug);
+    
     setNewCategoryName('');
     setSelectedParentCategory('none');
   };

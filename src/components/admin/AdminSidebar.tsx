@@ -15,7 +15,9 @@ import {
   Plus,
   Tags,
   MessageSquare,
-  Bell
+  Bell,
+  Store,
+  Image
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -56,6 +58,11 @@ const AdminSidebar = () => {
       path: '/supersmartkenyaadmin123/categories',
     },
     {
+      name: 'Stores',
+      icon: Store,
+      path: '/supersmartkenyaadmin123/stores',
+    },
+    {
       name: 'Orders',
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
@@ -64,6 +71,11 @@ const AdminSidebar = () => {
       name: 'Users',
       icon: Users,
       path: '/supersmartkenyaadmin123/users',
+    },
+    {
+      name: 'HeroSlides',
+      icon: Image,
+      path: '/supersmartkenyaadmin123/heroslides',
     },
     {
       name: 'Settings',
@@ -105,7 +117,7 @@ const AdminSidebar = () => {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex h-16 items-center //justify-center border-b /px-6 px-3">
-            <h2 className="text-xl font-bold text-orange-600">SmartKenya Admin</h2>
+            <h2 className="text-xl font-bold text-green-600">SmartKenya Admin</h2>
           </div>
           
           {/* Navigation */}
@@ -116,7 +128,7 @@ const AdminSidebar = () => {
                   to={item.path}
                   className={`flex items-center justify-between px-3 py-2 rounded-md transition-colors ${
                     isActive(item.path)
-                      ? 'bg-orange-100 text-orange-600'
+                      ? 'bg-green-100 text-green-600'
                       : 'hover:bg-gray-100'
                   }`}
                   onClick={() => setIsOpen(false)}

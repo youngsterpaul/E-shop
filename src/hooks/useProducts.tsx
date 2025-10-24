@@ -80,6 +80,26 @@ async function fetchPage(
 
 /** --- Hook Factory --- */
 export const useProducts = () => {
+    const getProductsByCategory = async (categoryId: number, options: {
+    pageParam: number;
+    pageSize: number;
+  }) => {
+    const { data, error, count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .contains('categories', [categoryId]) // or use .eq('category_id', categoryId)
+      .range(
+        options.pageParam * options.pageSize,
+        (options.pageParam + 1) * options.pageSize - 1
+      );
+
+    if (error) throw error;
+
+    return {
+      products: data || [],
+      totalCount: count || 0,
+    };
+  };
   /** All Products */
   const fetchProducts = (opts?: { pageParam?: number; pageSize?: number }) =>
     fetchPage(supabase.from('products').select('*', { count: 'exact' }), opts);
@@ -159,6 +179,7 @@ export const useProducts = () => {
     fetchFeaturedProducts,
     fetchProductsByCategory,
     searchProducts,
+    getProductsByCategory,
     fetchProductByName,
   };
 };

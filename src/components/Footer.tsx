@@ -15,7 +15,7 @@ const Footer = ({ className }: FooterProps) => {
   if (isMobile) return null;
 
   // List of paths where you want to hide main footer content
-  const hideMainFooterOnPaths = ['/search', '/cart', '/wishlist'];
+  const hideMainFooterOnPaths = ['/search', '/cart', '/wishlist', '/category/:categorySlug', '/category/:categorySlug/:subcategorySlug'];
 
   // Check if current path matches any in the hide list
   const hideMainFooter = hideMainFooterOnPaths.includes(location.pathname);
@@ -72,7 +72,7 @@ const Footer = ({ className }: FooterProps) => {
           "contactPoint": [
             {
               "@type": "ContactPoint",
-              "telephone": "+254101762132",
+              "telephone": "+254758475467",
               "contactType": "customer service",
               "email": "info@smartkenya.co.ke",
               "availableLanguage": ["English", "Swahili"]

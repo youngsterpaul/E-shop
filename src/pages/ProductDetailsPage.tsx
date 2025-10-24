@@ -14,15 +14,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
 import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
 
+// ✅ Properly typed interfaces
+interface VariantValue {
+  name: string;
+  image_url?: string;
+}
+
 interface Variant {
+  id?: string; // Add this if needed
   variant_type: string;
-  variant_value: string;
+  variant_value: string | VariantValue[];
   stock_quantity: number;
   price_modifier?: number;
+  image_url?: string;
 }
 
 interface Product {
@@ -52,7 +60,7 @@ const ProductDetailsPage: React.FC = () => {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  // ------------------ Cart Safe Handling ------------------
+  // ------------------ Cart Handling ------------------
   let totalItems = 0;
   try {
     const { cartItems } = useCart();
@@ -74,55 +82,125 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [product, productName, id, navigate]);
 
-  // ------------------ Optimized Variants Transformation ------------------
   const transformedVariants = useMemo(() => {
     if (!variants?.length) return [];
 
-    const colorMap: Record<string, string> = {
-      red: '#ef4444', blue: '#3b82f6', green: '#10b981', black: '#1f2937',
-      white: '#ffffff', gray: '#6b7280', grey: '#6b7280', yellow: '#f59e0b',
-      orange: '#f97316', purple: '#8b5cf6', pink: '#ec4899', brown: '#92400e'
-    };
-
     return variants.reduce((acc: any[], v: Variant) => {
-      const type = v.variant_type.toLowerCase();
-      let variantType: 'color' | 'size' | 'material' | 'other' = 'other';
-      if (type.includes('color') || type.includes('colour')) variantType = 'color';
-      else if (type.includes('size')) variantType = 'size';
-      else if (type.includes('material') || type.includes('fabric')) variantType = 'material';
+      const type = v.variant_type;
+      
+      let values: VariantValue[] = [];
+      try {
+        if (typeof v.variant_value === 'string') {
+          const parsed = JSON.parse(v.variant_value);
+          if (Array.isArray(parsed)) {
+            values = parsed;
+          } else {
+            values = [{ name: String(parsed), image_url: '' }];
+          }
+        } else if (Array.isArray(v.variant_value)) {
+          values = v.variant_value;
+        } else {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+      } catch {
+        values = [{ name: String(v.variant_value || ''), image_url: '' }];
+      }
 
-      const colorValue = variantType === 'color'
-        ? colorMap[v.variant_value.toLowerCase()] || '#6b7280'
-        : v.variant_value;
+      // Determine variant type based on presence of images
+      const variantType: 'image' | 'size' | 'material' | 'other' =
+        values.some((vv: any) => vv.image_url)
+          ? 'image'
+          : type.toLowerCase().includes('size')
+          ? 'size'
+          : type.toLowerCase().includes('material')
+          ? 'material'
+          : 'other';
 
+      // Check if this variant type already exists
       const existing = acc.find((x) => x.id === v.variant_type);
-      const valueObj = {
-        id: v.variant_value,
-        name: v.variant_value,
-        value: colorValue,
-        available: v.stock_quantity > 0,
-        priceModifier: v.price_modifier || 0
-      };
-
+      
       if (existing) {
-        existing.values.push(valueObj);
+        // Add values to existing variant type
+        values.forEach((val) => {
+          const valueObj = {
+            id: String(val.name),
+            name: String(val.name),
+            value: val.image_url ? String(val.image_url) : String(val.name),
+            available: v.stock_quantity > 0,
+            priceModifier: v.price_modifier || 0,
+            image: val.image_url || '',
+          };
+          existing.values.push(valueObj);
+        });
       } else {
+        // Create new variant type
         acc.push({
           id: v.variant_type,
           name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
-          type: variantType,
-          values: [valueObj]
+          type: variantType === 'image' ? 'color' : variantType,
+          values: values.map((val) => ({
+            id: String(val.name),
+            name: String(val.name),
+            value: val.image_url ? String(val.image_url) : String(val.name),
+            available: v.stock_quantity > 0,
+            priceModifier: v.price_modifier || 0,
+            image: val.image_url || '',
+          })),
         });
       }
+
       return acc;
     }, []);
   }, [variants]);
 
+  useEffect(() => {
+    if (!transformedVariants?.length) return;
+
+    setSelectedVariants((prev) => {
+      const updated = { ...prev };
+
+      transformedVariants.forEach((variant) => {
+        const alreadySelected = updated[variant.id];
+        if (!alreadySelected && variant.values.length > 0) {
+          const firstAvailable = variant.values.find(v => v.available);
+          if (firstAvailable) {
+            updated[variant.id] = firstAvailable.id;
+          }
+        }
+      });
+
+      return updated;
+    });
+  }, [transformedVariants]);
+
   const stockInfo = useMemo(() => {
-    return variants.reduce((acc: Record<string, number>, v: Variant) => {
-      acc[`${v.variant_type}-${v.variant_value}`] = v.stock_quantity;
-      return acc;
-    }, {});
+    if (!variants?.length) return {};
+    
+    const stockMap: Record<string, number> = {};
+    
+    variants.forEach((v: Variant) => {
+      let values: VariantValue[] = [];
+      
+      try {
+        if (typeof v.variant_value === 'string') {
+          const parsed = JSON.parse(v.variant_value);
+          values = Array.isArray(parsed) ? parsed : [{ name: String(parsed), image_url: '' }];
+        } else if (Array.isArray(v.variant_value)) {
+          values = v.variant_value;
+        } else {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+      } catch {
+        values = [{ name: String(v.variant_value || ''), image_url: '' }];
+      }
+
+      values.forEach((val) => {
+        const valueName = val.name || String(val);
+        stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
+      });
+    });
+
+    return stockMap;
   }, [variants]);
 
   const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
@@ -130,13 +208,30 @@ const ProductDetailsPage: React.FC = () => {
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  // ------------------ Optimized Price Calculation ------------------
+  // ------------------ Price Calculation ------------------
   const price = useMemo(() => {
     if (!product) return 0;
     let total = product.discount_price ?? product.price ?? 0;
 
-    for (const [type, value] of Object.entries(selectedVariants)) {
-      const variant = variants.find((v) => v.variant_type === type && v.variant_value === value);
+    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
+      const variant = variants.find((v) => {
+        if (v.variant_type !== type) return false;
+        
+        let values: VariantValue[] = [];
+        try {
+          if (typeof v.variant_value === 'string') {
+            const parsed = JSON.parse(v.variant_value);
+            values = Array.isArray(parsed) ? parsed : [parsed];
+          } else if (Array.isArray(v.variant_value)) {
+            values = v.variant_value;
+          }
+        } catch {
+          values = [{ name: String(v.variant_value || ''), image_url: '' }];
+        }
+        
+        return values.some(val => val.name === selectedValue);
+      });
+      
       if (variant?.price_modifier) total += variant.price_modifier;
     }
     return total;
@@ -150,50 +245,52 @@ const ProductDetailsPage: React.FC = () => {
     if (!product) return { title: '', description: '', image: '' };
     const t = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
     const d = `${product.description || product.name} - Starting from KES ${product.price}. ${
-      product.features ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features) : ''
+      product.features
+        ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features)
+        : ''
     }`;
     const img = product.image_urls?.[0] || '/placeholder.svg';
     return { title: t, description: d, image: img };
   }, [product]);
 
-  const structuredData = useMemo(() => ({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product?.name,
-    description: product?.description,
-    image: product?.image_urls || [],
-    brand: { "@type": "Brand", name: "Smartkenya Online Shopping" },
-    offers: {
-      "@type": "Offer",
-      price: price,
-      priceCurrency: "KES",
-      availability:
-        product?.stock && product.stock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      seller: { "@type": "Organization", name: "Smartkenya Online Shopping" },
+  const structuredData = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product?.name,
+      description: product?.description,
+      image: product?.image_urls || [],
+      brand: { '@type': 'Brand', name: 'Smartkenya Online Shopping' },
+      offers: {
+        '@type': 'Offer',
+        price: price,
+        priceCurrency: 'KES',
+        availability:
+          product?.stock && product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: 'Smartkenya Online Shopping' },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: 'KE',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 7,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/FreeReturn',
+        },
+      },
+      aggregateRating: product?.rating
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviews || 0,
+          }
+        : undefined,
+    }),
+    [product, price]
+  );
 
-      // ✅ Add Merchant Return Policy
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "KE", // Kenya
-        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7, // Example: 7-day return policy
-        returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn"
-      }
-    },
-    aggregateRating: product?.rating
-      ? {
-          "@type": "AggregateRating",
-          ratingValue: product.rating,
-          reviewCount: product.reviews || 0
-        }
-      : undefined
-  }), [product, price]);
-
-
-  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   // ------------------ LOADING ------------------
   if (loading) {

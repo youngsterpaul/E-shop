@@ -103,19 +103,21 @@ const ProfilePage = () => {
   const isMobile = isMobileUserAgent();
 
   const countyOptions = [
-    { value: 'embu', label: 'Embu' },
-    { value: 'murangaa', label: "Murang'a" }
+    { value: 'nyeri', label: 'Nyeri' },
+    { value: 'muranga', label: "Murang'a" }
   ];
 
-  const cityOptions = {
-    embu: [
-      { value: 'runyenjes', label: 'Runyenjes' },
-      { value: 'manyatta', label: 'Manyatta' },
-      { value: 'embu-town', label: 'Embu Town' }
+  const cityOptions: Record<string, { value: string; label: string }[]> = {
+    nyeri: [
+      { value: 'karu', label: 'KARU' },
+      { value: 'kmtc', label: 'KMTC' },
+      { value: 'nyeri', label: 'Nyeri' },
     ],
-    murangaa: [
-      { value: 'kiharu', label: 'Kiharu' },
-      { value: 'mukuyu', label: 'Mukuyu' }
+    muranga: [
+      { value: 'mut', label: 'MUT' },
+      { value: 'kmtc', label: 'KMTC' },
+      { value: 'ktcm', label: 'KTCM' },
+      { value: 'muranga', label: "Murang'a" }
     ]
   };
 
