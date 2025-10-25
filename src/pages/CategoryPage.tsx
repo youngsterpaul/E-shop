@@ -54,6 +54,14 @@ const CategoryPage = () => {
   const parentId = searchParams.get('parent');
   const source = searchParams.get('source');
 
+  // Fallback names parsed from URL for robust fetching when ID mapping fails
+  const sourceParts = useMemo(
+    () => (source ? source.split('|').slice(1).map((p) => decodeURIComponent(p)) : []),
+    [source]
+  );
+  const fallbackCategoryName = sourceParts[sourceParts.length - 1];
+  const fallbackParentName = sourceParts.length > 1 && sourceParts[0] !== 'allCategory' ? sourceParts[0] : undefined;
+
   const { fetchProductsByCategoryId } = useProducts();
   const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
 
@@ -101,13 +109,16 @@ const CategoryPage = () => {
 
   // Data Fetch - Use category ID directly for better accuracy
   const { data: productsData, isLoading, isError } = useQuery({
-    queryKey: ['categoryProducts', categoryId, currentPage, itemsPerPage],
+    queryKey: ['categoryProducts', categoryId, fallbackCategoryName, currentPage, itemsPerPage],
     queryFn: () =>
       fetchProductsByCategoryId(Number(categoryId), {
         pageParam: currentPage - 1,
         pageSize: itemsPerPage,
+      }, {
+        categoryName: fallbackCategoryName,
+        parentName: fallbackParentName,
       }),
-    enabled: !!categoryId,
+    enabled: !!categoryId || !!fallbackCategoryName,
     staleTime: 30000,
   });
 

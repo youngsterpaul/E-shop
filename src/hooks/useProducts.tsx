@@ -126,45 +126,82 @@ export const useProducts = () => {
       opts
     );
 
-  /** Products by Category - supports both ID and name-based filtering */
+  /** Products by Category - robust by ID with fallbacks and subcategory support */
   const fetchProductsByCategoryId = async (
     categoryId: number,
-    opts?: { pageParam?: number; pageSize?: number }
+    opts?: { pageParam?: number; pageSize?: number },
+    fallback?: { categoryName?: string; parentName?: string }
   ): Promise<PaginatedProducts> => {
-    // First, get the category name from the database
-    const { data: categoryData, error: categoryError } = await supabase
+    // Try to load category by ID
+    const { data: categoryData } = await supabase
       .from('categories')
-      .select('category, parent_id')
+      .select('id, category, parent_id')
       .eq('id', categoryId)
       .maybeSingle();
 
-    if (categoryError || !categoryData) {
-      console.warn('Category not found for ID:', categoryId);
-      return { products: [], totalCount: 0, hasNextPage: false, nextPage: undefined };
-    }
+    // Helper to run a query with OR filters
+    const runQuery = (orFilters: string) =>
+      fetchPage(
+        supabase
+          .from('products')
+          .select('*', { count: 'exact' })
+          .or(orFilters),
+        opts
+      );
 
-    // Get parent category name if this is a subcategory
-    let fullCategoryName = categoryData.category;
-    if (categoryData.parent_id) {
-      const { data: parentData } = await supabase
-        .from('categories')
-        .select('category')
-        .eq('id', categoryData.parent_id)
-        .maybeSingle();
-      
-      if (parentData) {
-        fullCategoryName = `${parentData.category} > ${categoryData.category}`;
+    // If category exists by ID, build robust filters
+    if (categoryData) {
+      let fullCategoryName = categoryData.category;
+
+      // If subcategory, fetch parent name for full path
+      if (categoryData.parent_id) {
+        const { data: parentData } = await supabase
+          .from('categories')
+          .select('category')
+          .eq('id', categoryData.parent_id)
+          .maybeSingle();
+        if (parentData) fullCategoryName = `${parentData.category} > ${categoryData.category}`;
       }
+
+      // If parent category, collect all children for subcategory_id filter
+      let childIds: number[] = [];
+      if (!categoryData.parent_id) {
+        const { data: children } = await supabase
+          .from('categories')
+          .select('id, category')
+          .eq('parent_id', categoryId);
+        childIds = (children || []).map((c: any) => c.id);
+      }
+
+      const orParts: string[] = [];
+      // Direct match on subcategory_id
+      orParts.push(`subcategory_id.eq.${categoryId}`);
+      // Text matches on categories string
+      orParts.push(`categories.ilike.%${categoryData.category}%`);
+      orParts.push(`categories.eq.${fullCategoryName}`);
+      // If parent, include all children via subcategory_id
+      if (childIds.length > 0) {
+        orParts.push(`subcategory_id.in.(${childIds.join(',')})`);
+      }
+
+      return runQuery(orParts.join(','));
     }
 
-    // Now search for products with this category name
-    // Products can have either "Category" or "Category > Subcategory" format
-    const query = supabase
-      .from('products')
-      .select('*', { count: 'exact' })
-      .or(`categories.eq.${categoryData.category},categories.eq.${fullCategoryName},categories.ilike.%${categoryData.category}%`);
+    // Fallback: category ID not found; use names from URL/source if provided
+    if (fallback?.categoryName) {
+      const name = fallback.categoryName;
+      const full = fallback.parentName ? `${fallback.parentName} > ${name}` : name;
+      const orParts = [
+        `categories.eq.${full}`,
+        `categories.ilike.%${name}%`,
+      ];
+      // Also try subcategory_id equals the provided id (in case mapping is correct but categories table missing)
+      orParts.push(`subcategory_id.eq.${categoryId}`);
+      return runQuery(orParts.join(','));
+    }
 
-    return fetchPage(query, opts);
+    // Last resort: no match
+    return { products: [], totalCount: 0, hasNextPage: false, nextPage: undefined };
   };
 
   /** Products by Category Name (legacy support) */
