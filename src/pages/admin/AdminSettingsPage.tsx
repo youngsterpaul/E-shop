@@ -226,7 +226,7 @@ const AdminSettingsPage = () => {
                     )}
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+                    <Button type="submit" className="bg-green-500 hover:bg-green-600">
                       Save Changes
                     </Button>
                   </CardFooter>
@@ -325,7 +325,7 @@ const AdminSettingsPage = () => {
                     )}
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+                    <Button type="submit" className="bg-green-500 hover:bg-green-600">
                       Save Changes
                     </Button>
                   </CardFooter>

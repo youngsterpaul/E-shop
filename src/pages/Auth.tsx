@@ -328,7 +328,7 @@ return (
       // ✅ MOBILE LAYOUT
       <div className="min-h-screen bg-white flex flex-col">
         {/* 🔝 Fixed Header */}
-        <div className="flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100">
+        <div className="flex sticky top-0 right-0 left-0 items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100 bg-white z-40">
           <Button
             variant="ghost"
             size="icon"
@@ -337,11 +337,6 @@ return (
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </Button>
-          <img
-            src={smartkenyaLogo}
-            alt="SmartKenya Logo"
-            className="h-8 object-contain"
-          />
           <div className="w-8" /> {/* spacer to balance header */}
         </div>
 
@@ -358,17 +353,12 @@ return (
         )}
 
         {/* Title and description */}
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {authMode === 'signup' ? 'Create Account' : 
-              authMode === 'forgot' ? 'Reset Password' : 
-              authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
-          </h2>
-          <p className="text-gray-600">
-            {authMode === 'signup' ? 'Join thousands of satisfied customers' : 
-              authMode === 'forgot' ? 'Enter your email to receive a secure reset link' : 
-              authMode === 'reset' ? 'Please enter your new password below' : 'Sign in to continue to your account'}
-          </p>
+        <div className="mt-8 mb-8 flex justify-center items-center">
+          <img
+            src={smartkenyaLogo}
+            alt="SmartKenya Logo"
+            className="h-10 object-contain"
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-4">
@@ -396,7 +386,7 @@ return (
                   placeholder="Enter your email address"
                   value={email}
                   onChange={handleEmailChange}
-                  className={`pl-12 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                  className={`pl-12 h-10 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                     errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                   }`}
                   autoComplete="email"
@@ -427,7 +417,7 @@ return (
                     placeholder="Enter your new password"
                     value={newPassword}
                     onChange={handleNewPasswordChange}
-                    className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    className={`pl-12 pr-14 h-10 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                       errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                     }`}
                     autoComplete="new-password"
@@ -447,9 +437,6 @@ return (
                     <span>{errors.password}</span>
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -464,7 +451,7 @@ return (
                     placeholder="Confirm your new password"
                     value={confirmNewPassword}
                     onChange={handleConfirmNewPasswordChange}
-                    className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                    className={`pl-12 pr-14 h-10 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                       errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                     }`}
                     autoComplete="new-password"
@@ -501,7 +488,7 @@ return (
                   placeholder="Enter your password"
                   value={password}
                   onChange={handlePasswordChange}
-                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                  className={`pl-12 pr-14 h-10 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                     errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                   }`}
                   autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
@@ -518,11 +505,6 @@ return (
                 <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
                   <span className="w-1 h-1 bg-red-500 rounded-full"></span>
                   <span>{errors.password}</span>
-                </p>
-              )}
-              {authMode === 'signup' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
                 </p>
               )}
             </div>
@@ -542,7 +524,7 @@ return (
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`pl-12 pr-14 h-14 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
+                  className={`pl-12 pr-14 h-10 text-base rounded-xl border-2 transition-all duration-200 focus:ring-4 focus:ring-green-100 ${
                     errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
                   }`}
                   autoComplete="new-password"
@@ -584,7 +566,7 @@ return (
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 h-14 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 h-10 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
             disabled={isSubmitting || loading || passwordResetComplete}
           >
             {isSubmitting || loading ? (
@@ -631,7 +613,7 @@ return (
                   onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
                   className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
                 >
-                  {authMode === 'signup' ? 'Sign In' : 'Sign Up Free'}
+                  {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
                 </button>
               </p>
             </div>
@@ -702,7 +684,7 @@ return (
         )}
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white fixed bottom-0 left-0 right-0">
+        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
           © 2025 SmartKenya. All rights reserved.
         </div>
       </div>
@@ -845,9 +827,6 @@ return (
                     <span>{errors.password}</span>
                   </p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -916,11 +895,6 @@ return (
                 <p className="text-sm text-red-600 font-medium flex items-center space-x-1">
                   <span className="w-1 h-1 bg-red-500 rounded-full"></span>
                   <span>{errors.password}</span>
-                </p>
-              )}
-              {authMode === 'signup' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Must contain at least 8 characters with uppercase, lowercase, and number
                 </p>
               )}
             </div>

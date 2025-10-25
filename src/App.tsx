@@ -19,7 +19,6 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
-const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
@@ -42,14 +41,17 @@ const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
 const AdminProductAddPage = lazy(() => import("./pages/admin/AdminProductAddPage"));
 const AdminProductEditPage = lazy(() => import("./pages/admin/AdminProductEditPage"));
 const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
+const AdminStoresPage = lazy(() => import("./pages/admin/AdminStoresPage"));
 const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
+const AdminHeroSlidesPage = lazy(() => import("./pages/admin/AdminHeroSlidesPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
 function App() {
   return (
@@ -57,13 +59,15 @@ function App() {
       <TopProgressBar/>
       {/*<Sonner />*/}
       <div className="min-h-screen bg-background">
-        <Suspense>
+        <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           <main id="main-content">
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
-            <Route path="/category" element={<CategoryPage />} />
+            <Route path="/category/:categorySlug" element={<CategoryPage />} />
+            <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
+            <Route path="/category" element={<MobileCategoryPage />} /> 
             <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:productId/review" element={<WriteReviewPage />} />
             
@@ -75,7 +79,6 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order/:id" element={<OrderDetailPage />} />
-            <Route path="/track-order" element={<OrderTrackingPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -94,10 +97,12 @@ function App() {
             <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute><AdminStoresPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute><AdminHeroSlidesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}

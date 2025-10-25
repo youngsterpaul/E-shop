@@ -76,8 +76,8 @@ const ContactPage = () => {
               </div>
               <h3 className="font-semibold mb-2">Call Us</h3>
               <p className="text-gray-700 mb-3">Mon-Fri from 8am to 5pm</p>
-              <a href="tel:+254101762132" className="text-green-500 hover:text-orange-600">
-                +254 101 762 132
+              <a href="tel:+254758475467" className="text-green-500 hover:text-orange-600">
+                +254 758 475 467
               </a>
             </div>
             
@@ -99,7 +99,7 @@ const ContactPage = () => {
               <h3 className="font-semibold mb-2">Visit Us</h3>
               <p className="text-gray-700 mb-3">Our headquarters</p>
               <address className="not-italic text-green-500">
-                SmartKenya, Embu, Kenya
+                SmartKenya, Murang'a, Kenya
               </address>
             </div>
           </div>

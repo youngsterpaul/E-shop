@@ -40,13 +40,13 @@ const MobileNav = () => {
   if (!isMobile) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-50">
       <div className="flex justify-around items-center py-1">
         {navItems.map(({ icon: Icon, label, path, count }) => (
           <Link
             key={path}
             to={path}
-            className={`flex flex-col items-center px-3 relative ${
+            className={`flex flex-col items-center px-[3] relative ${
               location.pathname === path
                 ? 'text-gray-900'
                 : 'text-gray-500 hover:text-gray-900'

@@ -147,7 +147,7 @@ const OrdersPage = () => {
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth/signin');
+      navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 
@@ -366,7 +366,7 @@ const OrdersPage = () => {
             </p>
             <Button 
               className="bg-primary hover:bg-primary/90 px-8 py-3 text-lg"
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/')}
             >
               Browse Products
             </Button>
