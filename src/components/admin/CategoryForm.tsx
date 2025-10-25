@@ -17,7 +17,7 @@ interface Category {
 
 interface CategoryFormProps {
   categories: Category[];
-  onAddCategory: (name: string, parentId: string, slug: string,) => Promise<void>;
+  onAddCategory: (name: string, slug: string, parentId: string) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -40,8 +40,8 @@ const CategoryForm = ({ categories, onAddCategory, isSubmitting }: CategoryFormP
     const slug = generateSlug(newCategoryName);
     const parentId = selectedParentCategory === 'none' ? '' : selectedParentCategory;
     
-    // Pass slug to your database insert function
-    await onAddCategory(newCategoryName.trim(), parentId, slug);
+    // Pass parameters in correct order: name, slug, parentId
+    await onAddCategory(newCategoryName.trim(), slug, parentId);
     
     setNewCategoryName('');
     setSelectedParentCategory('none');

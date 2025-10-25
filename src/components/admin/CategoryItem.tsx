@@ -47,8 +47,9 @@ const CategoryItem = ({
   const handleEdit = async () => {
     if (!editName.trim()) return;
     
+    const slug = editName.toLowerCase().replace(/&/g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const parentId = editParent === 'none' ? '' : editParent;
-    await onEdit(category.id, editName.trim(), parentId, category.slug);
+    await onEdit(category.id, editName.trim(), slug, parentId);
     setIsEditing(false);
   };
 
