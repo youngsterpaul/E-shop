@@ -54,7 +54,7 @@ const CategoryPage = () => {
   const parentId = searchParams.get('parent');
   const source = searchParams.get('source');
 
-  const { searchProducts } = useProducts();
+  const { fetchProductsByCategoryId } = useProducts();
   const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
 
   // Fetch category data
@@ -99,20 +99,15 @@ const CategoryPage = () => {
     fetchCategoryData();
   }, [categoryId, parentId, source]);
 
-  // Construct search query from category name
-  const searchQuery = useMemo(() => {
-    return categoryData?.category || '';
-  }, [categoryData]);
-
-  // Data Fetch
+  // Data Fetch - Use category ID directly for better accuracy
   const { data: productsData, isLoading, isError } = useQuery({
-    queryKey: ['categoryProducts', searchQuery, currentPage, itemsPerPage],
+    queryKey: ['categoryProducts', categoryId, currentPage, itemsPerPage],
     queryFn: () =>
-      searchProducts(searchQuery, {
+      fetchProductsByCategoryId(Number(categoryId), {
         pageParam: currentPage - 1,
         pageSize: itemsPerPage,
       }),
-    enabled: searchQuery.length > 0,
+    enabled: !!categoryId,
     staleTime: 30000,
   });
 
@@ -199,7 +194,7 @@ const CategoryPage = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <EnhancedSearchInput
-              value={searchQuery}
+              value={Query}
               onChange={setSearchQuery}
               onSearch={handleSearch}
               placeholder="Search for products..."
@@ -208,7 +203,7 @@ const CategoryPage = () => {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => handleSearch(searchQuery)}
+              onClick={() => handleSearch(Query)}
               className="h-8 px-3"
             >
               <Search className="text-gray-800 h-4 w-4" />

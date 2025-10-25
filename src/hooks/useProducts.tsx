@@ -126,7 +126,48 @@ export const useProducts = () => {
       opts
     );
 
-  /** Products by Category */
+  /** Products by Category - supports both ID and name-based filtering */
+  const fetchProductsByCategoryId = async (
+    categoryId: number,
+    opts?: { pageParam?: number; pageSize?: number }
+  ): Promise<PaginatedProducts> => {
+    // First, get the category name from the database
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('categories')
+      .select('category, parent_id')
+      .eq('id', categoryId)
+      .maybeSingle();
+
+    if (categoryError || !categoryData) {
+      console.warn('Category not found for ID:', categoryId);
+      return { products: [], totalCount: 0, hasNextPage: false, nextPage: undefined };
+    }
+
+    // Get parent category name if this is a subcategory
+    let fullCategoryName = categoryData.category;
+    if (categoryData.parent_id) {
+      const { data: parentData } = await supabase
+        .from('categories')
+        .select('category')
+        .eq('id', categoryData.parent_id)
+        .maybeSingle();
+      
+      if (parentData) {
+        fullCategoryName = `${parentData.category} > ${categoryData.category}`;
+      }
+    }
+
+    // Now search for products with this category name
+    // Products can have either "Category" or "Category > Subcategory" format
+    const query = supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .or(`categories.eq.${categoryData.category},categories.eq.${fullCategoryName},categories.ilike.%${categoryData.category}%`);
+
+    return fetchPage(query, opts);
+  };
+
+  /** Products by Category Name (legacy support) */
   const fetchProductsByCategory = async (
     category: string,
     opts?: { pageParam?: number; pageSize?: number }
@@ -141,7 +182,7 @@ export const useProducts = () => {
     const query = supabase
       .from('products')
       .select('*', { count: 'exact' })
-      .eq('categories', safeCategory);
+      .ilike('categories', `%${safeCategory}%`);
 
     return fetchPage(query, opts);
   };
@@ -178,6 +219,7 @@ export const useProducts = () => {
     fetchProductById,
     fetchFeaturedProducts,
     fetchProductsByCategory,
+    fetchProductsByCategoryId,
     searchProducts,
     getProductsByCategory,
     fetchProductByName,

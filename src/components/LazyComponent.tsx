@@ -10,7 +10,6 @@ interface LazyComponentProps {
 const LazyWrapper = ({ fallback, children }: LazyComponentProps) => {
   const defaultFallback = (
     <LoadingSpinner 
-      variant="shopping-cart" 
       size="md" 
       text="Loading component..." 
     />
