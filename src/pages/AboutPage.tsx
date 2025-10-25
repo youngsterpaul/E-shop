@@ -53,7 +53,7 @@ const AboutPage = () => {
       />
       )}
         <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
-          {/* Breadcrumb 
+          {/* Breadcrumb */}
           {!isMobile && ( 
             <SiteBreadcrumb 
             items={[
@@ -62,13 +62,13 @@ const AboutPage = () => {
             ]}
             className="mb-6"
           />
-          )}  */}
+          )}
 
         <h1 className="text-3xl font-bold mb-6">About SmartKenya</h1>
         
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
           <img 
-            src="/placeholder.svg" //https://via.placeholder.com/1200x400
+            src="https://via.placeholder.com/1200x400" 
             alt="SmartKenya Team" 
             className="w-full h-64 object-cover" 
           />

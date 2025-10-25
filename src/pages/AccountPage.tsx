@@ -69,6 +69,12 @@ const AccountPage = () => {
       href: '/orders',
     },
     {
+      icon: Truck,
+      title: 'Track order',
+      description: 'Track and manage your orders',
+      href: '/track-order',
+    },
+    {
       icon: Heart,
       title: 'Wishlist',
       description: 'Your saved items',
@@ -158,15 +164,7 @@ const AccountPage = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-                {profile?.avatar_url ? (
-                  <img 
-                    src={profile?.avatar_url} 
-                    alt={profile?.first_name || ''} 
-                    className="h-10 w-10 object-cover rounded-full"
-                  />
-                ) : (
-                  <User className="h-6 w-6 text-orange-600" />
-                )}
+                <User className="h-8 w-8 text-orange-600" />
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-semibold">

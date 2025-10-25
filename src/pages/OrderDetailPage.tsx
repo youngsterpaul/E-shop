@@ -141,7 +141,7 @@ const OrderDetailPage = () => {
   
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate('/auth/signin');
       return;
     }
     

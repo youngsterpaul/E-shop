@@ -26,23 +26,6 @@ export const preloadCriticalResources = () => {
   
   document.head.appendChild(fontPreload);
 
-  const preconnectDomains = [
-  'https://fonts.gstatic.com',
-  'https://fonts.googleapis.com',
-  'https://sgpjnbdrmwrupeqhjqpj.supabase.co',
-  'https://www.google-analytics.com'
-];
-
-  preconnectDomains.forEach(domain => {
-    if (!document.querySelector(`link[href="${domain}"][rel="preconnect"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'preconnect';
-      link.href = domain;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    }
-  });
-
   // Only preload hero images that are actually used
   const hasHeroSection = document.querySelector('[data-hero]') || 
                         document.querySelector('.hero') ||
@@ -51,13 +34,12 @@ export const preloadCriticalResources = () => {
   if (hasHeroSection) {
     const heroImageLink = document.createElement('link');
     heroImageLink.rel = 'preload';
-    heroImageLink.href = '/assets/images/hero2.webp';
+    heroImageLink.href = '/hero1.webp';
     heroImageLink.as = 'image';
     heroImageLink.dataset.preload = 'critical';
     document.head.appendChild(heroImageLink);
   }
 };
-
 
 // Database query optimization
 export const optimizeSupabaseQueries = {
@@ -99,37 +81,22 @@ export const optimizeSupabaseQueries = {
 // Image optimization
 export const optimizeImageLoading = () => {
   // Lazy load images using Intersection Observer
-  if ("IntersectionObserver" in window) {
-    const imageObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.target instanceof HTMLImageElement) {
-          const img = entry.target;
-          const dataSrc = img.getAttribute("data-src");
-          if (dataSrc && img.src !== dataSrc) {
-            img.src = dataSrc;
-          }
-          img.classList.remove("lazy");
-          imageObserver.unobserve(img);
-        }
-      });
-    });
-
-    // Select all images that have data-src
-    const images = document.querySelectorAll<HTMLImageElement>("img[data-src]");
-
-    images.forEach(img => {
-      if (img.complete) {
-        const dataSrc = img.getAttribute("data-src");
-        if (dataSrc && img.src !== dataSrc) {
-          img.src = dataSrc;
-        }
-      } else {
-        imageObserver.observe(img);
+  const imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement;
+        img.src = img.dataset.src || '';
+        img.classList.remove('lazy');
+        imageObserver.unobserve(img);
       }
     });
-  }
-};
+  });
 
+  // Observe all lazy images
+  document.querySelectorAll('img[data-src]').forEach(img => {
+    imageObserver.observe(img);
+  });
+};
 
 // Bundle size optimization
 export const loadComponentOnDemand = async (componentName: string) => {
@@ -185,7 +152,7 @@ export const networkOptimizations = {
         const registration = await navigator.serviceWorker.register('/sw.js', {
           updateViaCache: 'none' // Always check for updates
         });
-        //console.log('Service Worker registered successfully');
+        console.log('Service Worker registered successfully');
         
         // Handle updates
         registration.addEventListener('updatefound', () => {

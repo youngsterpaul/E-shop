@@ -76,8 +76,8 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                     {this.state.errorInfo?.componentStack}
                   </pre>
                 </details>
-              )} */}
-
+              )}
+               */} 
 
               <div className="flex gap-2">
                 <Button onClick={this.handleReset} variant="outline" className="flex-1">

@@ -266,6 +266,11 @@ useEffect(() => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/track-order" className="cursor-pointer flex items-center">
+                        <Truck className="mr-2 h-4 w-4" /> Track Order
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/wishlist" className="cursor-pointer flex items-center">
                         <Heart className="mr-2 h-4 w-4" /> Wishlist
                       </Link>

@@ -103,7 +103,7 @@ const WishlistPage = () => {
       setLoading(false);
     }
   };
-  
+
   const removeFromWishlist = async (productId: string) => {
     try {
       const { error } = await supabase
@@ -218,7 +218,7 @@ const WishlistPage = () => {
                 <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Your wishlist is empty</h2>
                 <p className="text-gray-600 mb-6">Save your favorite items for later</p>
-                <Link to="/">
+                <Link to="/products">
                   <Button className="bg-primary hover:bg-primary/90">
                     Explore Products
                   </Button>
@@ -265,12 +265,7 @@ const WishlistPage = () => {
                             {isMobile ? 'Move to Cart' : 'Add'}
                           </Button>
                           
-                          <Link
-                            to={`/product/${item.products.name
-                              .toLowerCase()
-                              .replace(/[^a-z0-9]+/g, '-')
-                              .replace(/(^-|-$)/g, '')}/${item.product_id}`}
-                          >
+                          <Link to={`/product/name/${item.product_id}`}>
                             <Button 
                               variant="outline" 
                               className={`w-full ${isMobile ? 'text-xs py-1.5' : 'text-xs py-1 px-2'}`}

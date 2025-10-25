@@ -119,21 +119,19 @@ const CheckoutPage = () => {
 
   // County and city mapping
   const countyOptions = [
-    { value: 'nyeri', label: 'Nyeri' },
-    { value: 'muranga', label: "Murang'a" }
+    { value: 'embu', label: 'Embu' },
+    { value: 'murangaa', label: "Murang'a" }
   ];
 
   const cityOptions: Record<string, { value: string; label: string }[]> = {
-    nyeri: [
-      { value: 'karu', label: 'KARU' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'nyeri', label: 'Nyeri' },
+    embu: [
+      { value: 'runyenjes', label: 'Runyenjes' },
+      { value: 'manyatta', label: 'Manyatta' },
+      { value: 'embu-town', label: 'Embu Town' }
     ],
-    muranga: [
-      { value: 'mut', label: 'MUT' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'ktcm', label: 'KTCM' },
-      { value: 'muranga', label: "Murang'a" }
+    murangaa: [
+      { value: 'kiharu', label: 'Kiharu' },
+      { value: 'mukuyu', label: 'Mukuyu' }
     ]
   };
 
@@ -745,11 +743,7 @@ const CheckoutPage = () => {
         />
       )}
 
-        <div
-          className={`container mx-auto px-4 py-6 ${
-            !isMobile ? 'xl:px-24' : 'pb-32'
-          }`}
-        >
+      <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <Button 
@@ -817,24 +811,17 @@ const CheckoutPage = () => {
               </div>
 
               {/* Navigation */}
-              <div
-                className={`p-6 border-t bg-gray-50 ${
-                  isMobile
-                    ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg'
-                    : ''
-                }`}
-              >
-                <div className="flex justify-between max-w-md mx-auto">
-                  <Button
-                    variant="outline"
+              <div className="p-6 border-t bg-gray-50">
+                <div className="flex justify-between">
+                  <Button 
+                    variant="outline" 
                     onClick={handleBack}
-                    className="flex-1 mr-2"
                   >
                     {currentStep === 1 ? 'Back to Cart' : 'Back'}
                   </Button>
-                  <Button
+                  <Button 
                     onClick={handleNext}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600"
+                    className="bg-orange-500 hover:bg-orange-600"
                   >
                     {currentStep === 3 ? 'Proceed to Payment' : 'Continue'}
                   </Button>

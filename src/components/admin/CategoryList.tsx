@@ -4,14 +4,13 @@ import CategoryItem from './CategoryItem';
 interface Category {
   id: number;
   category: string;
-  slug: string; 
   parent_id: number | null;
 }
 
 interface CategoriesListProps {
   mainCategories: Category[];
   getSubcategories: (parentId: number) => Category[];
-  onEdit: (id: number, name: string, slug: string, parentId: string) => Promise<void>;
+  onEdit: (id: number, name: string, parentId: string) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   isSubmitting: boolean;
 }

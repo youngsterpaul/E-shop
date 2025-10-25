@@ -19,7 +19,7 @@ interface ProductFormData {
   description: string;
   price: number;
   stock: number;
-  store: string;
+  phone: number;
   categories: string;
   featured: boolean;
   features: string;
@@ -43,7 +43,7 @@ const AdminProductEdit = () => {
       description: '',
       price: 0,
       stock: 0,
-      store: '',
+      phone: 0,
       categories: '',
       featured: false,
       features: '',
@@ -105,7 +105,7 @@ const AdminProductEdit = () => {
         form.setValue('description', ''); // Description not in Row type, will be set during updates
         form.setValue('price', data.price || 0);
         form.setValue('stock', data.stock || 0);
-        form.setValue('store', data.store || '');
+        form.setValue('phone', data.phone || 0);
         form.setValue('categories', data.categories || '');
         form.setValue('featured', data.featured || false);
         
@@ -293,7 +293,7 @@ const AdminProductEdit = () => {
           price: data.price,
           description: data.description,
           stock: data.stock,
-          store: data.store,
+          phone: data.phone,
           categories: categoryToStore,
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
@@ -417,7 +417,7 @@ const AdminProductEdit = () => {
               <div className="flex justify-center">
                 <Button 
                   type="submit" 
-                  className="bg-green-500 hover:bg-green-600" 
+                  className="bg-orange-500 hover:bg-orange-600" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (

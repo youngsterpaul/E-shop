@@ -171,19 +171,16 @@ export type Database = {
       categories: {
         Row: {
           category: string
-          slug: string
           id: number
           parent_id: number | null
         }
         Insert: {
           category: string
-          slug: string
           id?: number
           parent_id?: number | null
         }
         Update: {
           category?: string
-          slug?: string
           id?: number
           parent_id?: number | null
         }
@@ -196,69 +193,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      store: {
-        Row: {
-          id: string
-          name: string
-          phone: string
-          created_at: string | null
-          updated_at: string | null
-          address: string | null
-          email: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          phone: string
-          created_at?: string | null
-          updated_at?: string | null
-          address?: string | null
-          email?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          phone?: string
-          created_at?: string | null
-          updated_at?: string | null
-          address?: string | null
-          email?: string | null
-        }
-        Relationships: []
-      }
-      hero_slides: {
-        Row: {
-          id: string
-          title: string
-          image_url: string
-          link: string | null
-          display_order: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          image_url: string
-          link?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          image_url?: string
-          link?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       daily_sales: {
         Row: {
@@ -405,7 +339,6 @@ export type Database = {
           product_id: string | null
           sku_suffix: string | null
           stock_quantity: Json | null
-          image_url: string | null
           updated_at: string | null
           variant_type: string
           variant_value: Json | null
@@ -417,7 +350,6 @@ export type Database = {
           product_id?: string | null
           sku_suffix?: string | null
           stock_quantity?: Json | null
-          image_url?: string | null
           updated_at?: string | null
           variant_type: string
           variant_value?: Json | null
@@ -429,7 +361,6 @@ export type Database = {
           product_id?: string | null
           sku_suffix?: string | null
           stock_quantity?: Json | null
-          image_url?: string | null
           updated_at?: string | null
           variant_type?: string
           variant_value?: Json | null
@@ -460,7 +391,7 @@ export type Database = {
           rating: number | null
           specification: Json | null
           stock: number | null
-          store: string | null
+          phone: number | null
           subcategory_id: number | null
           updated_at: string | null
         }
@@ -479,7 +410,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
-          store?: string | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
@@ -498,7 +429,7 @@ export type Database = {
           rating?: number | null
           specification?: Json | null
           stock?: number | null
-          store: string | null
+          phone?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
         }

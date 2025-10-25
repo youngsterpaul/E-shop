@@ -214,7 +214,7 @@ const AdminUsersPage = () => {
           
           <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
             <Button 
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-orange-500 hover:bg-orange-600"
               onClick={() => navigate('/supersmartkenyaadmin123/users/add')}
             >
               <Plus className="mr-2 h-4 w-4" /> Add User
@@ -296,7 +296,7 @@ const AdminUsersPage = () => {
                 <CardDescription>
                   Showing {displayedUsers.length} of {filteredUsers.length} users
                   {selectedUsers.length > 0 && (
-                    <span className="ml-2 text-green-600 font-medium">
+                    <span className="ml-2 text-orange-600 font-medium">
                       • {selectedUsers.length} selected
                     </span>
                   )}
@@ -459,7 +459,7 @@ const AdminUsersPage = () => {
                         <Button 
                           variant="ghost" 
                           onClick={handleShowAll}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-orange-600 hover:text-orange-700"
                         >
                           Show All ({filteredUsers.length})
                         </Button>

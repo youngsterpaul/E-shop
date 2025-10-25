@@ -1,3 +1,4 @@
+
 import { useState, memo, ImgHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -6,7 +7,7 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'
   src: string;
   alt: string;
   fallback?: string;
-  priority?: boolean; // true = eager + high fetch priority
+  priority?: boolean;
   aspectRatio?: 'square' | 'video' | 'portrait' | 'landscape';
 }
 
@@ -44,14 +45,14 @@ const LazyImage = memo(({
 
   return (
     <div className={cn('relative overflow-hidden', aspectRatioClass[aspectRatio])}>
-      {isLoading && <Skeleton className="absolute inset-0 w-full h-full" />}
-      
+      {isLoading && (
+        <Skeleton className="absolute inset-0 w-full h-full" />
+      )}
       <img
         src={hasError ? fallback : src}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'} // ✅ key addition
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
@@ -66,4 +67,5 @@ const LazyImage = memo(({
 });
 
 LazyImage.displayName = 'LazyImage';
+
 export default LazyImage;

@@ -21,7 +21,7 @@ interface Product {
   name: string;
   price: number;
   stock: number;
-  store: string;
+  phone: number;
   categories: string;
   featured: boolean;
   created_at: string;
@@ -226,7 +226,7 @@ const AdminProductsPage = () => {
           
           <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
             <Button 
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-orange-500 hover:bg-orange-600"
               onClick={() => navigate('/supersmartkenyaadmin123/products/add')}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Product
@@ -308,7 +308,7 @@ const AdminProductsPage = () => {
                 <CardDescription>
                   Showing {displayedProducts.length} of {filteredProducts.length} products
                   {selectedProducts.length > 0 && (
-                    <span className="ml-2 text-green-600 font-medium">
+                    <span className="ml-2 text-orange-600 font-medium">
                       • {selectedProducts.length} selected
                     </span>
                   )}
@@ -340,7 +340,7 @@ const AdminProductsPage = () => {
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
-                    <TableHead>Store</TableHead>
+                    <TableHead>Seller's Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -390,10 +390,10 @@ const AdminProductsPage = () => {
                             {product.stock}
                           </span>
                         </TableCell>
-                        <TableCell>{product.store}</TableCell>
+                        <TableCell>{product.phone}</TableCell>
                         <TableCell>
                           {product.featured ? (
-                            <Badge className="bg-green-500">Featured</Badge>
+                            <Badge className="bg-orange-500">Featured</Badge>
                           ) : (
                             <Badge variant="secondary">Regular</Badge>
                           )}
@@ -451,7 +451,7 @@ const AdminProductsPage = () => {
                         <Button 
                           variant="ghost" 
                           onClick={handleShowAll}
-                          className="text-green-600 hover:text-green-700"
+                          className="text-orange-600 hover:text-orange-700"
                         >
                           Show All ({filteredProducts.length})
                         </Button>
