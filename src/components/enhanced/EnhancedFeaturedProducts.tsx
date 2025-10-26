@@ -128,14 +128,26 @@ const EnhancedFeaturedProducts = memo(() => {
   const loadingSkeleton = useMemo(() => (
     <div className={`${gridConfig.padding} bg-gray-50`}>
       {!isMobile && (
-        <div className="border flex items-center text-gray-600 mx-auto px-4 py-2 text-sm font-semibold bg-white">
+          <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
           <TrendingUp size={16} className="mr-2" />
           HOT DEALS
         </div>
       )}
       <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
         {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="bg-gray-200 rounded-lg h-64 animate-pulse" />
+          <div
+            key={i}
+            className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+          >
+            {/* Image skeleton */}
+            <div className="h-40 bg-gray-200 shimmer" />
+
+            {/* Text skeleton */}
+            <div className="p-2 space-y-2">
+              <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
+               <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
+             </div>
+           </div>
         ))}
       </div>
     </div>
