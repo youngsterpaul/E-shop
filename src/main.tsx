@@ -14,6 +14,7 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
+import { VersionManager } from '@/components/VersionManager';
 //import { UpdateNotification } from '@/components/UpdateNotification';
 import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
@@ -28,6 +29,7 @@ const AppWithAnalytics = () => {
     <>
       <CacheManager />
       <ProductionOptimizer />
+      <VersionManager />
       <App />
       <ProductionAnalytics />
       {/* <UpdateNotification /> */}

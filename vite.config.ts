@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { execSync } from "child_process";
+import fs from "fs";
 
 export default defineConfig(({ mode }) => {
   // ✅ Get version info (from package.json or Git commit)
@@ -17,6 +18,34 @@ export default defineConfig(({ mode }) => {
 
   const appVersion = `${packageVersion}-${gitHash}`;
 
+  // ✅ Plugin to generate version.json on build
+  const versionPlugin = () => ({
+    name: 'version-json-generator',
+    buildStart() {
+      if (mode === 'production') {
+        const versionInfo = {
+          version: packageVersion,
+          timestamp: Date.now(),
+          buildId: gitHash,
+          buildDate: new Date().toISOString()
+        };
+        
+        // Write to public folder so it's included in build
+        const publicDir = path.resolve(__dirname, 'public');
+        if (!fs.existsSync(publicDir)) {
+          fs.mkdirSync(publicDir, { recursive: true });
+        }
+        
+        fs.writeFileSync(
+          path.join(publicDir, 'version.json'),
+          JSON.stringify(versionInfo, null, 2)
+        );
+        
+        console.log('✅ Generated version.json:', versionInfo);
+      }
+    }
+  });
+
   return {
     server: {
       host: "::",
@@ -26,6 +55,7 @@ export default defineConfig(({ mode }) => {
 
     plugins: [
       react(),
+      versionPlugin(),
       // Only include tagger in dev mode
       mode === "development" && componentTagger(),
     ].filter(Boolean),
