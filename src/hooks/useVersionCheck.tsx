@@ -52,6 +52,16 @@ export const useVersionCheck = (options: UseVersionCheckOptions = {}) => {
   const checkForUpdate = useCallback(async () => {
     if (!enabled || isChecking) return;
 
+    // Safety check: Don't check too frequently after a reload
+    const lastReload = localStorage.getItem('last_app_reload');
+    if (lastReload) {
+      const timeSinceReload = Date.now() - parseInt(lastReload);
+      if (timeSinceReload < 5 * 60 * 1000) { // 5 minutes cooldown
+        console.log('[VersionCheck] Cooldown active, skipping check');
+        return;
+      }
+    }
+
     setIsChecking(true);
     
     try {
@@ -64,26 +74,39 @@ export const useVersionCheck = (options: UseVersionCheckOptions = {}) => {
 
       // Initialize current version on first check
       if (!currentVersion) {
+        console.log('[VersionCheck] Initializing version:', latestVersion);
         setCurrentVersion(latestVersion);
         localStorage.setItem('app_version', JSON.stringify(latestVersion));
         setIsChecking(false);
         return;
       }
 
-      // Check if version has changed
-      const hasNewVersion = 
-        latestVersion.version !== currentVersion.version ||
-        latestVersion.timestamp !== currentVersion.timestamp ||
-        latestVersion.buildId !== currentVersion.buildId;
+      // Check if version has changed - all three must be different to trigger update
+      const versionChanged = latestVersion.version !== currentVersion.version;
+      const timestampChanged = latestVersion.timestamp !== currentVersion.timestamp;
+      const buildIdChanged = latestVersion.buildId !== currentVersion.buildId;
+      
+      const hasNewVersion = versionChanged && timestampChanged && buildIdChanged;
 
       if (hasNewVersion && !hasNotifiedRef.current) {
-        console.log('[VersionCheck] New version detected:', latestVersion);
+        console.log('[VersionCheck] New version detected!', {
+          current: currentVersion,
+          latest: latestVersion
+        });
         setNewVersionAvailable(true);
         hasNotifiedRef.current = true;
         
         if (onUpdateAvailable) {
           onUpdateAvailable(latestVersion);
         }
+      } else if (versionChanged || timestampChanged || buildIdChanged) {
+        console.log('[VersionCheck] Partial version change detected (not triggering update)', {
+          versionChanged,
+          timestampChanged,
+          buildIdChanged,
+          current: currentVersion,
+          latest: latestVersion
+        });
       }
     } catch (error) {
       console.warn('[VersionCheck] Error during version check:', error);

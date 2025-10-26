@@ -49,7 +49,7 @@ export const VersionManager = () => {
   }, [location.pathname]);
 
   const { newVersionAvailable } = useVersionCheck({
-    checkInterval: 2 * 60 * 1000, // Check every 2 minutes
+    checkInterval: 5 * 60 * 1000, // Check every 5 minutes (reduced frequency)
     onUpdateAvailable: handleUpdateAvailable,
     enabled: true
   });
@@ -93,6 +93,9 @@ export const VersionManager = () => {
   };
 
   const performHardReload = async () => {
+    // Store reload timestamp to prevent reload loops
+    localStorage.setItem('last_app_reload', Date.now().toString());
+    
     await clearAllCaches();
     
     // Hard reload - multiple approaches for maximum compatibility
