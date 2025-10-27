@@ -213,7 +213,6 @@ const OrderTrackingPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && <MobileHeader title="Track Order" backTo="/" />}
 
       <main className={`flex-grow container py-8 px-4 ${!isMobile ? 'xl:px-24' : ''}`}>

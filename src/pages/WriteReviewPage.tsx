@@ -176,7 +176,6 @@ const WriteReviewPage = () => {
   if (isLoading) {
     return (
       <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 
             title={'Write Review'}

@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import MobileNav from '@/components/MobileNav';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -114,7 +113,6 @@ const AccountPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 
         title="My Account"
@@ -222,7 +220,6 @@ const AccountPage = () => {
           </Card>
         )}
       </div>
-      <MobileNav />
     </div>
   );
 };

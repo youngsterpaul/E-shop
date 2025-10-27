@@ -274,7 +274,6 @@ const OrderDetailPage = () => {
   if (loading) {
     return (
       <>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
             title="Order Details"
@@ -293,7 +292,6 @@ const OrderDetailPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader
           title="Order Details"

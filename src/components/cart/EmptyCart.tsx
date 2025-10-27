@@ -7,8 +7,6 @@ import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from '@/components/products/ProductSkeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '../ui/mobile-header';
-import Header from '../Header';
-import MobileNav from '../MobileNav';
 
 const EmptyCart = () => {
   const { data: products, isLoading } = useFeaturedProducts();
@@ -19,7 +17,6 @@ const EmptyCart = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
         {isMobile && <MobileHeader 
           title="Shopping Cart"
           rightAction={
@@ -30,7 +27,6 @@ const EmptyCart = () => {
           }
         />
       } 
-      <MobileNav /> 
       <div className={`w-full ${!isMobile ? 'container xl:px-24 px-4 py-12' : 'px-0 pb-12'} mx-auto`}>
         {/* Empty Cart Section */}
         <div className="text-center mb-16 bg-white p-8">

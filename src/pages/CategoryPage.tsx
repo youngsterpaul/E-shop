@@ -28,7 +28,7 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const params = useParams();
   const isMobile = isMobileUserAgent();
-  const [Query, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [sortOption, setSortOption] = useState('featured');
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,15 +127,22 @@ const CategoryPage = () => {
   }, [productsData]);
 
   const filteredProducts = useProductFiltering(allProducts, filters);
+  
+ const searchedProducts = useMemo(() => {
+   if (!searchQuery) return filteredProducts;
+   return filteredProducts.filter(p =>
+     p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+   );
+ }, [filteredProducts, searchQuery]);
 
-  // Sorting
-  const sortedProducts = useMemo(() => {
-    if (!filteredProducts) return [];
-    const productsWithRating = filteredProducts.map((p) => ({
-      ...p,
-      calculatedRating: p.rating || 4.5,
-      calculatedPrice: p.price,
-    }));
+
+ const sortedProducts = useMemo(() => {
+   if (!searchedProducts) return [];
+    const productsWithRating = searchedProducts.map((p) => ({
+        ...p,
+        calculatedRating: p.rating || 4.5,
+        calculatedPrice: p.price,
+      }));
 
     switch (sortOption) {
       case 'price-low-high':
@@ -192,8 +199,7 @@ const CategoryPage = () => {
   // Render
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
-      {isMobile && (
+     {isMobile && (
         <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
           <div className="flex w-full items-center gap-3">
             <Button
@@ -205,16 +211,16 @@ const CategoryPage = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <EnhancedSearchInput
-              value={Query}
+              value={searchQuery}
               onChange={setSearchQuery}
-              onSearch={handleSearch}
+              onSearch={() => handleSearch(searchQuery)} // ensure search triggers on button or Enter
               placeholder="Search for products..."
               className="w-full"
             />
             <Button
               type="button"
               variant="ghost"
-              onClick={() => handleSearch(Query)}
+              onClick={() => handleSearch(searchQuery)}
               className="h-8 px-3"
             >
               <Search className="text-gray-800 h-4 w-4" />
@@ -249,13 +255,13 @@ const CategoryPage = () => {
               </div>
             ))}
           </nav>
-        )}
+        )}   
 
-        {/* Category Title */}
+        {/* Category Title 
         {!isMobile && (
           <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
-              {categoryData?.category || 'Loading...'}
+              {categoryData?.category || ''}
             </h1>
             {parentCategoryData && (
               <p className="text-gray-600 mt-2">
@@ -263,7 +269,7 @@ const CategoryPage = () => {
               </p>
             )}
           </div>
-        )}
+        )}  */}
 
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters */}
@@ -352,7 +358,6 @@ const CategoryPage = () => {
           </div>
         </div>
       </main>
-      {!isMobile && <Footer />}
     </div>
   );
 };

@@ -14,11 +14,16 @@ const Footer = ({ className }: FooterProps) => {
 
   if (isMobile) return null;
 
-  // List of paths where you want to hide main footer content
-  const hideMainFooterOnPaths = ['/search', '/cart', '/wishlist', '/category/', '/product/'];
+   const exactHidePaths = ['/search', '/cart', '/wishlist'];
 
-  // Check if current path matches any in the hide list
-  const hideMainFooter = hideMainFooterOnPaths.includes(location.pathname);
+  // Path prefixes — hide on any route that starts with these
+  const prefixHidePaths = ['/category', '/product'];
+
+  const shouldHideFooter =
+    exactHidePaths.includes(location.pathname) ||
+    prefixHidePaths.some(prefix => location.pathname.startsWith(prefix));
+
+  //if (shouldHideFooter) return null;
 
   // Organized footer sections for better sitelinks structure
   const footerSections = [
@@ -94,7 +99,7 @@ const Footer = ({ className }: FooterProps) => {
 
       <footer className={cn("text-white", className)}> 
         {/* Conditionally render main footer content */}
-        {!hideMainFooter && (
+        {!shouldHideFooter && (
           <div className='bg-gray-50 w-full py-8'>
             <div className="max-w-7xl container mb-8" style={{ textAlign: 'justify' }}>
             <h3 className="font-bold text-2xl mb-4 text-gray-900">SmartKenya Online Shopping - Kenya</h3>

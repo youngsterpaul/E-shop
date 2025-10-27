@@ -183,7 +183,6 @@ const SearchPage = () => {
   // ----- Render -----
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && (
         <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
           <div className="flex w-full items-center gap-3">
@@ -311,7 +310,6 @@ const SearchPage = () => {
           </div>
         </div>
       </main>
-      {!isMobile && <Footer />}
     </div>
   );
 };

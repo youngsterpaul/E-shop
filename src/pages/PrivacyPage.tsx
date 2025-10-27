@@ -41,7 +41,6 @@ const PrivacyPage = () => {
       </script>
 
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        {!isMobile && <Header />}
         {isMobile && ( 
           <MobileHeader
           title="Privacy Policy"

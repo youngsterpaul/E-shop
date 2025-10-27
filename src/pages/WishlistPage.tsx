@@ -167,7 +167,6 @@ const WishlistPage = () => {
   return (
     <>
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 
             title={'My Wishlist'}
@@ -288,7 +287,6 @@ const WishlistPage = () => {
             )}
           </div>
         </main>
-        {!isMobile && <Footer />}
         <MobileNav />
       </div>
     </>

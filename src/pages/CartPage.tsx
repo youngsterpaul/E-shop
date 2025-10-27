@@ -10,7 +10,6 @@ import CartSummary from '@/components/cart/CartSummary';
 import EmptyCart from '@/components/cart/EmptyCart';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
-import MobileNav from '@/components/MobileNav';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 import Footer from '@/components/Footer';
 
@@ -58,7 +57,6 @@ const CartPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 
           title="Shopping Cart"
@@ -118,8 +116,6 @@ const CartPage = () => {
           
         </div>
       </div>
-      {!isMobile && <Footer />}
-      <MobileNav />
     </div>
   );
 };
