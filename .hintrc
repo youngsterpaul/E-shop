@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "extends": [
     "development"
@@ -11,4 +12,19 @@
     ],
     "no-inline-styles": "off"
   }
+=======
+{
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    "axe/name-role-value": [
+      "default",
+      {
+        "button-name": "off"
+      }
+    ],
+    "no-inline-styles": "off"
+  }
+>>>>>>> 980d81d973590628cdbc798c69baa4bf7ed0b48e
 }

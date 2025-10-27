@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 User-agent: Googlebot
 Allow: /
 
@@ -16,4 +17,24 @@ Disallow: /admin/
 Disallow: /api/
 
 # Sitemap location
+=======
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap location
+>>>>>>> 980d81d973590628cdbc798c69baa4bf7ed0b48e
 Sitemap: https://www.smartkenya.co.ke/sitemap.xml
