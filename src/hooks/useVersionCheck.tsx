@@ -131,7 +131,8 @@ export const useVersionCheck = (options: UseVersionCheckOptions = {}) => {
         try {
           setCurrentVersion(JSON.parse(cached));
         } catch (e) {
-          console.warn('[VersionCheck] Failed to parse cached version');
+          console.warn('[VersionCheck] Failed to parse cached version, clearing key');
+          localStorage.removeItem('app_version');
         }
       }
 

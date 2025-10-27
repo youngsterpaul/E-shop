@@ -16,7 +16,7 @@ import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { VersionManager } from '@/components/VersionManager';
 //import { UpdateNotification } from '@/components/UpdateNotification';
-import { CacheManager } from '@/components/CacheManager';
+// import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from "@vercel/analytics/next"
@@ -27,7 +27,6 @@ const AppWithAnalytics = () => {
   useErrorReporting();
   return (
     <>
-      <CacheManager />
       <ProductionOptimizer />
       <VersionManager />
       <App />

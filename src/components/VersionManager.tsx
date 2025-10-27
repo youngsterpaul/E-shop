@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 // Paths where we should delay updates (user is actively working)
-const SENSITIVE_PATHS = ['/checkout', '/cart', '/auth', '/products/'];
+const SENSITIVE_PATHS = ['/checkout', '/cart', '/auth', '/product/'];
 
 export const VersionManager = () => {
   const location = useLocation();

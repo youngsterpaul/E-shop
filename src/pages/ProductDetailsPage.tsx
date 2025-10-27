@@ -100,10 +100,7 @@ const ProductDetailsPage: React.FC = () => {
         } else if (Array.isArray(v.variant_value)) {
           values = v.variant_value;
         } else {
-          values = [{ name: String(v.variant_value || ''), image_url: '' }];
-        }
-      } catch {
-        values = [{ name: String(v.variant_value || ''), image_url: '' }];
+            values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
       }
 
       // Determine variant type based on presence of images
@@ -153,25 +150,21 @@ const ProductDetailsPage: React.FC = () => {
     }, []);
   }, [variants]);
 
-  useEffect(() => {
-    if (!transformedVariants?.length) return;
+  // Determine selected color image (from variant image or filename match)
+  const selectedColorImageUrl = useMemo(() => {
+    const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
+    if (!colorGroup) return undefined;
+    const selectedId = selectedVariants[colorGroup.id];
+    const val = colorGroup.values.find((vv: any) => vv.id === selectedId);
+    if (val?.image) return val.image as string;
 
-    setSelectedVariants((prev) => {
-      const updated = { ...prev };
-
-      transformedVariants.forEach((variant) => {
-        const alreadySelected = updated[variant.id];
-        if (!alreadySelected && variant.values.length > 0) {
-          const firstAvailable = variant.values.find(v => v.available);
-          if (firstAvailable) {
-            updated[variant.id] = firstAvailable.id;
-          }
-        }
-      });
-
-      return updated;
-    });
-  }, [transformedVariants]);
+    const name = (val?.name || '').toLowerCase();
+    if (name && product?.image_urls?.length) {
+      const match = product.image_urls.find((u: string) => u.toLowerCase().includes(name));
+      return match;
+    }
+    return undefined;
+  }, [transformedVariants, selectedVariants, product]);
 
   const stockInfo = useMemo(() => {
     if (!variants?.length) return {};

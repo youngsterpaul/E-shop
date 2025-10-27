@@ -11,9 +11,10 @@ interface EnhancedProductImageGalleryProps {
     images?: string[];
     video?: string;
   };
+  selectedImageUrl?: string;
 }
 
-const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryProps) => {
+const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProductImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [showLens, setShowLens] = useState(false);
@@ -34,6 +35,15 @@ const EnhancedProductImageGallery = ({ product }: EnhancedProductImageGalleryPro
     const imgs = [product.image, ...(product.images?.filter((img) => img !== product.image) || [])];
     return product.video ? [...imgs, product.video] : imgs;
   }, [product.image, product.images, product.video]);
+
+  // If a selected image is provided (e.g., from color variant), switch to it
+  useEffect(() => {
+    if (!selectedImageUrl) return;
+    const idx = allMedia.findIndex((m) => m === selectedImageUrl);
+    if (idx >= 0 && idx !== currentIndex) {
+      setCurrentIndex(idx);
+    }
+  }, [selectedImageUrl, allMedia, currentIndex]);
 
   const isVideo = useCallback((url: string) => url === product.video, [product.video]);
 

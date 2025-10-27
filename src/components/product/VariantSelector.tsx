@@ -65,39 +65,41 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
               if (variant.type === 'color') {
                 // --- COLOR or IMAGE SWATCH ---
                 return (
-                  <button
-                    key={value.id}
-                    onClick={() =>
-                      inStock && onVariantChange(variant.id, value.id)
-                    }
-                    title={`${value.name}${!inStock ? ' (Out of Stock)' : ''}`}
-                    className={cn(
-                      commonClasses,
-                      'w-10 h-10 rounded-full border-2',
-                      isSelected ? 'border-orange-500' : 'border-gray-300'
-                    )}
-                  >
-                    {value.image ? (
-                      <img
-                        src={value.image}
-                        alt={value.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span
-                        className="absolute inset-0 rounded-full"
-                        style={{ backgroundColor: value.value }}
-                      />
-                    )}
+                  <div key={value.id} className="flex flex-col items-center gap-1">
+                    <button
+                      onClick={() =>
+                        inStock && onVariantChange(variant.id, value.id)
+                      }
+                      title={`${value.name}${!inStock ? ' (Out of Stock)' : ''}`}
+                      className={cn(
+                        commonClasses,
+                        'w-10 h-10 rounded-full border-2',
+                        isSelected ? 'border-orange-500' : 'border-gray-300'
+                      )}
+                    >
+                      {value.image ? (
+                        <img
+                          src={value.image}
+                          alt={value.name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          className="absolute inset-0 rounded-full"
+                          style={{ backgroundColor: value.value }}
+                        />
+                      )}
 
-                    {!inStock && (
-                      <span className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-full">
-                        <span className="text-[10px] text-gray-500 font-medium">
-                          Out
+                      {!inStock && (
+                        <span className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-full">
+                          <span className="text-[10px] text-gray-500 font-medium">
+                            Out
+                          </span>
                         </span>
-                      </span>
-                    )}
-                  </button>
+                      )}
+                    </button>
+                    <span className="text-[11px] text-gray-600">{value.name}</span>
+                  </div>
                 );
               }
 
