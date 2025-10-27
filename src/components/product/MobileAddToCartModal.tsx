@@ -319,15 +319,20 @@ const MobileAddToCartModal = ({
                           id: type,
                           name: type.charAt(0).toUpperCase() + type.slice(1),
                           type: variantType,
-                          values: typeVariants.map(variant => ({
-                            id: variant.variant_value,
-                            name: variant.variant_value,
-                            value: variantType === 'color' 
-                              ? (colorMap[variant.variant_value.toLowerCase()] || '#6b7280')
-                              : variant.variant_value,
-                            available: variant.stock_quantity > 0,
-                            priceModifier: variant.price_modifier || 0
-                          }))
+                          values: typeVariants.map(variant => {
+                            // Extract variant value properly - it's already a string from useProductVariants
+                            const variantValue = String(variant.variant_value || '');
+                            
+                            return {
+                              id: variantValue,
+                              name: variantValue,
+                              value: variantType === 'color' 
+                                ? (colorMap[variantValue.toLowerCase()] || '#6b7280')
+                                : variantValue,
+                              available: variant.stock_quantity > 0,
+                              priceModifier: variant.price_modifier || 0
+                            };
+                          })
                         });
                         
                         return acc;
