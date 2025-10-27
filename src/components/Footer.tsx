@@ -14,7 +14,7 @@ const Footer = ({ className }: FooterProps) => {
 
   if (isMobile) return null;
 
-   const exactHidePaths = ['/search', '/cart', '/wishlist'];
+   const exactHidePaths = ['/search', '/cart', '/wishlist', '/auth'];
 
   // Path prefixes — hide on any route that starts with these
   const prefixHidePaths = ['/category', '/product'];
@@ -23,7 +23,7 @@ const Footer = ({ className }: FooterProps) => {
     exactHidePaths.includes(location.pathname) ||
     prefixHidePaths.some(prefix => location.pathname.startsWith(prefix));
 
-  //if (shouldHideFooter) return null;
+  if (location.pathname === '/auth') return null;
 
   // Organized footer sections for better sitelinks structure
   const footerSections = [
