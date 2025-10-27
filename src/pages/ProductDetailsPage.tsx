@@ -17,6 +17,7 @@ import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
+import Footer from '@/components/Footer';
 
 // ✅ Properly typed interfaces
 interface VariantValue {
@@ -313,7 +314,6 @@ const ProductDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
             title="Product Details"
@@ -420,7 +420,6 @@ const ProductDetailsPage: React.FC = () => {
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
             title="Product Details"

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
 import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, Mail, Users, Clock, CheckCircle, ArrowRight } from 'lucide-react';
-import MobileNav from '@/components/MobileNav';
 import { Link } from 'react-router-dom';
 
 const ChatPage = () => {
@@ -102,7 +100,6 @@ const ChatPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 pb-14">
-      {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader 
           title="Customer Support"
@@ -235,9 +232,6 @@ const ChatPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Original Mobile Navigation */}
-      {isMobile && <MobileNav />}
     </div>
   );
 };

@@ -336,7 +336,6 @@ const ProfilePage = () => {
   if (loading) {
     return (
       <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader 
             title={'My Profile'}

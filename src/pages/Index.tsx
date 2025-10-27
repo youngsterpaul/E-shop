@@ -57,8 +57,8 @@ const Index = () => {
       
       <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : 'bg-gray-50'}`}>
         <PerformanceMonitor />
-        <Header />
-        
+        {isMobile && <Header />}
+
         <main className={`flex-grow pb-8 ${!isMobile ? 'container px-0 xl:px-24' : ''}`}>
           <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'mb-8 relative /z-40'}> {/* Added relative z-40 for desktop */}
@@ -74,10 +74,7 @@ const Index = () => {
               <EnhancedFeaturedProducts />
             </div>
           </div>
-        </main>
-        
-        {!isMobile && <Footer />}
-        {isMobile && <MobileNav />}
+        </main>      
       </div>
     </>
   );

@@ -1,5 +1,3 @@
-import Header from '@/components/Header';
-import MobileNav from '@/components/MobileNav';
 import CategoryIcons from '@/components/CategoryIcons';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
@@ -41,7 +39,6 @@ const MobileCategoryPage = () => {
       </script>
       
       <div className={`min-h-screen ${!isMobile ? 'min-w-max' : 'bg-gray-50'}`}>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
             title={'Product Category'}
@@ -69,7 +66,6 @@ const MobileCategoryPage = () => {
 
         {/* Show all categories on category page */}
         <CategoryIcons showAll={true} />
-        <MobileNav />
         </main>
       </div>
     </>

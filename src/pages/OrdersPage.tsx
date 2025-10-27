@@ -298,7 +298,6 @@ const OrdersPage = () => {
   if (authLoading || loading) {
     return (
       <>
-        {!isMobile && <Header />}
         {isMobile && (
           <MobileHeader
             title="My Orders"
@@ -319,7 +318,6 @@ const OrdersPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
       {isMobile && (
         <MobileHeader
           title="My Orders"

@@ -6,7 +6,10 @@ import React, { lazy, Suspense } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import TopProgressBar from './components/TopProgressBar';
-//import Header from './components/Header';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import { isMobileUserAgent } from './hooks/use-mobile';
+import MobileNav from '@/components/MobileNav';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -52,15 +55,21 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
+const isMobile = isMobileUserAgent();
 
 function App() {
   return (
       <TooltipProvider>
       <TopProgressBar/>
       {/*<Sonner />*/}
-      <div className="min-h-screen bg-background">
+      {/* ✅ Use flex column to make footer stay at the bottom */}
+      <div className="min-h-screen flex flex-col bg-background">
+        {/* ✅ Header stays at top */}
+        {!isMobile && <Header />}
+
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
-          <main id="main-content">
+          {/* main content fills available space */}
+          <main id="main-content" className="flex-grow">
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
@@ -112,6 +121,9 @@ function App() {
         </Suspense>
         
       {/*<Toaster />*/}
+      {/* ✅ Footer stays at bottom naturally (not fixed) */}
+      {!isMobile && <Footer />}
+      {isMobile && <MobileNav />}
       </div>
       </TooltipProvider>
   );
