@@ -32,9 +32,8 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
 
   const isMobile = isMobileUserAgent();
 
-  const [openSections, setOpenSections] = useState({
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
-    specs: true,
     rating: true,
   });
 
@@ -89,7 +88,7 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     onFiltersChange(filters);
   }, [filters, onFiltersChange]);
 
-  const toggleSection = (section: keyof typeof openSections) => {
+  const toggleSection = (section: string) => {
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section],
@@ -163,8 +162,8 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
         </div>
       </div>
 
-      <ScrollArea className={`${isMobile ? 'h-[600]':'max-h-[1800px]'}`}>
-        <div className="p-4 space-y-6">
+      <ScrollArea className={`${isMobile ? 'h-[calc(100vh-180px)]' : 'h-[calc(100vh-280px)]'}`}>
+        <div className="p-4 space-y-4 pr-4">
           {/* Price Range Filter */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
             <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
@@ -206,37 +205,40 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
           <Separator />
 
           {/* Specifications Filters */}
-          {Object.keys(filterOptions.specs).map((specType) => (
-            <div key={specType}>
-              <Collapsible 
-                open={openSections.specs} 
-                onOpenChange={() => toggleSection('specs')}
-              >
-                <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
-                  <h4 className="font-medium text-gray-900">{specType}</h4>
-                  {openSections.specs ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                  {filterOptions.specs[specType].map((value) => (
-                    <div key={`${specType}-${value}`} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`spec-${specType}-${value}`}
-                        checked={filters.specifications[specType]?.includes(value) || false}
-                        onCheckedChange={() => toggleSpec(specType, value)}
-                      />
-                      <label
-                        htmlFor={`spec-${specType}-${value}`}
-                        className="text-sm text-gray-700 cursor-pointer flex-1"
-                      >
-                        {value}
-                      </label>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-              <Separator />
-            </div>
-          ))}
+          {Object.keys(filterOptions.specs).map((specType) => {
+            const isSpecOpen = openSections[`spec_${specType}`] ?? true;
+            return (
+              <div key={specType}>
+                <Collapsible 
+                  open={isSpecOpen} 
+                  onOpenChange={() => toggleSection(`spec_${specType}`)}
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
+                    <h4 className="font-medium text-gray-900 capitalize">{specType}</h4>
+                    {isSpecOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 space-y-2">
+                    {filterOptions.specs[specType].map((value) => (
+                      <div key={`${specType}-${value}`} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`spec-${specType}-${value}`}
+                          checked={filters.specifications[specType]?.includes(value) || false}
+                          onCheckedChange={() => toggleSpec(specType, value)}
+                        />
+                        <label
+                          htmlFor={`spec-${specType}-${value}`}
+                          className="text-sm text-gray-700 cursor-pointer flex-1 leading-none"
+                        >
+                          {value}
+                        </label>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+                <Separator className="my-4" />
+              </div>
+            );
+          })}
 
           {/* Rating Filter */}
           <Collapsible open={openSections.rating} onOpenChange={() => toggleSection('rating')}>
