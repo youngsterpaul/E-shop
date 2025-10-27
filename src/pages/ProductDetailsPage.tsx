@@ -100,7 +100,10 @@ const ProductDetailsPage: React.FC = () => {
         } else if (Array.isArray(v.variant_value)) {
           values = v.variant_value;
         } else {
-            values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
+          values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
+        }
+      } catch {
+        values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
       }
 
       // Determine variant type based on presence of images
@@ -165,6 +168,27 @@ const ProductDetailsPage: React.FC = () => {
     }
     return undefined;
   }, [transformedVariants, selectedVariants, product]);
+
+  // Auto-select first available variant for each type
+  useEffect(() => {
+    if (!transformedVariants?.length) return;
+
+    setSelectedVariants((prev) => {
+      const updated = { ...prev };
+
+      transformedVariants.forEach((variant) => {
+        const alreadySelected = updated[variant.id];
+        if (!alreadySelected && variant.values.length > 0) {
+          const firstAvailable = variant.values.find(v => v.available);
+          if (firstAvailable) {
+            updated[variant.id] = firstAvailable.id;
+          }
+        }
+      });
+
+      return updated;
+    });
+  }, [transformedVariants]);
 
   const stockInfo = useMemo(() => {
     if (!variants?.length) return {};
@@ -426,7 +450,7 @@ const ProductDetailsPage: React.FC = () => {
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
-            <EnhancedProductImageGallery product={productWithImages} />
+            <EnhancedProductImageGallery product={productWithImages} selectedImageUrl={selectedColorImageUrl} />
 
             <div className={`space-y-6 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>
