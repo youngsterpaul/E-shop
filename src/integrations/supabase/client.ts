@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
@@ -21,27 +20,3 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   }
 });
-=======
-
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
-
-const SUPABASE_URL = "https://sgpjnbdrmwrupeqhjqpj.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncGpuYmRybXdydXBlcWhqcXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMTkyMzQsImV4cCI6MjA2NjU5NTIzNH0.oxzq8UCKxVhL86YOkJcvjx2xBKGXWcC8LWOU6Hvh1Xk";
-
-
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storage: localStorage,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web'
-    }
-  }
-});
->>>>>>> 980d81d973590628cdbc798c69baa4bf7ed0b48e

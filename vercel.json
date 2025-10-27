@@ -7,7 +7,6 @@
   ],
   "headers": [
     {
-<<<<<<< HEAD
       "source": "/",
       "headers": [
         {
@@ -26,8 +25,6 @@
       ]
     },
     {
-=======
->>>>>>> 980d81d973590628cdbc798c69baa4bf7ed0b48e
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -58,11 +55,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-<<<<<<< HEAD
           "value": "public, max-age=0, must-revalidate"
-=======
-          "value": "no-cache, must-revalidate"
->>>>>>> 980d81d973590628cdbc798c69baa4bf7ed0b48e
         }
       ]
     },
