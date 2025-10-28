@@ -2,8 +2,6 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { useCartContext } from '@/contexts/CartContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
-import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import CartHeader from '@/components/cart/CartHeader';
 import SelectableCartItem from '@/components/cart/SelectableCartItem';
 import CartSummary from '@/components/cart/CartSummary';
@@ -57,18 +55,6 @@ const CartPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader 
-          title="Shopping Cart"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>{cartItems.length}</span>
-            </div>
-          }
-        />
-      )}
-
       <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
         {!isMobile && (
           <div className="mb-6">

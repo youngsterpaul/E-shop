@@ -3,7 +3,6 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { Link } from 'react-router-dom';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Search } from 'lucide-react';
 
 const MobileCategoryPage = () => {
@@ -39,19 +38,6 @@ const MobileCategoryPage = () => {
       </script>
       
       <div className={`min-h-screen ${!isMobile ? 'min-w-max' : 'bg-gray-50'}`}>
-        {isMobile && (
-          <MobileHeader
-            title={'Product Category'}
-            rightAction={
-            <Link to="/search">
-              <Button variant="ghost" size="sm" className="p-2">
-                <Search className="h-4 w-4" />
-              </Button>
-            </Link>
-            }
-          />
-        )}
-
         <main className="flex-grow pb-16">
             {/* Breadcrumb */}
             {!isMobile && (

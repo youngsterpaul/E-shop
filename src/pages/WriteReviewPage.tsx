@@ -10,7 +10,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { Star, Upload, X, ArrowLeft, Settings, CheckCircle, AlertCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 
@@ -175,19 +174,7 @@ const WriteReviewPage = () => {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && (
-          <MobileHeader 
-            title={'Write Review'}
-            backTo="/"
-            rightAction={
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            }
-          />
-        )}
-        
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>     
         <main className="flex-grow container py-8">
           <div className="mb-6">
             <Skeleton className="h-10 w-40" />
@@ -254,17 +241,6 @@ const WriteReviewPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader 
-          title={'Write Review'}
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
       <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
         <div className="mb-6">
           <Button 

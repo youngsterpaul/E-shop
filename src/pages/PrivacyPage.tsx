@@ -3,7 +3,6 @@ import React from 'react';
 import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import SiteBreadcrumb from '@/components/Breadcrumb';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -41,16 +40,6 @@ const PrivacyPage = () => {
       </script>
 
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && ( 
-          <MobileHeader
-          title="Privacy Policy"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        /> 
-        )}
       <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
         <SiteBreadcrumb 
           items={[

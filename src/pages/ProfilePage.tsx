@@ -12,8 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings, Upload, X, User, Mail, Phone, MapPin, Camera, CheckCircle2, AlertCircle } from 'lucide-react';
 
 // Simple avatar cache implementation
@@ -335,18 +333,7 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && (
-          <MobileHeader 
-            title={'My Profile'}
-            rightAction={
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            }
-          />
-        )}
-        
+      <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>     
         <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24' : 'px-4'}`}>
           <div className="max-w-4xl mx-auto space-y-6">
             
@@ -420,19 +407,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>
-      {!isMobile && <Header />}
-      {isMobile && (
-        <MobileHeader 
-          title={'My Profile'}
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ${!isMobile ? 'min-w-max' : ''}`}>   
       <div className={`flex-grow mx-auto py-8 ${!isMobile ? 'container px-4 xl:px-24' : 'px-4'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
           

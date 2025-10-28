@@ -1,8 +1,6 @@
 
 import React from 'react';
-import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -11,17 +9,6 @@ const TermsPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader 
-          title={'Terms & Conditions'}
-          backTo="/"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
       <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
           <h1 className="text-3xl font-bold mb-6">Terms & Conditions</h1>
           <div className="bg-white rounded-lg shadow-md p-6 prose prose-orange max-w-none">

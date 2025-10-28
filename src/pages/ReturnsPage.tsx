@@ -5,23 +5,12 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, AlertTriangle, HelpCircle, Settings } from 'lucide-react';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 const ReturnsPage = () => {
   const isMobile = isMobileUserAgent();
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader 
-          title={'Returns'}
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
       <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
         <div className="/max-w-3xl mx-auto /px-4">
           <h1 className="text-3xl font-bold mb-6">Returns Policy</h1>

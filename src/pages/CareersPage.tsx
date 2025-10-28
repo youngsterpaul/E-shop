@@ -11,9 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import JobCard from '@/components/careers/JobCard';
 import ApplicationModal from '@/components/careers/ApplicationModal';
 import SiteBreadcrumb from '@/components/Breadcrumb';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import Header from '@/components/Header';
 
 interface Job {
   id: string;
@@ -186,16 +184,6 @@ const CareersPage = () => {
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
-        {isMobile && ( 
-          <MobileHeader
-          title="Careers"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-        )}
          {/* Hero Section */}
         <section className={`relative py-20 mb-8 px-4 text-center overflow-hidden ${!isMobile ? 'max-w-6xl container xl:px-24 px-4 bg-white' : ''}`}>
           <div className="">

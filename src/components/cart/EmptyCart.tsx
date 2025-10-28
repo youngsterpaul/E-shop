@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from '@/components/products/ProductSkeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '../ui/mobile-header';
+import MobileNav from '../MobileNav';
 
 const EmptyCart = () => {
   const { data: products, isLoading } = useFeaturedProducts();
@@ -75,6 +76,7 @@ const EmptyCart = () => {
           )}
         </div>
       </div>
+      <MobileNav />
     </div>
   );
 };
