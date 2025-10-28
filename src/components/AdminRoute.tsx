@@ -2,86 +2,61 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useUserRole, AppRole } from '@/hooks/useUserRole';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AdminRouteProps {
   children: React.ReactNode;
+  requiredRole?: AppRole; // 'superadmin' for full access, 'admin' for product access only
 }
 
-const AdminRoute = ({ children }: AdminRouteProps) => {
-  const { user, profile, loading } = useAuth();
+const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
+  const { user, loading: authLoading } = useAuth();
+  const { roles, loading: rolesLoading, hasRole, hasAnyAdminRole } = useUserRole(user?.id);
   const navigate = useNavigate();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const loading = authLoading || rolesLoading;
+
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (loading) return;
+    if (loading) return;
 
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to access admin area",
-          variant: "destructive",
-        });
-        navigate('/auth');
-        return;
-      }
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to access admin area",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
 
-      try {
-        setIsChecking(true);
-        setError(null);
-        
-        // Use the RPC function to check admin status
-        const { data, error } = await supabase
-          .rpc('is_admin', { user_id: user.id });
+    // Check if user has required role
+    const hasAccess = requiredRole === 'admin' 
+      ? hasAnyAdminRole 
+      : hasRole(requiredRole);
 
-        if (error) {
-          console.error('Error checking admin status:', error);
-          setError('Failed to verify admin privileges');
-          toast({
-            title: "Access Denied",
-            description: "Unable to verify admin privileges",
-            variant: "destructive",
-          });
-          navigate('/');
-          return;
-        }
+    if (!hasAccess) {
+      const roleNames = {
+        'superadmin': 'Super Admin',
+        'admin': 'Admin',
+        'moderator': 'Moderator',
+        'user': 'User'
+      };
 
-        if (!data) {
-          setError('Insufficient privileges');
-          toast({
-            title: "Access Denied",
-            description: "You don't have admin privileges",
-            variant: "destructive",
-          });
-          navigate('/');
-          return;
-        }
+      setError(`This area requires ${roleNames[requiredRole]} privileges`);
+      toast({
+        title: "Access Denied",
+        description: `You need ${roleNames[requiredRole]} privileges to access this area`,
+        variant: "destructive",
+      });
+      navigate('/');
+    }
+  }, [user, loading, hasRole, hasAnyAdminRole, requiredRole, navigate, toast]);
 
-        setIsAdmin(true);
-      } catch (error) {
-        console.error('Admin check failed:', error);
-        setError('System error occurred');
-        toast({
-          title: "System Error",
-          description: "An error occurred while checking admin privileges",
-          variant: "destructive",
-        });
-        navigate('/');
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user, profile, loading, navigate, toast]);
-
-  if (loading || isChecking) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4 p-8">
@@ -115,7 +90,9 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     );
   }
 
-  if (!isAdmin) {
+  const hasAccess = requiredRole === 'admin' ? hasAnyAdminRole : hasRole(requiredRole);
+
+  if (!hasAccess) {
     return null;
   }
 

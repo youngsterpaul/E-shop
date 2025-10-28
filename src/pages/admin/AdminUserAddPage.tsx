@@ -5,11 +5,13 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft } from 'lucide-react';
+import { AppRole } from '@/hooks/useUserRole';
 
 interface UserFormData {
   email: string;
@@ -17,7 +19,7 @@ interface UserFormData {
   firstName: string;
   lastName: string;
   phone: string;
-  isAdmin: boolean;
+  role: AppRole;
 }
 
 const AdminUserAddPage = () => {
@@ -32,7 +34,7 @@ const AdminUserAddPage = () => {
       firstName: '',
       lastName: '',
       phone: '',
-      isAdmin: false,
+      role: 'user',
     },
   });
 
@@ -54,21 +56,37 @@ const AdminUserAddPage = () => {
 
       if (authError) throw authError;
 
-      // If user creation was successful, update their profile
+      // If user creation was successful, update profile and assign role
       if (authData.user) {
+        // Update profile
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             first_name: data.firstName,
             last_name: data.lastName,
             phone: data.phone,
-            is_admin: data.isAdmin,
           })
           .eq('user_id', authData.user.id);
 
         if (profileError) {
           console.error('Error updating profile:', profileError);
-          // Don't throw here as the user was created successfully
+        }
+
+        // Assign role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: data.role,
+          });
+
+        if (roleError) {
+          console.error('Error assigning role:', roleError);
+          toast({
+            title: "Warning",
+            description: "User created but role assignment failed. Please assign role manually.",
+            variant: "destructive"
+          });
         }
       }
 
@@ -188,18 +206,29 @@ const AdminUserAddPage = () => {
                   )}
                 />
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isAdmin"
-                    checked={form.watch('isAdmin')}
-                    onChange={(e) => form.setValue('isAdmin', e.target.checked)}
-                    className="rounded"
-                  />
-                  <label htmlFor="isAdmin" className="text-sm font-medium">
-                    Admin User
-                  </label>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User Role</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="moderator">Moderator</SelectItem>
+                          <SelectItem value="admin">Admin (Products Only)</SelectItem>
+                          <SelectItem value="superadmin">Super Admin (Full Access)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="flex gap-4 pt-4">
                   <Button 
