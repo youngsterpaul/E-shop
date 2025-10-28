@@ -1,7 +1,5 @@
-import React from 'react';
+
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
@@ -9,10 +7,7 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { SEOHelmet } from '@/components/SEOHelmet';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { Settings, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();

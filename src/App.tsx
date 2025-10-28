@@ -10,6 +10,22 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import { isMobileUserAgent } from './hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
+import { MobileHeader } from './components/ui/mobile-header';
+import { useLocation } from "react-router-dom";
+import { ShoppingBag, Settings, LogOut } from "lucide-react";
+import { useCartContext } from "@/contexts/CartContext";
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -55,7 +71,110 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
+
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!user && location.pathname !== '/auth') {
+      navigate('/auth');
+    }
+  }, [user, navigate, location.pathname]);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+
 const isMobile = isMobileUserAgent();
+const hideHeaderPaths = ["/auth"];
+const { cartItems } = useCartContext();
+
+const showMobileHeader = isMobile && !hideHeaderPaths.includes(location.pathname);
+
+const getHeaderProps = () => {
+  // Default title and no right action
+  let title = "SmartKenya";
+  let rightAction = (
+    <Button variant="ghost" size="sm" className="p-2">
+      <Settings className="h-4 w-4" />
+    </Button>
+    );
+
+  if (location.pathname.startsWith("/cart")) {
+    title = "Shopping Cart";
+    rightAction = (
+      <div className="flex items-center gap-1 text-sm text-gray-500">
+        <ShoppingBag className="h-4 w-4" />
+        <span>{cartItems.length}</span>
+      </div>
+    );
+  } else if (location.pathname.startsWith("/about")) {
+    title = "Our Story";
+    rightAction = (
+      <Button variant="ghost" size="sm" className="p-2">
+        <Settings className="h-4 w-4" />
+      </Button>
+    );
+  } else if (location.pathname.startsWith("/account")) {
+    title = "Account";
+    rightAction = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="p-2">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Sign Out
+            </Button>
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  } else if (location.pathname.startsWith("/orders")) {
+    title = "My Orders";
+  } else if (location.pathname.startsWith("/returns")) {
+    title = "Returns";
+  } else if (location.pathname.startsWith("/terms")) {
+    title = "Terms & Conditions";
+  } else if (location.pathname.startsWith("/wishlist")) {
+    title = "Wishlist";
+  } else if (location.pathname.startsWith("/reviews")) {
+    title = "Write Review";
+      } else if (location.pathname.startsWith("/privacy")) {
+    title = "Privacy";
+      } else if (location.pathname.startsWith("/category")) {
+    title = "Product Category";
+      } else if (location.pathname.startsWith("/checkout")) {
+    title = "Checkout";
+      } else if (location.pathname.startsWith("/chat")) {
+    title = "Customer Support";
+      } else if (location.pathname.startsWith("/cart")) {
+    title = "Shopping Cart";
+     } else if (location.pathname.startsWith("/careers")) {
+    title = "Careers"; 
+      } else if (location.pathname.startsWith("/orders")) {
+    title = "My Orders";
+  } else if (location.pathname.startsWith("/profile")) {
+    title = "My Profile";
+  }
+
+  return { title, rightAction };
+};
+
+const { title, rightAction } = getHeaderProps();
+
 
 function App() {
   return (
@@ -66,6 +185,7 @@ function App() {
       <div className="min-h-screen flex flex-col bg-background">
         {/* ✅ Header stays at top */}
         {!isMobile && <Header />}
+        {showMobileHeader && <MobileHeader title={title} rightAction={rightAction} />}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           {/* main content fills available space */}
@@ -100,19 +220,19 @@ function App() {
             <Route path="/careers" element={<CareersPage />} />
 
             {/* Admin Routes */}
-            <Route path="/supersmartkenyaadmin123" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute><AdminDailySalesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute><AdminStoresPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute><AdminHeroSlidesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="superadmin"><AdminDashboard /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="admin"><AdminProductsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="admin"><AdminProductAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute requiredRole="admin"><AdminProductEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute requiredRole="superadmin"><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute requiredRole="superadmin"><AdminStoresPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute requiredRole="superadmin"><AdminOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute requiredRole="superadmin"><AdminUsersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute requiredRole="superadmin"><AdminUserAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute requiredRole="superadmin"><AdminHeroSlidesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

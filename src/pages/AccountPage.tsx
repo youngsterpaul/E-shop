@@ -2,8 +2,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -33,9 +31,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useUserRole } from '@/hooks/useUserRole';
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
+  const { isAdmin, isSuperAdmin, hasAnyAdminRole } = useUserRole(user?.id);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
 
@@ -113,36 +113,6 @@ const AccountPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader 
-        title="My Account"
-        backTo="/"
-        rightAction={
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-3 h-5 w-5" />
-                  Sign Out
-                </Button>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-        }
-      />
-      )}
-
       <div className={`container mx-auto px-4 py-6 ${isMobile ? 'pb-14' : 'xl:px-24'}`}>
         {!isMobile && (
           <div className="mb-6">
@@ -204,7 +174,7 @@ const AccountPage = () => {
         </div>
 
         {/* Admin Panel Link */}
-        {profile?.is_admin && (
+        {(isAdmin || isSuperAdmin) && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
             <CardContent className="p-4">
               <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">

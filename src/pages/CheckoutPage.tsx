@@ -9,8 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 // UI Components
-import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -732,18 +730,6 @@ const CheckoutPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader 
-          title="Checkout"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>{calculations.selectedItemsCount}</span>
-            </div>
-          }
-        />
-      )}
-
         <div
           className={`container mx-auto px-4 py-6 ${
             !isMobile ? 'xl:px-24' : 'pb-32'

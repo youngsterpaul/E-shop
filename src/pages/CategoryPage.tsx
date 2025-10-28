@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/hooks/useProducts';
 import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
 import SmartPagination from '@/components/ui/pagination';
 import { ChevronLeft, ChevronRight, Home, Search } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -12,14 +11,13 @@ import ProductSort from '@/components/products/ProductSort';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
-import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
 
 interface Category {
   id: number;
   category: string;
-  slug: string;
+  slug: string | null;
   parent_id: number | null;
 }
 

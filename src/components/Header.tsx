@@ -31,10 +31,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import EnhancedSearchInput from './search/EnhancedSearchInput';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { isAdmin, isSuperAdmin, hasAnyAdminRole } = useUserRole(user?.id);
   const [searchTerm, setSearchTerm] = useState('');
   const isMobile = isMobileUserAgent();
   const location = useLocation();
@@ -47,11 +49,15 @@ const Header = () => {
   const [showTopHeader, setShowTopHeader] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
 
-    // List of paths where you want to hide main Header content
   const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
 
-  // Check if current path matches any in the hide list
-  const hideMainHeader = hideMainHeaderOnPaths.includes(location.pathname);
+  // Path prefixes — hide on any route that starts with these
+  if (location.pathname.startsWith('/supersmartkenyaadmin123')) {
+    return null;
+  }
+
+  const hideMainHeader =
+    hideMainHeaderOnPaths.includes(location.pathname)
 
   if (location.pathname === '/auth') return null;
 
@@ -272,7 +278,7 @@ useEffect(() => {
                         <Heart className="mr-2 h-4 w-4" /> Wishlist
                       </Link>
                     </DropdownMenuItem>
-                    {profile?.is_admin && (
+                    {(isAdmin || isSuperAdmin) && (
                       <DropdownMenuItem asChild>
                         <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center">
                           <Settings className="mr-2 h-4 w-4" /> Admin Dashboard

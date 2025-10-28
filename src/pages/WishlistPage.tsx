@@ -10,8 +10,6 @@ import { useCart } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
-import { MobileHeader } from '@/components/ui/mobile-header';
-import Footer from '@/components/Footer';
 
 interface WishlistItem {
   id: string;
@@ -167,18 +165,7 @@ const WishlistPage = () => {
   return (
     <>
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && (
-          <MobileHeader 
-            title={'My Wishlist'}
-            backTo="/"
-            rightAction={
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            }
-          />
-        )}
-        
+       
         <main className={`${isMobile ? 'pb-20' : 'container pb-8 px-4 xl:px-24'}`}>
           <div className={`container mx-auto ${gridConfig.padding} py-8`}>
            {/* Header section */}

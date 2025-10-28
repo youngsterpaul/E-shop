@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, Mail, Users, Clock, CheckCircle, ArrowRight } from 'lucide-react';
@@ -99,20 +98,7 @@ const ChatPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 pb-14">
-      {isMobile && (
-        <MobileHeader 
-          title="Customer Support"
-          rightAction={
-            <Link to="/faq">
-              <Button variant="ghost" size="sm" className="p-2 text-blue-600 hover:text-blue-800 font-medium">
-                FAQs
-              </Button>
-            </Link>
-          }
-        />
-      )}
-      
+    <div className="min-h-screen flex flex-col bg-gray-50 pb-14">  
       {/* Professional Main Content */}
       <div className="flex-1 flex flex-col">
         <div className={`flex-1 flex flex-col items-center justify-center p-6 transition-all duration-700 ${

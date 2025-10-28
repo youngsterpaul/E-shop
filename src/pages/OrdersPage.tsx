@@ -14,7 +14,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { format } from 'date-fns';
 import { FileText, Download, Settings, Package, ShoppingBag, Search, RefreshCw, Eye, ChevronDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface OrderItem {
@@ -298,17 +297,6 @@ const OrdersPage = () => {
   if (authLoading || loading) {
     return (
       <>
-        {isMobile && (
-          <MobileHeader
-            title="My Orders"
-            backTo="/"
-            rightAction={
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            }
-          />
-        )}
         <PageLoadingSkeleton />
       </>
     );
@@ -317,19 +305,7 @@ const OrdersPage = () => {
   const hasMoreOrders = displayedOrders.length < filteredOrders.length;
 
   return (
-    <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader
-          title="My Orders"
-          backTo="/"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      
+    <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>     
       <main className={`flex-grow container py-8 px-4 ${!isMobile ? 'xl:px-24' : ''}`}>
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
