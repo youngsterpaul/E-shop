@@ -52,11 +52,12 @@ const Header = () => {
   const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
 
   // Path prefixes — hide on any route that starts with these
-  const prefixHidePaths = ['/supersmartkenyaadmin123'];
+  if (location.pathname.startsWith('/supersmartkenyaadmin123')) {
+    return null;
+  }
 
   const hideMainHeader =
-    hideMainHeaderOnPaths.includes(location.pathname) ||
-    prefixHidePaths.some(prefix => location.pathname.startsWith(prefix));
+    hideMainHeaderOnPaths.includes(location.pathname)
 
   if (location.pathname === '/auth') return null;
 

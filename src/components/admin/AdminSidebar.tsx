@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import {
   LayoutDashboard,
   Package,
@@ -14,7 +14,6 @@ import {
   X,
   Plus,
   Tags,
-  MessageSquare,
   Bell,
   Store,
   Image
@@ -24,6 +23,7 @@ const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isSuperAdmin, isAdmin, loading } = useUserRole(user?.id);
   const [isOpen, setIsOpen] = useState(false);
   
   const handleLogout = async () => {
@@ -31,21 +31,24 @@ const AdminSidebar = () => {
     navigate('/');
   };
   
-  const menuItems = [
+  const allMenuItems = [
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
       path: '/supersmartkenyaadmin123',
+      roles: ['superadmin'], // Only superadmin
     },
     {
       name: 'Daily Sales',
       icon: Bell,
       path: '/supersmartkenyaadmin123/daily-sales',
+      roles: ['superadmin'],
     },
     {
       name: 'Products',
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
+      roles: ['superadmin', 'admin'], // Both can access
       action: {
         name: 'Add Product',
         icon: Plus,
@@ -56,37 +59,54 @@ const AdminSidebar = () => {
       name: 'Categories',
       icon: Tags,
       path: '/supersmartkenyaadmin123/categories',
+      roles: ['superadmin'],
     },
     {
       name: 'Stores',
       icon: Store,
       path: '/supersmartkenyaadmin123/stores',
+      roles: ['superadmin'],
     },
     {
       name: 'Orders',
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
+      roles: ['superadmin'],
     },
     {
       name: 'Users',
       icon: Users,
       path: '/supersmartkenyaadmin123/users',
+      roles: ['superadmin'],
     },
     {
       name: 'HeroSlides',
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
+      roles: ['superadmin'],
     },
     {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
+      roles: ['superadmin'],
     },
   ];
+  
+  // Filter menu items based on user role
+  const menuItems = allMenuItems.filter(item => {
+    if (isSuperAdmin) return true; // Superadmin sees everything
+    if (isAdmin) return item.roles.includes('admin'); // Admin only sees items with 'admin' role
+    return false;
+  });
   
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
+
+  if (loading) {
+    return null; // Or a loading skeleton
+  }
 
   return (
     <>
@@ -116,8 +136,19 @@ const AdminSidebar = () => {
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex h-16 items-center //justify-center border-b /px-6 px-3">
+          <div className="flex h-16 items-center px-3 border-b">
             <h2 className="text-xl font-bold text-green-600">SmartKenya Admin</h2>
+          </div>
+          
+          {/* Role Badge */}
+          <div className="px-4 pt-3 pb-2">
+            <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+              isSuperAdmin 
+                ? 'bg-purple-100 text-purple-700' 
+                : 'bg-blue-100 text-blue-700'
+            }`}>
+              {isSuperAdmin ? 'Super Admin' : 'Admin'}
+            </div>
           </div>
           
           {/* Navigation */}
@@ -163,7 +194,9 @@ const AdminSidebar = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium">{user?.email}</p>
-                  <p className="text-xs text-gray-500">Admin</p>
+                  <p className="text-xs text-gray-500">
+                    {isSuperAdmin ? 'Super Admin' : 'Admin'}
+                  </p>
                 </div>
               </div>
               <button

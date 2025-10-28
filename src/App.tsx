@@ -100,19 +100,19 @@ function App() {
             <Route path="/careers" element={<CareersPage />} />
 
             {/* Admin Routes */}
-            <Route path="/supersmartkenyaadmin123" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute><AdminDailySalesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute><AdminProductAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute><AdminProductEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute><AdminStoresPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute><AdminOrdersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute><AdminUserAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute><AdminUserEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute><AdminHeroSlidesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="superadmin"><AdminDashboard /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="admin"><AdminProductsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="admin"><AdminProductAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute requiredRole="admin"><AdminProductEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute requiredRole="superadmin"><AdminCategoriesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute requiredRole="superadmin"><AdminStoresPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute requiredRole="superadmin"><AdminOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute requiredRole="superadmin"><AdminUsersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute requiredRole="superadmin"><AdminUserAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute requiredRole="superadmin"><AdminHeroSlidesPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

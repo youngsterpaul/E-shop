@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,7 +12,7 @@ interface AdminRouteProps {
 
 const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { roles, loading: rolesLoading, hasRole, hasAnyAdminRole } = useUserRole(user?.id);
+  const { roles, loading: rolesLoading, hasRole, isSuperAdmin, isAdmin } = useUserRole(user?.id);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -23,6 +22,7 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   useEffect(() => {
     if (loading) return;
 
+    // Not authenticated
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -34,9 +34,16 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
     }
 
     // Check if user has required role
-    const hasAccess = requiredRole === 'admin' 
-      ? hasAnyAdminRole 
-      : hasRole(requiredRole);
+    let hasAccess = false;
+    
+    if (requiredRole === 'superadmin') {
+      hasAccess = isSuperAdmin;
+    } else if (requiredRole === 'admin') {
+      // Both admin and superadmin can access admin-level routes
+      hasAccess = isAdmin || isSuperAdmin;
+    } else {
+      hasAccess = hasRole(requiredRole);
+    }
 
     if (!hasAccess) {
       const roleNames = {
@@ -52,9 +59,17 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
         description: `You need ${roleNames[requiredRole]} privileges to access this area`,
         variant: "destructive",
       });
-      navigate('/');
+      
+      // Redirect based on user role
+      if (isAdmin) {
+        // Admins get redirected to products page
+        navigate('/supersmartkenyaadmin123/products');
+      } else {
+        // Others go to home
+        navigate('/');
+      }
     }
-  }, [user, loading, hasRole, hasAnyAdminRole, requiredRole, navigate, toast]);
+  }, [user, loading, hasRole, isSuperAdmin, isAdmin, requiredRole, navigate, toast]);
 
   if (loading) {
     return (
@@ -79,10 +94,16 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
             <h2 className="text-lg font-semibold mb-2 text-red-600">Access Denied</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => {
+                if (isAdmin) {
+                  navigate('/supersmartkenyaadmin123/products');
+                } else {
+                  navigate('/');
+                }
+              }}
               className="text-orange-500 hover:text-orange-600 underline"
             >
-              Return to Home
+              {isAdmin ? 'Go to Products' : 'Return to Home'}
             </button>
           </div>
         </div>
@@ -90,7 +111,15 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
     );
   }
 
-  const hasAccess = requiredRole === 'admin' ? hasAnyAdminRole : hasRole(requiredRole);
+  // Final access check
+  let hasAccess = false;
+  if (requiredRole === 'superadmin') {
+    hasAccess = isSuperAdmin;
+  } else if (requiredRole === 'admin') {
+    hasAccess = isAdmin || isSuperAdmin;
+  } else {
+    hasAccess = hasRole(requiredRole);
+  }
 
   if (!hasAccess) {
     return null;
