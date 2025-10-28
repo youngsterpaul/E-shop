@@ -166,19 +166,19 @@ export type Database = {
           category: string
           id: number
           parent_id: number | null
-          slug: string | null
+          slug: string
         }
         Insert: {
           category: string
           id?: number
           parent_id?: number | null
-          slug?: string | null
+          slug?: string
         }
         Update: {
           category?: string
           id?: number
           parent_id?: number | null
-          slug?: string | null
+          slug?: string
         }
         Relationships: []
       }
@@ -529,25 +529,25 @@ export type Database = {
           address: string | null
           created_at: string | null
           email: string | null
-          id: number
+          id: string
           name: string
-          phone: number | null
+          phone: string
         }
         Insert: {
           address?: string | null
           created_at?: string | null
           email?: string | null
-          id?: number
+          id?: string
           name: string
-          phone?: number | null
+          phone?: string | null
         }
         Update: {
           address?: string | null
           created_at?: string | null
           email?: string | null
-          id?: number
+          id?: string
           name?: string
-          phone?: number | null
+          phone?: string | null
         }
         Relationships: []
       }
