@@ -33,9 +33,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useUserRole } from '@/hooks/useUserRole';
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
+  const { isAdmin, isSuperAdmin, hasAnyAdminRole } = useUserRole(user?.id);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
 
@@ -204,7 +206,7 @@ const AccountPage = () => {
         </div>
 
         {/* Admin Panel Link */}
-        {profile?.is_admin && (
+        {(isAdmin || isSuperAdmin) && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
             <CardContent className="p-4">
               <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">

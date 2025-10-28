@@ -17,13 +17,13 @@ const Footer = ({ className }: FooterProps) => {
    const exactHidePaths = ['/search', '/cart', '/wishlist'];
 
   // Path prefixes — hide on any route that starts with these
-  const prefixHidePaths = ['/category', '/product'];
+  const prefixHidePaths = ['/category', '/product', '/supersmartkenyaadmin123'];
 
   const shouldHideFooter =
     exactHidePaths.includes(location.pathname) ||
     prefixHidePaths.some(prefix => location.pathname.startsWith(prefix));
-
-  //if (shouldHideFooter) return null;
+    
+  if (location.pathname === '/auth') return null;
 
   // Organized footer sections for better sitelinks structure
   const footerSections = [

@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Search, Plus, Edit, Trash2, FileUp, Mail, Phone, ChevronDown, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { AppRole } from '@/hooks/useUserRole';
 
 interface User {
   user_id: string;
@@ -21,16 +22,15 @@ interface User {
   last_name: string | null;
   phone: string | null;
   avatar_url: string | null;
-  is_admin: boolean | null;
   created_at: string | null;
   last_sign_in_at: string | null;
+  role: AppRole;
 }
 
 const AdminUsersPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('All Roles');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -44,19 +44,47 @@ const AdminUsersPage = () => {
   
   const roles = [
     "All Roles",
+    "Super Admin",
     "Admin",
+    "Moderator",
     "User",
   ];
   
-  // Fetch users from profiles table
+  // Fetch users with their roles
   const fetchUsers = async () => {
-    const { data, error } = await supabase
+    // Fetch all profiles
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
       
-    if (error) throw error;
-    return data as User[];
+    if (profilesError) throw profilesError;
+
+    // Fetch all user roles
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('user_id, role');
+      
+    if (rolesError) throw rolesError;
+
+    // Create a map of user_id to highest role
+    const roleMap = new Map<string, AppRole>();
+    const roleHierarchy: AppRole[] = ['superadmin', 'admin', 'moderator', 'user'];
+    
+    userRoles?.forEach(ur => {
+      const currentRole = roleMap.get(ur.user_id);
+      if (!currentRole || roleHierarchy.indexOf(ur.role) < roleHierarchy.indexOf(currentRole)) {
+        roleMap.set(ur.user_id, ur.role);
+      }
+    });
+
+    // Combine profiles with roles
+    const usersWithRoles: User[] = profiles.map(profile => ({
+      ...profile,
+      role: roleMap.get(profile.user_id) || 'user'
+    }));
+
+    return usersWithRoles;
   };
   
   const { data: users = [], isLoading, refetch } = useQuery({
@@ -74,8 +102,10 @@ const AdminUsersPage = () => {
     
     // Role filter
     const roleMatch = selectedRole === 'All Roles' || 
-      (selectedRole === 'Admin' && user.is_admin) || 
-      (selectedRole === 'User' && !user.is_admin);
+      (selectedRole === 'Super Admin' && user.role === 'superadmin') ||
+      (selectedRole === 'Admin' && user.role === 'admin') ||
+      (selectedRole === 'Moderator' && user.role === 'moderator') ||
+      (selectedRole === 'User' && user.role === 'user');
     
     return searchMatch && roleMatch;
   });
@@ -87,7 +117,7 @@ const AdminUsersPage = () => {
   // Reset displayed items when filters change
   useEffect(() => {
     setDisplayedItemsCount(itemsPerPage);
-    setSelectedUsers([]); // Clear selection when filters change
+    setSelectedUsers([]);
     setIsAllSelected(false);
   }, [searchQuery, selectedRole, itemsPerPage]);
 
@@ -104,11 +134,10 @@ const AdminUsersPage = () => {
   // Handle "Show Less" button
   const handleShowLess = () => {
     setDisplayedItemsCount(itemsPerPage);
-    // Scroll to top of table
     document.querySelector('[data-table-container]')?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  // Handle bulk selection (only for displayed users)
+  // Handle bulk selection
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedUsers([]);
@@ -141,28 +170,25 @@ const AdminUsersPage = () => {
   };
   
   const handleBulkDeleteClick = () => {
-    setUserToDelete(null); // null means bulk delete
+    setUserToDelete(null);
     setIsDeleteDialogOpen(true);
   };
   
   const confirmDelete = async () => {
     try {
       if (userToDelete !== null) {
-        // Single delete - in a real application, we would delete the user from auth.users
-        // But for this demo, we'll just show a success message
         toast({
           title: "User deleted",
           description: "The user has been successfully deleted.",
         });
       } else {
-        // Bulk delete
         toast({
           title: "Users deleted",
           description: `${selectedUsers.length} users have been successfully deleted.`,
         });
         setSelectedUsers([]);
       }
-      refetch(); // Refresh the data
+      refetch();
     } catch (error: any) {
       console.error('Error deleting users:', error);
       toast({
@@ -193,13 +219,26 @@ const AdminUsersPage = () => {
       minute: '2-digit',
       second: '2-digit',
       hour12: false,
-      timeZone: 'Africa/Nairobi', // EAT (UTC+3)
+      timeZone: 'Africa/Nairobi',
     };
 
-    // Generate formatted string
     const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+    return formatted.replace(/\sGMT.*$/, '');
+  };
 
-    return formatted.replace(/\sGMT.*$/, ''); // Remove time zone suffix if it appears
+  // Get role display info
+  const getRoleInfo = (role: AppRole) => {
+    switch (role) {
+      case 'superadmin':
+        return { label: 'Super Admin', color: 'bg-purple-600' };
+      case 'admin':
+        return { label: 'Admin', color: 'bg-blue-500' };
+      case 'moderator':
+        return { label: 'Moderator', color: 'bg-green-500' };
+      case 'user':
+      default:
+        return { label: 'User', color: 'bg-gray-500' };
+    }
   };
 
   return (
@@ -328,7 +367,7 @@ const AdminUsersPage = () => {
                     <TableHead>Contact</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Joined</TableHead>
-                     <TableHead>Last Sign In</TableHead>
+                    <TableHead>Last Sign In</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -337,23 +376,24 @@ const AdminUsersPage = () => {
                     Array(5).fill(0).map((_, i) => (
                       <TableRow key={i}>
                         <TableCell>
-                          <div className="h-4 w-4 skeleton" />
+                          <div className="h-4 w-4 bg-gray-200 animate-pulse rounded" />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 skeleton rounded-full" />
-                            <div className="h-5 w-24 skeleton" />
+                            <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full" />
+                            <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
                           </div>
                         </TableCell>
-                        <TableCell><div className="h-5 w-32 skeleton" /></TableCell>
-                        <TableCell><div className="h-5 w-16 skeleton" /></TableCell>
-                        <TableCell><div className="h-5 w-24 skeleton" /></TableCell>
-                        <TableCell className="text-right"><div className="h-8 w-16 ml-auto skeleton" /></TableCell>
+                        <TableCell><div className="h-5 w-32 bg-gray-200 animate-pulse rounded" /></TableCell>
+                        <TableCell><div className="h-5 w-16 bg-gray-200 animate-pulse rounded" /></TableCell>
+                        <TableCell><div className="h-5 w-24 bg-gray-200 animate-pulse rounded" /></TableCell>
+                        <TableCell><div className="h-5 w-24 bg-gray-200 animate-pulse rounded" /></TableCell>
+                        <TableCell className="text-right"><div className="h-8 w-16 ml-auto bg-gray-200 animate-pulse rounded" /></TableCell>
                       </TableRow>
                     ))
                   ) : filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         <p className="text-muted-foreground">No users found</p>
                         <Button variant="link" className="mt-2" onClick={resetFilters}>
                           Reset filters
@@ -361,80 +401,81 @@ const AdminUsersPage = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    displayedUsers.map((user) => (
-                      <TableRow key={user.user_id}>
-                        <TableCell>
-                          <Checkbox 
-                            checked={selectedUsers.includes(user.user_id)}
-                            onCheckedChange={() => toggleSelectUser(user.user_id)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              {user.avatar_url ? (
-                                <img 
-                                  src={user.avatar_url} 
-                                  alt={user.first_name || ''} 
-                                  className="h-10 w-10 object-cover rounded-full"
-                                />
-                              ) : (
-                                <span className="font-semibold text-gray-500">
-                                  {user.first_name ? user.first_name[0] : user.email[0].toUpperCase()}
-                                </span>
+                    displayedUsers.map((user) => {
+                      const roleInfo = getRoleInfo(user.role);
+                      return (
+                        <TableRow key={user.user_id}>
+                          <TableCell>
+                            <Checkbox 
+                              checked={selectedUsers.includes(user.user_id)}
+                              onCheckedChange={() => toggleSelectUser(user.user_id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                {user.avatar_url ? (
+                                  <img 
+                                    src={user.avatar_url} 
+                                    alt={user.first_name || ''} 
+                                    className="h-10 w-10 object-cover rounded-full"
+                                  />
+                                ) : (
+                                  <span className="font-semibold text-gray-500">
+                                    {user.first_name ? user.first_name[0] : user.email[0].toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-medium">
+                                  {user.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Unnamed User'}
+                                </div>
+                                <div className="text-sm text-muted-foreground">{user.email}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col text-sm">
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3 mr-2" />
+                                {user.email}
+                              </div>
+                              {user.phone && (
+                                <div className="flex items-center mt-1">
+                                  <Phone className="h-3 w-3 mr-2" />
+                                  {user.phone}
+                                </div>
                               )}
                             </div>
-                            <div>
-                              <div className="font-medium">
-                                {user.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Unnamed User'}
-                              </div>
-                              <div className="text-sm text-muted-foreground">{user.email}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={roleInfo.color}>
+                              {roleInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDate(user.created_at)}</TableCell>
+                          <TableCell>{formatDate(user.last_sign_in_at)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteClick(user.user_id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col text-sm">
-                            <div className="flex items-center">
-                              <Mail className="h-3 w-3 mr-2" />
-                              {user.email}
-                            </div>
-                            {user.phone && (
-                              <div className="flex items-center mt-1">
-                                <Phone className="h-3 w-3 mr-2" />
-                                {user.phone}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            className={user.is_admin ? 'bg-purple-500' : 'bg-gray-500'}
-                          >
-                            {user.is_admin ? 'Admin' : 'User'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(user.created_at)}</TableCell>
-                        <TableCell>{formatDate(user.last_sign_in_at)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteClick(user.user_id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
