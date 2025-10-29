@@ -1,26 +1,11 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
-import Header from '../Header';
-import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '../ui/mobile-header';
-import { ShoppingBag } from 'lucide-react';
 import MobileNav from '../MobileNav';
 
 const CartSkeleton = () => {
-  const isMobile = isMobileUserAgent();
 
   return (
     <div className="min-h-screen bg-gray-50">
-        {isMobile && <MobileHeader 
-          title="Shopping Cart"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>0</span>
-            </div>
-          }
-        />
-      } 
       <div className="container mx-auto px-4 py-6">
         {/* Header Skeleton */}
         <div className="mb-6">

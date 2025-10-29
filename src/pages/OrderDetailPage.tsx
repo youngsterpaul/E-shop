@@ -11,10 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Download, ArrowLeft, Clock, Settings, Package, MapPin, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
-//import { downloadReceipt } from '@/utils/receiptGenerator';
 import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 // Updated interface to match the structure you're saving
 interface OrderItem {
@@ -274,36 +272,13 @@ const OrderDetailPage = () => {
   if (loading) {
     return (
       <>
-        {isMobile && (
-          <MobileHeader
-            title="Order Details"
-            backTo="/orders"
-            rightAction={
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4" />
-              </Button>
-            }
-          />
-        )}
         <OrderDetailLoadingSkeleton />
       </>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && (
-        <MobileHeader
-          title="Order Details"
-          backTo="/orders"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />
-      )}
-      
+    <div className={`min-h-screen bg-gray-50/50 ${!isMobile ? 'min-w-max' : ''}`}>   
       <main className={`flex-grow container py-8 px-4 ${!isMobile ? 'xl:px-24' : ''}`}>
         {/* Back Button for Desktop */}
         {!isMobile && (

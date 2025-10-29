@@ -26,8 +26,8 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const params = useParams();
   const isMobile = isMobileUserAgent();
+  
   const [searchQuery, setSearchQuery] = useState('');
-
   const [sortOption, setSortOption] = useState('featured');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(24);
@@ -41,10 +41,8 @@ const CategoryPage = () => {
   const [parentCategoryData, setParentCategoryData] = useState<Category | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<string[]>([]);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (!isMobile) setCurrentPage(1);
-  };
+  const { fetchProductsByCategoryId } = useProducts();
+  const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
 
   // Extract URL parameters
   const searchParams = new URLSearchParams(location.search);
@@ -60,8 +58,58 @@ const CategoryPage = () => {
   const fallbackCategoryName = sourceParts[sourceParts.length - 1];
   const fallbackParentName = sourceParts.length > 1 && sourceParts[0] !== 'allCategory' ? sourceParts[0] : undefined;
 
-  const { fetchProductsByCategoryId } = useProducts();
-  const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
+  // Sync URL parameters to state
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('search');
+    const s = params.get('sort');
+    const p = params.get('page');
+    const size = params.get('size');
+
+    if (q) setSearchQuery(q);
+    if (s) setSortOption(s);
+    if (p && !isMobile) setCurrentPage(parseInt(p));
+    if (size && !isMobile) setItemsPerPage(parseInt(size));
+  }, [location.search, isMobile]);
+
+  // Sync state to URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    
+    // Preserve existing params
+    if (categoryId) params.set('id', categoryId);
+    if (parentId) params.set('parent', parentId);
+    if (source) params.set('source', source);
+    
+    // Add/update search params
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    } else {
+      params.delete('search');
+    }
+    
+    if (sortOption !== 'featured') {
+      params.set('sort', sortOption);
+    } else {
+      params.delete('sort');
+    }
+    
+    if (!isMobile) {
+      if (currentPage > 1) {
+        params.set('page', currentPage.toString());
+      } else {
+        params.delete('page');
+      }
+      
+      if (itemsPerPage !== 24) {
+        params.set('size', itemsPerPage.toString());
+      } else {
+        params.delete('size');
+      }
+    }
+    
+    window.history.replaceState({}, '', `${location.pathname}?${params}`);
+  }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile, location.pathname, categoryId, parentId, source]);
 
   // Fetch category data
   useEffect(() => {
@@ -124,23 +172,26 @@ const CategoryPage = () => {
     return productsData?.products || [];
   }, [productsData]);
 
+  // Apply filters first
   const filteredProducts = useProductFiltering(allProducts, filters);
   
- const searchedProducts = useMemo(() => {
-   if (!searchQuery) return filteredProducts;
-   return filteredProducts.filter(p =>
-     p.name?.toLowerCase().includes(searchQuery.toLowerCase())
-   );
- }, [filteredProducts, searchQuery]);
+  // Apply search to filtered products
+  const searchedProducts = useMemo(() => {
+    if (!searchQuery) return filteredProducts;
+    return filteredProducts.filter(p =>
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [filteredProducts, searchQuery]);
 
-
- const sortedProducts = useMemo(() => {
-   if (!searchedProducts) return [];
+  // Sort the searched products
+  const sortedProducts = useMemo(() => {
+    if (!searchedProducts?.length) return [];
+    
     const productsWithRating = searchedProducts.map((p) => ({
-        ...p,
-        calculatedRating: p.rating || 4.5,
-        calculatedPrice: p.price,
-      }));
+      ...p,
+      calculatedRating: p.rating || 4.5,
+      calculatedPrice: p.price,
+    }));
 
     switch (sortOption) {
       case 'price-low-high':
@@ -162,29 +213,40 @@ const CategoryPage = () => {
       default:
         return productsWithRating;
     }
-  }, [filteredProducts, sortOption]);
+  }, [searchedProducts, sortOption]);
 
   const totalCount = productsData?.totalCount || sortedProducts.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  // UI Handlers
-  const handleSortChange = (val: string) => setSortOption(val);
-  const handlePageChange = (p: number) => setCurrentPage(p);
-  const handlePageSizeChange = (size: number) => {
+  // UI Handlers with useCallback
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    if (!isMobile) setCurrentPage(1);
+  }, [isMobile]);
+
+  const handleSortChange = useCallback((val: string) => setSortOption(val), []);
+  
+  const handlePageChange = useCallback((p: number) => setCurrentPage(p), []);
+  
+  const handlePageSizeChange = useCallback((size: number) => {
     setItemsPerPage(size);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleFiltersChange = (newFilters: FilterState) => setFilters(newFilters);
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+  }, []);
 
-  const activeFiltersCount =
+  const activeFiltersCount = useMemo(() =>
     Object.values(filters.specifications).flat().length +
     filters.ratings.length +
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0);
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0),
+    [filters]
+  );
 
-  const handleBack = () => navigate(-1);
+  const handleBack = useCallback(() => navigate(-1), [navigate]);
 
-  const handleBreadcrumbClick = (index: number) => {
+  const handleBreadcrumbClick = useCallback((index: number) => {
     if (index === 0) {
       navigate('/');
     } else if (index === 1 && parentCategoryData) {
@@ -192,12 +254,12 @@ const CategoryPage = () => {
       const url = `/category/${parentCategoryData.slug}?id=${parentCategoryData.id}&form=category&source=category|allCategory|${encodeURIComponent(parentCategoryData.category)}`;
       navigate(url);
     }
-  };
+  }, [navigate, parentCategoryData]);
 
   // Render
   return (
-    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-     {isMobile && (
+    <div className={`bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+      {isMobile && (
         <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
           <div className="flex w-full items-center gap-3">
             <Button
@@ -211,8 +273,8 @@ const CategoryPage = () => {
             <EnhancedSearchInput
               value={searchQuery}
               onChange={setSearchQuery}
-              onSearch={() => handleSearch(searchQuery)} // ensure search triggers on button or Enter
-              placeholder="Search for products..."
+              onSearch={handleSearch}
+              placeholder="Search in this category..."
               className="w-full"
             />
             <Button
@@ -253,21 +315,7 @@ const CategoryPage = () => {
               </div>
             ))}
           </nav>
-        )}   
-
-        {/* Category Title 
-        {!isMobile && (
-          <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {categoryData?.category || ''}
-            </h1>
-            {parentCategoryData && (
-              <p className="text-gray-600 mt-2">
-                in {parentCategoryData.category}
-              </p>
-            )}
-          </div>
-        )}  */}
+        )}
 
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {/* Desktop Filters */}
@@ -343,10 +391,21 @@ const CategoryPage = () => {
               </>
             ) : (
               <div className="text-center py-16 bg-white rounded-lg">
-                <p className="text-gray-600 text-lg">No products found in this category.</p>
+                <p className="text-gray-600 text-lg">
+                  {searchQuery ? `No products found for "${searchQuery}" in this category.` : 'No products found in this category.'}
+                </p>
+                {searchQuery && (
+                  <Button
+                    onClick={() => setSearchQuery('')}
+                    className="mt-4"
+                    variant="outline"
+                  >
+                    Clear Search
+                  </Button>
+                )}
                 <Button
                   onClick={() => navigate('/')}
-                  className="mt-4"
+                  className="mt-4 ml-2"
                   variant="outline"
                 >
                   Browse All Categories

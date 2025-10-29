@@ -50,45 +50,36 @@ const Header = () => {
   const [showBottomNav, setShowBottomNav] = useState(true);
 
   const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
-
-  // Path prefixes — hide on any route that starts with these
-  if (location.pathname.startsWith('/supersmartkenyaadmin123')) {
-    return null;
-  }
-
   const hideMainHeader =
     hideMainHeaderOnPaths.includes(location.pathname)
 
-  if (location.pathname === '/auth') return null;
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
 
-useEffect(() => {
-  let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
 
-  const handleScroll = () => {
-    const currentScrollY = window.scrollY;
+      if (currentScrollY === 0) {
+        // At top of page — show both
+        setShowTopHeader(true);
+        setShowBottomNav(true);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down
+        setShowTopHeader(true);
+        setShowBottomNav(false);
+      } else {
+        // Scrolling up
+        setShowTopHeader(false);
+        setShowBottomNav(false);
+      }
 
-    if (currentScrollY === 0) {
-      // At top of page — show both
-      setShowTopHeader(true);
-      setShowBottomNav(true);
-    } else if (currentScrollY > lastScrollY) {
-      // Scrolling down
-      setShowTopHeader(true);
-      setShowBottomNav(false);
-    } else {
-      // Scrolling up
-      setShowTopHeader(false);
-      setShowBottomNav(false);
-    }
+      lastScrollY = currentScrollY;
+    };
 
-    lastScrollY = currentScrollY;
-  };
+    window.addEventListener('scroll', handleScroll);
 
-  window.addEventListener('scroll', handleScroll);
-
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
-
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   try {
     const cartData = useCart();

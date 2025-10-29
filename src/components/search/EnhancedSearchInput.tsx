@@ -7,6 +7,7 @@ import SearchSuggestions from './SearchSuggestions';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useLocation } from 'react-router-dom';
 
 interface EnhancedSearchInputProps {
   value: string;
@@ -27,10 +28,18 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const location = useLocation(); // 👈 add this
 
   const { searchHistory, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { suggestions, isLoading } = useSearchSuggestions(value, searchHistory);
   const isMobile = isMobileUserAgent();
+
+  // Hide input when navigating to another route
+  useEffect(() => {
+    onChange('');
+    setIsFocused(false);
+    setSelectedIndex(-1);
+  }, [location.pathname]); 
 
   // Handle click outside to close suggestions
   useEffect(() => {

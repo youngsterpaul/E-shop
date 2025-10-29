@@ -12,12 +12,9 @@ import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
-import Header from '@/components/Header';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
-import Footer from '@/components/Footer';
 
 // ✅ Properly typed interfaces
 interface VariantValue {
@@ -314,30 +311,6 @@ const ProductDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {isMobile && (
-          <MobileHeader
-            title="Product Details"
-            backTo="/"
-            rightAction={
-              <div className="flex items-center gap-2">
-                <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
-                  <Search className="h-4 w-4" />
-                </Button>
-                <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
-                  <ShoppingCart size={16} />
-                  {totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
-                      {totalItems > 99 ? '99+' : totalItems}
-                    </span>
-                  )}
-                </Link>
-              </div>
-            }
-          />
-        )}
         {/* Skeleton UI */}
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-6 w-64 mb-6" />
@@ -420,31 +393,6 @@ const ProductDetailsPage: React.FC = () => {
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && (
-          <MobileHeader
-            title="Product Details"
-            backTo="/"
-            rightAction={
-              <div className="flex items-center gap-2">
-                <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
-                  <Search className="h-4 w-4" />
-                </Button>
-                <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
-                  <ShoppingCart size={16} />
-                  {totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
-                      {totalItems > 99 ? '99+' : totalItems}
-                    </span>
-                  )}
-                </Link>
-              </div>
-            }
-          />
-        )}
-
         <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 

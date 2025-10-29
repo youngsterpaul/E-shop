@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { MobileHeader } from '@/components/ui/mobile-header';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -326,19 +327,12 @@ return (
   <>
     {isMobile ? (
       // ✅ MOBILE LAYOUT
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="bg-white flex flex-col">
         {/* 🔝 Fixed Header */}
-        <div className="flex sticky top-0 right-0 left-0 items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100 bg-white z-40">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="p-2 rounded-full hover:bg-gray-100"
-            onClick={handleHomeNavigation}
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </Button>
-          <div className="w-8" /> {/* spacer to balance header */}
-        </div>
+       <MobileHeader
+          title=""
+          backTo="/"
+        />
 
         {/* Success message for password reset completion */}
         {passwordResetComplete && (
@@ -682,11 +676,6 @@ return (
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
-          © 2025 SmartKenya. All rights reserved.
-        </div>
       </div>
     ) : (
     <div className="min-h-screen py-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

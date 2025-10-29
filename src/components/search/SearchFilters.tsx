@@ -1,12 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Product } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -14,6 +12,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 interface SearchFiltersProps {
   products: Product[];
   onFiltersChange: (filters: FilterState) => void;
+  onApply?: () => void;
   className?: string;
 }
 
@@ -23,21 +22,54 @@ export interface FilterState {
   ratings: number[];
 }
 
-const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersProps) => {
+// Memoized filter option item
+const FilterOption = memo(({ 
+  id, 
+  label, 
+  checked, 
+  onToggle 
+}: { 
+  id: string; 
+  label: string; 
+  checked: boolean; 
+  onToggle: () => void;
+}) => (
+  <div className="flex items-center space-x-2">
+    <Checkbox
+      id={id}
+      checked={checked}
+      onCheckedChange={onToggle}
+    />
+    <label
+      htmlFor={id}
+      className="text-sm text-gray-700 cursor-pointer flex-1 leading-none"
+    >
+      {label}
+    </label>
+  </div>
+));
+
+FilterOption.displayName = 'FilterOption';
+
+const SearchFilters = ({ products, onFiltersChange, onApply, className }: SearchFiltersProps) => {
+  const isMobile = isMobileUserAgent();
+
+  // Local state for price (to allow user to type without triggering filters)
+  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>([0, 200000]);
+  
+  // Applied filters state
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 200000],
     specifications: {},
     ratings: [],
   });
 
-  const isMobile = isMobileUserAgent();
-
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
     rating: true,
   });
 
-  // Extract filter options from products
+  // Extract filter options with memoization
   const filterOptions = useMemo(() => {
     if (!products?.length) return { specs: {}, maxPrice: 200000 };
 
@@ -45,12 +77,10 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     let maxPrice = 0;
 
     products.forEach(product => {
-      // Extract price
       if (product.price && product.price > maxPrice) {
         maxPrice = product.price;
       }
 
-      // Extract specs from specification field only
       if (product.specification && typeof product.specification === 'object') {
         Object.entries(product.specification).forEach(([key, value]) => {
           if (value && typeof value === 'string') {
@@ -61,7 +91,6 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
       }
     });
 
-    // Convert sets to sorted arrays
     const sortedSpecs: Record<string, string[]> = {};
     Object.entries(specs).forEach(([key, valueSet]) => {
       sortedSpecs[key] = Array.from(valueSet).sort();
@@ -69,13 +98,14 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
 
     return {
       specs: sortedSpecs,
-      maxPrice: Math.ceil(maxPrice * 1.1), // Add 10% buffer
+      maxPrice: Math.ceil(maxPrice * 1.1),
     };
   }, [products]);
 
-  // Initialize price range based on products
+  // Initialize price range
   useEffect(() => {
     if (filterOptions.maxPrice > 0) {
+      setLocalPriceRange([0, filterOptions.maxPrice]);
       setFilters(prev => ({
         ...prev,
         priceRange: [0, filterOptions.maxPrice],
@@ -83,26 +113,45 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
     }
   }, [filterOptions.maxPrice]);
 
-  // Notify parent of filter changes
+  // Auto-apply filters for desktop only (except price)
   useEffect(() => {
-    onFiltersChange(filters);
-  }, [filters, onFiltersChange]);
+    if (!isMobile) {
+      onFiltersChange(filters);
+    }
+  }, [filters.specifications, filters.ratings, isMobile]);
 
-  const toggleSection = (section: string) => {
+  const toggleSection = useCallback((section: string) => {
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
-  const handlePriceChange = (newRange: number[]) => {
+  const handlePriceInputChange = useCallback((index: 0 | 1, value: string) => {
+    const numValue = Number(value) || 0;
+    setLocalPriceRange(prev => {
+      const newRange: [number, number] = [...prev];
+      newRange[index] = numValue;
+      return newRange;
+    });
+  }, []);
+
+  const applyPriceFilter = useCallback(() => {
     setFilters(prev => ({
       ...prev,
-      priceRange: [newRange[0], newRange[1]],
+      priceRange: localPriceRange,
     }));
-  };
+    
+    // For desktop, apply immediately
+    if (!isMobile) {
+      onFiltersChange({
+        ...filters,
+        priceRange: localPriceRange,
+      });
+    }
+  }, [localPriceRange, filters, isMobile, onFiltersChange]);
 
-  const toggleSpec = (specType: string, value: string) => {
+  const toggleSpec = useCallback((specType: string, value: string) => {
     setFilters(prev => ({
       ...prev,
       specifications: {
@@ -112,57 +161,49 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
           : [...(prev.specifications[specType] || []), value],
       },
     }));
-  };
+  }, []);
 
-  const toggleRating = (rating: number) => {
+  const toggleRating = useCallback((rating: number) => {
     setFilters(prev => ({
       ...prev,
       ratings: prev.ratings.includes(rating)
         ? prev.ratings.filter(r => r !== rating)
         : [...prev.ratings, rating],
     }));
-  };
+  }, []);
 
-  const clearAllFilters = () => {
-    setFilters({
-      priceRange: [0, filterOptions.maxPrice],
+  const resetFilters = useCallback(() => {
+    const resetState = {
+      priceRange: [0, filterOptions.maxPrice] as [number, number],
       specifications: {},
       ratings: [],
-    });
-  };
+    };
+    setLocalPriceRange(resetState.priceRange);
+    setFilters(resetState);
+    
+    if (isMobile) {
+      onFiltersChange(resetState);
+      onApply?.();
+    } else {
+      onFiltersChange(resetState);
+    }
+  }, [filterOptions.maxPrice, isMobile, onFiltersChange, onApply]);
 
-  const activeFiltersCount = 
+  const applyFilters = useCallback(() => {
+    onFiltersChange(filters);
+    onApply?.();
+  }, [filters, onFiltersChange, onApply]);
+
+  const activeFiltersCount = useMemo(() => 
     Object.values(filters.specifications).flat().length +
     filters.ratings.length + 
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < filterOptions.maxPrice ? 1 : 0);
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < filterOptions.maxPrice ? 1 : 0),
+    [filters, filterOptions.maxPrice]
+  );
 
   return (
-    <div className={`bg-white border border-gray-200 ${isMobile ? 'rounded-lg':''} ${className}`}>
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Filters</h3>
-            {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {activeFiltersCount}
-              </Badge>
-            )}
-          </div>
-          {activeFiltersCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearAllFilters}
-              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-            >
-              Clear all
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <ScrollArea className={`${isMobile ? 'h-[calc(100vh-180px)]' : 'h-[calc(100vh-280px)]'}`}>
+    <div className={`bg-white border border-gray-200 flex flex-col ${isMobile ? 'rounded-lg h-full' : ''} ${className}`}>
+      <ScrollArea className={`flex-1 ${isMobile ? 'max-h-[calc(100vh-150px)]' : 'h-[calc(100vh-280px)]'}`}>
         <div className="p-4 space-y-4 pr-4">
           {/* Price Range Filter */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
@@ -171,41 +212,42 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
               {openSections.price ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              <Slider
-                value={filters.priceRange}
-                onValueChange={handlePriceChange}
-                min={0}
-                max={filterOptions.maxPrice}
-                step={1000}
-                className="py-2"
-              />
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={filters.priceRange[0]}
-                  onChange={(e) => handlePriceChange([Number(e.target.value), filters.priceRange[1]])}
+                  value={localPriceRange[0]}
+                  onChange={(e) => handlePriceInputChange(0, e.target.value)}
                   className="h-8"
                   placeholder="Min"
                 />
                 <span className="text-gray-400">-</span>
                 <Input
                   type="number"
-                  value={filters.priceRange[1]}
-                  onChange={(e) => handlePriceChange([filters.priceRange[0], Number(e.target.value)])}
+                  value={localPriceRange[1]}
+                  onChange={(e) => handlePriceInputChange(1, e.target.value)}
                   className="h-8"
                   placeholder="Max"
                 />
               </div>
               <div className="text-xs text-gray-500">
-                KES {filters.priceRange[0].toLocaleString()} - KES {filters.priceRange[1].toLocaleString()}
+                KES {localPriceRange[0].toLocaleString()} - KES {localPriceRange[1].toLocaleString()}
               </div>
+              {!isMobile && (
+                <Button 
+                  onClick={applyPriceFilter} 
+                  className="w-full h-8 text-sm"
+                  size="sm"
+                >
+                  Apply
+                </Button>
+              )}
             </CollapsibleContent>
           </Collapsible>
 
           <Separator />
 
           {/* Specifications Filters */}
-          {Object.keys(filterOptions.specs).map((specType) => {
+          {Object.entries(filterOptions.specs).map(([specType, values]) => {
             const isSpecOpen = openSections[`spec_${specType}`] ?? true;
             return (
               <div key={specType}>
@@ -218,20 +260,14 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
                     {isSpecOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-3 space-y-2">
-                    {filterOptions.specs[specType].map((value) => (
-                      <div key={`${specType}-${value}`} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`spec-${specType}-${value}`}
-                          checked={filters.specifications[specType]?.includes(value) || false}
-                          onCheckedChange={() => toggleSpec(specType, value)}
-                        />
-                        <label
-                          htmlFor={`spec-${specType}-${value}`}
-                          className="text-sm text-gray-700 cursor-pointer flex-1 leading-none"
-                        >
-                          {value}
-                        </label>
-                      </div>
+                    {values.map((value) => (
+                      <FilterOption
+                        key={`${specType}-${value}`}
+                        id={`spec-${specType}-${value}`}
+                        label={value}
+                        checked={filters.specifications[specType]?.includes(value) || false}
+                        onToggle={() => toggleSpec(specType, value)}
+                      />
                     ))}
                   </CollapsibleContent>
                 </Collapsible>
@@ -248,26 +284,41 @@ const SearchFilters = ({ products, onFiltersChange, className }: SearchFiltersPr
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-2">
               {[4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`rating-${rating}`}
-                    checked={filters.ratings.includes(rating)}
-                    onCheckedChange={() => toggleRating(rating)}
-                  />
-                  <label
-                    htmlFor={`rating-${rating}`}
-                    className="text-sm text-gray-700 cursor-pointer flex-1"
-                  >
-                    {rating}★ & Up
-                  </label>
-                </div>
+                <FilterOption
+                  key={rating}
+                  id={`rating-${rating}`}
+                  label={`${rating}★ & Up`}
+                  checked={filters.ratings.includes(rating)}
+                  onToggle={() => toggleRating(rating)}
+                />
               ))}
             </CollapsibleContent>
           </Collapsible>
         </div>
       </ScrollArea>
+
+      {/* Mobile Bottom Actions */}
+      {isMobile && (
+        <div className="mt-auto border-t border-gray-200 p-3 bg-white sticky bottom-0">
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="flex-1 h-10"
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={applyFilters}
+              className="flex-1 h-10"
+            >
+              Apply {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default SearchFilters;
+export default memo(SearchFilters);

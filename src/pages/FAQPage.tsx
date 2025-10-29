@@ -1,6 +1,4 @@
 
-import React from 'react';
-import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import {
   Accordion,
@@ -11,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Settings } from 'lucide-react';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 const FAQPage = () => {
   const isMobile = isMobileUserAgent();
@@ -105,16 +102,6 @@ const FAQPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && ( 
-         <MobileHeader
-          title="FAQs"
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        /> 
-        )}
       <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">

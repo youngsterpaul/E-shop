@@ -6,8 +6,6 @@ import { useFeaturedProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from '@/components/products/ProductSkeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '../ui/mobile-header';
-import MobileNav from '../MobileNav';
 
 const EmptyCart = () => {
   const { data: products, isLoading } = useFeaturedProducts();
@@ -18,16 +16,6 @@ const EmptyCart = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
-        {isMobile && <MobileHeader 
-          title="Shopping Cart"
-          rightAction={
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <ShoppingBag className="h-4 w-4" />
-              <span>0</span>
-            </div>
-          }
-        />
-      } 
       <div className={`w-full ${!isMobile ? 'container xl:px-24 px-4 py-12' : 'px-0 pb-12'} mx-auto`}>
         {/* Empty Cart Section */}
         <div className="text-center mb-16 bg-white p-8">
@@ -45,7 +33,6 @@ const EmptyCart = () => {
             Your cart is empty
           </h1>
         </div>
-
         {/* Featured Products Section */}
       <div className={`mx-auto bg-white ${!isMobile ? 'p-8':''}`}>
           <h2 className={`text-2xl font-bold text-gray-900 mx-2 my-4 ${isMobile ? 'p-2 border-b':''}`}>You might also like</h2>
@@ -76,7 +63,6 @@ const EmptyCart = () => {
           )}
         </div>
       </div>
-      <MobileNav />
     </div>
   );
 };
