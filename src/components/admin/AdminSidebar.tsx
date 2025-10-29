@@ -65,7 +65,7 @@ const AdminSidebar = () => {
       name: 'Stores',
       icon: Store,
       path: '/supersmartkenyaadmin123/stores',
-      roles: ['superadmin'],
+      roles: ['admin'],
     },
     {
       name: 'Orders',
@@ -83,7 +83,7 @@ const AdminSidebar = () => {
       name: 'HeroSlides',
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
-      roles: ['superadmin'],
+      roles: ['admin'],
     },
     {
       name: 'Settings',

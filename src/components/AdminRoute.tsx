@@ -7,69 +7,58 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface AdminRouteProps {
   children: React.ReactNode;
-  requiredRole?: AppRole; // 'superadmin' for full access, 'admin' for product access only
+  requiredRole?: AppRole;
 }
 
 const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { roles, loading: rolesLoading, hasRole, isSuperAdmin, isAdmin } = useUserRole(user?.id);
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
   const loading = authLoading || rolesLoading;
 
   useEffect(() => {
     if (loading) return;
 
-    // Not authenticated
+    // If no user logged in
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to access admin area",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/auth', { replace: true });
       return;
     }
 
-    // Check if user has required role
+    // Role validation
     let hasAccess = false;
-    
     if (requiredRole === 'superadmin') {
       hasAccess = isSuperAdmin;
     } else if (requiredRole === 'admin') {
-      // Both admin and superadmin can access admin-level routes
       hasAccess = isAdmin || isSuperAdmin;
     } else {
       hasAccess = hasRole(requiredRole);
     }
 
     if (!hasAccess) {
-      const roleNames = {
-        'superadmin': 'Super Admin',
-        'admin': 'Admin',
-        'moderator': 'Moderator',
-        'user': 'User'
-      };
+      setError(`You lack ${requiredRole} privileges`);
 
-      setError(`This area requires ${roleNames[requiredRole]} privileges`);
       toast({
         title: "Access Denied",
-        description: `You need ${roleNames[requiredRole]} privileges to access this area`,
+        description: `You need ${requiredRole} privileges to access this area`,
         variant: "destructive",
       });
-      
-      // Redirect based on user role
-      if (isAdmin) {
-        // Admins get redirected to products page
-        navigate('/supersmartkenyaadmin123/products');
-      } else {
-        // Others go to home
-        navigate('/');
-      }
+
+      // Prevent repeated redirects
+      navigate(isAdmin ? '/supersmartkenyaadmin123' : '/', { replace: true });
     }
-  }, [user, loading, hasRole, isSuperAdmin, isAdmin, requiredRole, navigate, toast]);
+
+    // Only run once when user or role state changes from loading
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user?.id, requiredRole, isAdmin, isSuperAdmin]);
 
   if (loading) {
     return (
@@ -93,14 +82,8 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
           <div>
             <h2 className="text-lg font-semibold mb-2 text-red-600">Access Denied</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <button 
-              onClick={() => {
-                if (isAdmin) {
-                  navigate('/supersmartkenyaadmin123/products');
-                } else {
-                  navigate('/');
-                }
-              }}
+            <button
+              onClick={() => navigate(isAdmin ? '/supersmartkenyaadmin123/products' : '/', { replace: true })}
               className="text-orange-500 hover:text-orange-600 underline"
             >
               {isAdmin ? 'Go to Products' : 'Return to Home'}
@@ -111,19 +94,15 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
     );
   }
 
-  // Final access check
-  let hasAccess = false;
-  if (requiredRole === 'superadmin') {
-    hasAccess = isSuperAdmin;
-  } else if (requiredRole === 'admin') {
-    hasAccess = isAdmin || isSuperAdmin;
-  } else {
-    hasAccess = hasRole(requiredRole);
-  }
+  // Double check access for final render
+  const hasAccess =
+    requiredRole === 'superadmin'
+      ? isSuperAdmin
+      : requiredRole === 'admin'
+      ? isAdmin || isSuperAdmin
+      : hasRole(requiredRole);
 
-  if (!hasAccess) {
-    return null;
-  }
+  if (!hasAccess) return null;
 
   return <>{children}</>;
 };

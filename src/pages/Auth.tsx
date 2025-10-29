@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { MobileHeader } from '@/components/ui/mobile-header';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -326,7 +327,13 @@ return (
   <>
     {isMobile ? (
       // ✅ MOBILE LAYOUT
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="bg-white flex flex-col">
+        {/* 🔝 Fixed Header */}
+       <MobileHeader
+          title=""
+          backTo="/"
+        />
+
         {/* Success message for password reset completion */}
         {passwordResetComplete && (
           <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">
@@ -669,11 +676,6 @@ return (
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
-          © 2025 SmartKenya. All rights reserved.
-        </div>
       </div>
     ) : (
     <div className="min-h-screen py-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

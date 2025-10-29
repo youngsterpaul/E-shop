@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
-import Header from '@/components/Header';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneIcon, Mail, MapPin, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { MobileHeader } from '@/components/ui/mobile-header';
 import InteractiveMap from '@/components/InteractiveMap';
 
 const ContactPage = () => {
@@ -52,16 +50,6 @@ const ContactPage = () => {
 
   return (
     <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      {isMobile && ( 
-        <MobileHeader
-          title="Contact Us"
-          backTo='/'
-          rightAction={
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          }
-        />)}
         <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
           <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
           <p className="text-gray-600 mb-8">

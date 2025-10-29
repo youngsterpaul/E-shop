@@ -4,7 +4,6 @@ import ProductCard from '@/components/ProductCard';
 import { useProductSearch, useProducts } from '@/hooks/useProducts';
 import { useQuery } from '@tanstack/react-query';
 import EnhancedSearchInput from '@/components/search/EnhancedSearchInput';
-import Header from '@/components/Header';
 import SmartPagination from '@/components/ui/pagination';
 import { ChevronLeft, Search } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -13,7 +12,6 @@ import ProductSort from '@/components/products/ProductSort';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
-import Footer from '@/components/Footer';
 
 const SearchPage = () => {
   const location = useLocation();
@@ -29,22 +27,6 @@ const SearchPage = () => {
     specifications: {},
     ratings: [],
   });
-
-  // Grid layout configuration
-  const gridConfig = useMemo(() => {
-    if (isMobile) {
-      return {
-        cols: "grid-cols-2",
-        gap: "gap-2",
-        padding: "p-2"
-      };
-    }
-    return {
-      cols: "grid-cols-6",
-      gap: "gap-1",
-      padding: "p-8"
-    };
-  }, [isMobile]);
 
   const { searchProducts } = useProducts();
   const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
@@ -77,7 +59,8 @@ const SearchPage = () => {
 
   // ----- Sorting -----
   const sortedProducts = useMemo(() => {
-    if (!filteredProducts) return [];
+    if (!filteredProducts?.length) return [];
+    
     const productsWithRating = filteredProducts.map((p) => ({
       ...p,
       calculatedRating: p.rating || 4.5,
@@ -106,9 +89,11 @@ const SearchPage = () => {
     }
   }, [filteredProducts, sortOption]);
 
-  const totalCount = isMobile
-    ? mobileQuery.data?.totalCount || sortedProducts.length
-    : desktopQuery.data?.totalCount || sortedProducts.length;
+  const totalCount = useMemo(() => {
+    return isMobile
+      ? mobileQuery.data?.totalCount || sortedProducts.length
+      : desktopQuery.data?.totalCount || sortedProducts.length;
+  }, [isMobile, mobileQuery.data, desktopQuery.data, sortedProducts.length]);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
@@ -121,6 +106,7 @@ const SearchPage = () => {
 
   useEffect(() => {
     if (!isMobile) return;
+    
     const onScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop >=
@@ -129,7 +115,8 @@ const SearchPage = () => {
         handleLoadMore();
       }
     };
-    window.addEventListener('scroll', onScroll);
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [isMobile, handleLoadMore]);
 
@@ -159,30 +146,36 @@ const SearchPage = () => {
   }, [searchQuery, sortOption, currentPage, itemsPerPage, isMobile, location.pathname]);
 
   // ----- UI Handlers -----
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     if (!isMobile) setCurrentPage(1);
-  };
+  }, [isMobile]);
 
-  const handleSortChange = (val: string) => setSortOption(val);
-  const handlePageChange = (p: number) => setCurrentPage(p);
-  const handlePageSizeChange = (size: number) => {
+  const handleSortChange = useCallback((val: string) => setSortOption(val), []);
+  
+  const handlePageChange = useCallback((p: number) => setCurrentPage(p), []);
+  
+  const handlePageSizeChange = useCallback((size: number) => {
     setItemsPerPage(size);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleFiltersChange = (newFilters: FilterState) => setFilters(newFilters);
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+  }, []);
 
-  const activeFiltersCount =
+  const activeFiltersCount = useMemo(() => 
     Object.values(filters.specifications).flat().length +
     filters.ratings.length +
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0);
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < 200000 ? 1 : 0),
+    [filters]
+  );
 
-  const handleBack = () => navigate(-1);
+  const handleBack = useCallback(() => navigate(-1), [navigate]);
 
   // ----- Render -----
   return (
-    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {isMobile && (
         <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
           <div className="flex w-full items-center gap-3">
@@ -213,7 +206,7 @@ const SearchPage = () => {
         </div>
       )}
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0 py-8'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0'}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {!isMobile && allProducts.length > 0 && (
             <div className="w-72 flex-shrink-0">
@@ -270,19 +263,16 @@ const SearchPage = () => {
                 </div>
 
                 {isMobile && mobileQuery.isFetchingNextPage && (
-                  <div className={`grid ${gridConfig.cols} ${gridConfig.gap} mt-4 px-2`}>
+                  <div className="grid grid-cols-2 gap-2 mt-4 px-2">
                     {Array.from({ length: 2 }).map((_, i) => (
                       <div
                         key={i}
                         className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
                       >
-                        {/* Image skeleton */}
-                        <div className="h-40 bg-gray-200 shimmer" />
-
-                        {/* Text skeleton */}
+                        <div className="h-40 bg-gray-200 animate-pulse" />
                         <div className="p-2 space-y-2">
-                          <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
-                          <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
+                          <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
+                          <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
                         </div>
                       </div>
                     ))}

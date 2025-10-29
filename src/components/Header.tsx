@@ -53,8 +53,6 @@ const Header = () => {
   const hideMainHeader =
     hideMainHeaderOnPaths.includes(location.pathname)
 
-  if (location.pathname === '/auth') return null;
-
   useEffect(() => {
     let lastScrollY = window.scrollY;
 
