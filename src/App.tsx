@@ -15,17 +15,6 @@ import { useLocation } from "react-router-dom";
 import { ShoppingBag, Settings, LogOut } from "lucide-react";
 import { useCartContext } from "@/contexts/CartContext";
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -72,22 +61,6 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
-  const { user, profile, signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!user && location.pathname !== '/auth') {
-      navigate('/auth');
-    }
-  }, [user, navigate, location.pathname]);
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-
 const isMobile = isMobileUserAgent();
 const hideHeaderPaths = ["/auth"];
 const { cartItems } = useCartContext();
@@ -117,30 +90,6 @@ const getHeaderProps = () => {
       <Button variant="ghost" size="sm" className="p-2">
         <Settings className="h-4 w-4" />
       </Button>
-    );
-  } else if (location.pathname.startsWith("/account")) {
-    title = "Account";
-    rightAction = (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-2">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5" />
-              Sign Out
-            </Button>
-            </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     );
   } else if (location.pathname.startsWith("/orders")) {
     title = "My Orders";
