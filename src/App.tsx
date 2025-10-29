@@ -63,7 +63,6 @@ const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
 const isMobile = isMobileUserAgent();
 const hideHeaderPaths = ["/auth"];
-const { cartItems } = useCartContext();
 
 const showMobileHeader = isMobile && !hideHeaderPaths.includes(location.pathname);
 
@@ -76,15 +75,7 @@ const getHeaderProps = () => {
     </Button>
     );
 
-  if (location.pathname.startsWith("/cart")) {
-    title = "Shopping Cart";
-    rightAction = (
-      <div className="flex items-center gap-1 text-sm text-gray-500">
-        <ShoppingBag className="h-4 w-4" />
-        <span>{cartItems.length}</span>
-      </div>
-    );
-  } else if (location.pathname.startsWith("/about")) {
+  if (location.pathname.startsWith("/about")) {
     title = "Our Story";
     rightAction = (
       <Button variant="ghost" size="sm" className="p-2">
