@@ -23,6 +23,7 @@ const AuthPage = () => {
   const [searchParams] = useSearchParams();
 
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
+  const [successMessage, setSuccessMessage] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -217,55 +218,65 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    //console.log('Form submitted, mode:', authMode);
-    //console.log('Validation result:', validateForm());
-    
+
     if (!validateForm()) {
-      //console.log('Form validation failed:', errors);
       return;
     }
 
     setIsSubmitting(true);
     setAuthError('');
-    
+    setSuccessMessage(''); // clear any previous success message
+
     try {
       if (authMode === 'forgot') {
-        //console.log('Handling forgot password');
         await handleForgotPassword();
         return;
       } else if (authMode === 'reset') {
-        //console.log('Handling password reset');
         await handlePasswordReset();
         return;
       } else if (authMode === 'signup') {
-        //console.log('Handling signup');
         await signUp(email, password);
+
+        setSuccessMessage(
+          'Account created successfully! Please check your email inbox or spam folder to confirm your email before signing in.'
+        );
+
+        // Switch to sign-in form after a short delay
+        setTimeout(() => {
+          setSuccessMessage('');
+          setAuthMode('signin');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+        }, 4000);
+
+        return;
       } else {
-        //console.log('Handling signin');
         await signIn(email, password);
-        
+
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
         }
       }
     } catch (error: any) {
-      //console.error('Auth error:', error);
-      
       let errorMessage = error.message || 'Authentication failed';
-      
+
       if (errorMessage.includes('Email not confirmed')) {
-        errorMessage = 'Please verify your email address before signing in. Check your inbox for a verification link.';
+        errorMessage =
+          'Please verify your email address before signing in. Check your inbox for a verification link.';
       } else if (errorMessage.includes('Invalid login credentials')) {
-        errorMessage = 'The email or password you entered is incorrect. Please try again.';
+        errorMessage =
+          'The email or password you entered is incorrect. Please try again.';
       } else if (errorMessage.includes('User already registered')) {
-        errorMessage = 'An account with this email already exists. Please sign in instead.';
+        errorMessage =
+          'An account with this email already exists. Please sign in instead.';
       } else if (errorMessage.includes('Too many requests')) {
         errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
       } else if (errorMessage.includes('Password should be at least')) {
-        errorMessage = 'Password must be at least 8 characters long with uppercase, lowercase, and number.';
+        errorMessage =
+          'Password must be at least 8 characters long with uppercase, lowercase, and number.';
       }
-      
+
       setAuthError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -356,6 +367,12 @@ return (
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-4">
+          {successMessage && (
+            <div className="bg-green-100 text-green-700 p-2 rounded text-sm">
+              {successMessage}
+            </div>
+          )}
+
           {/* Error display */}
           {(authError || resetLinkError) && (
             <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4 shadow-sm">
