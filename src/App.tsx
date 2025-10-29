@@ -62,6 +62,7 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
 const isMobile = isMobileUserAgent();
+const isAdminRoute = location.pathname.startsWith('/supersmartkenyaadmin123');
 const hideHeaderPaths = ["/auth"];
 
 const showMobileHeader = isMobile && !hideHeaderPaths.includes(location.pathname);
@@ -115,7 +116,6 @@ const getHeaderProps = () => {
 
 const { title, rightAction } = getHeaderProps();
 
-
 function App() {
   return (
       <TooltipProvider>
@@ -124,7 +124,7 @@ function App() {
       {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="min-h-screen flex flex-col bg-background">
         {/* ✅ Header stays at top */}
-        {!isMobile && <Header />}
+        {!isMobile && !isAdminRoute && <Header />}
         {showMobileHeader && <MobileHeader title={title} rightAction={rightAction} />}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
