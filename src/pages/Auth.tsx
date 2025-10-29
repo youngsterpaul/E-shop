@@ -327,19 +327,6 @@ return (
     {isMobile ? (
       // ✅ MOBILE LAYOUT
       <div className="min-h-screen bg-white flex flex-col">
-        {/* 🔝 Fixed Header */}
-        <div className="flex sticky top-0 right-0 left-0 items-center justify-between px-4 py-3 shadow-sm border-b border-gray-100 bg-white z-40">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="p-2 rounded-full hover:bg-gray-100"
-            onClick={handleHomeNavigation}
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </Button>
-          <div className="w-8" /> {/* spacer to balance header */}
-        </div>
-
         {/* Success message for password reset completion */}
         {passwordResetComplete && (
           <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-sm">

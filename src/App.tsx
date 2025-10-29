@@ -1,6 +1,7 @@
+
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, ReactNode } from "react";
 //import { Toaster } from "@/components/ui/toaster";
 //import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,9 +13,19 @@ import { isMobileUserAgent } from './hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
 import { MobileHeader } from './components/ui/mobile-header';
 import { useLocation } from "react-router-dom";
-import { ShoppingBag, Settings, LogOut } from "lucide-react";
-import { useCartContext } from "@/contexts/CartContext";
+
 import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { LogOut, Settings } from 'lucide-react';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -61,62 +72,91 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 
-const isMobile = isMobileUserAgent();
-const isAdminRoute = location.pathname.startsWith('/supersmartkenyaadmin123');
-const hideHeaderPaths = ["/auth"];
-
-const showMobileHeader = isMobile && !hideHeaderPaths.includes(location.pathname);
-
-const getHeaderProps = () => {
-  // Default title and no right action
-  let title = "SmartKenya";
-  let rightAction = (
-    <Button variant="ghost" size="sm" className="p-2">
-      <Settings className="h-4 w-4" />
-    </Button>
-    );
-
-  if (location.pathname.startsWith("/about")) {
-    title = "Our Story";
-    rightAction = (
-      <Button variant="ghost" size="sm" className="p-2">
-        <Settings className="h-4 w-4" />
-      </Button>
-    );
-  } else if (location.pathname.startsWith("/orders")) {
-    title = "My Orders";
-  } else if (location.pathname.startsWith("/returns")) {
-    title = "Returns";
-  } else if (location.pathname.startsWith("/terms")) {
-    title = "Terms & Conditions";
-  } else if (location.pathname.startsWith("/wishlist")) {
-    title = "Wishlist";
-  } else if (location.pathname.startsWith("/reviews")) {
-    title = "Write Review";
-      } else if (location.pathname.startsWith("/privacy")) {
-    title = "Privacy";
-      } else if (location.pathname.startsWith("/category")) {
-    title = "Product Category";
-      } else if (location.pathname.startsWith("/checkout")) {
-    title = "Checkout";
-      } else if (location.pathname.startsWith("/chat")) {
-    title = "Customer Support";
-      } else if (location.pathname.startsWith("/cart")) {
-    title = "Shopping Cart";
-     } else if (location.pathname.startsWith("/careers")) {
-    title = "Careers"; 
-      } else if (location.pathname.startsWith("/orders")) {
-    title = "My Orders";
-  } else if (location.pathname.startsWith("/profile")) {
-    title = "My Profile";
-  }
-
-  return { title, rightAction };
-};
-
-const { title, rightAction } = getHeaderProps();
-
 function App() {
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isMobile = isMobileUserAgent();
+  const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
+  const hideHeaderPaths = ["/auth"];
+  const showMobileHeader = isMobile && !hideHeaderPaths.includes(location.pathname);
+
+  useEffect(() => {
+    if (!user && location.pathname !== "/auth") {
+      navigate("/auth");
+    }
+  }, [user, navigate, location.pathname]);
+
+  // ✅ define handleLogout inside App so it’s in scope
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  // ✅ move getHeaderProps inside App and remove type Location
+  const getHeaderProps = () => {
+    let title = "";
+    let backTo = "/";
+    let rightAction: ReactNode = null;
+
+    if (location.pathname.startsWith("/account")) {
+      title = "Account";
+      rightAction = (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="p-2">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-3 h-5 w-5" />
+                Sign Out
+              </Button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+      } else if (location.pathname.startsWith("/category")) {
+        title = "Product Category";
+      } else if (location.pathname.startsWith("/orders")) {
+        title = "My Orders";
+      } else if (location.pathname.startsWith("/returns")) {
+        title = "Returns";
+      } else if (location.pathname.startsWith("/terms")) {
+        title = "Terms & Conditions";
+      } else if (location.pathname.startsWith("/wishlist")) {
+        title = "Wishlist";
+      } else if (location.pathname.startsWith("/reviews")) {
+        title = "Write Review";
+      } else if (location.pathname.startsWith("/privacy")) {
+        title = "Privacy";
+      } else if (location.pathname.startsWith("/category")) {
+        title = "Product Category";
+      } else if (location.pathname.startsWith("/checkout")) {
+        title = "Checkout";
+      } else if (location.pathname.startsWith("/chat")) {
+        title = "Customer Support";
+      } else if (location.pathname.startsWith("/cart")) {
+        title = "Shopping Cart";
+      } else if (location.pathname.startsWith("/careers")) {
+        title = "Careers";
+      } else if (location.pathname.startsWith("/profile")) {
+        title = "My Profile";
+      }
+
+      return { title, backTo, rightAction };
+    }
+
+  const { title, backTo, rightAction } = getHeaderProps();
+
   return (
       <TooltipProvider>
       <TopProgressBar/>
@@ -125,7 +165,13 @@ function App() {
       <div className="min-h-screen flex flex-col bg-background">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && <Header />}
-        {showMobileHeader && <MobileHeader title={title} rightAction={rightAction} />}
+        {showMobileHeader && (
+          <MobileHeader
+            title={title}
+            backTo={backTo}
+            rightAction={rightAction}
+          />
+        )}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           {/* main content fills available space */}

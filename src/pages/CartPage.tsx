@@ -7,9 +7,8 @@ import SelectableCartItem from '@/components/cart/SelectableCartItem';
 import CartSummary from '@/components/cart/CartSummary';
 import EmptyCart from '@/components/cart/EmptyCart';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { ShoppingBag } from 'lucide-react';
 import CartSkeleton from '@/components/cart/CartSkeleton';
-import Footer from '@/components/Footer';
+import MobileNav from '@/components/MobileNav';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -97,9 +96,7 @@ const CartPage = () => {
           {/* Cart Summary */}
           <div className="lg:col-span-1">
             <CartSummary />
-          </div>
-
-          
+         </div>     
         </div>
       </div>
     </div>
