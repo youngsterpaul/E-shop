@@ -31,7 +31,7 @@ export const MobileHeader = ({
   if (location.pathname === '/') return null;
 
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between overflow-hidden">
+    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between overflow-hidden">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
@@ -41,7 +41,7 @@ export const MobileHeader = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold truncate overflow-hidden">
+        <h1 className="text-lg font-semibold truncate text-center overflow-hidden">
           {title}
         </h1>
       </div>
