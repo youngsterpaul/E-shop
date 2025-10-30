@@ -32,10 +32,10 @@ const RealtimeChat = () => {
           >
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-7 h-7 text-green-500" strokeWidth={2} />
+                <MessageCircle className="w-5 h-5 text-green-500" strokeWidth={2} />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-semibold text-gray-900 text-lg">WhatsApp Chat</div>
+                <div className="font-semibold text-gray-900 text-md">WhatsApp Chat</div>
                 <div className="text-sm text-gray-500">Fastest response time</div>
               </div>
               <div className="text-green-500">
@@ -53,10 +53,10 @@ const RealtimeChat = () => {
           >
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
-                <Phone className="w-7 h-7 text-blue-500" strokeWidth={2} />
+                <Phone className="w-5 h-5 text-blue-500" strokeWidth={2} />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-semibold text-gray-900 text-lg">Call Us</div>
+                <div className="font-semibold text-gray-900 text-md">Call Us</div>
                 <div className="text-sm text-gray-500">{phoneNumber}</div>
               </div>
               <div className="text-blue-500">
@@ -74,10 +74,10 @@ const RealtimeChat = () => {
           >
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center">
-                <Mail className="w-7 h-7 text-purple-500" strokeWidth={2} />
+                <Mail className="w-5 h-5 text-purple-500" strokeWidth={2} />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-semibold text-gray-900 text-lg">Email Us</div>
+                <div className="font-semibold text-gray-900 text-md">Email Us</div>
                 <div className="text-sm text-gray-500">support@smartkenya.co.ke</div>
               </div>
               <div className="text-purple-500">
