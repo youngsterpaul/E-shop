@@ -41,7 +41,7 @@ export const MobileHeader = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold truncate text-center overflow-hidden">
+        <h1 className="text-md .font-semibold truncate text-center overflow-hidden">
           {title}
         </h1>
       </div>
