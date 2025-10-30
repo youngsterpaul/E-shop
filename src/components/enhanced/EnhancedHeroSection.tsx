@@ -354,7 +354,7 @@ const EnhancedHeroSection = memo(() => {
   };
 
   if (loading) {
-    const heroHeight = isMobile ? 'h-[180px]' : 'h-[500px]';
+    const heroHeight = isMobile ? 'h-[100px]' : 'h-[500px]';
     return (
       <section className={`relative ${heroHeight} bg-gray-200 animate-pulse ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
         <CategorySidebar />
