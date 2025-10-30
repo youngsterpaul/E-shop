@@ -1,4 +1,4 @@
-import RealtimeChat from '@/component/Chat/RealtimeChat';
+import RealtimeChat from '@/components/chat/RealtimeChat';
 
 const ChatPage = () => {
   return (
