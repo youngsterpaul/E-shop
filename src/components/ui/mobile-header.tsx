@@ -31,7 +31,7 @@ export const MobileHeader = ({
   if (location.pathname === '/') return null;
 
   return (
-   <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between overflow-hidden">
+   <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 flex items-center justify-between overflow-hidden">
   <div className="flex items-center gap-3">
     <Button variant="ghost" size="sm" className="p-2 h-8 w-8" onClick={handleBack}>
       <ChevronLeft className="h-4 w-4" />
