@@ -171,7 +171,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
   const isMobile = isMobileUserAgent();
 
-  const MOBILE_HEADER_HEIGHT = 58;
+  const MOBILE_HEADER_HEIGHT = 54;
   const DESKTOP_OFFSET = 20;
   const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
 
@@ -323,7 +323,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
             ref={tabsRef}
             className={`bg-white transition-all duration-200 ease-in-out z-40 ${
               isSticky && isMobile 
-                ? 'fixed left-0 right-0 shadow-lg px-2 py-2 border-b border-gray-200' 
+                ? 'fixed left-0 right-0 shadow-lg px-2 py-0 border-b border-gray-200' 
                 : 'relative py-2'
             }`}
             style={isSticky ? { 
