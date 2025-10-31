@@ -96,11 +96,11 @@ const MobileBottomActions = ({
   return (
     <>
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 //md:hidden shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 //md:hidden shadow-lg">
         <div className="flex items-center gap-3">
           {/* Price display */}
           <div className="flex-1">
-            <div className="text-lg font-bold text-orange-500">
+            <div className="text-md font-bold text-orange-500">
               {formatPrice(calculatePrice())}
             </div>
             {product.originalPrice && (
@@ -122,7 +122,7 @@ const MobileBottomActions = ({
                   : 'hover:text-red-500 hover:border-red-500'
               }`}
             >
-              <Heart className={`h-5 w-5 ${isInWishlist(product.product_id) ? 'fill-current' : ''}`} />
+              <Heart className={`h-4 w-4 ${isInWishlist(product.product_id) ? 'fill-current' : ''}`} />
             </Button>
                        
             <Button 
@@ -131,16 +131,16 @@ const MobileBottomActions = ({
               onClick={handleShare} 
               className="p-2 hover:bg-gray-50"
             >
-              <Share2 className="h-5 w-5" />
+              <Share2 className="h-4 w-4" />
             </Button>
                        
             <Button
               onClick={() => setIsAddToCartModalOpen(true)}
               disabled={!product.inStock}
-              className="px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
+              className="px-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
               size="sm"
             >
-              <ShoppingCart className="mr-2 h-4 w-4" />
+              <ShoppingCart className="mr-2 h-3 w-3" />
               Add to Cart
             </Button>
           </div>
