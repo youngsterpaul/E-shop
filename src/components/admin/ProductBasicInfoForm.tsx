@@ -24,9 +24,9 @@ interface ProductBasicInfoFormProps {
 }
 
 interface Store {
-  id: string;
+  id: number;
   name: string;
-  phone: string;
+  phone: number | null;
 }
 
 const ProductBasicInfoForm: React.FC<ProductBasicInfoFormProps> = ({ form }) => {

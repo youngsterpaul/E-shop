@@ -19,7 +19,7 @@ import {
 interface Category {
   id: number;
   category: string;
-  slug: string; 
+  slug: string | null; 
   parent_id: number | null;
 }
 
