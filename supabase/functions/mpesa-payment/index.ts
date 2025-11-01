@@ -21,6 +21,121 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+interface RateLimitConfig {
+  maxAttempts: number;
+  windowMinutes: number;
+  blockDurationMinutes: number;
+}
+
+const RATE_LIMITS: Record<string, RateLimitConfig> = {
+  payment_init: {
+    maxAttempts: 3,
+    windowMinutes: 15,
+    blockDurationMinutes: 60
+  }
+};
+
+async function checkRateLimit(
+  identifier: string,
+  requestType: string
+): Promise<{ allowed: boolean; remainingTime?: number }> {
+  const config = RATE_LIMITS[requestType];
+  const now = new Date();
+  
+  const { data: existing, error } = await supabase
+    .from('mpesa_rate_limit')
+    .select('*')
+    .eq('identifier', identifier)
+    .eq('request_type', requestType)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Rate limit check error:', error);
+    return { allowed: true };
+  }
+  
+  if (existing?.blocked_until) {
+    const blockExpiry = new Date(existing.blocked_until);
+    if (now < blockExpiry) {
+      const remainingMinutes = Math.ceil(
+        (blockExpiry.getTime() - now.getTime()) / 60000
+      );
+      return { allowed: false, remainingTime: remainingMinutes };
+    }
+  }
+  
+  if (existing) {
+    const windowStart = new Date(existing.window_start);
+    const windowExpiry = new Date(
+      windowStart.getTime() + config.windowMinutes * 60000
+    );
+    
+    if (now < windowExpiry) {
+      if (existing.attempts >= config.maxAttempts) {
+        const blockUntil = new Date(
+          now.getTime() + config.blockDurationMinutes * 60000
+        );
+        
+        await supabase
+          .from('mpesa_rate_limit')
+          .update({
+            blocked_until: blockUntil.toISOString(),
+            last_attempt: now.toISOString()
+          })
+          .eq('id', existing.id);
+        
+        await supabase
+          .from('security_alerts')
+          .insert({
+            alert_type: 'mpesa_rate_limit_exceeded',
+            severity: 'warning',
+            identifier,
+            details: {
+              attempts: existing.attempts,
+              blocked_until: blockUntil.toISOString()
+            }
+          });
+        
+        return { allowed: false, remainingTime: config.blockDurationMinutes };
+      }
+      
+      await supabase
+        .from('mpesa_rate_limit')
+        .update({
+          attempts: existing.attempts + 1,
+          last_attempt: now.toISOString()
+        })
+        .eq('id', existing.id);
+      
+      return { allowed: true };
+    } else {
+      await supabase
+        .from('mpesa_rate_limit')
+        .update({
+          attempts: 1,
+          window_start: now.toISOString(),
+          last_attempt: now.toISOString(),
+          blocked_until: null
+        })
+        .eq('id', existing.id);
+      
+      return { allowed: true };
+    }
+  }
+  
+  await supabase
+    .from('mpesa_rate_limit')
+    .insert({
+      identifier,
+      request_type: requestType,
+      attempts: 1,
+      window_start: now.toISOString(),
+      last_attempt: now.toISOString()
+    });
+  
+  return { allowed: true };
+}
+
 function getMpesaBaseUrl(): string {
   return MPESA_ENVIRONMENT === 'production' 
     ? 'https://api.safaricom.co.ke' 
@@ -158,6 +273,35 @@ const handler = async (req: Request): Promise<Response> => {
     
     const { phone, amount, orderId }: PaymentRequest = JSON.parse(requestBody);
 
+    // Get identifier for rate limiting (IP address)
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() 
+              || req.headers.get('x-real-ip') 
+              || 'unknown';
+    const identifier = `ip_${ip}`;
+
+    // Check rate limit
+    const rateLimitResult = await checkRateLimit(identifier, 'payment_init');
+    
+    if (!rateLimitResult.allowed) {
+      console.log(`Rate limit exceeded for ${identifier}`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Too many payment attempts',
+          message: `Please try again in ${rateLimitResult.remainingTime} minutes`,
+          retryAfter: rateLimitResult.remainingTime
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateLimitResult.remainingTime! * 60)
+          }
+        }
+      );
+    }
+
     console.log('Parsed request:', { phone, amount, orderId });
 
     if (!phone || !amount || !orderId) {
@@ -189,14 +333,37 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Validate amount
-    if (amount < 1) {
+    if (amount < 1 || amount > 300000) {
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'Amount must be at least 1 KES' 
+          error: 'Invalid amount',
+          message: 'Amount must be between Ksh 1 and Ksh 300,000' 
         }),
         { 
           status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Check for duplicate pending payments
+    const { data: existingPayment } = await supabase
+      .from('mpesa_payments')
+      .select('id, status')
+      .eq('order_id', orderId)
+      .eq('status', 'pending')
+      .maybeSingle();
+    
+    if (existingPayment) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Duplicate payment',
+          message: 'A payment is already in progress for this order'
+        }),
+        { 
+          status: 409, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );

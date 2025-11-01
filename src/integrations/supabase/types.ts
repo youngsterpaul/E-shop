@@ -166,19 +166,19 @@ export type Database = {
           category: string
           id: number
           parent_id: number | null
-          slug: string
+          slug: string | null
         }
         Insert: {
           category: string
           id?: number
           parent_id?: number | null
-          slug?: string
+          slug?: string | null
         }
         Update: {
           category?: string
           id?: number
           parent_id?: number | null
-          slug?: string
+          slug?: string | null
         }
         Relationships: []
       }
@@ -290,6 +290,39 @@ export type Database = {
           status?: string | null
           transaction_date?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mpesa_rate_limit: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          identifier: string
+          last_attempt: string
+          request_type: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          last_attempt?: string
+          request_type?: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          last_attempt?: string
+          request_type?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -452,7 +485,6 @@ export type Database = {
           created_at: string | null
           email: string
           first_name: string | null
-          is_admin: boolean | null
           last_name: string | null
           last_sign_in_at: string | null
           phone: string | null
@@ -467,7 +499,6 @@ export type Database = {
           created_at?: string | null
           email: string
           first_name?: string | null
-          is_admin?: boolean | null
           last_name?: string | null
           last_sign_in_at?: string | null
           phone?: string | null
@@ -482,7 +513,6 @@ export type Database = {
           created_at?: string | null
           email?: string
           first_name?: string | null
-          is_admin?: boolean | null
           last_name?: string | null
           last_sign_in_at?: string | null
           phone?: string | null
@@ -524,30 +554,66 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          identifier: string
+          severity: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          identifier: string
+          severity: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          identifier?: string
+          severity?: string
+        }
+        Relationships: []
+      }
       store: {
         Row: {
           address: string | null
           created_at: string | null
           email: string | null
-          id: string
+          id: number
           name: string
-          phone: string
+          phone: number | null
         }
         Insert: {
           address?: string | null
           created_at?: string | null
           email?: string | null
-          id?: string
+          id?: number
           name: string
-          phone?: string | null
+          phone?: number | null
         }
         Update: {
           address?: string | null
           created_at?: string | null
           email?: string | null
-          id?: string
+          id?: number
           name?: string
-          phone?: string | null
+          phone?: number | null
         }
         Relationships: []
       }
