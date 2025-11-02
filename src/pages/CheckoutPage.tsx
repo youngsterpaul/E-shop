@@ -736,7 +736,7 @@ const CheckoutPage = () => {
             !isMobile ? 'xl:px-24' : 'pb-32 px-2'
           }`}
         >
-          <div className="mb-6">
+          {!isMobile && (<div className="mb-6">
             <Button 
               variant="ghost" 
               onClick={handleBack}
@@ -749,7 +749,7 @@ const CheckoutPage = () => {
             <p className="text-gray-600 mt-1">
               Complete your order in {3 - currentStep + 1} more step{3 - currentStep + 1 !== 1 ? 's' : ''}
             </p>
-          </div>
+          </div>)}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -806,7 +806,7 @@ const CheckoutPage = () => {
               <div
                 className={`border-t bg-gray-50 ${
                   isMobile
-                    ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg'
+                    ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2'
                     : 'p-6'
                 }`}
               >
