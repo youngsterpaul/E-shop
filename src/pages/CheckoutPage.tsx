@@ -413,9 +413,9 @@ const CheckoutPage = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-2">Customer Information</h3>
-        <p className="text-gray-600">
+        {!isMobile && <p className="text-gray-600">
           Please provide your contact details for order updates and delivery.
-        </p>
+        </p>)}
       </div>
 
       <Card>
@@ -440,7 +440,7 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          <div>
+          {!isMobile && (<div>
             <Label htmlFor="email" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
               Email Address
@@ -456,6 +456,7 @@ const CheckoutPage = () => {
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
           </div>
+          )}
 
           <div>
             <Label htmlFor="phone" className="flex items-center gap-2">
@@ -482,9 +483,9 @@ const CheckoutPage = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
-        <p className="text-gray-600">
+        {!isMobile && (<p className="text-gray-600">
           Please provide your delivery address and preferred delivery method.
-        </p>
+        </p>)}
       </div>
 
       <Card>
@@ -563,9 +564,9 @@ const CheckoutPage = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
-        <p className="text-gray-600">
+        {!isMobile && (<p className="text-gray-600">
           Please review your order details before proceeding to payment.
-        </p>
+        </p>)}
       </div>
 
       {/* Customer Details Summary */}
@@ -757,11 +758,14 @@ const CheckoutPage = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               {/* Progress Section */}
+              {!isMobile && (
               <div className="p-6 border-b">
                 <div className="mb-4">
                   <Progress value={progressValue} className="w-full" />
                 </div>
+                 )}
                 
+                {!isMobile && (
                 <div className="flex justify-between">
                   {steps.map((step) => (
                     <div
@@ -793,6 +797,7 @@ const CheckoutPage = () => {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Step Content */}
               <div className="p-6">
@@ -803,10 +808,10 @@ const CheckoutPage = () => {
 
               {/* Navigation */}
               <div
-                className={`p-6 border-t bg-gray-50 ${
+                className={`border-t bg-gray-50 ${
                   isMobile
                     ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg'
-                    : ''
+                    : 'p-6'
                 }`}
               >
                 <div className="flex justify-between max-w-md mx-auto">
