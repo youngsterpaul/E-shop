@@ -732,11 +732,10 @@ const CheckoutPage = () => {
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <div
-          className={`container mx-auto px-4 py-6 ${
-            !isMobile ? 'xl:px-24' : 'pb-32'
+          className={`container mx-auto py-6 ${
+            !isMobile ? 'xl:px-24' : 'pb-32 px-2'
           }`}
         >
-        {!isMobile && (
           <div className="mb-6">
             <Button 
               variant="ghost" 
@@ -751,7 +750,6 @@ const CheckoutPage = () => {
               Complete your order in {3 - currentStep + 1} more step{3 - currentStep + 1 !== 1 ? 's' : ''}
             </p>
           </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -763,9 +761,7 @@ const CheckoutPage = () => {
                 <div className="mb-4">
                   <Progress value={progressValue} className="w-full" />
                 </div>
-                 )}
                 
-                {!isMobile && (
                 <div className="flex justify-between">
                   {steps.map((step) => (
                     <div
