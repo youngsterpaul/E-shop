@@ -411,12 +411,12 @@ const CheckoutPage = () => {
   // Step content renderers
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div>
+      {!isMobile &&(<div>
         <h3 className="text-xl font-semibold mb-2">Customer Information</h3>
-        {!isMobile && <p className="text-gray-600">
+        <p className="text-gray-600">
           Please provide your contact details for order updates and delivery.
-        </p>)}
-      </div>
+        </p>
+      </div>)}
 
       <Card>
         <CardHeader>
@@ -481,12 +481,12 @@ const CheckoutPage = () => {
 
   const renderStep2 = () => (
     <div className="space-y-6">
-      <div>
+      {!isMobile && (<div>
         <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
-        {!isMobile && (<p className="text-gray-600">
+        <p className="text-gray-600">
           Please provide your delivery address and preferred delivery method.
-        </p>)}
-      </div>
+        </p>
+      </div>)}
 
       <Card>
         <CardHeader>
@@ -562,12 +562,12 @@ const CheckoutPage = () => {
 
   const renderStep3 = () => (
     <div className="space-y-6">
-      <div>
+      {!isMobile && (<div>
         <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
-        {!isMobile && (<p className="text-gray-600">
+        (<p className="text-gray-600">
           Please review your order details before proceeding to payment.
-        </p>)}
-      </div>
+        </p>
+      </div>)}
 
       {/* Customer Details Summary */}
       <Card>
@@ -590,7 +590,7 @@ const CheckoutPage = () => {
           <p><span className="font-medium">Address:</span> {deliveryData.address}</p>
           <p><span className="font-medium">City:</span> {cityOptions[deliveryData.county]?.find(c => c.value === deliveryData.city)?.label}</p>
           <p><span className="font-medium">County:</span> {countyOptions.find(c => c.value === deliveryData.county)?.label}</p>
-          <p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>
+          {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
         </CardContent>
       </Card>
     </div>
