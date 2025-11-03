@@ -75,6 +75,13 @@ export default defineConfig(({ mode }) => {
     build: {
       // ✅ Target modern browsers (and Safari 11+)
       target: ["es2015", "safari11"],
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
 
       // ✅ Control chunk naming for cache-safety
       rollupOptions: {
@@ -115,6 +122,7 @@ export default defineConfig(({ mode }) => {
 
     esbuild: {
       target: "es2015",
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
 
     // ✅ Recommended cache control for local dev only
