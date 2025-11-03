@@ -161,6 +161,150 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      counties: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          id: string
+          county_id: string
+          name: string
+          slug: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          county_id: string
+          name: string
+          slug: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          county_id?: string
+          name?: string
+          slug?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      delivery_addresses: {
+        Row: {
+          id: string
+          user_id: string
+          address_name: string | null
+          full_name: string
+          phone: string
+          street_address: string
+          city: string
+          county: string
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          address_name?: string | null
+          full_name: string
+          phone: string
+          street_address: string
+          city: string
+          county: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          address_name?: string | null
+          full_name?: string
+          phone?: string
+          street_address?: string
+          city?: string
+          county?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       categories: {
         Row: {
           category: string
@@ -189,64 +333,31 @@ export type Database = {
       }
       store: {
         Row: {
-          id: string
+          id: number
           name: string
-          phone: string
+          phone: number | null
           created_at: string | null
           updated_at: string | null
           address: string | null
           email: string | null
         }
         Insert: {
-          id?: string
+          id?: number
           name: string
-          phone: string
+          phone: number | null
           created_at?: string | null
           updated_at?: string | null
           address?: string | null
           email?: string | null
         }
         Update: {
-          id?: string
+          id?: number
           name?: string
-          phone?: string
+          phone?: number | null
           created_at?: string | null
           updated_at?: string | null
           address?: string | null
           email?: string | null
-        }
-        Relationships: []
-      }
-      hero_slides: {
-        Row: {
-          id: string
-          title: string
-          image_url: string
-          link: string | null
-          display_order: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          image_url: string
-          link?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          image_url?: string
-          link?: string | null
-          display_order?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }

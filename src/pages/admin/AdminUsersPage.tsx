@@ -49,6 +49,10 @@ const AdminUsersPage = () => {
     "Moderator",
     "User",
   ];
+
+  const isValidRole = (role: string): role is AppRole => {
+    return ['superadmin', 'admin', 'moderator', 'user'].includes(role);
+  };
   
   // Fetch users with their roles
   const fetchUsers = async () => {
@@ -71,12 +75,16 @@ const AdminUsersPage = () => {
     const roleMap = new Map<string, AppRole>();
     const roleHierarchy: AppRole[] = ['superadmin', 'admin', 'moderator', 'user'];
     
-    userRoles?.forEach(ur => {
+  userRoles?.forEach(ur => {
+    // Add type assertion here
+    const role = ur.role as AppRole;
+    if (isValidRole(role)) {
       const currentRole = roleMap.get(ur.user_id);
-      if (!currentRole || roleHierarchy.indexOf(ur.role) < roleHierarchy.indexOf(currentRole)) {
-        roleMap.set(ur.user_id, ur.role);
+      if (!currentRole || roleHierarchy.indexOf(role) < roleHierarchy.indexOf(currentRole)) {
+        roleMap.set(ur.user_id, role);
       }
-    });
+    }
+  });
 
     // Combine profiles with roles
     const usersWithRoles: User[] = profiles.map(profile => ({

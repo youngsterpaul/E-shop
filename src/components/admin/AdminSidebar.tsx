@@ -16,7 +16,8 @@ import {
   Tags,
   Bell,
   Store,
-  Image
+  Image,
+  MapPin
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -84,6 +85,12 @@ const AdminSidebar = () => {
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
       roles: ['admin'],
+    },
+    {
+      name: 'Location',
+      icon: MapPin,
+      path: '/supersmartkenyaadmin123/locations',
+      roles: ['superadmin'],
     },
     {
       name: 'Settings',
