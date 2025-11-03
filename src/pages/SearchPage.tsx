@@ -177,7 +177,7 @@ const SearchPage = () => {
   return (
     <div className={`bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
       {isMobile && (
-        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
+        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 w-full">
           <div className="flex w-full items-center gap-3">
             <Button
               variant="ghost"
@@ -198,7 +198,7 @@ const SearchPage = () => {
               type="button"
               variant="ghost"
               onClick={() => handleSearch(searchQuery)}
-              className="h-8 px-3"
+              className="h-8 px-2"
             >
               <Search className="text-gray-800 h-4 w-4" />
             </Button>

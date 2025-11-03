@@ -1,9 +1,9 @@
 import React from 'react';
-import { MessageCircle, Phone, Mail } from 'lucide-react';
+import { MessageCircle, Phone, Mail, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const RealtimeChat = () => {
-  const phoneNumber = "+254758475467";
+  const phoneNumber = "+254798229783";
   const email = "support@smartkenya.co.ke";
   
   const handleWhatsAppClick = () => {
@@ -20,70 +20,88 @@ const RealtimeChat = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gray-50">
-      <div className="w-full max-w-md space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-            <MessageCircle className="w-8 h-8 text-blue-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Get in Touch</h2>
-          <p className="text-gray-600">
-            We're here to help! Choose your preferred way to contact us.
-          </p>
-        </div>
+    <div className="bg-gradient-to-b from-blue-50 to-white">
+      <div className="max-w-lg mx-auto px-2 py-4">
 
-        {/* Contact Options */}
-        <div className="space-y-4">
-          {/* WhatsApp */}
-          <Button
+        {/* Contact Cards */}
+        <div className="space-y-3 mb-3">
+          {/* WhatsApp Card */}
+          <button
             onClick={handleWhatsAppClick}
-            className="w-full bg-green-500 hover:bg-green-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-98 transition-transform duration-150 hover:shadow-md"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-green-500" />
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-green-500" strokeWidth={2} />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-md">Chat us on WhatsApp</div>
+              <div className="flex-1 text-left">
+                <div className="font-semibold text-gray-900 text-md">WhatsApp Chat</div>
+                <div className="text-sm text-gray-500">Fastest response time</div>
+              </div>
+              <div className="text-green-500">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
-          </Button>
+          </button>
 
-          {/* Phone Call */}
-          <Button
+          {/* Phone Card */}
+          <button
             onClick={handleCallClick}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-98 transition-transform duration-150 hover:shadow-md"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <Phone className="w-6 h-6 text-blue-500" />
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <Phone className="w-4 h-4 text-blue-500" strokeWidth={2} />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-md">Call Us</div>
+              <div className="flex-1 text-left">
+                <div className="font-semibold text-gray-900 text-md">Call Us</div>
+                <div className="text-sm text-gray-500">{phoneNumber}</div>
+              </div>
+              <div className="text-blue-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
-          </Button>
+          </button>
 
-          {/* Email */}
-          <Button
+          {/* Email Card */}
+          <button
             onClick={handleEmailClick}
-            className="w-full bg-purple-500 hover:bg-purple-600 text-white p-2 h-auto rounded-lg shadow-md transition-all duration-200 hover:shadow-lg"
+            className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 active:scale-98 transition-transform duration-150 hover:shadow-md"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <Mail className="w-6 h-6 text-purple-500" />
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <Mail className="w-4 h-4 text-purple-500" strokeWidth={2} />
               </div>
-              <div className="text-left">
-                <div className="font-semibold text-md">Email Us</div>
+              <div className="flex-1 text-left">
+                <div className="font-semibold text-gray-900 text-md">Email Us</div>
+                <div className="text-sm text-gray-500">support@smartkenya.co.ke</div>
+              </div>
+              <div className="text-purple-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
-          </Button>
+          </button>
         </div>
 
-        {/* Additional Info */}
-        <div className="text-center text-sm text-gray-500 mt-6">
-          <p>Our support team is available 24/7 to assist you</p>
+        {/* Info Banner */}
+        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Clock className="w-4 h-4 text-blue-600" strokeWidth={2} />
+            </div>
+            <div>
+              <div className="font-medium text-gray-900 text-sm mb-1">24/7 Support Available</div>
+              <div className="text-sm text-gray-600">
+                Our team is ready to help you anytime, day or night
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
