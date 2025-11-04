@@ -113,7 +113,7 @@ const AccountPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`container mx-auto px-4 py-6 ${isMobile ? 'pb-14' : 'xl:px-24'}`}>
+      <div className={`container mx-auto px-2 py-2 ${isMobile ? 'pb-8' : 'xl:px-24'}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Account</h1>
@@ -122,30 +122,30 @@ const AccountPage = () => {
         )}
 
         {/* User Info Card */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
+        <Card className="mb-2">
+          <CardContent className="p-2">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center">
                 {profile?.avatar_url ? (
                   <img 
                     src={profile?.avatar_url} 
                     alt={profile?.first_name || ''} 
-                    className="h-10 w-10 object-cover rounded-full"
+                    className="h-12 w-12 object-cover rounded-full"
                   />
                 ) : (
-                  <User className="h-6 w-6 text-orange-600" />
+                  <User className="h-6 w-6" />
                 )}
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-sm font-semibold">
                   {profile?.first_name && profile?.last_name 
                     ? `${profile.first_name} ${profile.last_name}`
                     : 'Welcome!'
                   }
                 </h2>
-                <p className="text-gray-600">{user.email}</p>
+                <p className="text-gray-600 text-xs">{user.email}</p>
                 {profile?.phone && (
-                  <p className="text-sm text-gray-500">{profile.phone}</p>
+                  <p className="text-xs text-gray-500">{profile.phone}</p>
                 )}
               </div>
             </div>
@@ -153,18 +153,18 @@ const AccountPage = () => {
         </Card>
 
         {/* Account Menu */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
           {accountMenuItems.map((item) => (
             <Link key={item.href} to={item.href}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                       <item.icon className="h-5 w-5 text-gray-600" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium">{item.title}</h3>
-                      <p className="text-sm text-gray-500">{item.description}</p>
+                      <h3 className="font-medium text-sm">{item.title}</h3>
+                      <p className="text-xs text-gray-500">{item.description}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -176,14 +176,14 @@ const AccountPage = () => {
         {/* Admin Panel Link */}
         {(isAdmin || isSuperAdmin) && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
-            <CardContent className="p-4">
+            <CardContent className="p-2">
               <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Settings className="h-5 w-5 text-orange-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-orange-800">Admin Dashboard</h3>
-                  <p className="text-sm text-orange-600">Manage products, orders, and users</p>
+                  <h3 className="font-medium text-sm text-orange-800">Admin Dashboard</h3>
+                  <p className="text-xs text-orange-600">Manage products, orders, and users</p>
                 </div>
               </Link>
             </CardContent>

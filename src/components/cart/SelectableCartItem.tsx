@@ -168,7 +168,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ${
+    <div className={`bg-white border /border-gray-200 shadow-sm transition-all duration-200 ${
       isSelected ? 'ring-2 ring-red/20 bg-red/5 border-red/30' : ''
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
       
@@ -278,7 +278,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           <img
             src={item.product.image}
             alt={item.product.name}
-            className="w-full h-full object-cover rounded-md bg-gray-100"
+            className="w-full h-full object-cover rounded-md /bg-gray-100"
             loading="lazy"
           />
         </div>

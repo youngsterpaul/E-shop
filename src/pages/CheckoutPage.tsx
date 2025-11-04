@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useDeliveryAddresses } from '@/hooks/useDeliveryAddresses';
+import { useLocations } from '@/hooks/useLocations';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import {
   Download,
   ShoppingBag
 } from 'lucide-react';
+import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -72,6 +74,8 @@ const CheckoutPage = () => {
     phone: ''
   });
 
+  const { getCountyOptions, getCityOptions, isLoading: locationsLoading } = useLocations();
+
   const [deliveryData, setDeliveryData] = useState({
     address: '',
     city: '',
@@ -81,6 +85,8 @@ const CheckoutPage = () => {
 
   type ErrorsType = {
     userName?: string;
+    firstName?: string;
+    lastName?: string;
     email?: string;
     phone?: string;
     address?: string;
@@ -147,7 +153,7 @@ const handleSaveNewAddress = async () => {
   try {
     await addAddress({
       address_name: 'Custom Address',
-      full_name: customerData.userName,
+      full_name: `${customerData.firstName} ${customerData.lastName}`.trim(),
       phone: customerData.phone,
       street_address: deliveryData.address,
       city: deliveryData.city,
@@ -167,25 +173,7 @@ const handleSaveNewAddress = async () => {
     }
   }, [calculations.selectedItemsCount, navigate]);
 
-  // County and city mapping
-  const countyOptions = [
-    { value: 'nyeri', label: 'Nyeri' },
-    { value: 'muranga', label: "Murang'a" }
-  ];
 
-  const cityOptions: Record<string, { value: string; label: string }[]> = {
-    nyeri: [
-      { value: 'karu', label: 'KARU' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'nyeri', label: 'Nyeri' },
-    ],
-    muranga: [
-      { value: 'mut', label: 'MUT' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'ktcm', label: 'KTCM' },
-      { value: 'muranga', label: "Murang'a" }
-    ]
-  };
 
   const steps = [
     { id: 1, title: 'Customer Details', description: 'Personal information' },
@@ -196,9 +184,13 @@ const handleSaveNewAddress = async () => {
   const validateStep1 = () => {
     const newErrors: ErrorsType = {};
     
-    if (!customerData.userName.trim()) {
-      newErrors.userName = 'Full Name is required';
+   if (!customerData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
     }
+    if (!customerData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+
     
     if (!customerData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
@@ -294,7 +286,7 @@ const handleSaveNewAddress = async () => {
   // Get available cities based on selected county
   const getAvailableCities = () => {
     if (!deliveryData.county) return [];
-    return cityOptions[deliveryData.county] || [];
+    return getCityOptions(deliveryData.county);
   };
 
   // Payment handling
@@ -320,6 +312,9 @@ const handleSaveNewAddress = async () => {
       const deliveryCost = deliveryData.deliveryMethod === 'express' ? 1200 : 0;
       const finalTotal = calculations.total + deliveryCost;
 
+      const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
+      const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
+
       // Create order in database
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -331,8 +326,8 @@ const handleSaveNewAddress = async () => {
           status: 'pending',
           amount: finalTotal,
           items: orderItems,
-          shipping_address: `${deliveryData.county}, ${deliveryData.city}, ${deliveryData.address}`,
-          username: customerData.userName,
+          shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+          username: `${customerData.firstName} ${customerData.lastName}`.trim(),
           discount_amount: calculations.discount,
           delivery_fee: calculations.shipping,
           tracking_number: newOrderId.slice(-5).toUpperCase(),
@@ -528,19 +523,36 @@ const renderStep1 = () => (
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="userName">Full Name</Label>
-            <Input
-              id="userName"
-              value={customerData.userName}
-              onChange={(e) => handleCustomerChange('userName', e.target.value)}
-              placeholder="Enter your full name"
-              className={errors.userName ? 'border-red-500' : ''}
-            />
-            {errors.userName && (
-              <p className="text-red-500 text-sm mt-1">{errors.userName}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={customerData.firstName}
+                onChange={(e) => handleCustomerChange('firstName', e.target.value)}
+                placeholder="Enter your first name"
+                className={errors.firstName ? 'border-red-500' : ''}
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={customerData.lastName}
+                onChange={(e) => handleCustomerChange('lastName', e.target.value)}
+                placeholder="Enter your last name"
+                className={errors.lastName ? 'border-red-500' : ''}
+              />
+              {errors.lastName && (
+                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+              )}
+            </div>
           </div>
+
 
           <div>
             <Label htmlFor="phone" className="flex items-center gap-2">
@@ -576,7 +588,7 @@ const renderStep1 = () => (
                   <SelectValue placeholder="Select county" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countyOptions.map((county) => (
+                  {getCountyOptions().map((county) => (
                     <SelectItem key={county.value} value={county.value}>
                       {county.label}
                     </SelectItem>
@@ -647,7 +659,7 @@ const renderStep1 = () => (
             <CardTitle className="text-base">Customer Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p><span className="font-medium">Name:</span> {customerData.userName}</p>
+            <p><span className="font-medium">Name:</span> {customerData.firstName} {customerData.lastName}</p>
             <p><span className="font-medium">Email:</span> {customerData.email}</p>
             <p><span className="font-medium">Phone:</span> {customerData.phone}</p>
           </CardContent>
@@ -660,8 +672,8 @@ const renderStep1 = () => (
           </CardHeader>
           <CardContent className="space-y-2">
             <p><span className="font-medium">Address:</span> {deliveryData.address}</p>
-            <p><span className="font-medium">City:</span> {cityOptions[deliveryData.county]?.find(c => c.value === deliveryData.city)?.label}</p>
-            <p><span className="font-medium">County:</span> {countyOptions.find(c => c.value === deliveryData.county)?.label}</p>
+            <p><span className="font-medium">City:</span> {getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label}</p>
+            <p><span className="font-medium">County:</span> {getCountyOptions().find(c => c.value === deliveryData.county)?.label}</p>
             {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
           </CardContent>
         </Card>
@@ -891,7 +903,11 @@ const renderStep1 = () => (
 
   const progressValue = (currentStep / 2) * 100;
 
-  return (
+return (
+  <div>
+    {locationsLoading || addressesLoading ? (
+      <CheckoutSkeleton />
+    ) : (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <div
           className={`container mx-auto py-6 ${
@@ -994,6 +1010,8 @@ const renderStep1 = () => (
 
       {/* Payment Modal */}
       {renderPaymentModal()}
+    </div>
+    )}
     </div>
   );
 };

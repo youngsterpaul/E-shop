@@ -310,19 +310,34 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
 
   if (isMobile) {
     return (
-      <div className="grid grid-cols-4 gap-3 mx-2 my-4">
+      <div className="grid grid-cols-4 gap-y-2 px-2 my-2 rounded-lg">
         {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center justify-center p-3 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group border border-gray-100"
+              className="flex flex-col items-center justify-center p-1 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
             >
-              <div className={`${category.color} p-2.5 rounded-full mb-2 group-hover:scale-105 transition-transform duration-200`}>
-                <IconComponent size={20} className={category.iconColor} />
+            <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                {category.productImage ? (
+                  <>
+                    <OptimizedImage
+                      src={category.productImage}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      aspectRatio="square"
+                      priority={false}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </>
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
+                    <IconComponent size={32} className="text-white" />
+                  </div>
+                )}
               </div>
-              <span className="text-xs text-gray-700 text-center font-medium leading-tight">
+              <span className="text-sm text-gray-700 text-center ,font-medium leading-tight">
                 {category.name}
               </span>
             </div>

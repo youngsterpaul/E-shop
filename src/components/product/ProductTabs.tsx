@@ -171,7 +171,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
   const isMobile = isMobileUserAgent();
 
-  const MOBILE_HEADER_HEIGHT = 54;
+  const MOBILE_HEADER_HEIGHT = 52;
   const DESKTOP_OFFSET = 20;
   const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
 
@@ -335,7 +335,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
             aria-label="Product information tabs"
           >
             <div className="max-w mx-auto">
-              <div className="grid grid-cols-3 gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg">
+              <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 .rounded-lg">
                 {[
                   { key: 'specifications', label: 'Specifications', count: Object.keys(specifications).length },
                   { key: 'features', label: 'Features', count: features.length },
@@ -345,7 +345,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                     key={tab.key}
                     onClick={() => scrollToSection(tab.key)}
                     onKeyDown={(e) => handleKeyDown(e, tab.key)}
-                    className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium rounded-md transition-all duration-200 ${
+                    className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium .rounded-md transition-all duration-200 ${
                       activeTab === tab.key
                         ? 'bg-white text-blue-600 shadow-sm scale-105'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'

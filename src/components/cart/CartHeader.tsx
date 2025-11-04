@@ -13,8 +13,8 @@ const CartHeader = ({ totalItems, selectedCount, onSelectAll, allSelected }: Car
   const isMobile = isMobileUserAgent();
   
   return (
-    <div className={`flex items-center justify-between p-4 border-b border-gray-200 ${isMobile ? 'bg-gray-50':'bg-white pb-4'}`}>
-      <div className="flex items-center gap-3">
+    <div className={`flex items-center justify-between p-4 border-b border-gray-200 ${isMobile ? '.bg-gray-50':'bg-white pb-4'}`}>
+      <div className="flex items-center gap-2">
         <Checkbox
           checked={allSelected}
           ref={(ref) => {

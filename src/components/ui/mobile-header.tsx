@@ -31,8 +31,8 @@ export const MobileHeader = ({
   if (location.pathname === '/') return null;
 
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between overflow-hidden">
-      <div className="flex items-center gap-3">
+    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 flex items-center justify-between overflow-hidden">
+      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="sm"
@@ -41,7 +41,7 @@ export const MobileHeader = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-semibold truncate overflow-hidden">{title}</h1>
+        <h1 className="text-sm font-semibold truncate overflow-hidden">{title}</h1>
       </div>
       {rightAction && (
         <div className="flex-shrink-0">

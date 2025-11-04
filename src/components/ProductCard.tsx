@@ -64,10 +64,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const displayReviewCount = totalReviews > 0 ? totalReviews : product.reviews;
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full mx-auto ${isMobile ? 'rounded-lg max-w-[800px]':'max-w-[180px] hover:rounded-lg'}`}>
+    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full mx-auto ${isMobile ? 'max-w-[800px]':'max-w-[180px] hover:rounded-lg'}`}>
       <CardContent className={`h-full flex flex-col ${isMobile ? 'p-0' : 'p-2'}`}>
         <Link to={`/product/${productSlug}/${product.id}`} className="block">
-          <div className="relative overflow-hidden bg-white aspect-square /rounded-sm">
+          <div className="relative overflow-hidden bg-white aspect-square rounded-sm">
             <OptimizedImage
               src={product.image}
               alt={product.name}
@@ -117,9 +117,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </Link>
 
         {/* Product Info - Kilimall style compact layout */}
-        <div className="p-2 flex flex-col flex-grow space-y-1">
+        <div className="p-1 flex flex-col flex-grow space-y-1">
           <Link to={`/product/${productSlug}/${product.id}`}>
-            <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
+            <h3 className="font-medium. text-sm text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
               {product.name}
             </h3>
           </Link>
@@ -151,14 +151,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="mt-auto pt-1">
             <div className="flex flex-col space-y-0.5">
               <div className="flex items-center gap-1">
-                <span className="text-base font-bold text-orange-600 leading-tight">
+                <span className="text-sm font-bold text-orange-600 leading-tight">
                   {formatPrice(product.price)}
                 </span>
-                {product.originalPrice && (
+                {/* {product.originalPrice && (
                   <span className="text-xs text-gray-500 line-through">
                     {formatPrice(product.originalPrice)}
                   </span>
-                )}
+                )}   */}
               </div>
             </div>
           </div>

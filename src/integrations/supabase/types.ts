@@ -308,16 +308,19 @@ export type Database = {
       categories: {
         Row: {
           category: string
+          slug: string | null
           id: number
           parent_id: number | null
         }
         Insert: {
           category: string
+          slug?: string | null
           id?: number
           parent_id?: number | null
         }
         Update: {
           category?: string
+          slug?: string | null
           id?: number
           parent_id?: number | null
         }

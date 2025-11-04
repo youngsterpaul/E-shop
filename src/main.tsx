@@ -22,6 +22,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from "@vercel/analytics/next"
 import App from './App.tsx';
 import './index.css';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 const AppWithAnalytics = () => {
   useErrorReporting();
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')!).render(
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
               <CartProvider>
                 <SelectiveCartProvider>

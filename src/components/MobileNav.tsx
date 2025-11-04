@@ -10,7 +10,7 @@ const MobileNav = () => {
   const isMobile = isMobileUserAgent();
 
   // List of paths where you want to show mobile navs content
-  const showMobileNavOnPaths = ['/', '/category', '/chat', '/account'];
+  const showMobileNavOnPaths = ['/', '/category', '/chat', '/account', '/cart'];
 
   // Check if current path matches any in the show list
   const showMobileNav = showMobileNavOnPaths.includes(location.pathname);
@@ -54,18 +54,18 @@ const MobileNav = () => {
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center px-[3] relative ${
+              className={`flex flex-col items-center px-[2] relative ${
                 location.pathname === path
                   ? 'text-gray-900'
                   : 'text-gray-500 hover:text-gray-900'
               }`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
                 {(count ?? 0) > 0 && (
                   <Badge 
                     variant="destructive" 
-                    className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 text-xs"
+                    className="absolute -top-2 -right-2 h-3 w-3 flex items-center justify-center p-0 text-xs"
                   >
                     {count}
                   </Badge>
