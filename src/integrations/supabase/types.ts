@@ -161,24 +161,206 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      counties: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          id: string
+          county_id: string
+          name: string
+          slug: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          county_id: string
+          name: string
+          slug: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          county_id?: string
+          name?: string
+          slug?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cities_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      delivery_addresses: {
+        Row: {
+          id: string
+          user_id: string
+          address_name: string | null
+          full_name: string
+          phone: string
+          street_address: string
+          city: string
+          county: string
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          address_name?: string | null
+          full_name: string
+          phone: string
+          street_address: string
+          city: string
+          county: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          address_name?: string | null
+          full_name?: string
+          phone?: string
+          street_address?: string
+          city?: string
+          county?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       categories: {
         Row: {
           category: string
+          slug: string | null
           id: number
           parent_id: number | null
-          slug: string
         }
         Insert: {
           category: string
+          slug?: string | null
           id?: number
           parent_id?: number | null
-          slug?: string
         }
         Update: {
           category?: string
+          slug?: string | null
           id?: number
           parent_id?: number | null
-          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store: {
+        Row: {
+          id: number
+          name: string
+          phone: number | null
+          created_at: string | null
+          updated_at: string | null
+          address: string | null
+          email: string | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          phone: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          address?: string | null
+          email?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          phone?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+          address?: string | null
+          email?: string | null
         }
         Relationships: []
       }
@@ -291,7 +473,15 @@ export type Database = {
           transaction_date?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mpesa_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -452,7 +642,6 @@ export type Database = {
           created_at: string | null
           email: string
           first_name: string | null
-          is_admin: boolean | null
           last_name: string | null
           last_sign_in_at: string | null
           phone: string | null
@@ -467,7 +656,6 @@ export type Database = {
           created_at?: string | null
           email: string
           first_name?: string | null
-          is_admin?: boolean | null
           last_name?: string | null
           last_sign_in_at?: string | null
           phone?: string | null
@@ -482,7 +670,6 @@ export type Database = {
           created_at?: string | null
           email?: string
           first_name?: string | null
-          is_admin?: boolean | null
           last_name?: string | null
           last_sign_in_at?: string | null
           phone?: string | null
@@ -522,58 +709,22 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
-      }
-      store: {
-        Row: {
-          address: string | null
-          created_at: string | null
-          email: string | null
-          id: string
-          name: string
-          phone: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          name: string
-          phone?: string | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          name?: string
-          phone?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_reviews_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+        ]
       }
       wishlists: {
         Row: {

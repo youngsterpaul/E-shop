@@ -367,10 +367,10 @@ const EnhancedHeroSection = memo(() => {
   }
 
   const currentSlideData = heroSlides[currentSlide] ?? heroSlides[0];
-  const heroHeight = isMobile ? 'h-[100px]' : 'h-[500px]';
+  const heroHeight = isMobile ? 'h-[120px]' : 'h-[500px]';
 
   return (
-    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
+    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden'}`}>
       <CategorySidebar />
       <div 
         className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''}`}

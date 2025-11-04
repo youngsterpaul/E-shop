@@ -12,12 +12,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useQuery } from '@tanstack/react-query';
 
 interface StoreData {
-  id: string;
+  id: number;
   name: string;
-  phone: string;
-  address?: string;
-  email?: string;
-  created_at?: string;
+  phone: number | null;
+  address: string | null;
+  email: string | null;
+  created_at: string | null;
 }
 
 const AdminStoresPage = () => {
@@ -38,7 +38,7 @@ const AdminStoresPage = () => {
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -68,7 +68,7 @@ const AdminStoresPage = () => {
         .from('store')
         .insert({
           name: formData.name,
-          phone: formData.phone,
+          phone: parseInt(formData.phone) || null,
           address: formData.address || null,
           email: formData.email || null
         });
@@ -97,7 +97,7 @@ const AdminStoresPage = () => {
     setEditingId(store.id);
     setFormData({
       name: store.name,
-      phone: store.phone,
+      phone: store.phone?.toString() || '',
       address: store.address || '',
       email: store.email || ''
     });
@@ -121,7 +121,7 @@ const AdminStoresPage = () => {
         .from('store')
         .update({
           name: formData.name,
-          phone: formData.phone,
+          phone: parseInt(formData.phone) || null,
           address: formData.address || null,
           email: formData.email || null
         })
@@ -148,7 +148,7 @@ const AdminStoresPage = () => {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) {
       return;
     }

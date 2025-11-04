@@ -24,7 +24,7 @@ const Footer = ({ className }: FooterProps) => {
     prefixHidePaths.some(prefix => location.pathname.startsWith(prefix));
     
   if (location.pathname === '/auth') return null;
-  if (location.pathname.startsWith('/supersmartkenyaadmin123')) {
+  if (location.pathname.startsWith('/supersmartkenyaadmin123') || location.pathname.startsWith('/checkout')) {
     return null;
   }
 

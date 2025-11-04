@@ -258,10 +258,10 @@ const CategoryPage = () => {
 
   // Render
   return (
-    <div className={`bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`${!isMobile ? 'min-w-max' : ''}`}>
       {isMobile && (
-        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 w-full">
-          <div className="flex w-full items-center gap-3">
+        <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 w-full">
+          <div className="flex w-full items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -289,7 +289,7 @@ const CategoryPage = () => {
         </div>
       )}
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0 py-8'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0'}`}>
         {/* Breadcrumbs */}
         {!isMobile && breadcrumbs.length > 0 && (
           <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6 bg-white p-4 rounded-lg shadow-sm">
@@ -338,7 +338,7 @@ const CategoryPage = () => {
             ) : sortedProducts.length > 0 ? (
               <>
                 {/* Products Header */}
-                <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'mt-14 mb-4 px-2 py-2 bg-white'}`}>
+                <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2 bg-white'}`}>
                   <p className={`text-gray-600 text-lg ${!isMobile ? '' : 'hidden'}`}>
                     <span className="font-semibold text-gray-900">{sortedProducts.length}</span> product
                     {sortedProducts.length !== 1 && 's'} found

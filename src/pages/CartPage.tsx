@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback, useMemo } from 'react';
 import { useCartContext } from '@/contexts/CartContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
@@ -9,6 +8,11 @@ import EmptyCart from '@/components/cart/EmptyCart';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 import MobileNav from '@/components/MobileNav';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -21,6 +25,9 @@ const CartPage = () => {
   } = useSelectiveCart();
   
   const isMobile = isMobileUserAgent();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Refetch cart data when component mounts to ensure fresh data
   useEffect(() => {
@@ -32,6 +39,22 @@ const CartPage = () => {
   const handleSelectAll = useCallback((selectAll: boolean) => {
     toggleSelectAll();
   }, [toggleSelectAll]);
+
+  const handleCheckout = async () => {
+    try {
+      setIsNavigating(true);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      if (user) {
+        navigate('/checkout');
+      } else {
+        navigate('/auth');
+      }
+    } catch (err) {
+      console.error('Checkout navigation error:', err);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
 
   // Memoized cart summary data
   const cartSummaryData = useMemo(() => ({
@@ -53,8 +76,8 @@ const CartPage = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`container mx-auto px-4 py-6 ${!isMobile ? 'xl:px-24' : ''}`}>
+    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`container mx-auto py-6 ${!isMobile ? 'xl:px-24' : ''} ${isMobile ? 'pb-32 px-2' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -74,7 +97,7 @@ const CartPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-white shadow-sm overflow-hidden">
               <CartHeader
                 totalItems={cartItems.length}
                 selectedCount={selectedItems.length}
@@ -82,7 +105,7 @@ const CartPage = () => {
                 allSelected={isAllSelected}
               />
               
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y /divide-gray-200">
                 {cartItems.map((item) => (
                   <SelectableCartItem
                     key={item.id}
@@ -93,12 +116,56 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Cart Summary */}
-          <div className="lg:col-span-1">
-            <CartSummary />
-         </div>     
+          {/* Cart Summary - Desktop Only */}
+          {!isMobile && (
+            <div className="lg:col-span-1">
+              <CartSummary />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Mobile Fixed Bottom Bar */}
+      {isMobile && calculations.selectedItemsCount > 0 && (
+        <div className="fixed bottom-8 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+          <div className="container mx-auto px-4 py-2">
+            {/* Totals Row */}
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <p className="text-md text-red-500">
+                  <span className='text-gray-900'>Total: </span>
+                  KES {calculations.total.toLocaleString()}
+                </p>
+              </div>
+              <Button
+                onClick={handleCheckout}
+                disabled={isNavigating}
+                className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold px-2 h-8"
+              >
+                {isNavigating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Checkout
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {/* Free Delivery Indicator */}
+            {calculations.subtotal < 10000 && (
+              <p className="text-xs text-center text-gray-500">
+                Add KES {(10000 - calculations.subtotal).toLocaleString()} more for free delivery
+              </p>
+            )}
+          </div>
+          
+        </div>
+      )}
     </div>
   );
 };

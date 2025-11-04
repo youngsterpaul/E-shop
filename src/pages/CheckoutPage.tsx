@@ -7,6 +7,8 @@ import { useCartContext } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useDeliveryAddresses } from '@/hooks/useDeliveryAddresses';
+import { useLocations } from '@/hooks/useLocations';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -33,6 +35,7 @@ import {
   Download,
   ShoppingBag
 } from 'lucide-react';
+import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -41,6 +44,10 @@ const CheckoutPage = () => {
   const { calculations, getSelectedItems } = useSelectiveCart();
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
+
+  const { addresses, loading: addressesLoading, getDefaultAddress, addAddress } = useDeliveryAddresses();
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
 
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -67,6 +74,8 @@ const CheckoutPage = () => {
     phone: ''
   });
 
+  const { getCountyOptions, getCityOptions, isLoading: locationsLoading } = useLocations();
+
   const [deliveryData, setDeliveryData] = useState({
     address: '',
     city: '',
@@ -76,6 +85,8 @@ const CheckoutPage = () => {
 
   type ErrorsType = {
     userName?: string;
+    firstName?: string;
+    lastName?: string;
     email?: string;
     phone?: string;
     address?: string;
@@ -99,14 +110,61 @@ const CheckoutPage = () => {
       phone: profile?.phone || ''
     });
 
-    // Add this to initialize delivery data from profile
+    // Load default address if available
+    const defaultAddress = getDefaultAddress();
+    if (defaultAddress && !selectedAddressId) {
+      setDeliveryData({
+        address: defaultAddress.street_address,
+        city: defaultAddress.city,
+        county: defaultAddress.county,
+        deliveryMethod: 'standard'
+      });
+      setSelectedAddressId(defaultAddress.id);
+    } else if (profile && !defaultAddress) {
+      // Fallback to profile data if no saved addresses
+      setDeliveryData({
+        address: profile?.address || '',
+        city: profile?.city || '',
+        county: profile?.county || '',
+        deliveryMethod: 'standard'
+      });
+    }
+  }, [profile, user, addresses]);
+
+  const handleAddressSelect = (addressId: string) => {
+  const address = addresses.find(addr => addr.id === addressId);
+  if (address) {
+    setSelectedAddressId(addressId);
     setDeliveryData({
-      address: profile?.address || '',
-      city: profile?.city || '',
-      county: profile?.county || '',
+      address: address.street_address,
+      city: address.city,
+      county: address.county,
       deliveryMethod: 'standard'
     });
-  }, [profile, user]);
+    setCustomerData(prev => ({
+      ...prev,
+      userName: address.full_name,
+      phone: address.phone
+    }));
+  }
+};
+
+const handleSaveNewAddress = async () => {
+  try {
+    await addAddress({
+      address_name: 'Custom Address',
+      full_name: `${customerData.firstName} ${customerData.lastName}`.trim(),
+      phone: customerData.phone,
+      street_address: deliveryData.address,
+      city: deliveryData.city,
+      county: deliveryData.county,
+      is_default: addresses.length === 0 // Set as default if it's the first address
+    });
+    setShowAddressForm(false);
+  } catch (error) {
+    console.error('Error saving address:', error);
+  }
+};
 
   // Check if user has items to checkout
   useEffect(() => {
@@ -115,45 +173,24 @@ const CheckoutPage = () => {
     }
   }, [calculations.selectedItemsCount, navigate]);
 
-  // County and city mapping
-  const countyOptions = [
-    { value: 'nyeri', label: 'Nyeri' },
-    { value: 'muranga', label: "Murang'a" }
-  ];
 
-  const cityOptions: Record<string, { value: string; label: string }[]> = {
-    nyeri: [
-      { value: 'karu', label: 'KARU' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'nyeri', label: 'Nyeri' },
-    ],
-    muranga: [
-      { value: 'mut', label: 'MUT' },
-      { value: 'kmtc', label: 'KMTC' },
-      { value: 'ktcm', label: 'KTCM' },
-      { value: 'muranga', label: "Murang'a" }
-    ]
-  };
 
   const steps = [
     { id: 1, title: 'Customer Details', description: 'Personal information' },
-    { id: 2, title: 'Delivery', description: 'Address & method' },
-    { id: 3, title: 'Review', description: 'Order summary' }
+    { id: 2, title: 'Review', description: 'Order summary' }
   ];
 
   // Validation functions
   const validateStep1 = () => {
     const newErrors: ErrorsType = {};
     
-    if (!customerData.userName.trim()) {
-      newErrors.userName = 'Full Name is required';
+   if (!customerData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
     }
-    
-    if (!customerData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    if (!customerData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
     }
+
     
     if (!customerData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
@@ -194,15 +231,15 @@ const CheckoutPage = () => {
         phone: customerData.phone
       });
       setCurrentStep(2);
-    } else if (currentStep === 2 && validateStep2()) {
+    } else if (currentStep === 1 && validateStep2()) {
       // Save all delivery data to profile before moving to step 3
       updateProfileDeliveryInfo({
         address: deliveryData.address,
         city: deliveryData.city,
         county: deliveryData.county
       });
-      setCurrentStep(3);
-    } else if (currentStep === 3) {
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
       setShowPaymentModal(true);
     }
   };
@@ -249,7 +286,7 @@ const CheckoutPage = () => {
   // Get available cities based on selected county
   const getAvailableCities = () => {
     if (!deliveryData.county) return [];
-    return cityOptions[deliveryData.county] || [];
+    return getCityOptions(deliveryData.county);
   };
 
   // Payment handling
@@ -275,6 +312,9 @@ const CheckoutPage = () => {
       const deliveryCost = deliveryData.deliveryMethod === 'express' ? 1200 : 0;
       const finalTotal = calculations.total + deliveryCost;
 
+      const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
+      const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
+
       // Create order in database
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -286,8 +326,8 @@ const CheckoutPage = () => {
           status: 'pending',
           amount: finalTotal,
           items: orderItems,
-          shipping_address: `${deliveryData.county}, ${deliveryData.city}, ${deliveryData.address}`,
-          username: customerData.userName,
+          shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+          username: `${customerData.firstName} ${customerData.lastName}`.trim(),
           discount_amount: calculations.discount,
           delivery_fee: calculations.shipping,
           tracking_number: newOrderId.slice(-5).toUpperCase(),
@@ -409,14 +449,71 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
 
   // Step content renderers
-  const renderStep1 = () => (
+const renderStep1 = () => (
+  <>
+  {addresses.length > 0 && (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Saved Addresses
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAddressForm(!showAddressForm)}
+          >
+            {showAddressForm ? 'Cancel' : 'Add New'}
+          </Button>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {addresses.map((address) => (
+          <div
+            key={address.id}
+            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              selectedAddressId === address.id
+                ? 'border-orange-500 bg-orange-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={() => handleAddressSelect(address.id)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium">{address.full_name}</p>
+                  {address.is_default && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                      Default
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">{address.phone}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {address.street_address}, {address.city}, {address.county}
+                </p>
+              </div>
+              {selectedAddressId === address.id && (
+                <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+              )}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+    )}
+
+    {(showAddressForm || addresses.length === 0) && (
     <div className="space-y-6">
-      {!isMobile &&(<div>
-        <h3 className="text-xl font-semibold mb-2">Customer Information</h3>
-        <p className="text-gray-600">
-          Please provide your contact details for order updates and delivery.
-        </p>
-      </div>)}
+      {!isMobile && (
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
+          <p className="text-gray-600">
+            Please provide your contact details and delivery address for order updates and delivery.
+          </p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -426,41 +523,39 @@ const CheckoutPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="userName">Full Name</Label>
-            <Input
-              id="userName"
-              value={customerData.userName}
-              onChange={(e) => handleCustomerChange('userName', e.target.value)}
-              placeholder="Enter your full name"
-              className={errors.userName ? 'border-red-500' : ''}
-            />
-            {errors.userName && (
-              <p className="text-red-500 text-sm mt-1">{errors.userName}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={customerData.firstName}
+                onChange={(e) => handleCustomerChange('firstName', e.target.value)}
+                placeholder="Enter your first name"
+                className={errors.firstName ? 'border-red-500' : ''}
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={customerData.lastName}
+                onChange={(e) => handleCustomerChange('lastName', e.target.value)}
+                placeholder="Enter your last name"
+                className={errors.lastName ? 'border-red-500' : ''}
+              />
+              {errors.lastName && (
+                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+              )}
+            </div>
           </div>
 
-          {!isMobile && (<div>
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={customerData.email}
-              readOnly
-              className={errors.email ? 'border-red-500' : ''}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-          )}
 
           <div>
             <Label htmlFor="phone" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
               Phone Number (M-Pesa)
             </Label>
             <Input
@@ -476,17 +571,6 @@ const CheckoutPage = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="space-y-6">
-      {!isMobile && (<div>
-        <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
-        <p className="text-gray-600">
-          Please provide your delivery address and preferred delivery method.
-        </p>
-      </div>)}
 
       <Card>
         <CardHeader>
@@ -504,7 +588,7 @@ const CheckoutPage = () => {
                   <SelectValue placeholder="Select county" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countyOptions.map((county) => (
+                  {getCountyOptions().map((county) => (
                     <SelectItem key={county.value} value={county.value}>
                       {county.label}
                     </SelectItem>
@@ -542,58 +626,148 @@ const CheckoutPage = () => {
 
           <div>
             <Label htmlFor="address">Street Address</Label>
-            <Textarea
-              id="address"
+            <Input
               value={deliveryData.address}
               onChange={(e) => handleDeliveryChange('address', e.target.value)}
               placeholder="Enter your full street address"
               className={errors.address ? 'border-red-500' : ''}
-              rows={3}
             />
             {errors.address && (
               <p className="text-red-500 text-sm mt-1">{errors.address}</p>
             )}
           </div>
         </CardContent>
-        
       </Card>
     </div>
-  );
+    )}
+  </>
+);
 
-  const renderStep3 = () => (
-    <div className="space-y-6">
-      {!isMobile && (<div>
-        <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
-        (<p className="text-gray-600">
-          Please review your order details before proceeding to payment.
-        </p>
-      </div>)}
+  const renderStep2 = () => (
+    <>
+      <div className="space-y-6">
+        {!isMobile && (<div>
+          <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
+          <p className="text-gray-600">
+            Please review your order details before proceeding to payment.
+          </p>
+        </div>)}
 
-      {/* Customer Details Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Customer Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p><span className="font-medium">Name:</span> {customerData.userName}</p>
-          <p><span className="font-medium">Email:</span> {customerData.email}</p>
-          <p><span className="font-medium">Phone:</span> {customerData.phone}</p>
-        </CardContent>
-      </Card>
+        {/* Customer Details Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Customer Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p><span className="font-medium">Name:</span> {customerData.firstName} {customerData.lastName}</p>
+            <p><span className="font-medium">Email:</span> {customerData.email}</p>
+            <p><span className="font-medium">Phone:</span> {customerData.phone}</p>
+          </CardContent>
+        </Card>
 
-      {/* Delivery Details Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Delivery Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p><span className="font-medium">Address:</span> {deliveryData.address}</p>
-          <p><span className="font-medium">City:</span> {cityOptions[deliveryData.county]?.find(c => c.value === deliveryData.city)?.label}</p>
-          <p><span className="font-medium">County:</span> {countyOptions.find(c => c.value === deliveryData.county)?.label}</p>
-          {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
-        </CardContent>
-      </Card>
-    </div>
+        {/* Delivery Details Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Delivery Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p><span className="font-medium">Address:</span> {deliveryData.address}</p>
+            <p><span className="font-medium">City:</span> {getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label}</p>
+            <p><span className="font-medium">County:</span> {getCountyOptions().find(c => c.value === deliveryData.county)?.label}</p>
+            {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
+          </CardContent>
+        </Card>
+      </div>
+    
+      {/* Order Summary */}
+      <div className="lg:col-span-1">
+        <Card className="sticky top-6">
+          <CardHeader>
+            <CardTitle>Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+          {/* Items */}
+          <ScrollArea className="max-h-60">
+            <div className="space-y-3">
+              {selectedItems.map((item) => (
+                <div key={item.id} className="flex gap-3">
+                  <img
+                    src={item.product.image}
+                    alt={item.product.name}
+                    className="w-12 h-12 object-cover rounded border"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium truncate">
+                      {item.product.name}
+                    </p>
+                    
+                    {/* Variant display */}
+                    {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {Object.entries(item.variant_selections as Record<string, string>).map(([type, value]) => (
+                          <span key={`${type}-${value}`} className="text-xs text-gray-500">
+                            <span className="capitalize font-medium">{type}:</span> {value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-gray-500">
+                        Qty: {item.quantity}
+                      </p>
+                      <p className="text-sm font-medium">
+                        KES {(item.product.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+
+            <Separator />
+
+            {/* Price Breakdown */}
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-gray-600">Delivery</span>
+                <span className={`font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
+                  {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
+                  isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
+                </span>
+              </div>
+
+              {calculations.tax > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-medium">KES {calculations.tax.toLocaleString()}</span>
+                </div>
+              )}
+
+              {calculations.discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span className="font-medium">-KES {calculations.discount.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between font-semibold text-lg">
+              <span>Total</span>
+              <span className="text-orange-600">KES {finalTotal.toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 
   // Payment Modal Content
@@ -727,9 +901,13 @@ const CheckoutPage = () => {
     );
   };
 
-  const progressValue = (currentStep / 3) * 100;
+  const progressValue = (currentStep / 2) * 100;
 
-  return (
+return (
+  <div>
+    {locationsLoading || addressesLoading ? (
+      <CheckoutSkeleton />
+    ) : (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <div
           className={`container mx-auto py-6 ${
@@ -747,7 +925,7 @@ const CheckoutPage = () => {
             </Button>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Checkout</h1>
             <p className="text-gray-600 mt-1">
-              Complete your order in {3 - currentStep + 1} more step{3 - currentStep + 1 !== 1 ? 's' : ''}
+              Complete your order in {2 - currentStep + 0} more step{2 - currentStep + 1 !== 1 ? 's' : ''}
             </p>
           </div>)}
 
@@ -799,7 +977,6 @@ const CheckoutPage = () => {
               <div className="p-6">
                 {currentStep === 1 && renderStep1()}
                 {currentStep === 2 && renderStep2()}
-                {currentStep === 3 && renderStep3()}
               </div>
 
               {/* Navigation */}
@@ -822,106 +999,19 @@ const CheckoutPage = () => {
                     onClick={handleNext}
                     className="flex-1 bg-orange-500 hover:bg-orange-600"
                   >
-                    {currentStep === 3 ? 'Proceed to Payment' : 'Continue'}
+                    {currentStep === 2 ? 'Proceed to Payment' : 'Continue'}
                   </Button>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-              {/* Items */}
-              <ScrollArea className="max-h-60">
-                <div className="space-y-3">
-                  {selectedItems.map((item) => (
-                    <div key={item.id} className="flex gap-3">
-                      <img
-                        src={item.product.image}
-                        alt={item.product.name}
-                        className="w-12 h-12 object-cover rounded border"
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {item.product.name}
-                        </p>
-                        
-                        {/* Variant display */}
-                        {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {Object.entries(item.variant_selections as Record<string, string>).map(([type, value]) => (
-                              <span key={`${type}-${value}`} className="text-xs text-gray-500">
-                                <span className="capitalize font-medium">{type}:</span> {value}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-xs text-gray-500">
-                            Qty: {item.quantity}
-                          </p>
-                          <p className="text-sm font-medium">
-                            KES {(item.product.price * item.quantity).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-
-                <Separator />
-
-                {/* Price Breakdown */}
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Delivery</span>
-                    <span className={`font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
-                      {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
-                      isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
-                    </span>
-                  </div>
-
-                  {calculations.tax > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tax</span>
-                      <span className="font-medium">KES {calculations.tax.toLocaleString()}</span>
-                    </div>
-                  )}
-
-                  {calculations.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span className="font-medium">-KES {calculations.discount.toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total</span>
-                  <span className="text-orange-600">KES {finalTotal.toLocaleString()}</span>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
 
       {/* Payment Modal */}
       {renderPaymentModal()}
+    </div>
+    )}
     </div>
   );
 };

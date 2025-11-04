@@ -51,11 +51,7 @@ export const useMpesaPayment = () => {
         console.error('Payment initiation error:', error);
         
         // Handle different types of errors
-        if (error.message?.includes('Too many payment attempts')) {
-          throw new Error('Too many payment attempts. Please try again later.');
-        } else if (error.message?.includes('Edge Function returned a non-2xx status code')) {
-          throw new Error('Too many payment attempts. Please try again later.');
-        } else if (error.message?.includes('not properly configured')) {
+        if (error.message?.includes('not properly configured')) {
           throw new Error('M-Pesa service is currently unavailable. Please try again later or contact support.');
         } else if (error.message?.includes('Invalid phone number')) {
           throw new Error('Please enter a valid Safaricom phone number (07XXXXXXXX or 011XXXXXXX)');

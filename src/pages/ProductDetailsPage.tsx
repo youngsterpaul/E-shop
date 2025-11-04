@@ -399,9 +399,9 @@ const ProductDetailsPage: React.FC = () => {
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
             <EnhancedProductImageGallery product={productWithImages} selectedImageUrl={selectedColorImageUrl} />
 
-            <div className={`space-y-6 ${isMobile ? 'px-2' : 'px-4'}`}>
+            <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 mb-3" style={{ textAlign: 'justify' }}>
+                <h1 className="text-md font-bold text-gray-900" style={{ textAlign: 'justify' }}>
                   {product.name}
                 </h1>
                 {product.rating && (
@@ -421,7 +421,7 @@ const ProductDetailsPage: React.FC = () => {
 
               <div className="space-y-2">
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl font-bold text-orange-500">{formatPrice(price)}</span>
+                  <span className="text-lg font-bold text-orange-500">{formatPrice(price)}</span>
                   {price !== product.price && (
                     <span className="text-xl text-gray-500 line-through">{formatPrice(product.price)}</span>
                   )}

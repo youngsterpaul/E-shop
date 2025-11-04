@@ -103,11 +103,11 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
           {!query.trim() && hasHistory && (
             <div className={cn(
               "border-b border-gray-100 flex items-center justify-between",
-              isMobile ? "p-4 bg-gray-50" : "p-3"
+              isMobile ? "p-2 bg-gray-50" : "p-3"
             )}>
               <span className={cn(
                 "font-medium text-gray-600",
-                isMobile ? "text-base" : "text-sm"
+                isMobile ? "text-sm" : "text-sm"
               )}>
                 Recent Searches
               </span>
@@ -130,7 +130,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                 "flex items-center justify-between cursor-pointer transition-colors group",
                 isMobile ? [
                   // Mobile: Kilimall-style larger touch targets
-                  "p-4 hover:bg-gray-50 border-b border-gray-100 min-h-[60px]",
+                  "px-4 hover:bg-gray-50 border-b border-gray-100 min-h-[40px]",
                   selectedIndex === index && "bg-orange-50 border-l-4 border-orange-500"
                 ] : [
                   // Desktop: Original compact style
@@ -156,11 +156,6 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                   )}>
                     {highlightMatch(suggestion.text.split(' ').slice(0, 3).join(' '), query)}
                   </span>
-                  {isMobile && suggestion.category === 'popular' && (
-                    <span className="text-xs text-gray-400 mt-1 block">
-                      Popular search
-                    </span>
-                  )}
                 </div>
                 {!isMobile && suggestion.category === 'popular' && (
                   <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
@@ -194,7 +189,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
       {!query.trim() && suggestions.length > 0 && (
         <div className={cn(
           "border-t border-gray-100 text-center",
-          isMobile ? "p-4 bg-gray-50" : "p-3"
+          isMobile ? "p-2 bg-gray-50" : "p-3"
         )}>
           <p className={cn(
             "text-gray-400",
