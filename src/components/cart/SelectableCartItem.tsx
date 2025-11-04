@@ -168,8 +168,8 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   }
 
   return (
-    <div className={`bg-white border /border-gray-200 shadow-sm transition-all duration-200 ${
-      isSelected ? 'ring-2 ring-red/20 bg-red/5 border-red/30' : ''
+    <div className={`bg-white border border-gray-200 shadow-sm transition-all duration-200 ${
+      isSelected ? 'bg-red/10 border border-red/30 shadow-[0_0_0_2px_rgba(239,68,68,0.2)]' : ''
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
       
       {/* Mobile Layout */}

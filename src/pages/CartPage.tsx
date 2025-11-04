@@ -76,8 +76,9 @@ const CartPage = () => {
   }
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`container mx-auto py-6 ${!isMobile ? 'xl:px-24' : ''} ${isMobile ? 'pb-32 px-2' : ''}`}>
+    <div className={`bg-white ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`flex-grow mx-auto ${!isMobile ? 'container px-0 xl:px-24' : 'pb-32 px-2 py-6'}`}>
+        <div className={`${!isMobile ? 'shadow-md p-8' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -105,7 +106,7 @@ const CartPage = () => {
                 allSelected={isAllSelected}
               />
               
-              <div className="divide-y /divide-gray-200">
+              <div className="divide-y divide-gray-200">
                 {cartItems.map((item) => (
                   <SelectableCartItem
                     key={item.id}
@@ -123,6 +124,7 @@ const CartPage = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Mobile Fixed Bottom Bar */}
