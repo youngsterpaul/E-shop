@@ -146,20 +146,12 @@ async function getMpesaAccessToken() {
   const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
   const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
   
-  console.log('M-Pesa credentials check:', {
-    hasConsumerKey: !!consumerKey,
-    hasConsumerSecret: !!consumerSecret,
-    environment: MPESA_ENVIRONMENT // Add this for debugging
-  });
-  
   if (!consumerKey || !consumerSecret) {
     throw new Error('M-Pesa credentials not configured. Please add MPESA_CONSUMER_KEY and MPESA_CONSUMER_SECRET to your Supabase secrets.');
   }
 
   const auth = btoa(`${consumerKey}:${consumerSecret}`);
   const baseUrl = getMpesaBaseUrl();
-  
-  console.log('Requesting M-Pesa access token from:', `${baseUrl}/oauth/v1/generate`);
   
   const response = await fetch(`${baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
     method: 'GET',
@@ -175,7 +167,6 @@ async function getMpesaAccessToken() {
   }
 
   const data = await response.json();
-  console.log('M-Pesa access token obtained successfully');
   return data.access_token;
 }
 
@@ -183,12 +174,6 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
   const accessToken = await getMpesaAccessToken();
   const shortcode = Deno.env.get('MPESA_SHORTCODE') || '174379';
   const passkey = Deno.env.get('MPESA_PASSKEY') || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-  
-  console.log('M-Pesa configuration:', {
-    shortcode,
-    hasPasskey: !!passkey,
-    hasAccessToken: !!accessToken
-  });
 
   const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
   const password = btoa(`${shortcode}${passkey}${timestamp}`);
@@ -220,13 +205,6 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     TransactionDesc: `Payment for order ${orderId}`
   };
 
-  console.log('Initiating STK Push:', {
-    orderId,
-    phone: formattedPhone,
-    amount: Math.round(amount),
-    callbackUrl
-  });
-
   const baseUrl = getMpesaBaseUrl();
   const response = await fetch(`${baseUrl}/mpesa/stkpush/v1/processrequest`, {
     method: 'POST',
@@ -244,17 +222,10 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
   }
 
   const result = await response.json();
-  console.log('STK Push response:', result);
   return result;
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log('M-Pesa payment function called:', {
-    method: req.method,
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
-  });
-
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -269,8 +240,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const requestBody = await req.text();
-    console.log('Request body:', requestBody);
-    
     const { phone, amount, orderId }: PaymentRequest = JSON.parse(requestBody);
 
     // Get identifier for rate limiting (IP address)
@@ -283,7 +252,6 @@ const handler = async (req: Request): Promise<Response> => {
     const rateLimitResult = await checkRateLimit(identifier, 'payment_init');
     
     if (!rateLimitResult.allowed) {
-      console.log(`Rate limit exceeded for ${identifier}`);
       return new Response(
         JSON.stringify({
           success: false,
@@ -301,8 +269,6 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
-
-    console.log('Parsed request:', { phone, amount, orderId });
 
     if (!phone || !amount || !orderId) {
       return new Response(
@@ -389,11 +355,6 @@ const handler = async (req: Request): Promise<Response> => {
         console.error('Database error when creating M-Pesa payment record:', dbError);
         throw new Error('Failed to record payment request in database');
       }
-
-      console.log('M-Pesa payment record created successfully:', {
-        checkoutRequestId: stkResponse.CheckoutRequestID,
-        orderId: orderId
-      });
 
       return new Response(
         JSON.stringify({

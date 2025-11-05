@@ -148,10 +148,6 @@ async function sendPaymentConfirmationEmail(orderId: string) {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log('Callback received - Method:', req.method);
-  console.log('Callback received - URL:', req.url);
-  console.log('Callback received - Headers:', Object.fromEntries(req.headers.entries()));
-
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -177,7 +173,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const clientIP = getClientIP(req);
-    console.log('Callback received from IP:', clientIP, 'Environment:', MPESA_ENVIRONMENT);
 
     // Environment-aware IP checking
     if (MPESA_ENVIRONMENT === 'production') {
@@ -190,13 +185,11 @@ const handler = async (req: Request): Promise<Response> => {
       // In sandbox, log but don't block (for easier testing)
       const isWhitelisted = await isIPWhitelisted(clientIP, MPESA_ENVIRONMENT);
       if (!isWhitelisted) {
-        console.warn('Non-whitelisted IP in sandbox mode:', clientIP);
         // Continue processing instead of blocking
       }
     }
 
     const callbackData = await req.json();
-    console.log('M-Pesa Callback Data:', JSON.stringify(callbackData, null, 2));
 
     const { Body } = callbackData;
     if (!Body || !Body.stkCallback) {
@@ -286,8 +279,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If payment was successful, update order status and send confirmation email
     if (ResultCode === 0 && payment?.order_id) {
-      console.log('Payment successful, updating order status and sending confirmation email');
-      
       // Update order status to 'paid'
       const { error: orderUpdateError } = await supabase
         .from('orders')
@@ -305,8 +296,7 @@ const handler = async (req: Request): Promise<Response> => {
       await sendPaymentConfirmationEmail(payment.order_id);
     }
 
-    console.log('Callback processed successfully');
-    return new Response('Callback processed', { 
+    return new Response('Callback processed', {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
