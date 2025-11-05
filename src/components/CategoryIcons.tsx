@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import OptimizedImage from '@/components/OptimizedImage';
 import { useCategoryIcons } from '@/hooks/useCategoryIcons';
+import CategorySkeleton from './skeletons/CategorySkeleton';
 
 interface CategoryIconsProps {
   showAll?: boolean;
@@ -42,11 +43,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   const { data: categoryIcons, isLoading, error } = useCategoryIcons();
   
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-gray-500">Loading categories...</div>
-      </div>
-    );
+    return <CategorySkeleton showAll={showAll} />;
   }
   
   if (error) {
