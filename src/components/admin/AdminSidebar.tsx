@@ -94,12 +94,6 @@ const AdminSidebar = () => {
       roles: ['superadmin'],
     },
     {
-      name: 'CategoryIcons',
-      icon: FolderTree,
-      path: '/supersmartkenyaadmin123/categoryicons',
-      roles: ['superadmin'],
-    },
-    {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
