@@ -13,6 +13,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -28,6 +29,7 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
+  const { freeShippingThreshold } = useShippingSettings();
 
   // Refetch cart data when component mounts to ensure fresh data
   useEffect(() => {
@@ -159,9 +161,9 @@ const CartPage = () => {
             </div>
             
             {/* Free Delivery Indicator */}
-            {calculations.subtotal < 10000 && (
+            {calculations.subtotal < freeShippingThreshold && (
               <p className="text-xs text-center text-gray-500">
-                Add KES {(10000 - calculations.subtotal).toLocaleString()} more for free delivery
+                Add KES {(freeShippingThreshold - calculations.subtotal).toLocaleString()} more for free delivery
               </p>
             )}
           </div>
