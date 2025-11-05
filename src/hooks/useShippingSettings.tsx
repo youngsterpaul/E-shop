@@ -24,17 +24,23 @@ export const useShippingSettings = () => {
       }
 
       // Convert to numbers with fallback defaults
-      const shippingFee = Number(settingsMap['shipping_fee'] ?? 0);
-      const freeShippingThreshold = (settingsMap['free_shipping_threshold']);
+      const shippingFee = Number(settingsMap['shipping_fee'] ?? 50);
+      const freeShippingThreshold = Number(settingsMap['free_shipping_threshold'] ?? 5000);
 
       return { shippingFee, freeShippingThreshold };
     },
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
+    // Provide initial data to prevent undefined during first render
+    initialData: {
+      shippingFee: 50,
+      freeShippingThreshold: 5000
+    }
   });
 
   return {
-    shippingFee: query.data?.shippingFee ?? 0,
+    shippingFee: query.data?.shippingFee ?? 50,
     freeShippingThreshold: query.data?.freeShippingThreshold ?? 5000,
     isLoading: query.isLoading,
     error: query.error,
