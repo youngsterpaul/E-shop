@@ -5,15 +5,15 @@ import { useAuth } from '@/hooks/useAuth';
 export interface DeliveryAddress {
   id: string;
   user_id: string;
-  address_name: string | null;  // Changed from optional (?) to explicitly null
+  address_name: string | null;
   full_name: string;
   phone: string;
   street_address: string;
   city: string;
   county: string;
-  is_default: boolean;
-  created_at: string;
-  updated_at: string;
+  is_default: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export const useDeliveryAddresses = () => {
@@ -40,7 +40,12 @@ export const useDeliveryAddresses = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAddresses(data || []);
+      // Ensure is_default is always boolean
+      const normalizedData = (data || []).map(addr => ({
+        ...addr,
+        is_default: addr.is_default ?? false
+      }));
+      setAddresses(normalizedData);
       setError(null);
     } catch (err) {
       console.error('Error fetching addresses:', err);
