@@ -367,24 +367,27 @@ const AdminCategoryIconsPage = () => {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="icon_name">Icon*</Label>
-        <Select value={formData.icon_name} onValueChange={(value) => setFormData(prev => ({ ...prev, icon_name: value }))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select icon" />
-          </SelectTrigger>
-          <SelectContent>
-            {ICON_OPTIONS.map(icon => (
-              <SelectItem key={icon} value={icon}>{icon}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Label htmlFor="icon_name">Icon*</Label>
+      <Select
+        value={formData.icon_name}
+        onValueChange={(value) => setFormData(prev => ({ ...prev, icon_name: value }))}>
+        <SelectTrigger id="icon_name">
+          <SelectValue placeholder="Select icon" />
+        </SelectTrigger>
+        <SelectContent>
+          {ICON_OPTIONS.map(icon => (
+            <SelectItem key={icon} value={icon}>{icon}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Hidden input for browser autofill & accessibility */}
+      <input type="hidden" name="icon_name" value={formData.icon_name} />
 
       <div className="space-y-2">
         <Label htmlFor="category_id">Parent Category*</Label>
         <Select value={formData.category_id} onValueChange={handleCategoryChange}>
-          <SelectTrigger>
+          <SelectTrigger id="category_id">
             <SelectValue placeholder="Select parent category" />
           </SelectTrigger>
           <SelectContent>
@@ -416,24 +419,25 @@ const AdminCategoryIconsPage = () => {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="color">Background Color*</Label>
-        <Select value={formData.color} onValueChange={handleColorChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select color" />
-          </SelectTrigger>
-          <SelectContent>
-            {COLOR_OPTIONS.map(color => (
-              <SelectItem key={color.value} value={color.value}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded ${color.value}`}></div>
-                  {color.label}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="space-y-2">
+      <Label htmlFor="color">Background Color*</Label>
+      <Select value={formData.color} onValueChange={handleColorChange}>
+        <SelectTrigger id="color">
+          <SelectValue placeholder="Select color" />
+        </SelectTrigger>
+        <SelectContent>
+          {COLOR_OPTIONS.map(color => (
+            <SelectItem key={color.value} value={color.value}>
+              <div className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded ${color.value}`}></div>
+                {color.label}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <input type="hidden" name="color" value={formData.color} />
+    </div>
 
       <div className="space-y-2">
         <Label htmlFor="product_image">Product Image URL</Label>

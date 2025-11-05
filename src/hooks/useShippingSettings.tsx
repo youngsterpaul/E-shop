@@ -7,34 +7,37 @@ interface ShippingSettings {
 }
 
 export const useShippingSettings = () => {
-  const { data: settings, isLoading, error } = useQuery({
+  const query = useQuery<ShippingSettings>({
     queryKey: ['shippingSettings'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('admin_settings')
         .select('setting_key, setting_value')
         .in('setting_key', ['shipping_fee', 'free_shipping_threshold']);
-      
-      if (error) throw error;
-      
-      const settingsMap = data.reduce((acc, item) => {
-        acc[item.setting_key] = item.setting_value;
-        return acc;
-      }, {} as Record<string, any>);
-      
-      return {
-        shippingFee: Number(settingsMap.shipping_fee) || 0,
-        freeShippingThreshold: Number(settingsMap.free_shipping_threshold) || 10000
-      } as ShippingSettings;
+
+      if (error) throw new Error(error.message);
+
+      // Normalize and parse
+      const settingsMap: Record<string, any> = {};
+      for (const item of data ?? []) {
+        settingsMap[item.setting_key] = item.setting_value;
+      }
+
+      // Convert to numbers with fallback defaults
+      const shippingFee = Number(settingsMap['shipping_fee'] ?? 0);
+      const freeShippingThreshold = (settingsMap['free_shipping_threshold']);
+
+      return { shippingFee, freeShippingThreshold };
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    refetchOnWindowFocus: false
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   });
 
   return {
-    shippingFee: settings?.shippingFee ?? 0,
-    freeShippingThreshold: settings?.freeShippingThreshold ?? 10000,
-    isLoading,
-    error
+    shippingFee: query.data?.shippingFee ?? 0,
+    freeShippingThreshold: query.data?.freeShippingThreshold ?? 5000,
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
   };
 };
