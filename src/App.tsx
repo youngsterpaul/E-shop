@@ -68,6 +68,7 @@ const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
 const AdminHeroSlidesPage = lazy(() => import("./pages/admin/AdminHeroSlidesPage"));
 const AdminLocationsPage = lazy(() => import("./pages/admin/AdminLocationsPage"));
+const AdminCategoryIconsPage = lazy(() => import("./pages/admin/AdminCategoryIconsPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 // Add the lazy import for CategoryPage
@@ -250,6 +251,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute requiredRole="admin"><AdminHeroSlidesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/locations" element={<AdminRoute requiredRole="superadmin"><AdminLocationsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/categoryicons" element={<AdminRoute requiredRole="superadmin"><AdminCategoryIconsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
 
           {/* 404 */}

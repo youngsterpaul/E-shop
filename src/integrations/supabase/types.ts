@@ -182,6 +182,64 @@ export type Database = {
         }
         Relationships: []
       }
+      category_icons: {
+        Row: {
+          id: number;
+          name: string;
+          icon_name: string;
+          category_id: number;
+          subcategory_id: number | null;
+          color: string;
+          icon_color: string;
+          product_image: string | null;
+          display_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        }
+        Insert: {
+          id?: number;
+          name?: string;
+          icon_name?: string;
+          category_id?: number;
+          subcategory_id?: number | null;
+          color?: string;
+          icon_color?: string;
+          product_image?: string | null;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        }
+        Update: {
+          id?: number;
+          name?: string;
+          icon_name?: string;
+          category_id?: number;
+          subcategory_id?: number | null;
+          color?: string;
+          icon_color?: string;
+          product_image?: string | null;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        }
+       Relationships: [
+        {
+          foreignKeyName: "category_icons_category_id_fkey";
+          columns: ["category_id"];
+          referencedRelation: "categories";
+          referencedColumns: ["id"];
+        },
+        {
+          foreignKeyName: "category_icons_subcategory_id_fkey";
+          columns: ["subcategory_id"];
+          referencedRelation: "categories";
+          referencedColumns: ["id"];
+        }
+      ];
+      }
       cities: {
         Row: {
           county_id: string
@@ -210,15 +268,7 @@ export type Database = {
           slug?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cities_county_id_fkey"
-            columns: ["county_id"]
-            isOneToOne: false
-            referencedRelation: "counties"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       counties: {
         Row: {
