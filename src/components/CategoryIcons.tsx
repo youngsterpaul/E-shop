@@ -92,7 +92,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
               onClick={() => handleCategoryClick(category)}
               className="flex flex-col items-center justify-center p-1 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
             >
-              <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent .shadow-lg .hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 {category.productImage ? (
                   <>
                     <OptimizedImage

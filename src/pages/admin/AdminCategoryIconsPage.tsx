@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,18 @@ interface Category {
   category: string;
   parent_id: number | null;
   slug: string | null;
+}
+
+interface FormData {
+  name: string;
+  icon_name: string;
+  category_id: string;
+  subcategory_id: string;
+  color: string;
+  icon_color: string;
+  product_image: string;
+  display_order: string;
+  is_active: boolean;
 }
 
 const ICON_OPTIONS = [
@@ -100,8 +112,9 @@ const AdminCategoryIconsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+
+  // SEPARATE state for Add form
+  const [addForm, setAddForm] = useState<FormData>({
     name: '',
     icon_name: 'Smartphone',
     category_id: '',
@@ -112,34 +125,33 @@ const AdminCategoryIconsPage = () => {
     display_order: '0',
     is_active: true
   });
+  const [addSelectedParentId, setAddSelectedParentId] = useState<number | null>(null);
+
+  // SEPARATE state for Edit form
+  const [editForm, setEditForm] = useState<FormData>({
+    name: '',
+    icon_name: 'Smartphone',
+    category_id: '',
+    subcategory_id: '',
+    color: 'bg-blue-50',
+    icon_color: 'text-blue-600',
+    product_image: '',
+    display_order: '0',
+    is_active: true
+  });
+  const [editSelectedParentId, setEditSelectedParentId] = useState<number | null>(null);
 
   // Get parent categories (those without parent_id)
   const parentCategories = allCategories?.filter(cat => cat.parent_id === null) || [];
   
   // Get subcategories based on selected parent
-  const subcategories = allCategories?.filter(cat => cat.parent_id === selectedParentId) || [];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const getSubcategories = (parentId: number | null) => {
+    if (!parentId) return [];
+    return allCategories?.filter(cat => cat.parent_id === parentId) || [];
   };
 
-  const handleColorChange = (color: string) => {
-    const colorOption = COLOR_OPTIONS.find(opt => opt.value === color);
-    setFormData(prev => ({ 
-      ...prev, 
-      color,
-      icon_color: colorOption?.iconColor || 'text-blue-600'
-    }));
-  };
-
-  const handleCategoryChange = (categoryId: string) => {
-    setFormData(prev => ({ ...prev, category_id: categoryId, subcategory_id: '' }));
-    setSelectedParentId(parseInt(categoryId));
-  };
-
-  const resetForm = () => {
-    setFormData({
+  const resetAddForm = () => {
+    setAddForm({
       name: '',
       icon_name: 'Smartphone',
       category_id: '',
@@ -150,14 +162,13 @@ const AdminCategoryIconsPage = () => {
       display_order: '0',
       is_active: true
     });
-    setSelectedParentId(null);
-    setEditingId(null);
+    setAddSelectedParentId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.category_id) {
+    if (!addForm.category_id) {
       toast({
         title: "Error",
         description: "Please select a category",
@@ -170,15 +181,15 @@ const AdminCategoryIconsPage = () => {
       const { error } = await supabase
         .from('category_icons')
         .insert({
-          name: formData.name,
-          icon_name: formData.icon_name,
-          category_id: parseInt(formData.category_id),
-          subcategory_id: formData.subcategory_id ? parseInt(formData.subcategory_id) : null,
-          color: formData.color,
-          icon_color: formData.icon_color,
-          product_image: formData.product_image || null,
-          display_order: formData.display_order ? parseInt(formData.display_order) : 0,
-          is_active: formData.is_active
+          name: addForm.name,
+          icon_name: addForm.icon_name,
+          category_id: parseInt(addForm.category_id),
+          subcategory_id: addForm.subcategory_id ? parseInt(addForm.subcategory_id) : null,
+          color: addForm.color,
+          icon_color: addForm.icon_color,
+          product_image: addForm.product_image || null,
+          display_order: addForm.display_order ? parseInt(addForm.display_order) : 0,
+          is_active: addForm.is_active
         });
 
       if (error) throw error;
@@ -189,7 +200,7 @@ const AdminCategoryIconsPage = () => {
       });
 
       setIsAddDialogOpen(false);
-      resetForm();
+      resetAddForm();
       refetch();
     } catch (error) {
       console.error('Error adding category icon:', error);
@@ -203,7 +214,7 @@ const AdminCategoryIconsPage = () => {
 
   const handleEdit = (categoryIcon: CategoryIconData) => {
     setEditingId(categoryIcon.id);
-    setFormData({
+    setEditForm({
       name: categoryIcon.name,
       icon_name: categoryIcon.icon_name,
       category_id: categoryIcon.category_id.toString(),
@@ -214,7 +225,7 @@ const AdminCategoryIconsPage = () => {
       display_order: categoryIcon.display_order.toString(),
       is_active: categoryIcon.is_active
     });
-    setSelectedParentId(categoryIcon.category_id);
+    setEditSelectedParentId(categoryIcon.category_id);
     setIsEditDialogOpen(true);
   };
 
@@ -227,15 +238,15 @@ const AdminCategoryIconsPage = () => {
       const { error } = await supabase
         .from('category_icons')
         .update({
-          name: formData.name,
-          icon_name: formData.icon_name,
-          category_id: parseInt(formData.category_id),
-          subcategory_id: formData.subcategory_id ? parseInt(formData.subcategory_id) : null,
-          color: formData.color,
-          icon_color: formData.icon_color,
-          product_image: formData.product_image || null,
-          display_order: formData.display_order ? parseInt(formData.display_order) : 0,
-          is_active: formData.is_active,
+          name: editForm.name,
+          icon_name: editForm.icon_name,
+          category_id: parseInt(editForm.category_id),
+          subcategory_id: editForm.subcategory_id ? parseInt(editForm.subcategory_id) : null,
+          color: editForm.color,
+          icon_color: editForm.icon_color,
+          product_image: editForm.product_image || null,
+          display_order: editForm.display_order ? parseInt(editForm.display_order) : 0,
+          is_active: editForm.is_active,
           updated_at: new Date().toISOString()
         })
         .eq('id', editingId);
@@ -249,7 +260,6 @@ const AdminCategoryIconsPage = () => {
 
       setIsEditDialogOpen(false);
       setEditingId(null);
-      resetForm();
       refetch();
     } catch (error) {
       console.error('Error updating category icon:', error);
@@ -354,7 +364,18 @@ const AdminCategoryIconsPage = () => {
     }
   };
 
-  const FormFields = () => (
+  // FormFields Component - KEY FIX: now accepts its own state as props
+  const FormFields = ({ 
+    formData, 
+    setFormData, 
+    selectedParentId, 
+    setSelectedParentId 
+  }: {
+    formData: FormData;
+    setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+    selectedParentId: number | null;
+    setSelectedParentId: React.Dispatch<React.SetStateAction<number | null>>;
+  }) => (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
         <Label htmlFor="name">Display Name*</Label>
@@ -363,7 +384,7 @@ const AdminCategoryIconsPage = () => {
           name="name"
           placeholder="e.g., Phones"
           value={formData.name}
-          onChange={handleInputChange}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
         />
       </div>
@@ -384,7 +405,13 @@ const AdminCategoryIconsPage = () => {
 
       <div className="space-y-2">
         <Label htmlFor="category_id">Parent Category*</Label>
-        <Select value={formData.category_id} onValueChange={handleCategoryChange}>
+        <Select 
+          value={formData.category_id} 
+          onValueChange={(value) => {
+            setFormData(prev => ({ ...prev, category_id: value, subcategory_id: '' }));
+            setSelectedParentId(parseInt(value));
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select parent category" />
           </SelectTrigger>
@@ -398,7 +425,7 @@ const AdminCategoryIconsPage = () => {
         </Select>
       </div>
 
-      {formData.category_id && subcategories.length > 0 && (
+      {formData.category_id && getSubcategories(selectedParentId).length > 0 && (
         <div className="space-y-2">
           <Label htmlFor="subcategory_id">Subcategory (Optional)</Label>
           <Select value={formData.subcategory_id} onValueChange={(value) => setFormData(prev => ({ ...prev, subcategory_id: value }))}>
@@ -407,7 +434,7 @@ const AdminCategoryIconsPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">None</SelectItem>
-              {subcategories.map(cat => (
+              {getSubcategories(selectedParentId).map(cat => (
                 <SelectItem key={cat.id} value={cat.id.toString()}>
                   {cat.category}
                 </SelectItem>
@@ -419,7 +446,17 @@ const AdminCategoryIconsPage = () => {
 
       <div className="space-y-2">
         <Label htmlFor="color">Background Color*</Label>
-        <Select value={formData.color} onValueChange={handleColorChange}>
+        <Select 
+          value={formData.color} 
+          onValueChange={(color) => {
+            const colorOption = COLOR_OPTIONS.find(opt => opt.value === color);
+            setFormData(prev => ({ 
+              ...prev, 
+              color,
+              icon_color: colorOption?.iconColor || 'text-blue-600'
+            }));
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select color" />
           </SelectTrigger>
@@ -443,7 +480,7 @@ const AdminCategoryIconsPage = () => {
           name="product_image"
           placeholder="https://example.com/image.jpg"
           value={formData.product_image}
-          onChange={handleInputChange}
+          onChange={(e) => setFormData(prev => ({ ...prev, product_image: e.target.value }))}
         />
       </div>
 
@@ -455,7 +492,7 @@ const AdminCategoryIconsPage = () => {
           type="number"
           placeholder="0"
           value={formData.display_order}
-          onChange={handleInputChange}
+          onChange={(e) => setFormData(prev => ({ ...prev, display_order: e.target.value }))}
           required
         />
       </div>
@@ -481,12 +518,9 @@ const AdminCategoryIconsPage = () => {
             <p className="text-muted-foreground">Manage homepage category icons</p>
           </div>
           
-          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-            setIsAddDialogOpen(open);
-            if (open) resetForm();
-          }}>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm}>
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Icon
               </Button>
@@ -499,41 +533,17 @@ const AdminCategoryIconsPage = () => {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
-                <FormFields />
+                <FormFields 
+                  formData={addForm}
+                  setFormData={setAddForm}
+                  selectedParentId={addSelectedParentId}
+                  setSelectedParentId={setAddSelectedParentId}
+                />
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => {
-                    setIsAddDialogOpen(false);
-                    resetForm();
-                  }}>
+                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                     Cancel
                   </Button>
                   <Button type="submit">Add Icon</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-            setIsEditDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Edit Category Icon</DialogTitle>
-                <DialogDescription>
-                  Update category icon information
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleUpdate}>
-                <FormFields />
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => {
-                    setIsEditDialogOpen(false);
-                    resetForm();
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Update Icon</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -691,6 +701,32 @@ const AdminCategoryIconsPage = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Category Icon</DialogTitle>
+              <DialogDescription>
+                Update category icon information
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdate}>
+              <FormFields 
+                formData={editForm}
+                setFormData={setEditForm}
+                selectedParentId={editSelectedParentId}
+                setSelectedParentId={setEditSelectedParentId}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Icon</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
