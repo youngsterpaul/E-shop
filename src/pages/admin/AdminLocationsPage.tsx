@@ -48,16 +48,27 @@ const AdminLocationsPage = () => {
 
   // Fetch cities with county info
   const { data: cities, isLoading: citiesLoading, refetch: refetchCities } = useQuery({
-    queryKey: ['admin-cities'],
+    queryKey: ['admin-cities', counties],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cities')
-        .select('*, counties(name)')
+        .select('*')
         .order('name', { ascending: true });
       
       if (error) throw error;
-      return data as City[];
-    }
+      
+      // Manually join county names
+      const citiesWithCounties = data?.map(city => {
+        const county = counties?.find(c => c.id === city.county_id);
+        return {
+          ...city,
+          counties: county ? { name: county.name } : undefined
+        };
+      }) || [];
+      
+      return citiesWithCounties as City[];
+    },
+    enabled: !!counties
   });
 
   // County states
