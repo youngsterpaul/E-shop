@@ -100,6 +100,7 @@ const AdminCategoryIconsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     icon_name: 'Smartphone',
@@ -108,7 +109,7 @@ const AdminCategoryIconsPage = () => {
     color: 'bg-blue-50',
     icon_color: 'text-blue-600',
     product_image: '',
-    display_order: '',
+    display_order: '0',
     is_active: true
   });
 
@@ -116,7 +117,6 @@ const AdminCategoryIconsPage = () => {
   const parentCategories = allCategories?.filter(cat => cat.parent_id === null) || [];
   
   // Get subcategories based on selected parent
-  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
   const subcategories = allCategories?.filter(cat => cat.parent_id === selectedParentId) || [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,10 +147,11 @@ const AdminCategoryIconsPage = () => {
       color: 'bg-blue-50',
       icon_color: 'text-blue-600',
       product_image: '',
-      display_order: '',
+      display_order: '0',
       is_active: true
     });
     setSelectedParentId(null);
+    setEditingId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -480,9 +481,12 @@ const AdminCategoryIconsPage = () => {
             <p className="text-muted-foreground">Manage homepage category icons</p>
           </div>
           
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (open) resetForm();
+          }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={resetForm}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Icon
               </Button>
@@ -497,7 +501,10 @@ const AdminCategoryIconsPage = () => {
               <form onSubmit={handleSubmit}>
                 <FormFields />
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => {
+                    setIsAddDialogOpen(false);
+                    resetForm();
+                  }}>
                     Cancel
                   </Button>
                   <Button type="submit">Add Icon</Button>
@@ -506,7 +513,10 @@ const AdminCategoryIconsPage = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Category Icon</DialogTitle>
@@ -517,7 +527,10 @@ const AdminCategoryIconsPage = () => {
               <form onSubmit={handleUpdate}>
                 <FormFields />
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => {
+                    setIsEditDialogOpen(false);
+                    resetForm();
+                  }}>
                     Cancel
                   </Button>
                   <Button type="submit">Update Icon</Button>
