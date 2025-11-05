@@ -100,11 +100,11 @@ const Footer = ({ className }: FooterProps) => {
         })}
       </script>
 
-      <footer className={cn("text-white", className)}> 
+      <footer className={cn(`text-white ${!isMobile ? 'min-w-max':''}`, className)}> 
         {/* Conditionally render main footer content */}
         {!shouldHideFooter && (
           <div className='bg-gray-50 w-full py-8'>
-            <div className="max-w-7xl container mb-8" style={{ textAlign: 'justify' }}>
+            <div className="max-w-6xl lg:max-w-7xl container mb-8" style={{ textAlign: 'justify' }}>
             <h3 className="font-bold text-2xl mb-4 text-gray-900">SmartKenya Online Shopping - Kenya</h3>
             <p className="font-semibold text-gray-600 text-base leading-relaxed">
               SmartKenya is Kenya's leading online shopping platform, launched in 2025 with the mission to make high-quality electronics, gadgets, and accessories accessible to every Kenyan. Our journey began with a simple yet powerful vision: to provide a seamless online shopping experience that offers convenience, variety, and competitive prices. SmartKenya offers wide range of product categories, including smartphones, laptops, home appliances, fashion, beauty products, baby items and more.
@@ -131,7 +131,7 @@ const Footer = ({ className }: FooterProps) => {
 
         <div className='pt-8 bg-gray-100'>
         {/* Footer Links & Social Icons */}
-        <div className="max-w-7xl container grid grid-cols-6 mb-8">
+        <div className="max-w-6xl lg:max-w-7xl container grid grid-cols-6 mb-8">
           {footerSections.map((section) => (
             <div key={section.title} className="min-w-0">
               <h3 className="font-bold text-gray-900 text-xl mb-4">{section.title}</h3>

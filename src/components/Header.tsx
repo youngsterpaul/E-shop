@@ -158,7 +158,7 @@ const Header = () => {
         })}
       </script>
 
-      <header className={`w-full bg-white shadow-sm top-0 z-50 ${!isMobile ? '':'sticky'}`}>
+      <header className={`w-full bg-white shadow-sm top-0 z-50 ${!isMobile ? 'min-w-max':'sticky'}`}>
             
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && (
@@ -169,7 +169,7 @@ const Header = () => {
           role="navigation"
           aria-label="Main Navigation"
         >
-          <div className="container xl:px-24">
+          <div className="container mx-auto xl:px-24">
             <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
               {mainNavItems.map((item) => (
                 <li key={item.href}>

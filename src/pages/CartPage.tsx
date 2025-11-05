@@ -95,10 +95,10 @@ const CartPage = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`grid gap-8 ${isMobile ? 'grid-cols-1 .lg:grid-cols-3' : 'grid-cols-2'}`}>
           {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-white shadow-sm overflow-hidden">
+          <div className=".lg:col-span-2">
+            <div className="bg-white shadow-sm">
               <CartHeader
                 totalItems={cartItems.length}
                 selectedCount={selectedItems.length}
@@ -119,7 +119,7 @@ const CartPage = () => {
 
           {/* Cart Summary - Desktop Only */}
           {!isMobile && (
-            <div className="lg:col-span-1">
+            <div className=".lg:col-span-1">
               <CartSummary />
             </div>
           )}
