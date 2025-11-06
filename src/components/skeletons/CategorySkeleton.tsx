@@ -7,7 +7,7 @@ interface CategorySkeletonProps {
 const CategorySkeleton: React.FC<CategorySkeletonProps> = ({ showAll = false }) => {
   const isMobile = isMobileUserAgent();
   
-  const itemCount = isMobile && !showAll ? 8 : 10;
+  const itemCount = isMobile && !showAll ? 8 : 20;
   const gridCols = isMobile ? "grid-cols-4" : "grid-cols-10";
 
   if (isMobile) {

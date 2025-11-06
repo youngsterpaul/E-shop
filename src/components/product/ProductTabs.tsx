@@ -171,7 +171,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
   const isMobile = isMobileUserAgent();
 
-  const MOBILE_HEADER_HEIGHT = 52;
+  const MOBILE_HEADER_HEIGHT = 48;
   const DESKTOP_OFFSET = 20;
   const stickyOffset = isMobile ? MOBILE_HEADER_HEIGHT : DESKTOP_OFFSET;
 
@@ -370,8 +370,8 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         </div>
 
         {/* Specifications Section */}
-        <div 
-          ref={specificationsRef} 
+        <div
+          ref={specificationsRef}
           className="mt-6 md:mt-8"
           role="tabpanel"
           id="specifications-panel"
@@ -379,8 +379,8 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         >
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 md:p-6 border-b">
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+              <div className="p-2 md:p-4 border-b">
+                <h3 className="text-md font-medium text-gray-900 mb-2">
                   Specifications
                   {Object.keys(specifications).length > 0 && (
                     <span className="text-sm font-normal text-gray-600 ml-2">
@@ -389,42 +389,55 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   )}
                 </h3>
               </div>
-              <div className="p-4 md:p-6">
+
+              <div className="pb-4 .md:p-6 text-[13px] md:text-[14px]"> {/* ↓ smaller font size */}
                 {Object.keys(specifications).length > 0 ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
-                      {visibleSpecs.map(([key, value]) => (
-                        <div key={key} className="group">
-                          <div className="bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg p-3 md:p-4 border border-gray-200">
-                            <dt className="font-semibold text-gray-900 mb-1 md:mb-2 text-xs md:text-sm uppercase tracking-wide">
+                    
+                    {/* ✅ Table-like structure */}
+                    <div className="w-full border border-gray-200 overflow-hidden">
+                      <div className="divide-y divide-gray-200">
+                        {visibleSpecs.map(([key, value]) => (
+                          <div
+                            key={key}
+                            className="grid grid-cols-3 md:grid-cols-4 items-center hover:bg-gray-50 transition-colors"
+                          >
+                            <dt className="col-span-1 bg-gray-50 font-semibold text-gray-800 px-3 py-2 uppercase tracking-wide text-[11px] md:text-[12px] border-r border-gray-200">
                               {key.replace(/[_-]/g, ' ')}
                             </dt>
-                            <dd className="text-gray-700 font-medium text-sm md:text-base break-words">
+                            <dd className="col-span-2 md:col-span-3 text-gray-700 px-3 py-2 font-medium break-words">
                               {Array.isArray(value) ? value.join(', ') : String(value)}
                             </dd>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                    
+
                     {Object.entries(specifications).length > SPECS_LIMIT && (
                       <div className="text-center pt-4 border-t">
                         <Button
                           variant="outline"
                           onClick={() => setShowMoreSpecs(!showMoreSpecs)}
-                          className="gap-2"
-                          aria-expanded={showMoreSpecs}
-                          aria-label={showMoreSpecs ? 'Show fewer specifications' : `Show ${Object.entries(specifications).length - SPECS_LIMIT} more specifications`}
+                          className="gap-2 text-sm"
+                          size="sm"
+                          aria-label={
+                            showMoreSpecs
+                              ? 'Show fewer specifications'
+                              : `Show ${
+                                  Object.entries(specifications).length - SPECS_LIMIT
+                                } more specifications`
+                          }
                         >
                           {showMoreSpecs ? (
                             <>
-                              <ChevronUp size={16} />
+                              <ChevronUp size={14} />
                               Show Less
                             </>
                           ) : (
                             <>
-                              <ChevronDown size={16} />
-                              Show More ({Object.entries(specifications).length - SPECS_LIMIT} more)
+                              <ChevronDown size={14} />
+                              Show More (
+                              {Object.entries(specifications).length - SPECS_LIMIT} more)
                             </>
                           )}
                         </Button>
@@ -433,8 +446,10 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   </div>
                 ) : (
                   <div className="text-center py-8 md:py-12">
-                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 italic">No specifications available for this product.</p>
+                    <AlertCircle className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 italic text-sm">
+                      No specifications available for this product.
+                    </p>
                   </div>
                 )}
               </div>
@@ -442,9 +457,10 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
           </Card>
         </div>
 
+
         {/* Features Section */}
-        <div 
-          ref={featuresRef} 
+        <div
+          ref={featuresRef}
           className="mt-6 md:mt-8"
           role="tabpanel"
           id="features-panel"
@@ -452,8 +468,9 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         >
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 md:p-6 border-b">
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+              {/* Header */}
+              <div className="p-2 md:p-4 border-b">
+                <h3 className="text-md font-medium text-gray-900 mb-2">
                   Features
                   {features.length > 0 && (
                     <span className="text-sm font-normal text-gray-600 ml-2">
@@ -462,60 +479,79 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   )}
                 </h3>
               </div>
-              <div className="p-4 md:p-6">
+
+              {/* Content */}
+              <div className="pb-4 .md:p-6 text-[13px] md:text-[14px]">
                 {features.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-3">
-                      {visibleFeatures.map((feature, index) => (
-                        <div key={index} className="group">
-                          <div className="flex items-start p-3 md:p-4 bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg border border-gray-200">
-                            <div className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 md:mr-4 mt-0">
-                              <span className="text-blue-600 font-bold text-xs md:text-sm">{index + 1}</span>
+
+                    {/* ✅ Table-like structure */}
+                    <div className="w-full border border-gray-200 overflow-hidden">
+                      <div className="divide-y divide-gray-200">
+                        {visibleFeatures.map((feature, index) => (
+                          <div
+                            key={index}
+                            className={`grid grid-cols-[40px_1fr] md:grid-cols-[50px_1fr] items-center ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                            } hover:bg-gray-100 transition-colors`}
+                          >
+                            {/* Number */}
+                            <div className="text-center font-semibold text-blue-600 px-2 py-2 border-r border-gray-200 text-[12px] md:text-[13px]">
+                              {index + 1}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-gray-800 leading-relaxed font-medium text-sm md:text-base break-words">
-                                {feature}
-                              </span>
+
+                            {/* Feature text */}
+                            <div className="text-gray-800 px-3 py-2 font-medium leading-relaxed break-words">
+                              {feature}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                    
+
+                    {/* Show More / Less Button */}
                     {features.length > FEATURES_LIMIT && (
                       <div className="text-center pt-4 border-t">
                         <Button
                           variant="outline"
                           onClick={() => setShowMoreFeatures(!showMoreFeatures)}
-                          className="gap-2"
+                          className="gap-2 text-sm"
+                          size="sm"
                           aria-expanded={showMoreFeatures}
-                          aria-label={showMoreFeatures ? 'Show fewer features' : `Show ${features.length - FEATURES_LIMIT} more features`}
+                          aria-label={
+                            showMoreFeatures
+                              ? 'Show fewer features'
+                              : `Show ${features.length - FEATURES_LIMIT} more features`
+                          }
                         >
                           {showMoreFeatures ? (
                             <>
-                              <ChevronUp size={16} />
+                              <ChevronUp size={14} />
                               Show Less
                             </>
                           ) : (
                             <>
-                              <ChevronDown size={16} />
+                              <ChevronDown size={14} />
                               Show More ({features.length - FEATURES_LIMIT} more)
                             </>
                           )}
                         </Button>
                       </div>
                     )}
-                  </div>  
+                  </div>
                 ) : (
                   <div className="text-center py-8 md:py-12">
-                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 italic">No features listed for this product.</p>
+                    <AlertCircle className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 italic text-sm">
+                      No features listed for this product.
+                    </p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
+
 
         {/* Reviews Section */}
         <div 
@@ -527,10 +563,10 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         >
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 md:p-6 border-b">
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Customer Reviews</h3>
+              <div className="p-2 md:p-6 border-b">
+                <h3 className="text-md font-medium text-gray-900 mb-2">Customer Reviews</h3>
               </div>
-              <div className="p-4 md:p-6">
+              <div className="pb-4 .md:p-6">
                 <div className="space-y-6">
                   {/* Review Summary */}
                   {totalReviews > 0 && (
@@ -710,6 +746,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                             variant="outline"
                             onClick={() => setShowMoreReviews(!showMoreReviews)}
                             className="gap-2"
+                            size="sm"
                             aria-expanded={showMoreReviews}
                             aria-label={showMoreReviews ? 'Show fewer reviews' : `Show ${filteredReviews.length - REVIEWS_LIMIT} more reviews`}
                           >

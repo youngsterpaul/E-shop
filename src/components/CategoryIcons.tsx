@@ -90,7 +90,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center justify-center p-1 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group"
+              className="flex flex-col items-center justify-center p-1 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group max-w-[800px]"
             >
               <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent .shadow-lg .hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 {category.productImage ? (
@@ -110,7 +110,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                   </div>
                 )}
               </div>
-              <span className="text-sm text-gray-700 text-center font-medium leading-tight">
+              <span className="text-sm text-gray-700 text-center leading-tight">
                 {category.name}
               </span>
             </div>
@@ -125,16 +125,16 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
       <h2 className="border-b my-4 items-center text-gray-600 mx-auto py-2 text-xl font-bold bg-white">
         SHOP BY CATEGORY
       </h2>
-      <div className={`grid ${gridCols} gap-3 bg-white p-4 shadow-sm`}>
+      <div className={`grid ${gridCols} gap-y-2 bg-white p-4`}>
         {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center justify-center cursor-pointer group"
+              className="flex flex-col items-center justify-center cursor-pointer group hover:shadow-lg hover:rounded-lg py-1"
             >
-              <div className="relative w-24 h-24 mb-4 overflow-hidden bg-transparent shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <div className="relative w-24 h-24 mb-4 overflow-hidden bg-transparent transition-all duration-300 group-hover:scale-105 transition-opacity duration-300">
                 {category.productImage ? (
                   <>
                     <OptimizedImage
@@ -144,7 +144,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                       aspectRatio="square"
                       priority={false}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0" />
                   </>
                 ) : (
                   <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
@@ -152,7 +152,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                   </div>
                 )}
               </div>
-              <span className="text-sm font-medium text-gray-800 text-center group-hover:text-gray-900 transition-colors">
+              <span className="text-sm text-gray-800 text-center group-hover:text-gray-900 transition-colors">
                 {category.name}
               </span>
             </div>

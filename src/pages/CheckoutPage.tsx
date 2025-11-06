@@ -450,7 +450,7 @@ const handleSaveNewAddress = async () => {
 
   // Step content renderers
 const renderStep1 = () => (
-  <>
+  <div className='min-h-screen mb-10'>
   {addresses.length > 0 && (
     <Card>
       <CardHeader>
@@ -505,7 +505,7 @@ const renderStep1 = () => (
     )}
 
     {(showAddressForm || addresses.length === 0) && (
-    <div className="space-y-6">
+    <div className="space-y-6.">
       {!isMobile && (
         <div>
           <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
@@ -555,9 +555,7 @@ const renderStep1 = () => (
 
 
           <div>
-            <Label htmlFor="phone" className="flex items-center gap-2">
-              Phone Number (M-Pesa)
-            </Label>
+            <Label htmlFor="phone">Phone Number (M-Pesa)</Label>
             <Input
               id="phone"
               value={customerData.phone}
@@ -640,18 +638,19 @@ const renderStep1 = () => (
       </Card>
     </div>
     )}
-  </>
+  </div>
 );
 
   const renderStep2 = () => (
-    <>
-      <div className="space-y-6">
-        {!isMobile && (<div>
+    <div className='min-h-screen mb-10'>
+      <div className="space-y-6.">
+        <div>
           <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
-          <p className="text-gray-600">
+          {!isMobile && ( 
+            <p className="text-gray-600">
             Please review your order details before proceeding to payment.
-          </p>
-        </div>)}
+          </p>)}
+        </div>
 
         {/* Customer Details Summary */}
         <Card>
@@ -659,9 +658,9 @@ const renderStep1 = () => (
             <CardTitle className="text-base">Customer Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p><span className="font-medium">Name:</span> {customerData.firstName} {customerData.lastName}</p>
-            <p><span className="font-medium">Email:</span> {customerData.email}</p>
-            <p><span className="font-medium">Phone:</span> {customerData.phone}</p>
+            <p className='truncate'><span className="font-medium">Name:</span> {customerData.firstName} {customerData.lastName}</p>
+            <p className='truncate'><span className="font-medium">Email:</span> {customerData.email}</p>
+            <p className='truncate'><span className="font-medium">Phone:</span> {customerData.phone}</p>
           </CardContent>
         </Card>
 
@@ -671,9 +670,9 @@ const renderStep1 = () => (
             <CardTitle className="text-base">Delivery Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p><span className="font-medium">Address:</span> {deliveryData.address}</p>
-            <p><span className="font-medium">City:</span> {getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label}</p>
-            <p><span className="font-medium">County:</span> {getCountyOptions().find(c => c.value === deliveryData.county)?.label}</p>
+            <p className='truncate'><span className="font-medium">County:</span> {getCountyOptions().find(c => c.value === deliveryData.county)?.label}</p>
+            <p className='truncate'><span className="font-medium">City:</span> {getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label}</p>
+            <p className='truncate'><span className="font-medium">Address:</span> {deliveryData.address}</p>
             {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
           </CardContent>
         </Card>
@@ -683,7 +682,7 @@ const renderStep1 = () => (
       <div className="lg:col-span-1">
         <Card className="sticky top-6">
           <CardHeader>
-            <CardTitle>Order Summary</CardTitle>
+            <CardTitle className="text-base">Order Summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
           {/* Items */}
@@ -767,7 +766,7 @@ const renderStep1 = () => (
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 
   // Payment Modal Content
@@ -910,8 +909,8 @@ return (
     ) : (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <div
-          className={`container mx-auto py-6 ${
-            !isMobile ? 'xl:px-24' : 'pb-32 px-2'
+          className={`container mx-auto .py-6 ${
+            !isMobile ? 'xl:px-24' : '.pb-32 px-0'
           }`}
         >
           {!isMobile && (<div className="mb-6">
@@ -929,7 +928,7 @@ return (
             </p>
           </div>)}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 .gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">

@@ -50,7 +50,7 @@ const Index = () => {
       <CriticalCSS />
       <ProductionOptimizer />
       
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
         <PerformanceMonitor />
         {isMobile && <Header />}
 
