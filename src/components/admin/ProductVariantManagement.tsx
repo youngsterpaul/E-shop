@@ -55,21 +55,31 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
 
       if (error) throw error;
       
-      // Transform data to match ProductVariant interface
-      const transformedData: ProductVariant[] = (data || []).map(variant => ({
-        id: variant.id,
-        product_id: variant.product_id || '',
-        variant_type: variant.variant_type,
-        variant_value: String(variant.variant_value || ''),
-        price_modifier: typeof variant.price_modifier === 'number' 
-          ? variant.price_modifier 
-          : Number(variant.price_modifier) || 0,
-        stock_quantity: typeof variant.stock_quantity === 'number' 
-          ? variant.stock_quantity 
-          : Number(variant.stock_quantity) || 0,
-        image_url: variant.image_url,
-        sku_suffix: variant.sku_suffix
-      }));
+      // Handle JSONB columns - extract actual values
+      const transformedData: ProductVariant[] = (data || []).map(variant => {
+        const variantValue = typeof variant.variant_value === 'object' && variant.variant_value !== null
+          ? JSON.stringify(variant.variant_value)
+          : String(variant.variant_value || '');
+        
+        const priceModifier = typeof variant.price_modifier === 'object' && variant.price_modifier !== null
+          ? Number(Object.values(variant.price_modifier)[0]) || 0
+          : Number(variant.price_modifier) || 0;
+        
+        const stockQuantity = typeof variant.stock_quantity === 'object' && variant.stock_quantity !== null
+          ? Number(Object.values(variant.stock_quantity)[0]) || 0
+          : Number(variant.stock_quantity) || 0;
+
+        return {
+          id: variant.id,
+          product_id: variant.product_id || '',
+          variant_type: variant.variant_type,
+          variant_value: variantValue,
+          price_modifier: priceModifier,
+          stock_quantity: stockQuantity,
+          image_url: variant.image_url,
+          sku_suffix: variant.sku_suffix
+        };
+      });
       
       setVariants(transformedData);
     } catch (err) {

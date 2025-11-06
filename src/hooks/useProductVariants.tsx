@@ -28,19 +28,30 @@ export const useProductVariants = (productId: string) => {
 
       if (error) throw error;
       
-      // Data is already in the correct format - one row per variant value
-      const transformedVariants: ProductVariant[] = (data || []).map(variant => ({
-        id: variant.id,
-        variant_type: variant.variant_type,
-        variant_value: String(variant.variant_value || ''),
-        price_modifier: typeof variant.price_modifier === 'number' 
-          ? variant.price_modifier 
-          : Number(variant.price_modifier) || 0,
-        stock_quantity: typeof variant.stock_quantity === 'number' 
-          ? variant.stock_quantity 
-          : Number(variant.stock_quantity) || 0,
-        image_url: variant.image_url || null
-      }));
+      // Handle JSONB columns - extract actual values
+      const transformedVariants: ProductVariant[] = (data || []).map(variant => {
+        // JSONB columns return the actual value, not wrapped in object
+        const variantValue = typeof variant.variant_value === 'object' && variant.variant_value !== null
+          ? JSON.stringify(variant.variant_value)
+          : String(variant.variant_value || '');
+        
+        const priceModifier = typeof variant.price_modifier === 'object' && variant.price_modifier !== null
+          ? Number(Object.values(variant.price_modifier)[0]) || 0
+          : Number(variant.price_modifier) || 0;
+        
+        const stockQuantity = typeof variant.stock_quantity === 'object' && variant.stock_quantity !== null
+          ? Number(Object.values(variant.stock_quantity)[0]) || 0
+          : Number(variant.stock_quantity) || 0;
+
+        return {
+          id: variant.id,
+          variant_type: variant.variant_type,
+          variant_value: variantValue,
+          price_modifier: priceModifier,
+          stock_quantity: stockQuantity,
+          image_url: variant.image_url || null
+        };
+      });
       
       setVariants(transformedVariants);
     } catch (error) {
