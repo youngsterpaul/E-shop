@@ -8,6 +8,7 @@ interface ProductVariant {
   variant_value: string;
   price_modifier: number;
   stock_quantity: number;
+  image_url?: string | null;
 }
 
 export const useProductVariants = (productId: string) => {
@@ -27,41 +28,19 @@ export const useProductVariants = (productId: string) => {
 
       if (error) throw error;
       
-      // Transform the data to handle variant_value from database (JSONB) to string
-      const transformedVariants: ProductVariant[] = [];
-      
-      data?.forEach(variant => {
-        const variantValue = variant.variant_value;
-        
-        if (Array.isArray(variantValue)) {
-          // Create individual variants for each value in the array
-          variantValue.forEach((value: any) => {
-            transformedVariants.push({
-              id: variant.id,
-              variant_type: variant.variant_type,
-              variant_value: String(value),
-              price_modifier: typeof variant.price_modifier === 'number' 
-                ? variant.price_modifier 
-                : Number(variant.price_modifier) || 0,
-              stock_quantity: typeof variant.stock_quantity === 'number' 
-                ? variant.stock_quantity 
-                : Number(variant.stock_quantity) || 0
-            });
-          });
-        } else {
-          transformedVariants.push({
-            id: variant.id,
-            variant_type: variant.variant_type,
-            variant_value: String(variantValue || ''),
-            price_modifier: typeof variant.price_modifier === 'number' 
-              ? variant.price_modifier 
-              : Number(variant.price_modifier) || 0,
-            stock_quantity: typeof variant.stock_quantity === 'number' 
-              ? variant.stock_quantity 
-              : Number(variant.stock_quantity) || 0
-          });
-        }
-      });
+      // Data is already in the correct format - one row per variant value
+      const transformedVariants: ProductVariant[] = (data || []).map(variant => ({
+        id: variant.id,
+        variant_type: variant.variant_type,
+        variant_value: String(variant.variant_value || ''),
+        price_modifier: typeof variant.price_modifier === 'number' 
+          ? variant.price_modifier 
+          : Number(variant.price_modifier) || 0,
+        stock_quantity: typeof variant.stock_quantity === 'number' 
+          ? variant.stock_quantity 
+          : Number(variant.stock_quantity) || 0,
+        image_url: variant.image_url || null
+      }));
       
       setVariants(transformedVariants);
     } catch (error) {

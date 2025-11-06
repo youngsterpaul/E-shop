@@ -8,6 +8,7 @@ interface VariantValue {
   available: boolean;
   priceModifier?: number;
   image?: string | null;
+  stockQuantity?: number;
 }
 
 interface VariantGroup {

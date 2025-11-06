@@ -9,18 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-interface VariantValue {
-  name: string;
-  image_url: string; // ✅ always string now (no undefined)
-}
-
 interface ProductVariant {
   id: string;
   product_id: string;
   variant_type: string;
-  variant_value: VariantValue[];
+  variant_value: string; // Single value per row
   price_modifier: number;
   stock_quantity: number;
+  image_url?: string | null;
   sku_suffix?: string | null;
 }
 
@@ -38,9 +34,10 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
 
   const [formData, setFormData] = useState({
     variant_type: '',
-    variant_values: [{ name: '', image_url: '' }],
+    variant_value: '',
     price_modifier: '0',
     stock_quantity: '0',
+    image_url: '',
     sku_suffix: ''
   });
 
@@ -52,21 +49,29 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
       const { data, error } = await supabase
         .from('product_variants')
         .select('*')
-        .eq('product_id', productId);
+        .eq('product_id', productId)
+        .order('variant_type')
+        .order('variant_value');
 
       if (error) throw error;
-
-      const parsed = (data || []).map((v: any) => ({
-        ...v,
-        variant_value: Array.isArray(v.variant_value)
-          ? v.variant_value.map((item: any) => ({
-              name: item.name || '',
-              image_url: item.image_url || '' // ✅ fallback ensures no undefined
-            }))
-          : [],
+      
+      // Transform data to match ProductVariant interface
+      const transformedData: ProductVariant[] = (data || []).map(variant => ({
+        id: variant.id,
+        product_id: variant.product_id || '',
+        variant_type: variant.variant_type,
+        variant_value: String(variant.variant_value || ''),
+        price_modifier: typeof variant.price_modifier === 'number' 
+          ? variant.price_modifier 
+          : Number(variant.price_modifier) || 0,
+        stock_quantity: typeof variant.stock_quantity === 'number' 
+          ? variant.stock_quantity 
+          : Number(variant.stock_quantity) || 0,
+        image_url: variant.image_url,
+        sku_suffix: variant.sku_suffix
       }));
-
-      setVariants(parsed);
+      
+      setVariants(transformedData);
     } catch (err) {
       console.error('Error fetching variants:', err);
       toast({
@@ -87,50 +92,35 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
   const resetForm = () => {
     setFormData({
       variant_type: '',
-      variant_values: [{ name: '', image_url: '' }],
+      variant_value: '',
       price_modifier: '0',
       stock_quantity: '0',
+      image_url: '',
       sku_suffix: ''
     });
     setEditingVariant(null);
-  };
-
-  // 🔹 Handle variant value changes
-  const handleVariantValueChange = (index: number, field: keyof VariantValue, value: string) => {
-    const updated = [...formData.variant_values];
-    updated[index][field] = value;
-    setFormData({ ...formData, variant_values: updated });
-  };
-
-  const addVariantValue = () => {
-    setFormData({
-      ...formData,
-      variant_values: [...formData.variant_values, { name: '', image_url: '' }]
-    });
-  };
-
-  const removeVariantValue = (index: number) => {
-    setFormData({
-      ...formData,
-      variant_values: formData.variant_values.filter((_, i) => i !== index)
-    });
   };
 
   // 🔹 Handle Add / Update submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.variant_type.trim() || !formData.variant_value.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in variant type and value.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const payload = {
       product_id: productId,
       variant_type: formData.variant_type.trim(),
-      variant_value: formData.variant_values
-        .filter((v) => v.name.trim() !== '')
-        .map((v) => ({
-          name: v.name.trim(),
-          image_url: v.image_url.trim() || ''
-        })),
+      variant_value: formData.variant_value.trim(),
       price_modifier: parseFloat(formData.price_modifier) || 0,
       stock_quantity: parseInt(formData.stock_quantity) || 0,
+      image_url: formData.image_url.trim() || null,
       sku_suffix: formData.sku_suffix.trim() || null
     };
 
@@ -167,12 +157,10 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
     setEditingVariant(variant);
     setFormData({
       variant_type: variant.variant_type,
-      variant_values: variant.variant_value.map((v) => ({
-        name: v.name,
-        image_url: v.image_url || ''
-      })),
+      variant_value: String(variant.variant_value),
       price_modifier: variant.price_modifier.toString(),
       stock_quantity: variant.stock_quantity.toString(),
+      image_url: variant.image_url || '',
       sku_suffix: variant.sku_suffix || ''
     });
     setShowAddDialog(true);
@@ -244,43 +232,25 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
                   </Select>
                 </div>
 
-                {/* Variant Values */}
+                {/* Variant Value */}
                 <div>
-                  <Label>Variant Values</Label>
-                  {formData.variant_values.map((value, index) => (
-                    <div key={index} className="flex items-center gap-2 mb-2">
-                      <Input
-                        placeholder="Name (e.g., Red, Large)"
-                        value={value.name}
-                        onChange={(e) => handleVariantValueChange(index, 'name', e.target.value)}
-                      />
-                      <Input
-                        placeholder="Image URL"
-                        value={value.image_url}
-                        onChange={(e) => handleVariantValueChange(index, 'image_url', e.target.value)}
-                      />
-                      {index > 0 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeVariantValue(index)}
-                        >
-                          <X size={16} />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addVariantValue}
-                    className="mt-1"
-                  >
-                    <ImagePlus size={14} className="mr-2" />
-                    Add Another
-                  </Button>
+                  <Label>Variant Value</Label>
+                  <Input
+                    placeholder="e.g., Red, Large, 4GB+128GB"
+                    value={formData.variant_value}
+                    onChange={(e) => setFormData({ ...formData, variant_value: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter one value per variant</p>
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <Label>Image URL (optional)</Label>
+                  <Input
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  />
                 </div>
 
                 {/* Price & Stock */}
@@ -293,6 +263,7 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
                       value={formData.price_modifier}
                       onChange={(e) => setFormData({ ...formData, price_modifier: e.target.value })}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Additional cost for this variant</p>
                   </div>
                   <div>
                     <Label>Stock Quantity</Label>
@@ -335,25 +306,23 @@ const ProductVariantManagement = ({ productId }: ProductVariantManagementProps) 
             {variants.map((variant) => (
               <div
                 key={variant.id}
-                className="p-3 border rounded-lg flex justify-between items-center"
+                className="p-3 border rounded-lg flex justify-between items-center hover:bg-gray-50"
               >
-                <div className="flex-1">
-                  <div className="font-medium">{variant.variant_type}</div>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    {variant.variant_value.map((v, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        {v.image_url && (
-                          <img
-                            src={v.image_url}
-                            alt={v.name}
-                            className="w-6 h-6 object-cover rounded"
-                          />
-                        )}
-                        <span>{v.name}</span>
-                      </div>
-                    ))}
-                    <div>
-                      Price: {variant.price_modifier >= 0 ? '+' : ''}KES {variant.price_modifier} | Stock: {variant.stock_quantity}
+                <div className="flex items-center gap-3 flex-1">
+                  {variant.image_url && (
+                    <img
+                      src={variant.image_url}
+                      alt={String(variant.variant_value)}
+                      className="w-12 h-12 object-cover rounded border"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">
+                      {variant.variant_type}: <span className="text-primary">{variant.variant_value}</span>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      Price: {variant.price_modifier >= 0 ? '+' : ''}KES {variant.price_modifier.toFixed(2)} | 
+                      Stock: {variant.stock_quantity}
                       {variant.sku_suffix && ` | SKU: ${variant.sku_suffix}`}
                     </div>
                   </div>

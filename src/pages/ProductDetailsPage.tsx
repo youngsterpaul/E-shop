@@ -18,19 +18,14 @@ import { useCart } from '@/hooks/useCart';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
-// ✅ Properly typed interfaces
-interface VariantValue {
-  name: string;
-  image_url?: string;
-}
-
-interface Variant {
-  id?: string; // Add this if needed
+// ✅ Properly typed interfaces - aligned with ProductVariant from useProductVariants
+interface ProductVariant {
+  id: string;
   variant_type: string;
-  variant_value: string | VariantValue[];
+  variant_value: string;
+  price_modifier: number;
   stock_quantity: number;
-  price_modifier?: number;
-  image_url?: string;
+  image_url?: string | null;
 }
 
 interface Product {
@@ -89,30 +84,15 @@ const ProductDetailsPage: React.FC = () => {
   const transformedVariants = useMemo(() => {
     if (!variants?.length) return [];
 
-    return variants.reduce((acc: any[], v: Variant) => {
+    return variants.reduce((acc: any[], v: ProductVariant) => {
       const type = v.variant_type;
       
-      let values: VariantValue[] = [];
-      try {
-        if (typeof v.variant_value === 'string') {
-          const parsed = JSON.parse(v.variant_value);
-          if (Array.isArray(parsed)) {
-            values = parsed;
-          } else {
-            values = [{ name: String(parsed), image_url: '' }];
-          }
-        } else if (Array.isArray(v.variant_value)) {
-          values = v.variant_value;
-        } else {
-          values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
-        }
-      } catch {
-        values = [{ name: String(v.variant_value || ''), image_url: (v as any).image_url || '' }];
-      }
+      // Since variant_value is now a string (one value per row), handle it directly
+      const valueString = String(v.variant_value || '');
 
-      // Determine variant type based on presence of images
+      // Determine variant type
       const variantType: 'image' | 'size' | 'material' | 'other' =
-        values.some((vv: any) => vv.image_url)
+        v.image_url
           ? 'image'
           : type.toLowerCase().includes('size')
           ? 'size'
@@ -124,17 +104,15 @@ const ProductDetailsPage: React.FC = () => {
       const existing = acc.find((x) => x.id === v.variant_type);
       
       if (existing) {
-        // Add values to existing variant type
-        values.forEach((val) => {
-          const valueObj = {
-            id: String(val.name),
-            name: String(val.name),
-            value: val.image_url ? String(val.image_url) : String(val.name),
-            available: v.stock_quantity > 0,
-            priceModifier: v.price_modifier || 0,
-            image: val.image_url || '',
-          };
-          existing.values.push(valueObj);
+        // Add value to existing variant type
+        existing.values.push({
+          id: valueString,
+          name: valueString,
+          value: v.image_url || valueString,
+          available: v.stock_quantity > 0,
+          priceModifier: v.price_modifier || 0,
+          image: v.image_url || undefined,
+          stockQuantity: v.stock_quantity
         });
       } else {
         // Create new variant type
@@ -142,14 +120,15 @@ const ProductDetailsPage: React.FC = () => {
           id: v.variant_type,
           name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
           type: variantType === 'image' ? 'color' : variantType,
-          values: values.map((val) => ({
-            id: String(val.name),
-            name: String(val.name),
-            value: val.image_url ? String(val.image_url) : String(val.name),
+          values: [{
+            id: valueString,
+            name: valueString,
+            value: v.image_url || valueString,
             available: v.stock_quantity > 0,
             priceModifier: v.price_modifier || 0,
-            image: val.image_url || '',
-          })),
+            image: v.image_url || undefined,
+            stockQuantity: v.stock_quantity
+          }]
         });
       }
 
@@ -199,26 +178,9 @@ const ProductDetailsPage: React.FC = () => {
     
     const stockMap: Record<string, number> = {};
     
-    variants.forEach((v: Variant) => {
-      let values: VariantValue[] = [];
-      
-      try {
-        if (typeof v.variant_value === 'string') {
-          const parsed = JSON.parse(v.variant_value);
-          values = Array.isArray(parsed) ? parsed : [{ name: String(parsed), image_url: '' }];
-        } else if (Array.isArray(v.variant_value)) {
-          values = v.variant_value;
-        } else {
-          values = [{ name: String(v.variant_value || ''), image_url: '' }];
-        }
-      } catch {
-        values = [{ name: String(v.variant_value || ''), image_url: '' }];
-      }
-
-      values.forEach((val) => {
-        const valueName = val.name || String(val);
-        stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
-      });
+    variants.forEach((v: ProductVariant) => {
+      const valueName = String(v.variant_value);
+      stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
     });
 
     return stockMap;
@@ -236,27 +198,18 @@ const ProductDetailsPage: React.FC = () => {
 
     for (const [type, selectedValue] of Object.entries(selectedVariants)) {
       const variant = variants.find((v) => {
-        if (v.variant_type !== type) return false;
-        
-        let values: VariantValue[] = [];
-        try {
-          if (typeof v.variant_value === 'string') {
-            const parsed = JSON.parse(v.variant_value);
-            values = Array.isArray(parsed) ? parsed : [parsed];
-          } else if (Array.isArray(v.variant_value)) {
-            values = v.variant_value;
-          }
-        } catch {
-          values = [{ name: String(v.variant_value || ''), image_url: '' }];
-        }
-        
-        return values.some(val => val.name === selectedValue);
+        return v.variant_type === type && String(v.variant_value) === selectedValue;
       });
       
-      if (variant?.price_modifier) total += variant.price_modifier;
+      if (variant) {
+        total += variant.price_modifier || 0;
+      }
     }
+
     return total;
   }, [product, selectedVariants, variants]);
+
+  const calculatePrice = () => price;
 
   const formatPrice = (p: number) =>
     new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(p);

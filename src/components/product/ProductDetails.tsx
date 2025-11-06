@@ -139,6 +139,17 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
     return product.price + totalModifier;
   };
 
+  const getSelectedVariantImage = () => {
+    // Get the first selected variant that has an image
+    for (const [type, value] of Object.entries(selectedVariants)) {
+      const variant = variants.find(v => v.variant_type === type && v.variant_value === value);
+      if (variant?.image_url) {
+        return variant.image_url;
+      }
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div>
