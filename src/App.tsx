@@ -172,7 +172,7 @@ function App() {
       } else if (location.pathname.startsWith("/category")) {
         title = "Product Category";
       } else if (location.pathname.startsWith("/checkout")) {
-        title = "Checkout";
+        title = "Place Order";
       } else if (location.pathname.startsWith("/chat")) {
         title = "Customer Support";
       } else if (location.pathname.startsWith("/cart")) {

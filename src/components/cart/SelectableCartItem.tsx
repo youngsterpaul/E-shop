@@ -174,31 +174,18 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
       
       {/* Mobile Layout */}
       {isMobile && (
-      <div className="block sm:hidden">
+      <div className="block">
         <div className="p-3">
           {/* Header with checkbox and remove button */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3. space-x-2">
             <Checkbox
               checked={isSelected}
               onCheckedChange={handleToggleSelect}
               className="flex-shrink-0"
               disabled={isRemoving || isUpdating}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRemove}
-              disabled={isRemoving || isUpdating}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
-              title="Remove item"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
 
-          {/* Product image and basic info */}
-          <div className="flex gap-3 mb-3">
-            <div className="w-16 h-16 flex-shrink-0">
+            <div className="w-16 h-16 flex-shrink-0 flex gap-3 mb-3">
               <img
                 src={item.product.image}
                 alt={item.product.name}
@@ -214,13 +201,24 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
                 {formattedPrice} each
               </p>
             </div>
-          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRemove}
+            disabled={isRemoving || isUpdating}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
+            title="Remove item"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
 
           {/* Variants */}
           {variantDisplay}
+          </div>
 
           {/* Quantity and total price */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
             <div className="flex items-center border rounded-md bg-white">
               <Button
                 variant="ghost"
@@ -255,8 +253,8 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
             </div>
 
             <div className="text-right">
-              <p className="text-base font-semibold text-primar text-red-600">
-                {totalPrice}
+              <p className="text-xs font-semibold text-primary text-red-500">
+                <span className='text-gray-500 text-xs'>Subtotal:</span> {totalPrice}
               </p>
             </div>
           </div>
@@ -266,7 +264,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
 
       {/* Desktop/Tablet Layout */}
       {!isMobile && (
-      <div className="hidden sm:flex items-start gap-4 p-4">
+      <div className="flex items-start gap-4 p-4">
         <Checkbox
           checked={isSelected}
           onCheckedChange={handleToggleSelect}
@@ -284,7 +282,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 text-sm md:text-base mb-1 truncate">
+          <h3 className="font-medium text-gray-800 text-sm mb-1 line-clamp-2 max-w-[400px]">
             {item.product.name}
           </h3>
           

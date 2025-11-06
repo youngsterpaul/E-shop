@@ -6,12 +6,14 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 const CartSummary = () => {
   const { calculations } = useSelectiveCart();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
+  const { freeShippingThreshold, isLoading: settingsLoading } = useShippingSettings();
 
   const handleCheckout = async () => {
     try {
@@ -44,9 +46,8 @@ const CartSummary = () => {
     );
   }
 
-  const freeDeliveryThreshold = 10000;
-  const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
-  const amountNeededForFreeDelivery = freeDeliveryThreshold - calculations.subtotal;
+  const isEligibleForFreeDelivery = calculations.subtotal >= freeShippingThreshold;
+  const amountNeededForFreeDelivery = freeShippingThreshold - calculations.subtotal;
 
   return (
     <Card className="sticky top-6">
@@ -73,7 +74,7 @@ const CartSummary = () => {
             <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((calculations.subtotal / freeDeliveryThreshold) * 100, 100)}%` }}
+                style={{ width: `${Math.min((calculations.subtotal / freeShippingThreshold) * 100, 100)}%` }}
               />
             </div>
           </div>
@@ -146,7 +147,7 @@ const CartSummary = () => {
           <p className="text-xs text-gray-500">
             {isEligibleForFreeDelivery 
               ? "🎉 You qualify for free delivery!" 
-              : "Free delivery on orders over KES 10,000"
+              : `Free delivery on orders over KES ${freeShippingThreshold.toLocaleString()}`
             }
           </p>
         </div>

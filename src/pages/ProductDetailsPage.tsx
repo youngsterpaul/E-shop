@@ -15,6 +15,8 @@ import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useCart } from '@/hooks/useCart';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
 // ✅ Properly typed interfaces
 interface VariantValue {
@@ -57,6 +59,10 @@ const ProductDetailsPage: React.FC = () => {
 
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+
+  const { calculations } = useSelectiveCart();
+  const { freeShippingThreshold } = useShippingSettings();
+  const amountNeededForFreeDelivery = freeShippingThreshold - calculations.subtotal;
 
   // ------------------ Cart Handling ------------------
   let totalItems = 0;
@@ -401,7 +407,7 @@ const ProductDetailsPage: React.FC = () => {
 
             <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>
-                <h1 className="text-md font-bold text-gray-900" style={{ textAlign: 'justify' }}>
+                <h1 className="text-md font-bold text-gray-900">
                   {product.name}
                 </h1>
                 {product.rating && (
@@ -454,7 +460,7 @@ const ProductDetailsPage: React.FC = () => {
 
               {isMobile && (
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>✓ Free shipping on orders over KES 10,000</p>
+                  <p>✓ Free shipping on orders over KES {amountNeededForFreeDelivery.toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
                 </div>

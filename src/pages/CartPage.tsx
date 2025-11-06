@@ -13,6 +13,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -28,6 +29,8 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
+  const { freeShippingThreshold } = useShippingSettings();
+  const isEligibleForFreeDelivery = calculations.subtotal >= freeShippingThreshold;
 
   // Refetch cart data when component mounts to ensure fresh data
   useEffect(() => {
@@ -76,15 +79,15 @@ const CartPage = () => {
   }
 
   return (
-    <div className={`bg-white ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`flex-grow mx-auto ${!isMobile ? 'container px-0 xl:px-24' : 'pb-32 px-2 py-6'}`}>
-        <div className={`${!isMobile ? 'shadow-md p-8' : ''}`}>
+    <div className={`min-h-screen mb-10 w-full bg-white ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`${!isMobile ? 'container mx-auto' : 'pb-32 px-2 pt-2 pb-6'}`}>
+        <div className={`${!isMobile ? 'p-8' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900">
               Shopping Cart
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm">
               {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
               {selectedItems.length > 0 && (
                 <span className="ml-2 text-primary font-medium">
@@ -95,10 +98,10 @@ const CartPage = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`grid gap-8 ${isMobile ? 'grid-cols-1 .lg:grid-cols-3' : 'grid-cols-2'}`}>
           {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-white shadow-sm overflow-hidden">
+          <div className=".lg:col-span-2">
+            <div className="bg-white shadow-sm">
               <CartHeader
                 totalItems={cartItems.length}
                 selectedCount={selectedItems.length}
@@ -119,7 +122,7 @@ const CartPage = () => {
 
           {/* Cart Summary - Desktop Only */}
           {!isMobile && (
-            <div className="lg:col-span-1">
+            <div className=".lg:col-span-1 max-w-[400px]">
               <CartSummary />
             </div>
           )}
@@ -129,12 +132,29 @@ const CartPage = () => {
 
       {/* Mobile Fixed Bottom Bar */}
       {isMobile && calculations.selectedItemsCount > 0 && (
+        <>
+        <div className="fixed bottom-20 left-0 right-0 bg-white px-2 border-t border-gray-200 shadow-lg justify-between">
+          <div className="flex justify-between">
+            <div>
+              <span className="text-gray-600 text-xs">Subtotal: </span>
+              <span className="text-xs text-red-500">KES {calculations.subtotal.toLocaleString()}</span>
+            </div>
+            <div className=''>
+              <span className="text-xs">Delivery: </span>
+              <span className={`text-xs text-red-500 ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
+                {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
+                  isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
+              </span>
+            </div>
+            </div>
+          </div>
+
         <div className="fixed bottom-8 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-          <div className="container mx-auto px-4 py-2">
+          <div className="container mx-auto px-2 py-1">    
             {/* Totals Row */}
             <div className="flex justify-between items-center mb-2">
               <div>
-                <p className="text-md text-red-500">
+                <p className="text-sm text-red-500">
                   <span className='text-gray-900'>Total: </span>
                   KES {calculations.total.toLocaleString()}
                 </p>
@@ -142,7 +162,7 @@ const CartPage = () => {
               <Button
                 onClick={handleCheckout}
                 disabled={isNavigating}
-                className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold px-2 h-8"
+                className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm px-2 h-8"
               >
                 {isNavigating ? (
                   <>
@@ -152,21 +172,15 @@ const CartPage = () => {
                 ) : (
                   <>
                     Checkout
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-4 w-4 ml-1" />
                   </>
                 )}
               </Button>
             </div>
-            
-            {/* Free Delivery Indicator */}
-            {calculations.subtotal < 10000 && (
-              <p className="text-xs text-center text-gray-500">
-                Add KES {(10000 - calculations.subtotal).toLocaleString()} more for free delivery
-              </p>
-            )}
           </div>
           
         </div>
+        </>
       )}
     </div>
   );

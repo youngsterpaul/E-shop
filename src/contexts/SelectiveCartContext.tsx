@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations } from '@/types/cart';
 import { useCartContext } from './CartContext';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 interface SelectiveCartContextType {
   selections: CartItemSelection[];
@@ -32,6 +33,7 @@ const SelectiveCartContext = createContext<SelectiveCartContextType | undefined>
 
 export const SelectiveCartProvider = ({ children }: { children: React.ReactNode }) => {
   const { cartItems, loading } = useCartContext();
+  const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const [selections, setSelections] = useState<CartItemSelection[]>([]);
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
@@ -175,8 +177,9 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
 
     const discountedSubtotal = Math.max(0, subtotal - discount);
     
-    // Add shipping
-    const shipping = shippingOption?.price || 0;
+    // Add shipping - free if subtotal exceeds threshold
+    const isEligibleForFreeShipping = subtotal >= freeShippingThreshold;
+    const shipping = isEligibleForFreeShipping ? 0 : (shippingOption?.price || shippingFee);
     const preTaxTotal = discountedSubtotal + shipping;
     
     // Calculate tax (adjust rate as needed)
@@ -193,7 +196,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
       total: Math.round(Math.max(0, total) * 100) / 100,
       selectedItemsCount: selectedItems.length
     };
-  }, [cartItems, selectedItemIds, shippingOption, appliedCoupons, calculationKey]);
+  }, [cartItems, selectedItemIds, shippingOption, appliedCoupons, calculationKey, shippingFee, freeShippingThreshold]);
 
   // Memoize the entire context value
   const contextValue = useMemo(() => ({

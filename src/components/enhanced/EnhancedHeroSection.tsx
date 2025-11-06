@@ -370,7 +370,7 @@ const EnhancedHeroSection = memo(() => {
   const heroHeight = isMobile ? 'h-[120px]' : 'h-[500px]';
 
   return (
-    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden'}`}>
+    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
       <CategorySidebar />
       <div 
         className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''}`}
@@ -384,7 +384,7 @@ const EnhancedHeroSection = memo(() => {
           height={1080}
           className={`object-cover ${!isMobile ? 'max-h-[500px] w-full' : 'max-h-[180px]'}`}
         />
-        <div className={`absolute inset-0 bg-black/50 ${isMobile ? 'overflow-hidden' : ''}`} />
+        <div className={`absolute inset-0 bg-black/30 ${isMobile ? 'overflow-hidden' : ''}`} />
       </div>
 
       <div className={`absolute left-1/2 transform -translate-x-1/2 flex space-x-3 z-20 ${!isMobile ? 'bottom-8' : 'bottom-4'}`}>

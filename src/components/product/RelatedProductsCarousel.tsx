@@ -59,8 +59,8 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
     <div className="mt-12">
       <div className={`mx-auto bg-white pt-4 ${!isMobile ? 'px-4':''}`}>
         {/* Header with title and navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 px-2">You might also like</h2>
+        <div className="flex items-center justify-between mb-2 border-b pb-2">
+          <h2 className="text-md font-bold text-gray-900 px-2">You might also like</h2>
           
           {products.length > 8 && (
             <div className="flex gap-2">
@@ -89,7 +89,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
         </div>
 
         {/* Products Grid */}
-        <div className={`grid ${gridCols} ${isMobile ? 'bg-gray-50':'bg-white'} gap-2 shadow-sm p-2`}>
+        <div className={`grid ${gridCols} ${isMobile ? '':'bg-white'} gap-2 shadow-sm p-2`}>
           {products.slice(0, 6).map((product) => {
             const productCardData = {
               id: product.product_id,

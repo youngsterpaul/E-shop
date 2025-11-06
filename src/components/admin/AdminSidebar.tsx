@@ -17,7 +17,8 @@ import {
   Bell,
   Store,
   Image,
-  MapPin
+  MapPin,
+  FolderTree
 } from 'lucide-react';
 
 const AdminSidebar = () => {

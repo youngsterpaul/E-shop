@@ -66,9 +66,6 @@ verify_jwt = true
 [functions.mpesa-callback]
 verify_jwt = false
 
-[functions.send-payment-confirmation]
-verify_jwt = false
-
 [analytics]
 enabled = false
 port = 54327

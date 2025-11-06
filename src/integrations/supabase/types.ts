@@ -161,206 +161,139 @@ export type Database = {
           },
         ]
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      counties: {
-        Row: {
-          id: string
-          name: string
-          slug: string
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          slug: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          slug?: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      cities: {
-        Row: {
-          id: string
-          county_id: string
-          name: string
-          slug: string
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          county_id: string
-          name: string
-          slug: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          county_id?: string
-          name?: string
-          slug?: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cities_county_id_fkey"
-            columns: ["county_id"]
-            isOneToOne: false
-            referencedRelation: "counties"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      delivery_addresses: {
-        Row: {
-          id: string
-          user_id: string
-          address_name: string | null
-          full_name: string
-          phone: string
-          street_address: string
-          city: string
-          county: string
-          is_default: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          address_name?: string | null
-          full_name: string
-          phone: string
-          street_address: string
-          city: string
-          county: string
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          address_name?: string | null
-          full_name?: string
-          phone?: string
-          street_address?: string
-          city?: string
-          county?: string
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_addresses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       categories: {
         Row: {
           category: string
-          slug: string | null
           id: number
           parent_id: number | null
+          slug: string | null
         }
         Insert: {
           category: string
-          slug?: string | null
           id?: number
           parent_id?: number | null
+          slug?: string | null
         }
         Update: {
           category?: string
-          slug?: string | null
           id?: number
           parent_id?: number | null
+          slug?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      store: {
+      category_icons: {
         Row: {
-          id: number
-          name: string
-          phone: number | null
-          created_at: string | null
-          updated_at: string | null
-          address: string | null
-          email: string | null
+          id: number;
+          name: string;
+          icon_name: string;
+          category_id: number;
+          subcategory_id: number | null;
+          color: string;
+          icon_color: string;
+          product_image: string | null;
+          display_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
         }
         Insert: {
-          id?: number
-          name: string
-          phone: number | null
-          created_at?: string | null
-          updated_at?: string | null
-          address?: string | null
-          email?: string | null
+          id?: number;
+          name?: string;
+          icon_name?: string;
+          category_id?: number;
+          subcategory_id?: number | null;
+          color?: string;
+          icon_color?: string;
+          product_image?: string | null;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
         }
         Update: {
-          id?: number
-          name?: string
-          phone?: number | null
+          id?: number;
+          name?: string;
+          icon_name?: string;
+          category_id?: number;
+          subcategory_id?: number | null;
+          color?: string;
+          icon_color?: string;
+          product_image?: string | null;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        }
+       Relationships: [
+        {
+          foreignKeyName: "category_icons_category_id_fkey";
+          columns: ["category_id"];
+          referencedRelation: "categories";
+          referencedColumns: ["id"];
+        },
+        {
+          foreignKeyName: "category_icons_subcategory_id_fkey";
+          columns: ["subcategory_id"];
+          referencedRelation: "categories";
+          referencedColumns: ["id"];
+        }
+      ];
+      }
+      cities: {
+        Row: {
+          county_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          county_id: string
           created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
           updated_at?: string | null
-          address?: string | null
-          email?: string | null
+        }
+        Update: {
+          county_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      counties: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -388,6 +321,48 @@ export type Database = {
           total_customers?: number | null
           total_orders?: number | null
           total_revenue?: number | null
+        }
+        Relationships: []
+      }
+      delivery_addresses: {
+        Row: {
+          address_name: string | null
+          city: string
+          county: string
+          created_at: string | null
+          full_name: string
+          id: string
+          is_default: boolean | null
+          phone: string
+          street_address: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address_name?: string | null
+          city: string
+          county: string
+          created_at?: string | null
+          full_name: string
+          id?: string
+          is_default?: boolean | null
+          phone: string
+          street_address: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address_name?: string | null
+          city?: string
+          county?: string
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          is_default?: boolean | null
+          phone?: string
+          street_address?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -473,15 +448,40 @@ export type Database = {
           transaction_date?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mpesa_payments_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["order_id"]
-          },
-        ]
+        Relationships: []
+      }
+      mpesa_rate_limit: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          identifier: string
+          last_attempt: string
+          request_type: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier: string
+          last_attempt?: string
+          request_type?: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          identifier?: string
+          last_attempt?: string
+          request_type?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -709,22 +709,94 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_reviews_profiles"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["product_id"]
-          },
-        ]
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          identifier: string
+          severity: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          identifier: string
+          severity: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          identifier?: string
+          severity?: string
+        }
+        Relationships: []
+      }
+      store: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          id: number
+          name: string
+          phone: number | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          name: string
+          phone?: number | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          name?: string
+          phone?: number | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       wishlists: {
         Row: {
@@ -756,7 +828,6 @@ export type Database = {
         Args: { p_product_id: string; p_user_id: string }
         Returns: boolean
       }
-      check_is_admin: { Args: { uid?: string }; Returns: boolean }
       cleanup_expired_carts: { Args: never; Returns: number }
       get_or_create_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
@@ -769,7 +840,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: { Args: { user_id?: string }; Returns: boolean }
       is_any_admin: { Args: { _user_id: string }; Returns: boolean }
       migrate_guest_cart_to_user: {
         Args: { p_session_id: string; p_user_id: string }
