@@ -257,37 +257,34 @@ const MobileAddToCartModal = ({
                           type: variantType,
                           values: getVariantsByType(type).map((variant) => {
                             const variantValue = String(variant.variant_value || '');
-                            
-                            return {
-                              id: variantValue,
-                              name: variantValue,
-                              value: variantType === 'color' 
-                                ? (colorMap[variantValue.toLowerCase()] || '#6b7280')
+                          return {
+                            id: variantValue,
+                            name: variantValue,
+                            value:
+                              variantType === 'color'
+                                ? colorMap[variantValue.toLowerCase()] || '#6b7280'
                                 : variantValue,
-                              available: variant.stock_quantity > 0,
-                              priceModifier: variant.price_modifier || 0
-                            };
-                          })
-                        });
-                        
-                        return acc;
-                      }, [] as any[]);
-                      
-                      return transformedVariants;
-                    })()}
-                    selectedVariants={selectedVariants}
-                    onVariantChange={onVariantChange}
-                    stockInfo={(() => {
-                      // Create stock info for VariantSelector
-                      const stockInfo: Record<string, number> = {};
-                      getVariantTypes().forEach(type => {
-                        getVariantsByType(type).forEach(variant => {
-                          const stockKey = `${type}-${variant.variant_value}`;
-                          stockInfo[stockKey] = variant.stock_quantity;
-                        });
+                            available: variant.stock_quantity > 0,
+                            priceModifier: variant.price_modifier || 0,
+                            image: variant.image_url || null,
+                            stockQuantity: variant.stock_quantity
+                          };
+                        }),
+                      };
+                    });
+                  })()}
+                  selectedVariants={selectedVariants}
+                  onVariantChange={onVariantChange}
+                  stockInfo={(() => {
+                    const stockInfo: Record<string, number> = {};
+                    getVariantTypes().forEach((type) => {
+                      getVariantsByType(type).forEach((variant) => {
+                        const key = `${type}-${variant.variant_value}`;
+                        stockInfo[key] = variant.stock_quantity;
                       });
-                      return stockInfo;
-                    })()}
+                    });
+                    return stockInfo;
+                  })()}
                   />
                 </div>
               )}
