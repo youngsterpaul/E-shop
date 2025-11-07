@@ -127,8 +127,7 @@ const OrdersPage = memo(() => {
   }
 
   return (
-    <div className={`container min-h-screen .bg-gray-50 pb-24 flex-grow mx-auto px-4 container .py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
-      {/* ===== Sticky Header with Tabs ===== */}
+    <div className={`container min-h-screen .bg-gray-50 pb-24 flex-grow mx-auto container .py-8 ${!isMobile ? 'xl:px-24 px-4' : 'px-2'}`}>
       <div className="bg-gray-50 border-b .px-4 .sm:px-8 py-3">
         {!isMobile && ( 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
