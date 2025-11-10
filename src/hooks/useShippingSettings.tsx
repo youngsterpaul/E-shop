@@ -25,7 +25,7 @@ export const useShippingSettings = () => {
 
       // Convert to numbers with fallback defaults
       const shippingFee = Number(settingsMap['shipping_fee']);
-      const freeShippingThreshold = Number(settingsMap['free_shipping_threshold']);
+      const freeShippingThreshold = Number(settingsMap['free_shipping_threshold'] || 5000);
 
       return { shippingFee, freeShippingThreshold };
     },
@@ -36,7 +36,7 @@ export const useShippingSettings = () => {
 
   return {
     shippingFee: query.data?.shippingFee,
-    freeShippingThreshold: query.data?.freeShippingThreshold,
+    freeShippingThreshold: query.data?.freeShippingThreshold ?? 5000,
     isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,

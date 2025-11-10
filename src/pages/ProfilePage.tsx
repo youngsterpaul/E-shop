@@ -34,11 +34,9 @@ export default function ProfilePage() {
     if (!form.county) return [];
     return getCityOptions(form.county);
   }, [form.county, getCityOptions]);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null);
-  const [filename, setFilename] = useState<string | null>(null);
   const isMobile = isMobileUserAgent();
 
   // 🧠 Prefill data once profile loads
@@ -53,7 +51,6 @@ export default function ProfilePage() {
       city: profile.city || '',
       address: profile.address || ''
     });
-    setFilename(profile.avatar_url);
   }, [profile]);
 
   // 🧩 Generic handler to update form fields
@@ -86,28 +83,6 @@ export default function ProfilePage() {
   }, [form, user?.id, updateProfile]);
 
 
-  const handleAvatarChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
-    setUploading(true);
-    setProgress(40);
-    const fileExt = file.name.split('.').pop() || 'jpg';
-    const newFilename = `${user.id}/${Date.now()}.${fileExt}`;
-
-    const { error } = await supabase.storage.from('avatars').upload(newFilename, file);
-    if (error) {
-      setStatus({ type: 'error', msg: error.message });
-      setUploading(false);
-      return;
-    }
-
-    await supabase.from('profiles').update({ avatar_url: newFilename }).eq('user_id', user.id);
-    const { data } = supabase.storage.from('avatars').getPublicUrl(newFilename);
-    setAvatarUrl(data?.publicUrl);
-    setFilename(newFilename);
-    setUploading(false);
-    setStatus({ type: 'success', msg: 'Avatar updated successfully!' });
-  }, [user?.id]);
 
   const smallText = "text-sm sm:text-xs text-gray-700";
   const inputClass = "h-10 border-gray-300 text-sm";
@@ -125,22 +100,6 @@ export default function ProfilePage() {
             <AlertDescription>{status.msg}</AlertDescription>
           </Alert>
         )}
-
-        {/* ✅ Avatar */}
-        <Card className="border shadow-sm">
-          <CardContent className="pt-6 flex flex-col items-center">
-            <div className="relative">
-              <Avatar className="w-24 h-24 border shadow">
-                {avatarUrl ? <AvatarImage src={avatarUrl} /> : <AvatarFallback>{form.firstName[0]}{form.lastName[0]}</AvatarFallback>}
-              </Avatar>
-              <label htmlFor="avatar-upload" className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 hover:opacity-100 cursor-pointer transition">
-                <Camera className="h-6 w-6 text-white" />
-                <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-              </label>
-            </div>
-            {uploading && <Progress value={progress} className="w-40 mt-3" />}
-          </CardContent>
-        </Card>
 
         {/* ✅ Profile Form */}
         <Card className="border shadow-sm">
