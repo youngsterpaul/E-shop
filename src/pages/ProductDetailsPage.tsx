@@ -57,7 +57,7 @@ const ProductDetailsPage: React.FC = () => {
 
   const { calculations } = useSelectiveCart();
   const { freeShippingThreshold } = useShippingSettings();
-  const amountNeededForFreeDelivery = freeShippingThreshold - calculations.subtotal;
+  const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
   // ------------------ Cart Handling ------------------
   let totalItems = 0;

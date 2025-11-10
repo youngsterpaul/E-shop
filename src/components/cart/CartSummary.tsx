@@ -46,8 +46,8 @@ const CartSummary = () => {
     );
   }
 
-  const isEligibleForFreeDelivery = calculations.subtotal >= freeShippingThreshold;
-  const amountNeededForFreeDelivery = freeShippingThreshold - calculations.subtotal;
+  const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
+  const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
   return (
     <Card className="sticky top-6">
@@ -74,7 +74,7 @@ const CartSummary = () => {
             <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((calculations.subtotal / freeShippingThreshold) * 100, 100)}%` }}
+                style={{ width: `${Math.min((calculations.subtotal / (freeShippingThreshold || 1)) * 100, 100)}%` }}
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ const CartSummary = () => {
           <p className="text-xs text-gray-500">
             {isEligibleForFreeDelivery 
               ? "🎉 You qualify for free delivery!" 
-              : `Free delivery on orders over KES ${freeShippingThreshold.toLocaleString()}`
+              : `Free delivery on orders over KES ${(freeShippingThreshold || 0).toLocaleString()}`
             }
           </p>
         </div>
