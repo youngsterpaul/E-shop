@@ -320,6 +320,19 @@ const ProductDetailsPage: React.FC = () => {
     images: product.image_urls || [],
   };
 
+  // Extract color variant images for gallery thumbnails
+  const variantImages = useMemo(() => {
+    const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
+    if (!colorGroup) return [];
+    
+    return colorGroup.values
+      .filter((v: any) => v.image)
+      .map((v: any) => ({
+        url: v.image as string,
+        label: v.name || v.id
+      }));
+  }, [transformedVariants]);
+
   const productForTabs = {
     ...product,
     features: typeof product.features === 'string'
@@ -356,7 +369,11 @@ const ProductDetailsPage: React.FC = () => {
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
-            <EnhancedProductImageGallery product={productWithImages} selectedImageUrl={selectedColorImageUrl} />
+            <EnhancedProductImageGallery 
+              product={productWithImages} 
+              selectedImageUrl={selectedColorImageUrl}
+              variantImages={variantImages}
+            />
 
             <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
               <div>

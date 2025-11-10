@@ -12,9 +12,10 @@ interface EnhancedProductImageGalleryProps {
     video?: string;
   };
   selectedImageUrl?: string;
+  variantImages?: Array<{ url: string; label: string }>; // Color variant images
 }
 
-const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProductImageGalleryProps) => {
+const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages = [] }: EnhancedProductImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [showLens, setShowLens] = useState(false);
@@ -30,11 +31,28 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProd
   const lensSize = 220;
   const zoomLevel = 1.8;
 
-  /** ✅ Combine product media (main image → other images → video) */
+  /** ✅ Combine product media (main image → color variants → other images → video) */
   const allMedia = useMemo(() => {
-    const imgs = [product.image, ...(product.images?.filter((img) => img !== product.image) || [])];
+    const imgs = [product.image];
+    
+    // Add color variant images first (they are more important for user selection)
+    if (variantImages.length > 0) {
+      variantImages.forEach(variant => {
+        if (variant.url && !imgs.includes(variant.url)) {
+          imgs.push(variant.url);
+        }
+      });
+    }
+    
+    // Add other product images
+    product.images?.forEach(img => {
+      if (img !== product.image && !imgs.includes(img)) {
+        imgs.push(img);
+      }
+    });
+    
     return product.video ? [...imgs, product.video] : imgs;
-  }, [product.image, product.images, product.video]);
+  }, [product.image, product.images, product.video, variantImages]);
 
   // If a selected image is provided (e.g., from color variant), switch to it
   useEffect(() => {
