@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Json } from '@/integrations/supabase/types';
 import { downloadReceipt } from '@/utils/receiptGenerator';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Updated interface to match OrderDetailPage structure
 interface OrderItem {
@@ -51,6 +52,7 @@ interface Order {
   amount: number | null;
   items: OrderItem[] | null;
   shipping_address: string | null;
+  delivery_fee: number;
   created_at: string;
   updated_at: string;
   first_name?: string;
@@ -75,7 +77,7 @@ const AdminOrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreOrders, setHasMoreOrders] = useState(false);
-  
+
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [updatedStatus, setUpdatedStatus] = useState('');
@@ -85,6 +87,9 @@ const AdminOrdersPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Add these new state variables
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
   
   const [orderCount, setOrderCount] = useState({ 
     total: 0, 
@@ -95,6 +100,39 @@ const AdminOrdersPage = () => {
     delivered: 0,
     cancelled: 0
   });
+
+  // Add this function after your state declarations
+const recalculateOrderCounts = (ordersList: Order[]) => {
+  const counts = {
+    total: ordersList.length,
+    pending: ordersList.filter(order => order.status === 'pending').length,
+    paid: ordersList.filter(order => order.status === 'paid').length,
+    processing: ordersList.filter(order => order.status === 'processing').length,
+    shipped: ordersList.filter(order => order.status === 'shipped').length,
+    delivered: ordersList.filter(order => order.status === 'delivered').length,
+    cancelled: ordersList.filter(order => order.status === 'cancelled').length
+  };
+  setOrderCount(counts);
+};
+
+    // Format date
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'Africa/Nairobi',
+    };
+
+    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+    return formatted.replace(/\sGMT.*$/, '');
+  };
   
   // Fetch orders on initial load
   useEffect(() => {
@@ -108,10 +146,39 @@ const AdminOrdersPage = () => {
     }
   }, [searchQuery, statusFilter, orders]);
 
-  // Update displayed orders when filtered orders change
+  // Reset displayed items when filters change
   useEffect(() => {
     updateDisplayedOrders();
+    setSelectedOrders([]); // Clear selection when filters change
+    setIsAllSelected(false);
   }, [filteredOrders, currentPage]);
+
+
+  // Handle bulk selection (only for displayed orders)
+const toggleSelectAll = () => {
+  if (isAllSelected) {
+    setSelectedOrders([]);
+  } else {
+    setSelectedOrders(displayedOrders.map(order => order.order_id));
+  }
+  setIsAllSelected(!isAllSelected);
+};
+
+const toggleSelectOrder = (orderId: string) => {
+  if (selectedOrders.includes(orderId)) {
+    setSelectedOrders(selectedOrders.filter(id => id !== orderId));
+  } else {
+    setSelectedOrders([...selectedOrders, orderId]);
+  }
+};
+
+  // Update isAllSelected based on current selection
+  useEffect(() => {
+    const displayedOrderIds = displayedOrders.map(o => o.order_id);
+    const allDisplayedSelected = displayedOrderIds.length > 0 && 
+      displayedOrderIds.every(id => selectedOrders.includes(id));
+    setIsAllSelected(allDisplayedSelected);
+  }, [selectedOrders, displayedOrders]);
 
   // Function to normalize order items for display
   const normalizeOrderItem = (item: any): OrderItem => {
@@ -172,6 +239,7 @@ const AdminOrdersPage = () => {
           phone_number: order.phone_number || null,
           shipping_address: order.shipping_address || null,
           tracking_number: order.tracking_number || undefined,
+          delivery_fee: order.delivery_fee || 0,
           username: order.username || undefined
         }));
         
@@ -308,26 +376,50 @@ const AdminOrdersPage = () => {
 
   // Delete order function
   const handleDeleteOrder = async () => {
-    if (!orderToDelete) return;
+    if (!orderToDelete && selectedOrders.length === 0) return;
 
     try {
       setIsDeleting(true);
 
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('order_id', orderToDelete.order_id);
+      if (orderToDelete) {
+        // Single delete
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .eq('order_id', orderToDelete.order_id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Remove order from state
-      const updatedOrders = orders.filter(order => order.order_id !== orderToDelete.order_id);
-      setOrders(updatedOrders);
+        // Remove order from state
+        const updatedOrders = orders.filter(order => order.order_id !== orderToDelete.order_id);
+          setOrders(updatedOrders);
+          recalculateOrderCounts(updatedOrders);
 
-      toast({
-        title: "Order deleted",
-        description: `Order #${orderToDelete.order_id.slice(-8).toUpperCase()} has been permanently deleted.`,
-      });
+        toast({
+          title: "Order deleted",
+          description: `Order #${orderToDelete.order_id.slice(-8).toUpperCase()} has been permanently deleted.`,
+        });
+      } else {
+        // Bulk delete
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .in('order_id', selectedOrders);
+
+        if (error) throw error;
+
+        // Remove orders from state
+        const updatedOrders = orders.filter(order => !selectedOrders.includes(order.order_id));
+          setOrders(updatedOrders);
+          recalculateOrderCounts(updatedOrders);
+
+        toast({
+          title: "Orders deleted",
+          description: `${selectedOrders.length} orders have been permanently deleted.`,
+        });
+        
+        setSelectedOrders([]);
+      }
 
       // Close dialog and reset state
       setIsDeleteDialogOpen(false);
@@ -343,7 +435,7 @@ const AdminOrdersPage = () => {
     } finally {
       setIsDeleting(false);
     }
-  };
+};
   
   const handleDownloadReceipt = (order: Order, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -362,7 +454,7 @@ const AdminOrdersPage = () => {
             image: normalizedItem.product.image
           } as LegacyOrderItem;
         }) || null,
-        delivery_fee: 0 // Add default delivery fee
+        delivery_fee: order.delivery_fee, // Add default delivery fee
       };
 
       downloadReceipt(transformedOrder);
@@ -428,7 +520,7 @@ const AdminOrdersPage = () => {
             <p className="text-muted-foreground">Manage and update customer orders</p>
           </div>
           
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 flex gap-3">
             <Button 
               onClick={fetchOrders} 
               variant="outline"
@@ -436,6 +528,20 @@ const AdminOrdersPage = () => {
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
+            </Button>
+            
+            {/* Add this bulk delete button */}
+            <Button 
+              variant="outline" 
+              disabled={selectedOrders.length === 0}
+              onClick={() => {
+                setOrderToDelete(null); // null means bulk delete
+                setIsDeleteDialogOpen(true);
+              }}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected ({selectedOrders.length})
             </Button>
           </div>
         </div>
@@ -562,8 +668,15 @@ const AdminOrdersPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox 
+                        checked={isAllSelected && displayedOrders.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Order ID</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Transaction Code</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Amount</TableHead>
@@ -592,9 +705,20 @@ const AdminOrdersPage = () => {
                     </TableRow>
                   ) : (
                     displayedOrders.map((order) => (
-                      <TableRow key={order.order_id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleOrderClick(order)}>
+                      <TableRow 
+                        key={order.order_id} 
+                        className="cursor-pointer hover:bg-muted/50" 
+                        onClick={() => handleOrderClick(order)}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox 
+                            checked={selectedOrders.includes(order.order_id)}
+                            onCheckedChange={() => toggleSelectOrder(order.order_id)}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">#{order.order_id.slice(-8).toUpperCase()}</TableCell>
-                        <TableCell>{format(new Date(order.created_at), 'MMM d, yyyy')}</TableCell>
+                        <TableCell>{formatDate(order.created_at)}</TableCell>
+                        <TableCell>{order.payment_id || 'N/A'}</TableCell>
                         <TableCell>
                           <div>
                             {order.first_name && order.last_name && (
@@ -616,90 +740,15 @@ const AdminOrdersPage = () => {
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          {/* Delete Confirmation Dialog */}
-                          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 bg-red-100 rounded-full">
-                                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                                  </div>
-                                  <div>
-                                    <DialogTitle className="text-lg font-semibold">Delete Order</DialogTitle>
-                                    <DialogDescription>
-                                      Are you sure you want to permanently delete this order?
-                                    </DialogDescription>
-                                  </div>
-                                </div>
-                              </DialogHeader>
-                              
-                              {orderToDelete && (
-                                <div className="py-4">
-                                  <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="font-medium">Order #{orderToDelete.order_id.slice(-8).toUpperCase()}</p>
-                                        <p className="text-sm text-gray-600">
-                                          {orderToDelete.first_name && orderToDelete.last_name 
-                                            ? `${orderToDelete.first_name} ${orderToDelete.last_name}` 
-                                            : orderToDelete.email || orderToDelete.phone_number}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          Ksh {orderToDelete.amount?.toLocaleString() || 0} • {orderToDelete.items?.length || 0} items
-                                        </p>
-                                      </div>
-                                      <Badge className={`${getStatusColor(orderToDelete.status)} border px-2 py-1 text-xs`}>
-                                        {orderToDelete.status}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-sm text-red-800">
-                                      <strong>Warning:</strong> This action cannot be undone. The order and all associated data will be permanently deleted.
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                              
-                              <DialogFooter>
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => {
-                                    setIsDeleteDialogOpen(false);
-                                    setOrderToDelete(null);
-                                  }}
-                                  disabled={isDeleting}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button 
-                                  variant="destructive"
-                                  onClick={handleDeleteOrder}
-                                  disabled={isDeleting}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  {isDeleting ? (
-                                    <>
-                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                      Deleting...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete Order
-                                    </>
-                                  )}
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex justify-end gap-1">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              onClick={(e) => handleDownloadReceipt(order, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadReceipt(order, e);
+                              }}
                               title="Download Receipt"
                             >
                               <Download className="h-4 w-4" />
@@ -718,7 +767,10 @@ const AdminOrdersPage = () => {
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              onClick={(e) => handleDeleteClick(order, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(order, e);
+                              }}
                               title="Delete Order"
                               className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >
@@ -768,6 +820,95 @@ const AdminOrdersPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog - MOVED OUTSIDE TABLE */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-semibold">Delete Order{orderToDelete === null ? 's' : ''}</DialogTitle>
+                <DialogDescription>
+                  {orderToDelete === null
+                    ? `Are you sure you want to permanently delete ${selectedOrders.length} selected orders?`
+                    : 'Are you sure you want to permanently delete this order?'}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          {orderToDelete ? (
+            <div className="py-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium">Order #{orderToDelete.order_id.slice(-8).toUpperCase()}</p>
+                    <p className="text-sm text-gray-600">
+                      {orderToDelete.first_name && orderToDelete.last_name 
+                        ? `${orderToDelete.first_name} ${orderToDelete.last_name}` 
+                        : orderToDelete.email || orderToDelete.phone_number}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Ksh {orderToDelete.amount?.toLocaleString() || 0} • {orderToDelete.items?.length || 0} items
+                    </p>
+                  </div>
+                  <Badge className={`${getStatusColor(orderToDelete.status)} border px-2 py-1 text-xs`}>
+                    {orderToDelete.status}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong>Warning:</strong> This action cannot be undone. The order and all associated data will be permanently deleted.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="py-4">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">
+                  <strong>Warning:</strong> This action cannot be undone. All {selectedOrders.length} selected orders and their associated data will be permanently deleted.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setOrderToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Order{orderToDelete === null ? 's' : ''}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Enhanced Order Update Dialog - Similar to OrderDetailPage */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
@@ -797,7 +938,7 @@ const AdminOrdersPage = () => {
           
           {selectedOrder && (
             <div className="space-y-6 py-4">
-              {/* Customer and Shipping Information */}
+              {/* Customer and Shipping Information
               <div className="grid lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-3">
@@ -837,7 +978,7 @@ const AdminOrdersPage = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </div>  */}
               
               {/* Order Items - Enhanced Display */}
               <div className="bg-white border rounded-lg">

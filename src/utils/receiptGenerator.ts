@@ -50,6 +50,25 @@ async function getBase64ImageFromURL(url: string): Promise<string> {
 
 
 export const generatePDFReceipt = async (order: Order): Promise<void> => {
+    // Format date
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'Africa/Nairobi',
+    };
+
+    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+    return formatted.replace(/\sGMT.*$/, '');
+  };
+
   try {
     const receiptWidth = 80;
 
@@ -86,7 +105,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text(`Receipt #: ${order.order_id}`, 4, y); y += 4;
-    doc.text(`Order Date: ${format(new Date(order.created_at), 'PPP p')}`, 4, y); y += 4;
+    doc.text(`Order Date: ${formatDate(order.created_at)}`, 4, y); y += 4;
     doc.text(`Status: ${order.status.toUpperCase()}`, 4, y); y += 4;
 
     doc.line(4, y, receiptWidth - 4, y);
