@@ -60,13 +60,7 @@ const ProductDetailsPage: React.FC = () => {
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
   // ------------------ Cart Handling ------------------
-  let totalItems = 0;
-  try {
-    const { cartItems } = useCart();
-    totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
-  } catch {
-    totalItems = 0;
-  }
+  // Removed invalid hook usage inside try/catch to fix 'Rendered more hooks' error.
 
   // ------------------ Slug Redirect ------------------
   const generateSlug = (name: string) =>

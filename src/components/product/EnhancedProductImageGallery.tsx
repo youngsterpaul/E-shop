@@ -60,6 +60,12 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     const idx = allMedia.findIndex((m) => m === selectedImageUrl);
     if (idx >= 0 && idx !== currentIndex) {
       setCurrentIndex(idx);
+      // Ensure the matching thumbnail is scrolled into view when variant-selected image changes
+      thumbsRef.current?.children[idx]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
     }
   }, [selectedImageUrl, allMedia, currentIndex]);
 
