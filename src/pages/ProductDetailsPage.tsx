@@ -1,20 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { useParams, useNavigate } from 'react-router-dom';
 import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
 import ProductTabs from '@/components/product/ProductTabs';
 import RelatedProductsCarousel from '@/components/product/RelatedProductsCarousel';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import VariantSelector from '@/components/product/VariantSelector';
 import AddToCartSection from '@/components/product/AddToCartSection';
+import ProductInfo from '@/components/product/ProductInfo';
+import PriceDisplay from '@/components/product/PriceDisplay';
+import ProductMetadata from '@/components/product/ProductMetadata';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
-import { useCart } from '@/hooks/useCart';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
@@ -205,61 +204,6 @@ const ProductDetailsPage: React.FC = () => {
 
   const calculatePrice = () => price;
 
-  const formatPrice = (p: number) =>
-    new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(p);
-
-  // ------------------ SEO ------------------
-  const { title, description, image } = useMemo(() => {
-    if (!product) return { title: '', description: '', image: '' };
-    const t = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
-    const d = `${product.description || product.name} - Starting from KES ${product.price}. ${
-      product.features
-        ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features)
-        : ''
-    }`;
-    const img = product.image_urls?.[0] || '/placeholder.svg';
-    return { title: t, description: d, image: img };
-  }, [product]);
-
-  const structuredData = useMemo(
-    () => ({
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: product?.name,
-      description: product?.description,
-      image: product?.image_urls || [],
-      brand: { '@type': 'Brand', name: 'Smartkenya Online Shopping' },
-      offers: {
-        '@type': 'Offer',
-        price: price,
-        priceCurrency: 'KES',
-        availability:
-          product?.stock && product.stock > 0
-            ? 'https://schema.org/InStock'
-            : 'https://schema.org/OutOfStock',
-        seller: { '@type': 'Organization', name: 'Smartkenya Online Shopping' },
-        hasMerchantReturnPolicy: {
-          '@type': 'MerchantReturnPolicy',
-          applicableCountry: 'KE',
-          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-          merchantReturnDays: 7,
-          returnMethod: 'https://schema.org/ReturnByMail',
-          returnFees: 'https://schema.org/FreeReturn',
-        },
-      },
-      aggregateRating: product?.rating
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: product.rating,
-            reviewCount: product.reviews || 0,
-          }
-        : undefined,
-    }),
-    [product, price]
-  );
-
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-
   // ------------------ LOADING ------------------
   if (loading) {
     return (
@@ -342,21 +286,7 @@ const ProductDetailsPage: React.FC = () => {
   // ------------------ RENDER ------------------
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={image} />
-        <meta property="og:type" content="product" />
-        <meta property="og:url" content={currentUrl} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={image} />
-        <link rel="canonical" href={currentUrl} />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
-      </Helmet>
+      <ProductMetadata product={product} currentPrice={price} />
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto`}>
@@ -370,33 +300,16 @@ const ProductDetailsPage: React.FC = () => {
             />
 
             <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
-              <div>
-                <h1 className="text-md font-bold text-gray-900">
-                  {product.name}
-                </h1>
-                {product.rating && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">({product.reviews || 0} reviews)</span>
-                  </div>
-                )}
-              </div>
+              <ProductInfo 
+                name={product.name}
+                rating={product.rating}
+                reviews={product.reviews}
+              />
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <span className="text-lg font-bold text-orange-500">{formatPrice(price)}</span>
-                  {price !== product.price && (
-                    <span className="text-xl text-gray-500 line-through">{formatPrice(product.price)}</span>
-                  )}
-                </div>
-              </div>
+              <PriceDisplay 
+                currentPrice={price}
+                originalPrice={product.price}
+              />
 
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector
