@@ -430,7 +430,7 @@ const ProductDetailsPage: React.FC = () => {
 
               {isMobile && (
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>✓ Free shipping on orders over KES {amountNeededForFreeDelivery.toLocaleString()}</p>
+                  <p>✓ Free shipping on orders over KES {Math.max(0, amountNeededForFreeDelivery).toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
                 </div>
@@ -450,7 +450,7 @@ const ProductDetailsPage: React.FC = () => {
             product={{
               product_id: product.product_id,
               name: product.name,
-              image: product.image_urls || '/placeholde.svg',
+              image: product.image_urls?.[0] || '/placeholder.svg',
               price: product.price,
               originalPrice: undefined,
               description: product.description,

@@ -31,18 +31,9 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const lensSize = 220;
   const zoomLevel = 1.8;
 
-  /** ✅ Combine product media (main image → color variants → other images → video) */
+  /** ✅ Combine product media (main image → other images → color variants → video) */
   const allMedia = useMemo(() => {
     const imgs = [product.image];
-    
-    // Add color variant images first (they are more important for user selection)
-    if (variantImages.length > 0) {
-      variantImages.forEach(variant => {
-        if (variant.url && !imgs.includes(variant.url)) {
-          imgs.push(variant.url);
-        }
-      });
-    }
     
     // Add other product images
     product.images?.forEach(img => {
@@ -50,6 +41,15 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         imgs.push(img);
       }
     });
+    
+    // Add color variant images last (so they appear as thumbnails)
+    if (variantImages.length > 0) {
+      variantImages.forEach(variant => {
+        if (variant.url && !imgs.includes(variant.url)) {
+          imgs.push(variant.url);
+        }
+      });
+    }
     
     return product.video ? [...imgs, product.video] : imgs;
   }, [product.image, product.images, product.video, variantImages]);
