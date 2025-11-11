@@ -59,6 +59,10 @@ interface Order {
   last_name?: string;
   mpesa_checkout_request_id?: string;
   payment_id?: string;
+  mpesa_payments: {
+    mpesa_receipt_number: string | null;
+  }[] | null;
+
 }
 
 const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
@@ -224,7 +228,12 @@ const toggleSelectOrder = (orderId: string) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          mpesa_payments:mpesa_payments(
+            mpesa_receipt_number
+          )
+        `)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
@@ -240,7 +249,13 @@ const toggleSelectOrder = (orderId: string) => {
           shipping_address: order.shipping_address || null,
           tracking_number: order.tracking_number || undefined,
           delivery_fee: order.delivery_fee || 0,
-          username: order.username || undefined
+          username: order.username || undefined,
+          mpesa_payments: Array.isArray(order.mpesa_payments)
+            ? order.mpesa_payments.map((p: any) => ({
+                mpesa_receipt_number: p.mpesa_receipt_number || null,
+              }))
+            : null,
+
         }));
         
         setOrders(typedOrders);
@@ -718,7 +733,11 @@ const toggleSelectOrder = (orderId: string) => {
                         </TableCell>
                         <TableCell className="font-medium">#{order.order_id.slice(-8).toUpperCase()}</TableCell>
                         <TableCell>{formatDate(order.created_at)}</TableCell>
-                        <TableCell>{order.payment_id || 'N/A'}</TableCell>
+                        <TableCell>
+                          {order.mpesa_payments && order.mpesa_payments.length > 0
+                            ? order.mpesa_payments[0].mpesa_receipt_number || 'N/A'
+                            : 'N/A'}
+                        </TableCell>
                         <TableCell>
                           <div>
                             {order.first_name && order.last_name && (
