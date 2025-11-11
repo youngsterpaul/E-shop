@@ -52,18 +52,11 @@ const ProductDetailsPage: React.FC = () => {
   const { data: product, isLoading: loading, error } = useProduct(id || '');
   const { variants } = useProductVariants(id || '');
   const { shippingFee, freeShippingThreshold } = useShippingSettings();
-  const { calculations, setShippingSettings } = useSelectiveCart();
+  const { calculations } = useSelectiveCart();
 
   // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
-
-  // ✅ Update context when shipping settings load
-  useEffect(() => {
-    if (shippingFee !== undefined && freeShippingThreshold !== undefined) {
-      setShippingSettings(shippingFee, freeShippingThreshold);
-    }
-  }, [shippingFee, freeShippingThreshold, setShippingSettings]);
 
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 

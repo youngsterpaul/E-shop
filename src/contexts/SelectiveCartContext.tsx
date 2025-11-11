@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations } from '@/types/cart';
 import { useCartContext } from './CartContext';
+import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 interface SelectiveCartContextType {
   selections: CartItemSelection[];
@@ -25,19 +27,13 @@ interface SelectiveCartContextType {
   // Utils
   forceRecalculate: () => void;
   resetSelections: () => void;
-  // NEW: Allow external setting of shipping settings
-  setShippingSettings: (fee: number, threshold: number) => void;
 }
 
 const SelectiveCartContext = createContext<SelectiveCartContextType | undefined>(undefined);
 
 export const SelectiveCartProvider = ({ children }: { children: React.ReactNode }) => {
   const { cartItems, loading } = useCartContext();
-  
-  // ✅ FIX: Store shipping settings in state instead of calling hook here
-  const [shippingFee, setShippingFee] = useState<number>(0);
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(5000);
-  
+  const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const [selections, setSelections] = useState<CartItemSelection[]>([]);
   const [shippingOption, setShippingOptionState] = useState<ShippingOption | null>(null);
   const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>([]);
@@ -51,17 +47,10 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     setCalculationKey(prev => prev + 1);
   }, []);
 
-  // ✅ NEW: Allow components to update shipping settings
-  const setShippingSettings = useCallback((fee: number, threshold: number) => {
-    setShippingFee(fee);
-    setFreeShippingThreshold(threshold);
-    forceRecalculate();
-  }, [forceRecalculate]);
-
   // Reset all selections
   const resetSelections = useCallback(() => {
     setSelections([]);
-    setShippingOptionState(null);
+    setShippingOption(null);
     setAppliedCoupons([]);
     hasInitializedRef.current = false;
     forceRecalculate();
@@ -97,7 +86,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
 
     setSelections(newSelections);
     forceRecalculate();
-  }, [cartItems, loading, forceRecalculate, resetSelections]);
+  }, [cartItems, loading, forceRecalculate]);
 
   // Selection actions - all memoized to prevent unnecessary re-renders
   const toggleItemSelection = useCallback((itemId: string) => {
@@ -189,8 +178,8 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     const discountedSubtotal = Math.max(0, subtotal - discount);
     
     // Add shipping - free if subtotal exceeds threshold
-    const isEligibleForFreeShipping = subtotal >= freeShippingThreshold;
-    const shipping = isEligibleForFreeShipping ? 0 : (shippingOption?.price || shippingFee);
+    const isEligibleForFreeShipping = subtotal >= (freeShippingThreshold || 0);
+    const shipping = isEligibleForFreeShipping ? 0 : (shippingOption?.price || shippingFee || 0);
     const preTaxTotal = discountedSubtotal + shipping;
     
     // Calculate tax (adjust rate as needed)
@@ -229,8 +218,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     hasSelectedItems,
     isItemSelected,
     forceRecalculate,
-    resetSelections,
-    setShippingSettings
+    resetSelections
   }), [
     selections,
     selectedItemIds,
@@ -243,14 +231,14 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     selectAllItems,
     clearAllSelections,
     toggleSelectAll,
+    setShippingOption,
     applyCoupon,
     removeCoupon,
     getSelectedItems,
     hasSelectedItems,
     isItemSelected,
     forceRecalculate,
-    resetSelections,
-    setShippingSettings
+    resetSelections
   ]);
 
   return (
