@@ -142,7 +142,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                   : "We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists."
                 }
               </p>
-              {/*
+              
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mt-4 p-3 bg-muted rounded-lg text-xs">
                   <summary className="cursor-pointer font-semibold">Error Details</summary>
@@ -151,7 +151,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                     {this.state.errorInfo?.componentStack}
                   </pre>
                 </details>
-              )} */}
+              )} 
 
               <div className="flex gap-2">
                 <Button onClick={this.handleReset} variant="outline" className="flex-1">

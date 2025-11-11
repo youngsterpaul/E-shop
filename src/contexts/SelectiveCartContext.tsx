@@ -178,8 +178,8 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
     const discountedSubtotal = Math.max(0, subtotal - discount);
     
     // Add shipping - free if subtotal exceeds threshold
-    const isEligibleForFreeShipping = subtotal >= freeShippingThreshold;
-    const shipping = isEligibleForFreeShipping ? 0 : (shippingOption?.price || shippingFee);
+    const isEligibleForFreeShipping = subtotal >= (freeShippingThreshold || 0);
+    const shipping = isEligibleForFreeShipping ? 0 : (shippingOption?.price || shippingFee || 0);
     const preTaxTotal = discountedSubtotal + shipping;
     
     // Calculate tax (adjust rate as needed)

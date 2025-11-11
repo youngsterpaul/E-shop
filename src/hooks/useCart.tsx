@@ -109,19 +109,63 @@ export const useCart = () => {
 
       if (itemsResponse.error) throw itemsResponse.error;
 
-      const formattedItems = itemsResponse.data?.map(item => ({
-        id: item.id,
-        cart_id: item.cart_id || '',
-        product_id: item.product_id || '',
-        product: {
-          id: item.products?.product_id || '',
-          name: item.products?.name || '',
-          price: item.products?.price || 0,
-          image: item.products?.image_urls?.[0] || '/placeholder.svg'
-        },
-        variant_selections: item.variant_selections,
-        quantity: item.quantity
-      })) || [];
+      // Fetch variants for all products to calculate correct prices
+      const productIds = itemsResponse.data?.map(item => item.product_id).filter(Boolean) || [];
+      const variantsResponse = productIds.length > 0 ? await supabase
+        .from('product_variants')
+        .select('product_id, variant_type, variant_value, price_modifier, image_url')
+        .in('product_id', productIds) : { data: [] };
+
+      const variantsByProduct = new Map();
+      variantsResponse.data?.forEach(variant => {
+        if (!variantsByProduct.has(variant.product_id)) {
+          variantsByProduct.set(variant.product_id, []);
+        }
+        variantsByProduct.get(variant.product_id).push(variant);
+      });
+
+      const formattedItems = itemsResponse.data?.map(item => {
+        const basePrice = item.products?.price || 0;
+        const variants = variantsByProduct.get(item.product_id) || [];
+        
+        // Calculate price with variant modifiers
+        let finalPrice = basePrice;
+        const variantSelections = item.variant_selections || {};
+        
+        Object.entries(variantSelections).forEach(([type, value]) => {
+          const variant = variants.find(v => 
+            v.variant_type === type && v.variant_value === value
+          );
+          if (variant?.price_modifier) {
+            finalPrice += variant.price_modifier;
+          }
+        });
+
+        // Get variant image if available
+        let variantImage = item.products?.image_urls?.[0] || '/placeholder.svg';
+        Object.entries(variantSelections).forEach(([type, value]) => {
+          const variant = variants.find(v => 
+            v.variant_type === type && v.variant_value === value
+          );
+          if (variant?.image_url) {
+            variantImage = variant.image_url;
+          }
+        });
+
+        return {
+          id: item.id,
+          cart_id: item.cart_id || '',
+          product_id: item.product_id || '',
+          product: {
+            id: item.products?.product_id || '',
+            name: item.products?.name || '',
+            price: finalPrice, // Use calculated price with variant modifiers
+            image: variantImage
+          },
+          variant_selections: variantSelections,
+          quantity: item.quantity
+        };
+      }) || [];
 
       setCartItems(formattedItems);
       return formattedItems;

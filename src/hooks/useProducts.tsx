@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 /** --- Types --- */
 export type Product = {
+  attributes: Record<string, any> | undefined;
   product_id: string;
   name: string;
   price: number;

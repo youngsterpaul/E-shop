@@ -12,9 +12,10 @@ interface EnhancedProductImageGalleryProps {
     video?: string;
   };
   selectedImageUrl?: string;
+  variantImages?: Array<{ url: string; label: string }>; // Color variant images
 }
 
-const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProductImageGalleryProps) => {
+const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages = [] }: EnhancedProductImageGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [showLens, setShowLens] = useState(false);
@@ -30,20 +31,46 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProd
   const lensSize = 220;
   const zoomLevel = 1.8;
 
-  /** ✅ Combine product media (main image → other images → video) */
+  /** ✅ Combine product media (main image → other images → color variants → video) */
   const allMedia = useMemo(() => {
-    const imgs = [product.image, ...(product.images?.filter((img) => img !== product.image) || [])];
+    const imgs = [product.image];
+    
+    // Add other product images
+    product.images?.forEach(img => {
+      if (img !== product.image && !imgs.includes(img)) {
+        imgs.push(img);
+      }
+    });
+    
+    // Add color variant images last (so they appear as thumbnails)
+    if (variantImages.length > 0) {
+      variantImages.forEach(variant => {
+        if (variant.url && !imgs.includes(variant.url)) {
+          imgs.push(variant.url);
+        }
+      });
+    }
+    
     return product.video ? [...imgs, product.video] : imgs;
-  }, [product.image, product.images, product.video]);
+  }, [product.image, product.images, product.video, variantImages]);
 
-  // If a selected image is provided (e.g., from color variant), switch to it
+  // ✅ FIX: If a selected image is provided (e.g., from color variant), switch to it
+  // Only run when selectedImageUrl changes, not when currentIndex changes
   useEffect(() => {
     if (!selectedImageUrl) return;
     const idx = allMedia.findIndex((m) => m === selectedImageUrl);
-    if (idx >= 0 && idx !== currentIndex) {
+    if (idx >= 0) {
       setCurrentIndex(idx);
+      // Ensure the matching thumbnail is scrolled into view
+      setTimeout(() => {
+        thumbsRef.current?.children[idx]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }, 100);
     }
-  }, [selectedImageUrl, allMedia, currentIndex]);
+  }, [selectedImageUrl, allMedia]); // Removed currentIndex from deps
 
   const isVideo = useCallback((url: string) => url === product.video, [product.video]);
 
@@ -52,11 +79,13 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProd
     (idx: number) => {
       if (idx === currentIndex) return;
       setCurrentIndex(idx);
-      thumbsRef.current?.children[idx]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
+      setTimeout(() => {
+        thumbsRef.current?.children[idx]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }, 50);
     },
     [currentIndex]
   );
@@ -206,7 +235,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl }: EnhancedProd
                 left: `${lensPos.x}px`,
                 top: `${lensPos.y}px`,
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
-                //boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
               }}
             />
           )}

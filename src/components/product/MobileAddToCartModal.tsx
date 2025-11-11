@@ -55,6 +55,55 @@ const MobileAddToCartModal = ({
     totalReviews > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews : 5;
   const displayReviewCount = totalReviews > 0 ? totalReviews : product.reviews || 0;
 
+  // Get color variants for image cycling
+  const colorVariants = variants.filter(v => 
+    v.variant_type.toLowerCase().includes('color') || 
+    v.variant_type.toLowerCase().includes('colour')
+  );
+  const hasColorVariants = colorVariants.length > 0;
+
+  // Get current image based on selected color variant
+  const getCurrentImage = () => {
+    if (hasColorVariants) {
+      const colorType = getVariantTypes().find(type => 
+        type.toLowerCase().includes('color') || type.toLowerCase().includes('colour')
+      );
+      if (colorType && selectedVariants[colorType]) {
+        const selectedColorVariant = colorVariants.find(v => 
+          v.variant_type === colorType && v.variant_value === selectedVariants[colorType]
+        );
+        if (selectedColorVariant?.image_url) {
+          return selectedColorVariant.image_url;
+        }
+      }
+    }
+    return getProductImage(product.image);
+  };
+
+  const handleImageClick = () => {
+    if (!hasColorVariants) return;
+    
+    const colorType = getVariantTypes().find(type => 
+      type.toLowerCase().includes('color') || type.toLowerCase().includes('colour')
+    );
+    
+    if (!colorType) return;
+
+    const currentSelectedValue = selectedVariants[colorType];
+    const currentIndex = colorVariants.findIndex(v => 
+      v.variant_type === colorType && v.variant_value === currentSelectedValue
+    );
+    
+    // Cycle to next color variant
+    const nextIndex = (currentIndex + 1) % colorVariants.filter(v => v.variant_type === colorType).length;
+    const colorVariantsOfType = colorVariants.filter(v => v.variant_type === colorType);
+    const nextVariant = colorVariantsOfType[nextIndex];
+    
+    if (nextVariant) {
+      onVariantChange(colorType, nextVariant.variant_value);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       setShowAnimation(true);
@@ -157,9 +206,15 @@ const MobileAddToCartModal = ({
             {/* Product Summary */}
             <div className="p-5 bg-gray-50 border-b border-gray-100">
               <div className="flex items-start gap-3">
-                <div className="w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden">
+                <div 
+                  className={`w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden ${
+                    hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''
+                  }`}
+                  onClick={handleImageClick}
+                  title={hasColorVariants ? 'Tap to cycle through colors' : ''}
+                >
                   <OptimizedImage
-                    src={getProductImage(product.image)}
+                    src={getCurrentImage()}
                     alt={product.name}
                     width={80}
                     height={80}

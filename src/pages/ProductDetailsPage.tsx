@@ -1,24 +1,23 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { useParams, useNavigate } from 'react-router-dom';
 import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
 import ProductTabs from '@/components/product/ProductTabs';
 import RelatedProductsCarousel from '@/components/product/RelatedProductsCarousel';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import VariantSelector from '@/components/product/VariantSelector';
 import AddToCartSection from '@/components/product/AddToCartSection';
+import ProductInfo from '@/components/product/ProductInfo';
+import PriceDisplay from '@/components/product/PriceDisplay';
+import ProductMetadata from '@/components/product/ProductMetadata';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, ShoppingCart, Search, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
-import { useCart } from '@/hooks/useCart';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
-// ✅ Properly typed interfaces - aligned with ProductVariant from useProductVariants
+// ✅ Properly typed interfaces
 interface ProductVariant {
   id: string;
   variant_type: string;
@@ -47,26 +46,19 @@ interface Product {
 const ProductDetailsPage: React.FC = () => {
   const { productName, id } = useParams<{ productName: string; id: string }>();
   const navigate = useNavigate();
+  
+  // ✅ ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
   const isMobile = isMobileUserAgent();
-
   const { data: product, isLoading: loading, error } = useProduct(id || '');
   const { variants } = useProductVariants(id || '');
+  const { shippingFee, freeShippingThreshold } = useShippingSettings();
+  const { calculations } = useSelectiveCart();
 
+  // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  const { calculations } = useSelectiveCart();
-  const { freeShippingThreshold } = useShippingSettings();
-  const amountNeededForFreeDelivery = freeShippingThreshold - calculations.subtotal;
-
-  // ------------------ Cart Handling ------------------
-  let totalItems = 0;
-  try {
-    const { cartItems } = useCart();
-    totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
-  } catch {
-    totalItems = 0;
-  }
+  const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
   // ------------------ Slug Redirect ------------------
   const generateSlug = (name: string) =>
@@ -81,16 +73,14 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [product, productName, id, navigate]);
 
+  // ✅ ALL MEMOS (always called in same order)
   const transformedVariants = useMemo(() => {
     if (!variants?.length) return [];
 
     return variants.reduce((acc: any[], v: ProductVariant) => {
       const type = v.variant_type;
-      
-      // Since variant_value is now a string (one value per row), handle it directly
       const valueString = String(v.variant_value || '');
 
-      // Determine variant type
       const variantType: 'image' | 'size' | 'material' | 'other' =
         v.image_url
           ? 'image'
@@ -100,11 +90,9 @@ const ProductDetailsPage: React.FC = () => {
           ? 'material'
           : 'other';
 
-      // Check if this variant type already exists
       const existing = acc.find((x) => x.id === v.variant_type);
       
       if (existing) {
-        // Add value to existing variant type
         existing.values.push({
           id: valueString,
           name: valueString,
@@ -115,7 +103,6 @@ const ProductDetailsPage: React.FC = () => {
           stockQuantity: v.stock_quantity
         });
       } else {
-        // Create new variant type
         acc.push({
           id: v.variant_type,
           name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
@@ -136,7 +123,6 @@ const ProductDetailsPage: React.FC = () => {
     }, []);
   }, [variants]);
 
-  // Determine selected color image (from variant image or filename match)
   const selectedColorImageUrl = useMemo(() => {
     const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
     if (!colorGroup) return undefined;
@@ -152,7 +138,70 @@ const ProductDetailsPage: React.FC = () => {
     return undefined;
   }, [transformedVariants, selectedVariants, product]);
 
-  // Auto-select first available variant for each type
+  const stockInfo = useMemo(() => {
+    if (!variants?.length) return {};
+    
+    const stockMap: Record<string, number> = {};
+    
+    variants.forEach((v: ProductVariant) => {
+      const valueName = String(v.variant_value);
+      stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
+    });
+
+    return stockMap;
+  }, [variants]);
+
+  const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
+
+  const price = useMemo(() => {
+    if (!product) return 0;
+    let total = product.discount_price ?? product.price ?? 0;
+
+    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
+      const variant = variants.find((v) => {
+        return v.variant_type === type && String(v.variant_value) === selectedValue;
+      });
+      
+      if (variant) {
+        total += variant.price_modifier || 0;
+      }
+    }
+
+    return total;
+  }, [product, selectedVariants, variants]);
+
+  const variantImages = useMemo(() => {
+    const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
+    if (!colorGroup) return [];
+    
+    return colorGroup.values
+      .filter((v: any) => v.image)
+      .map((v: any) => ({
+        url: v.image as string,
+        label: v.name || v.id
+      }));
+  }, [transformedVariants]);
+
+const productForTabs = useMemo(() => {
+  if (!product?.product_id || !product.name) return null;
+
+  return {
+    product_id: product.product_id,
+    name: product.name,
+    features: typeof product.features === 'string'
+      ? [product.features]
+      : Array.isArray(product.features)
+        ? product.features
+        : [],
+    specification: typeof product.specification === 'string' && product.specification
+      ? JSON.parse(product.specification)
+      : product.specification || {},
+    attributes: product.attributes
+  };
+}, [product]);
+
+
+  // ✅ EFFECTS (after all hooks and memos)
   useEffect(() => {
     if (!transformedVariants?.length) return;
 
@@ -173,104 +222,16 @@ const ProductDetailsPage: React.FC = () => {
     });
   }, [transformedVariants]);
 
-  const stockInfo = useMemo(() => {
-    if (!variants?.length) return {};
-    
-    const stockMap: Record<string, number> = {};
-    
-    variants.forEach((v: ProductVariant) => {
-      const valueName = String(v.variant_value);
-      stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
-    });
-
-    return stockMap;
-  }, [variants]);
-
-  const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
-
+  // ✅ EVENT HANDLERS
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  // ------------------ Price Calculation ------------------
-  const price = useMemo(() => {
-    if (!product) return 0;
-    let total = product.discount_price ?? product.price ?? 0;
-
-    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
-      const variant = variants.find((v) => {
-        return v.variant_type === type && String(v.variant_value) === selectedValue;
-      });
-      
-      if (variant) {
-        total += variant.price_modifier || 0;
-      }
-    }
-
-    return total;
-  }, [product, selectedVariants, variants]);
-
   const calculatePrice = () => price;
-
-  const formatPrice = (p: number) =>
-    new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(p);
-
-  // ------------------ SEO ------------------
-  const { title, description, image } = useMemo(() => {
-    if (!product) return { title: '', description: '', image: '' };
-    const t = `${product.name.split('(')[0].trim()} - ${product.categories || 'Products'} | Smartkenya Online Shopping`;
-    const d = `${product.description || product.name} - Starting from KES ${product.price}. ${
-      product.features
-        ? 'Features: ' + (Array.isArray(product.features) ? product.features.join(', ') : product.features)
-        : ''
-    }`;
-    const img = product.image_urls?.[0] || '/placeholder.svg';
-    return { title: t, description: d, image: img };
-  }, [product]);
-
-  const structuredData = useMemo(
-    () => ({
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: product?.name,
-      description: product?.description,
-      image: product?.image_urls || [],
-      brand: { '@type': 'Brand', name: 'Smartkenya Online Shopping' },
-      offers: {
-        '@type': 'Offer',
-        price: price,
-        priceCurrency: 'KES',
-        availability:
-          product?.stock && product.stock > 0
-            ? 'https://schema.org/InStock'
-            : 'https://schema.org/OutOfStock',
-        seller: { '@type': 'Organization', name: 'Smartkenya Online Shopping' },
-        hasMerchantReturnPolicy: {
-          '@type': 'MerchantReturnPolicy',
-          applicableCountry: 'KE',
-          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-          merchantReturnDays: 7,
-          returnMethod: 'https://schema.org/ReturnByMail',
-          returnFees: 'https://schema.org/FreeReturn',
-        },
-      },
-      aggregateRating: product?.rating
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: product.rating,
-            reviewCount: product.reviews || 0,
-          }
-        : undefined,
-    }),
-    [product, price]
-  );
-
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   // ------------------ LOADING ------------------
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Skeleton UI */}
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-6 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -320,72 +281,33 @@ const ProductDetailsPage: React.FC = () => {
     images: product.image_urls || [],
   };
 
-  const productForTabs = {
-    ...product,
-    features: typeof product.features === 'string'
-      ? [product.features]
-      : Array.isArray(product.features)
-        ? product.features
-        : [],
-    specification: typeof product.specification === 'string' && product.specification
-      ? JSON.parse(product.specification)
-      : product.specification || {}
-  };
-
   // ------------------ RENDER ------------------
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={image} />
-        <meta property="og:type" content="product" />
-        <meta property="og:url" content={currentUrl} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={image} />
-        <link rel="canonical" href={currentUrl} />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
-      </Helmet>
+      <ProductMetadata product={product} currentPrice={price} />
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <main className={`${isMobile ? 'pb-16 px-0' : 'xl:px-24 py-6 px-4'} container mx-auto`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
-            <EnhancedProductImageGallery product={productWithImages} selectedImageUrl={selectedColorImageUrl} />
+            <EnhancedProductImageGallery 
+              product={productWithImages} 
+              selectedImageUrl={selectedColorImageUrl}
+              variantImages={variantImages}
+            />
 
             <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
-              <div>
-                <h1 className="text-md font-bold text-gray-900">
-                  {product.name}
-                </h1>
-                {product.rating && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${i < Math.floor(product.rating!) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">({product.reviews || 0} reviews)</span>
-                  </div>
-                )}
-              </div>
+              <ProductInfo 
+                name={product.name}
+                rating={product.rating}
+                reviews={product.reviews}
+              />
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <span className="text-lg font-bold text-orange-500">{formatPrice(price)}</span>
-                  {price !== product.price && (
-                    <span className="text-xl text-gray-500 line-through">{formatPrice(product.price)}</span>
-                  )}
-                </div>
-              </div>
+              <PriceDisplay 
+                currentPrice={price}
+                originalPrice={product.price}
+              />
 
               {!isMobile && transformedVariants.length > 0 && (
                 <VariantSelector
@@ -413,7 +335,7 @@ const ProductDetailsPage: React.FC = () => {
 
               {isMobile && (
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p>✓ Free shipping on orders over KES {amountNeededForFreeDelivery.toLocaleString()}</p>
+                  <p>✓ Free shipping on orders over KES {Math.max(0, amountNeededForFreeDelivery).toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
                 </div>
@@ -421,7 +343,7 @@ const ProductDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          <ProductTabs product={productForTabs} />
+          {productForTabs && <ProductTabs product={productForTabs} />}
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
@@ -433,7 +355,7 @@ const ProductDetailsPage: React.FC = () => {
             product={{
               product_id: product.product_id,
               name: product.name,
-              image: product.image_urls || '/placeholde.svg',
+              image: product.image_urls?.[0] || '/placeholder.svg',
               price: product.price,
               originalPrice: undefined,
               description: product.description,
@@ -456,7 +378,7 @@ const ProductDetailsPage: React.FC = () => {
             selectedVariants={selectedVariants}
             requiredVariants={requiredVariants}
             onVariantChange={handleVariantChange}
-            calculatePrice={() => price}
+            calculatePrice={calculatePrice}
           />
         )}
       </div>

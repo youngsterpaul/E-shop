@@ -184,61 +184,63 @@ export type Database = {
       }
       category_icons: {
         Row: {
-          id: number;
-          name: string;
-          icon_name: string;
-          category_id: number;
-          subcategory_id: number | null;
-          color: string;
-          icon_color: string;
-          product_image: string | null;
-          display_order: number;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
+          category_id: number | null
+          color: string
+          created_at: string | null
+          display_order: number | null
+          icon_color: string
+          icon_name: string
+          id: number
+          is_active: boolean | null
+          name: string
+          product_image: string | null
+          subcategory_id: number | null
+          updated_at: string | null
         }
         Insert: {
-          id?: number;
-          name?: string;
-          icon_name?: string;
-          category_id?: number;
-          subcategory_id?: number | null;
-          color?: string;
-          icon_color?: string;
-          product_image?: string | null;
-          display_order?: number;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
+          category_id?: number | null
+          color?: string
+          created_at?: string | null
+          display_order?: number | null
+          icon_color?: string
+          icon_name: string
+          id?: number
+          is_active?: boolean | null
+          name: string
+          product_image?: string | null
+          subcategory_id?: number | null
+          updated_at?: string | null
         }
         Update: {
-          id?: number;
-          name?: string;
-          icon_name?: string;
-          category_id?: number;
-          subcategory_id?: number | null;
-          color?: string;
-          icon_color?: string;
-          product_image?: string | null;
-          display_order?: number;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
+          category_id?: number | null
+          color?: string
+          created_at?: string | null
+          display_order?: number | null
+          icon_color?: string
+          icon_name?: string
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          product_image?: string | null
+          subcategory_id?: number | null
+          updated_at?: string | null
         }
-       Relationships: [
-        {
-          foreignKeyName: "category_icons_category_id_fkey";
-          columns: ["category_id"];
-          referencedRelation: "categories";
-          referencedColumns: ["id"];
-        },
-        {
-          foreignKeyName: "category_icons_subcategory_id_fkey";
-          columns: ["subcategory_id"];
-          referencedRelation: "categories";
-          referencedColumns: ["id"];
-        }
-      ];
+        Relationships: [
+          {
+            foreignKeyName: "category_icons_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_icons_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cities: {
         Row: {
@@ -268,7 +270,15 @@ export type Database = {
           slug?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cities_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       counties: {
         Row: {
@@ -448,7 +458,15 @@ export type Database = {
           transaction_date?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mpesa_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
       }
       mpesa_rate_limit: {
         Row: {
@@ -644,6 +662,7 @@ export type Database = {
           first_name: string | null
           last_name: string | null
           last_sign_in_at: string | null
+          lastName: string | null
           phone: string | null
           updated_at: string | null
           user_id: string
@@ -658,6 +677,7 @@ export type Database = {
           first_name?: string | null
           last_name?: string | null
           last_sign_in_at?: string | null
+          lastName?: string | null
           phone?: string | null
           updated_at?: string | null
           user_id: string
@@ -672,6 +692,7 @@ export type Database = {
           first_name?: string | null
           last_name?: string | null
           last_sign_in_at?: string | null
+          lastName?: string | null
           phone?: string | null
           updated_at?: string | null
           user_id?: string

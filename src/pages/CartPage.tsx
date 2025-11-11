@@ -30,7 +30,7 @@ const CartPage = () => {
   const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
   const { freeShippingThreshold } = useShippingSettings();
-  const isEligibleForFreeDelivery = calculations.subtotal >= freeShippingThreshold;
+  const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
 
   // Refetch cart data when component mounts to ensure fresh data
   useEffect(() => {

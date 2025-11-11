@@ -200,8 +200,9 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
               <p className="text-xs text-gray-600">
                 {formattedPrice} each
               </p>
+              {/* Variants */}
+              {variantDisplay}
             </div>
-
           <Button
             variant="ghost"
             size="sm"
@@ -212,9 +213,6 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           >
             <Trash2 className="h-4 w-4" />
           </Button>
-
-          {/* Variants */}
-          {variantDisplay}
           </div>
 
           {/* Quantity and total price */}
