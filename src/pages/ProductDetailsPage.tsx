@@ -17,7 +17,7 @@ import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 
-// ✅ Properly typed interfaces - aligned with ProductVariant from useProductVariants
+// ✅ Properly typed interfaces
 interface ProductVariant {
   id: string;
   variant_type: string;
@@ -46,20 +46,26 @@ interface Product {
 const ProductDetailsPage: React.FC = () => {
   const { productName, id } = useParams<{ productName: string; id: string }>();
   const navigate = useNavigate();
+  
+  // ✅ ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
   const isMobile = isMobileUserAgent();
-
   const { data: product, isLoading: loading, error } = useProduct(id || '');
   const { variants } = useProductVariants(id || '');
+  const { shippingFee, freeShippingThreshold } = useShippingSettings();
+  const { calculations, setShippingSettings } = useSelectiveCart();
 
+  // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  const { calculations } = useSelectiveCart();
-  const { freeShippingThreshold } = useShippingSettings();
-  const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
+  // ✅ Update context when shipping settings load
+  useEffect(() => {
+    if (shippingFee !== undefined && freeShippingThreshold !== undefined) {
+      setShippingSettings(shippingFee, freeShippingThreshold);
+    }
+  }, [shippingFee, freeShippingThreshold, setShippingSettings]);
 
-  // ------------------ Cart Handling ------------------
-  // Removed invalid hook usage inside try/catch to fix 'Rendered more hooks' error.
+  const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
   // ------------------ Slug Redirect ------------------
   const generateSlug = (name: string) =>
@@ -74,16 +80,14 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [product, productName, id, navigate]);
 
+  // ✅ ALL MEMOS (always called in same order)
   const transformedVariants = useMemo(() => {
     if (!variants?.length) return [];
 
     return variants.reduce((acc: any[], v: ProductVariant) => {
       const type = v.variant_type;
-      
-      // Since variant_value is now a string (one value per row), handle it directly
       const valueString = String(v.variant_value || '');
 
-      // Determine variant type
       const variantType: 'image' | 'size' | 'material' | 'other' =
         v.image_url
           ? 'image'
@@ -93,11 +97,9 @@ const ProductDetailsPage: React.FC = () => {
           ? 'material'
           : 'other';
 
-      // Check if this variant type already exists
       const existing = acc.find((x) => x.id === v.variant_type);
       
       if (existing) {
-        // Add value to existing variant type
         existing.values.push({
           id: valueString,
           name: valueString,
@@ -108,7 +110,6 @@ const ProductDetailsPage: React.FC = () => {
           stockQuantity: v.stock_quantity
         });
       } else {
-        // Create new variant type
         acc.push({
           id: v.variant_type,
           name: v.variant_type.charAt(0).toUpperCase() + v.variant_type.slice(1),
@@ -129,7 +130,6 @@ const ProductDetailsPage: React.FC = () => {
     }, []);
   }, [variants]);
 
-  // Determine selected color image (from variant image or filename match)
   const selectedColorImageUrl = useMemo(() => {
     const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
     if (!colorGroup) return undefined;
@@ -145,7 +145,70 @@ const ProductDetailsPage: React.FC = () => {
     return undefined;
   }, [transformedVariants, selectedVariants, product]);
 
-  // Auto-select first available variant for each type
+  const stockInfo = useMemo(() => {
+    if (!variants?.length) return {};
+    
+    const stockMap: Record<string, number> = {};
+    
+    variants.forEach((v: ProductVariant) => {
+      const valueName = String(v.variant_value);
+      stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
+    });
+
+    return stockMap;
+  }, [variants]);
+
+  const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
+
+  const price = useMemo(() => {
+    if (!product) return 0;
+    let total = product.discount_price ?? product.price ?? 0;
+
+    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
+      const variant = variants.find((v) => {
+        return v.variant_type === type && String(v.variant_value) === selectedValue;
+      });
+      
+      if (variant) {
+        total += variant.price_modifier || 0;
+      }
+    }
+
+    return total;
+  }, [product, selectedVariants, variants]);
+
+  const variantImages = useMemo(() => {
+    const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
+    if (!colorGroup) return [];
+    
+    return colorGroup.values
+      .filter((v: any) => v.image)
+      .map((v: any) => ({
+        url: v.image as string,
+        label: v.name || v.id
+      }));
+  }, [transformedVariants]);
+
+const productForTabs = useMemo(() => {
+  if (!product?.product_id || !product.name) return null;
+
+  return {
+    product_id: product.product_id,
+    name: product.name,
+    features: typeof product.features === 'string'
+      ? [product.features]
+      : Array.isArray(product.features)
+        ? product.features
+        : [],
+    specification: typeof product.specification === 'string' && product.specification
+      ? JSON.parse(product.specification)
+      : product.specification || {},
+    attributes: product.attributes
+  };
+}, [product]);
+
+
+  // ✅ EFFECTS (after all hooks and memos)
   useEffect(() => {
     if (!transformedVariants?.length) return;
 
@@ -166,41 +229,9 @@ const ProductDetailsPage: React.FC = () => {
     });
   }, [transformedVariants]);
 
-  const stockInfo = useMemo(() => {
-    if (!variants?.length) return {};
-    
-    const stockMap: Record<string, number> = {};
-    
-    variants.forEach((v: ProductVariant) => {
-      const valueName = String(v.variant_value);
-      stockMap[`${v.variant_type}-${valueName}`] = v.stock_quantity;
-    });
-
-    return stockMap;
-  }, [variants]);
-
-  const requiredVariants = useMemo(() => transformedVariants.map((v: any) => v.id), [transformedVariants]);
-
+  // ✅ EVENT HANDLERS
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
-
-  // ------------------ Price Calculation ------------------
-  const price = useMemo(() => {
-    if (!product) return 0;
-    let total = product.discount_price ?? product.price ?? 0;
-
-    for (const [type, selectedValue] of Object.entries(selectedVariants)) {
-      const variant = variants.find((v) => {
-        return v.variant_type === type && String(v.variant_value) === selectedValue;
-      });
-      
-      if (variant) {
-        total += variant.price_modifier || 0;
-      }
-    }
-
-    return total;
-  }, [product, selectedVariants, variants]);
 
   const calculatePrice = () => price;
 
@@ -208,7 +239,6 @@ const ProductDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Skeleton UI */}
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-6 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -256,31 +286,6 @@ const ProductDetailsPage: React.FC = () => {
     name: product.name.split('(')[0].trim(),
     image: product.image_urls?.[0] || '/placeholder.svg',
     images: product.image_urls || [],
-  };
-
-  // Extract color variant images for gallery thumbnails
-  const variantImages = useMemo(() => {
-    const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
-    if (!colorGroup) return [];
-    
-    return colorGroup.values
-      .filter((v: any) => v.image)
-      .map((v: any) => ({
-        url: v.image as string,
-        label: v.name || v.id
-      }));
-  }, [transformedVariants]);
-
-  const productForTabs = {
-    ...product,
-    features: typeof product.features === 'string'
-      ? [product.features]
-      : Array.isArray(product.features)
-        ? product.features
-        : [],
-    specification: typeof product.specification === 'string' && product.specification
-      ? JSON.parse(product.specification)
-      : product.specification || {}
   };
 
   // ------------------ RENDER ------------------
@@ -345,7 +350,7 @@ const ProductDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          <ProductTabs product={productForTabs} />
+          {productForTabs && <ProductTabs product={productForTabs} />}
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
@@ -380,7 +385,7 @@ const ProductDetailsPage: React.FC = () => {
             selectedVariants={selectedVariants}
             requiredVariants={requiredVariants}
             onVariantChange={handleVariantChange}
-            calculatePrice={() => price}
+            calculatePrice={calculatePrice}
           />
         )}
       </div>

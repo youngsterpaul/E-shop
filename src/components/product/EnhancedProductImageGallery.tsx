@@ -54,20 +54,23 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     return product.video ? [...imgs, product.video] : imgs;
   }, [product.image, product.images, product.video, variantImages]);
 
-  // If a selected image is provided (e.g., from color variant), switch to it
+  // ✅ FIX: If a selected image is provided (e.g., from color variant), switch to it
+  // Only run when selectedImageUrl changes, not when currentIndex changes
   useEffect(() => {
     if (!selectedImageUrl) return;
     const idx = allMedia.findIndex((m) => m === selectedImageUrl);
-    if (idx >= 0 && idx !== currentIndex) {
+    if (idx >= 0) {
       setCurrentIndex(idx);
-      // Ensure the matching thumbnail is scrolled into view when variant-selected image changes
-      thumbsRef.current?.children[idx]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
+      // Ensure the matching thumbnail is scrolled into view
+      setTimeout(() => {
+        thumbsRef.current?.children[idx]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }, 100);
     }
-  }, [selectedImageUrl, allMedia, currentIndex]);
+  }, [selectedImageUrl, allMedia]); // Removed currentIndex from deps
 
   const isVideo = useCallback((url: string) => url === product.video, [product.video]);
 
@@ -76,11 +79,13 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     (idx: number) => {
       if (idx === currentIndex) return;
       setCurrentIndex(idx);
-      thumbsRef.current?.children[idx]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
+      setTimeout(() => {
+        thumbsRef.current?.children[idx]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }, 50);
     },
     [currentIndex]
   );
@@ -230,7 +235,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                 left: `${lensPos.x}px`,
                 top: `${lensPos.y}px`,
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
-                //boxShadow: "0 0 0 2000px rgba(0, 0, 0, 0.3)",
               }}
             />
           )}
