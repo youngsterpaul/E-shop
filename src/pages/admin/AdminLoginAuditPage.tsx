@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface LoginAudit {
   id: string;
@@ -97,6 +98,7 @@ const AdminLoginAuditPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <AdminSidebar />
       <div>
         <h1 className="text-3xl font-bold mb-2">Login Audit Log</h1>
         <p className="text-muted-foreground">

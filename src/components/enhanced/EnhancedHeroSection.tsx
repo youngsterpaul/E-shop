@@ -86,7 +86,7 @@ const CategorySidebar = memo(() => {
           ALL CATEGORIES
         </div>
         <div className="p-4 space-y-2">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(11)].map((_, i) => (
             <div key={i} className="h-8 bg-gray-200 animate-pulse rounded" />
           ))}
         </div>
@@ -129,7 +129,7 @@ const CategorySidebar = memo(() => {
         ALL CATEGORIES
       </div>
       
-      <div className="relative pl-4 xl:pl-0">
+      <div className="relative .pl-4 .xl:pl-0">
         {categories.map((category) => {
           const IconComponent = category.icon || ShoppingBag;
           return (
@@ -155,50 +155,67 @@ const CategorySidebar = memo(() => {
               </div>
 
               {hoveredCategory === category.id && category.subcategories.length > 0 && (
-                <div className="absolute left-full top-0 w-[420px] bg-white shadow-xl border border-gray-200 z-[60] rounded-r-md max-h-[500px] overflow-y-auto">
-                  <div className="p-2 bg-gray-50 border-b border-gray-200">
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                <div 
+                  className="fixed ml-64 w-[954px] bg-white shadow-2xl border border-gray-200 z-[60] .rounded-r-lg overflow-hidden"
+                  style={{ 
+                    top: '110px',
+                    maxHeight: 'calc(100vh - 80px)'
+                  }}
+                >
+                  {/* Sticky Header */}
+                  <div className="sticky top-0 bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200 px-4 py-2.5 z-10">
+                    <span className="text-sm font-bold text-orange-700 uppercase tracking-wider">
                       {category.name}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 p-3">
-                    {category.subcategories.map((subcategory: any) => {
-                      const SubIcon = ShoppingBag;
-                      return (
-                        <div
-                          key={subcategory.id}
-                          onClick={(e) => handleSubcategoryClick(category, subcategory, e)}
-                          className="flex flex-col items-center p-2 rounded-lg hover:bg-orange-50 transition-all duration-200 cursor-pointer group"
-                        >
-                          <div className="relative w-20 h-20 mb-2 rounded-md overflow-hidden bg-gray-50 group-hover:scale-105 transition-transform duration-200">
-                            {subcategory.productImage ? (
-                              <>
-                                <OptimizedImage
-                                  src={subcategory.productImage}
-                                  alt={subcategory.name}
-                                  className="w-full h-full object-cover"
-                                  aspectRatio="square"
-                                  priority={false}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                              </>
-                            ) : (
-                              <div className={`w-full h-full flex items-center justify-center ${subcategory.color || 'bg-gray-200'}`}>
-                                <SubIcon size={24} className="text-white" />
-                              </div>
-                            )}
+                  
+                  {/* Scrollable Content with Custom Scrollbar */}
+                  <div 
+                    className="overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-gray-100 hover:scrollbar-thumb-orange-400" 
+                    style={{ maxHeight: 'calc(100vh - 160px)' }}
+                  >
+                    <div className="grid grid-cols-8 gap-3 p-4">
+                      {category.subcategories.map((subcategory: any) => {
+                        const SubIcon = ShoppingBag;
+                        return (
+                          <div
+                            key={subcategory.id}
+                            onClick={(e) => handleSubcategoryClick(category, subcategory, e)}
+                            className="flex flex-col items-center p-2 rounded-lg hover:bg-orange-50 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                          >
+                            {/* Smaller Image - 60px instead of 80px */}
+                            <div className="relative w-14 h-14 mb-1.5 rounded-md overflow-hidden bg-gray-100 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                              {subcategory.productImage ? (
+                                <>
+                                  <OptimizedImage
+                                    src={subcategory.productImage}
+                                    alt={subcategory.name}
+                                    className="w-full h-full object-cover"
+                                    aspectRatio="square"
+                                    priority={false}
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                </>
+                              ) : (
+                                <div className={`w-full h-full flex items-center justify-center ${subcategory.color || 'bg-gradient-to-br from-gray-200 to-gray-300'}`}>
+                                  <SubIcon size={18} className="text-white opacity-80" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-gray-700 text-center leading-tight font-medium group-hover:text-orange-600 transition-colors line-clamp-2 px-1">
+                              {subcategory.name}
+                            </span>
                           </div>
-                          <span className="text-xs text-gray-700 text-center leading-tight group-hover:text-orange-600 transition-colors">
-                            {subcategory.name}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="p-2 border-t border-gray-100 bg-gray-50">
+                  
+                  {/* Sticky Footer */}
+                  <div className="sticky bottom-0 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200 px-4 py-2.5 shadow-sm">
                     <div
                       onClick={(e) => handleCategoryClick(category, e)}
-                      className="text-xs text-orange-600 hover:text-orange-700 font-medium cursor-pointer text-center py-1"
+                      className="text-sm text-orange-600 hover:text-orange-700 font-semibold cursor-pointer text-center py-1 hover:underline transition-all"
                     >
                       View All {category.name} →
                     </div>
@@ -343,4 +360,4 @@ const EnhancedHeroSection = memo(() => {
 
 EnhancedHeroSection.displayName = 'EnhancedHeroSection';
 
-export default EnhancedHeroSection
+export default EnhancedHeroSection;

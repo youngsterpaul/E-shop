@@ -64,6 +64,8 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+
+    dedupe: ['react', 'react-dom', 'react-router-dom']
     },
 
     define: {
@@ -128,7 +130,10 @@ export default defineConfig(({ mode }) => {
     // ✅ Recommended cache control for local dev only
     // (Production caching handled by Vercel)
     optimizeDeps: {
-      include: [],
+    include: ['react', 'react-dom', 'react-router-dom'],
+    force: true // Force re-optimization
     },
+    // Clear cache on startup
+    cacheDir: '.vite'
   };
 });

@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface SecurityAlert {
   id: string;
@@ -111,6 +112,7 @@ const AdminSecurityAlertsPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <AdminSidebar />
       <div>
         <h1 className="text-3xl font-bold mb-2">Security Alerts</h1>
         <p className="text-muted-foreground">
