@@ -164,18 +164,24 @@ export type Database = {
       categories: {
         Row: {
           category: string
+          category_name: string | null
+          icon_name: string | null
           id: number
           parent_id: number | null
           slug: string | null
         }
         Insert: {
           category: string
+          category_name?: string | null
+          icon_name?: string | null
           id?: number
           parent_id?: number | null
           slug?: string | null
         }
         Update: {
           category?: string
+          category_name?: string | null
+          icon_name?: string | null
           id?: number
           parent_id?: number | null
           slug?: string | null
@@ -406,6 +412,45 @@ export type Database = {
           link?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      login_audit: {
+        Row: {
+          created_at: string | null
+          device_info: Json | null
+          email: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown
+          session_id: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_info?: Json | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          session_id?: string | null
+          success: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_info?: Json | null
+          email?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          session_id?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -768,6 +813,39 @@ export type Database = {
         }
         Relationships: []
       }
+      session_activity: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown
+          last_activity: string | null
+          session_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          last_activity?: string | null
+          session_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          last_activity?: string | null
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       store: {
         Row: {
           address: string | null
@@ -850,6 +928,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_carts: { Args: never; Returns: number }
+      cleanup_expired_sessions: { Args: never; Returns: number }
       get_or_create_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: string

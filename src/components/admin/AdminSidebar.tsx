@@ -18,7 +18,9 @@ import {
   Store,
   Image,
   MapPin,
-  FolderTree
+  FolderTree,
+  Shield,
+  Activity
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -91,6 +93,18 @@ const AdminSidebar = () => {
       name: 'Location',
       icon: MapPin,
       path: '/supersmartkenyaadmin123/locations',
+      roles: ['superadmin'],
+    },
+    {
+      name: 'Security Alerts',
+      icon: Shield,
+      path: '/supersmartkenyaadmin123/security-alerts',
+      roles: ['superadmin'],
+    },
+    {
+      name: 'Login Audit',
+      icon: Activity,
+      path: '/supersmartkenyaadmin123/login-audit',
       roles: ['superadmin'],
     },
     {

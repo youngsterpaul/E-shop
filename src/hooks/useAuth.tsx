@@ -250,6 +250,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    let auditSuccess = false;
+    let failureReason = '';
+    let userId: string | null = null;
+
     try {
       setLoading(true);
       
@@ -260,7 +264,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (isAccountLocked(sanitizedEmail)) {
         const attempts = getFailedAttempts(sanitizedEmail);
         const timeRemaining = Math.ceil((LOCKOUT_DURATION - (Date.now() - attempts!.timestamp)) / 60000);
-        throw new Error(`Account temporarily locked. Try again in ${timeRemaining} minutes.`);
+        failureReason = `Account locked. ${timeRemaining} minutes remaining.`;
+        throw new Error(failureReason);
       }
       
       cleanupAuthState();
@@ -279,12 +284,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         //console.error('Sign in error:', error);
         recordFailedAttempt(sanitizedEmail);
+        failureReason = error.message;
+        
+        // Create security alert for failed login
+        const remainingAttempts = MAX_FAILED_ATTEMPTS - (getFailedAttempts(sanitizedEmail)?.attempts || 0);
+        if (remainingAttempts <= 2) {
+          await supabase.from('security_alerts').insert({
+            alert_type: 'failed_login',
+            severity: remainingAttempts === 0 ? 'high' : 'medium',
+            identifier: sanitizedEmail,
+            details: {
+              attempts: getFailedAttempts(sanitizedEmail)?.attempts || 0,
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
+        
         throw error;
       }
       
       if (data.user) {
         clearFailedAttempts(sanitizedEmail);
         updateActivity();
+        auditSuccess = true;
+        userId = data.user.id;
         
         // Security: Log successful login
         //console.log(`User ${sanitizedEmail} logged in successfully at ${new Date().toISOString()}`);
@@ -298,6 +321,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       //console.error('Login error:', error);
       throw error;
     } finally {
+      // Log all login attempts to audit table
+      try {
+        await supabase.from('login_audit').insert({
+          email: email,
+          success: auditSuccess,
+          user_id: userId,
+          user_agent: navigator.userAgent,
+          device_info: {
+            platform: navigator.platform,
+            language: navigator.language,
+            screen: `${screen.width}x${screen.height}`,
+          },
+          failure_reason: auditSuccess ? null : failureReason,
+        });
+      } catch (auditError) {
+        console.error('Failed to log audit:', auditError);
+      }
+      
       setLoading(false);
     }
   };
