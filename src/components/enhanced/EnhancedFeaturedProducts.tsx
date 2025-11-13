@@ -126,7 +126,7 @@ const EnhancedFeaturedProducts = memo(() => {
   
   // Loading skeleton
   const loadingSkeleton = useMemo(() => (
-    <div className={`${gridConfig.padding}`}>
+    <div className={`${gridConfig.padding} bg-white`}>
       {!isMobile && (
           <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
           <TrendingUp size={16} className="mr-2" />
