@@ -80,7 +80,7 @@ const CartPage = () => {
 
   return (
     <div className={`min-h-screen mb-10 w-full bg-white ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`${!isMobile ? 'container mx-auto' : 'pb-32 px-2 pt-2 pb-6'}`}>
+      <div className={`${!isMobile ? 'container mx-auto' : 'pb-36 px-2 pt-2 pb-6'}`}>
         <div className={`${!isMobile ? 'p-8' : ''}`}>
         {!isMobile && (
           <div className="mb-6">
