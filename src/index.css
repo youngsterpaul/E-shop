@@ -53,6 +53,13 @@
     --sidebar-border: 220 13% 91%;
     /* Changed orange → green */
     --sidebar-ring: 142 76% 36%;
+
+    /* Chart colors */
+    --chart-1: 142 76% 36%;
+    --chart-2: 221 83% 53%;
+    --chart-3: 262 83% 58%;
+    --chart-4: 32 98% 56%;
+    --chart-5: 340 82% 52%;
   }
 
   .dark {
@@ -102,6 +109,13 @@
     --sidebar-border: 240 3.7% 15.9%;
     /* Changed orange → green */
     --sidebar-ring: 142 76% 36%;
+
+    /* Chart colors */
+    --chart-1: 142 76% 36%;
+    --chart-2: 221 83% 53%;
+    --chart-3: 262 83% 58%;
+    --chart-4: 32 98% 56%;
+    --chart-5: 340 82% 52%;
   }
 }
 
