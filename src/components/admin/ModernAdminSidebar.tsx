@@ -152,6 +152,13 @@ export function ModernAdminSidebar() {
       roles: ['superadmin'],
       badge: null,
     },
+    {
+      name: 'Activity Log',
+      icon: Activity,
+      path: '/supersmartkenyaadmin123/activity-log',
+      roles: ['superadmin'],
+      badge: null,
+    },
   ];
 
   const settingsMenuItems = [

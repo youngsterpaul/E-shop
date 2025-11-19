@@ -68,6 +68,7 @@ const AdminLocationsPage = lazy(() => import("./pages/admin/AdminLocationsPage")
 const AdminSecurityAlertsPage = lazy(() => import("./pages/admin/AdminSecurityAlertsPage"));
 const AdminLoginAuditPage = lazy(() => import("./pages/admin/AdminLoginAuditPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
+const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -251,6 +252,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/security-alerts" element={<AdminRoute requiredRole="superadmin"><AdminSecurityAlertsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/login-audit" element={<AdminRoute requiredRole="superadmin"><AdminLoginAuditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/activity-log" element={<AdminRoute requiredRole="superadmin"><AdminActivityLogPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
