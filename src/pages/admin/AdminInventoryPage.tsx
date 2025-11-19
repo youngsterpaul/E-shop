@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, AlertTriangle, Package, TrendingDown, ShoppingCart, FileText } from 'lucide-react';
+import { Search, AlertTriangle, Package, TrendingDown, ShoppingCart, FileText, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Product {
@@ -29,6 +29,7 @@ interface Supplier {
 const AdminInventoryPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(20);
 
   const { data: products, isLoading: productsLoading, refetch } = useQuery({
     queryKey: ['inventory-products'],
@@ -74,6 +75,21 @@ const AdminInventoryPage = () => {
         return matchesSearch;
     }
   }) || [];
+
+  const displayedProducts = filteredProducts.slice(0, displayedItemsCount);
+  const hasMoreProducts = filteredProducts.length > displayedItemsCount;
+
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => Math.min(prev + 20, filteredProducts.length));
+  };
+
+  const handleShowAll = () => {
+    setDisplayedItemsCount(filteredProducts.length);
+  };
+
+  const handleShowLess = () => {
+    setDisplayedItemsCount(20);
+  };
 
   const getStockStatus = (stock: number, reorderPoint: number) => {
     if (stock === 0) return { label: 'Out of Stock', variant: 'destructive' as const, icon: AlertTriangle };
@@ -197,73 +213,117 @@ const AdminInventoryPage = () => {
               <p className="text-muted-foreground">Try adjusting your filters</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredProducts.map((product) => {
-                const status = getStockStatus(product.stock, product.reorder_point);
-                const StatusIcon = status.icon;
-                const stockPercentage = (product.stock / product.reorder_point) * 100;
+            <>
+              <div className="mb-4 text-sm text-muted-foreground">
+                Showing {displayedProducts.length} of {filteredProducts.length} products
+              </div>
+              <div className="space-y-3">
+                {displayedProducts.map((product) => {
+                  const status = getStockStatus(product.stock, product.reorder_point);
+                  const StatusIcon = status.icon;
+                  const stockPercentage = (product.stock / product.reorder_point) * 100;
 
-                return (
-                  <Card key={product.product_id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold truncate">{product.name}</h3>
-                            <Badge variant={status.variant} className="gap-1 shrink-0">
-                              <StatusIcon className="h-3 w-3" />
-                              {status.label}
-                            </Badge>
+                  return (
+                    <Card key={product.product_id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-semibold truncate">{product.name}</h3>
+                              <Badge variant={status.variant} className="gap-1 shrink-0">
+                                <StatusIcon className="h-3 w-3" />
+                                {status.label}
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div>
+                                <span className="font-medium">Stock:</span> {product.stock} units
+                              </div>
+                              <div>
+                                <span className="font-medium">Reorder Point:</span> {product.reorder_point}
+                              </div>
+                              <div>
+                                <span className="font-medium">Category:</span> {product.categories}
+                              </div>
+                            </div>
+
+                            {/* Stock Level Bar */}
+                            <div className="mt-2">
+                              <div className="w-full bg-muted rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    stockPercentage > 100 ? 'bg-green-500' :
+                                    stockPercentage > 50 ? 'bg-yellow-500' :
+                                    stockPercentage > 0 ? 'bg-orange-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${Math.min(stockPercentage, 100)}%` }}
+                                />
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <div>
-                              <span className="font-medium">Stock:</span> {product.stock} units
-                            </div>
-                            <div>
-                              <span className="font-medium">Reorder Point:</span> {product.reorder_point}
-                            </div>
-                            <div>
-                              <span className="font-medium">Category:</span> {product.categories}
-                            </div>
-                          </div>
-
-                          {/* Stock Level Bar */}
-                          <div className="mt-2">
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all ${
-                                  stockPercentage > 100 ? 'bg-green-500' :
-                                  stockPercentage > 50 ? 'bg-yellow-500' :
-                                  stockPercentage > 0 ? 'bg-orange-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${Math.min(stockPercentage, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 shrink-0">
-                          {product.stock <= product.reorder_point && (
-                            <Link to={`/supersmartkenyaadmin123/purchase-orders/create?product=${product.product_id}`}>
-                              <Button size="sm">
-                                <ShoppingCart className="h-4 w-4 mr-1" />
-                                Reorder
+                          <div className="flex gap-2 shrink-0">
+                            {product.stock <= product.reorder_point && (
+                              <Link to={`/supersmartkenyaadmin123/purchase-orders/create?product=${product.product_id}`}>
+                                <Button size="sm">
+                                  <ShoppingCart className="h-4 w-4 mr-1" />
+                                  Reorder
+                                </Button>
+                              </Link>
+                            )}
+                            <Link to={`/supersmartkenyaadmin123/products/edit/${product.product_id}`}>
+                              <Button variant="outline" size="sm">
+                                Edit
                               </Button>
                             </Link>
-                          )}
-                          <Link to={`/supersmartkenyaadmin123/products/edit/${product.product_id}`}>
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </Link>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Pagination Controls */}
+              {filteredProducts.length > 20 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {displayedItemsCount} of {filteredProducts.length} products
+                  </p>
+                  <div className="flex gap-2">
+                    {hasMoreProducts && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleShowMore}
+                        >
+                          <ChevronDown className="h-4 w-4 mr-1" />
+                          Show More (20)
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleShowAll}
+                        >
+                          Show All ({filteredProducts.length})
+                        </Button>
+                      </>
+                    )}
+                    {displayedItemsCount > 20 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleShowLess}
+                      >
+                        Show Less
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
