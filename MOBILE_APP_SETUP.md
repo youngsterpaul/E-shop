@@ -119,17 +119,21 @@ npx cap sync
 
 ## 🎨 Customizing Your App
 
-### App Icons
-Replace these files in your project:
-- `public/android-chrome-192x192.png` (Android)
-- `public/android-chrome-512x512.png` (Android)
-- `public/apple-touch-icon.png` (iOS)
+### App Icons & Splash Screens
+Custom SmartKenya icons and splash screens have been generated!
 
-Then run:
+**Automatic Generation:**
 ```bash
-npm install @capacitor/assets --save-dev
-npx capacitor-assets generate
+# Generate all platform-specific icons and splash screens
+npx @capacitor/assets generate --iconBackgroundColor '#f97316' --splashBackgroundColor '#f97316'
 ```
+
+This creates all required sizes for iOS and Android from your source files:
+- Source Icon: `public/app-icon.png` (1024x1024)
+- Source Splash: `public/splash-screen.png` (1080x1920)
+- Config: `assets.config.json`
+
+**📖 See `APP_ICONS_SETUP.md` for complete customization guide**
 
 ### Splash Screen
 Update the `SplashScreen` plugin config in `capacitor.config.ts`:
