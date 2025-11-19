@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +13,6 @@ import {
   DollarSign, 
   TrendingUp, 
   AlertTriangle,
-  MessageSquare,
   ExternalLink
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -40,13 +38,15 @@ const AdminDashboard = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome to your admin dashboard</p>
-        </div>
+    <AdminLayout>
+      <QuickActionsBar
+        title="Dashboard"
+        onRefresh={() => {
+          useSummaryMetrics().refetch();
+          useRecentOrders().refetch();
+          useDailySalesMetrics().refetch();
+        }}
+      />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -190,8 +190,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 
