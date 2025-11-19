@@ -1,241 +1,164 @@
-// Service Worker for SmartKenya - Enhanced with cache busting
-const CACHE_NAME = 'smartkenya-v2';
-const STATIC_CACHE = 'smartkenya-static-v2';
-const DYNAMIC_CACHE = 'smartkenya-dynamic-v2';
+const CACHE_NAME = 'smartkenya-offline-v1';
+const RUNTIME_CACHE = 'smartkenya-runtime-v1';
+const IMAGE_CACHE = 'smartkenya-images-v1';
 
-// Build timestamp for cache versioning
-const BUILD_TIMESTAMP = new Date().getTime();
-
-// Assets to cache immediately
-const STATIC_ASSETS = [
+// Assets to cache on install
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
-  '/favicon.ico',
-  '/favicon-32x32.png',
-  '/favicon-16x16.png', 
-  '/apple-touch-icon.png',
-  '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png',
-  '/site.webmanifest'
+  '/offline.html',
 ];
 
-// Network-first strategy for API calls
-const API_URLS = [
-  'https://sgpjnbdrmwrupeqhjqpj.supabase.co'
-];
-
-// Cache-first strategy for static assets
-const CACHE_FIRST_URLS = [
-  '/static/',
-  '/assets/',
-  'https://fonts.googleapis.com',
-  'https://fonts.gstatic.com'
-];
-
-// Install event - cache static assets with versioning
+// Install event - precache assets
 self.addEventListener('install', (event) => {
-  //console.log('[SW] Installing service worker with build timestamp:', BUILD_TIMESTAMP);
+  console.log('[SW] Installing service worker...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then(cache => {
-        //console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => {
-        //console.log('[SW] Static assets cached, skipping waiting');
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        //console.error('[SW] Failed to cache static assets:', error);
-      })
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches and notify clients of updates
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  //console.log('[SW] Activating service worker');
+  console.log('[SW] Activating service worker...');
   event.waitUntil(
-    Promise.all([
-      // Clean up old caches
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }),
-      // Take control of all clients immediately
-      self.clients.claim(),
-      // Notify all clients about the update
-      notifyClientsOfUpdate()
-    ])
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME && name !== RUNTIME_CACHE && name !== IMAGE_CACHE)
+          .map((name) => caches.delete(name))
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
 // Fetch event - implement caching strategies
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
-  // Skip caching for non-GET requests
-  if (event.request.method !== 'GET') {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip Supabase realtime and auth requests
+  if (url.hostname.includes('supabase.co') && 
+      (url.pathname.includes('/realtime/') || url.pathname.includes('/auth/'))) {
     return;
   }
-  
-  // Network-first for API calls
-  if (API_URLS.some(apiUrl => event.request.url.startsWith(apiUrl))) {
+
+  // Handle images with cache-first strategy
+  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Cache successful responses - clone BEFORE checking status
-          if (response.ok && response.status === 200) {
-            try {
-              const responseClone = response.clone();
-              caches.open(DYNAMIC_CACHE)
-                .then(cache => cache.put(event.request, responseClone))
-                .catch(error => {
-                  // Silently handle cache errors to prevent console spam
-                  if (error.name !== 'QuotaExceededError') {
-                    //console.log('Cache put failed:', error.message);
-                  }
-                });
-            } catch (error) {
-              // Ignore cloning errors
-            }
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-  
-  // Cache-first for static assets
-  if (CACHE_FIRST_URLS.some(pattern => event.request.url.includes(pattern))) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          return fetch(event.request)
-            .then(response => {
-              // Clone immediately after fetch
-              if (response.ok) {
-                try {
-                  const responseClone = response.clone();
-                  caches.open(STATIC_CACHE)
-                    .then(cache => cache.put(event.request, responseClone))
-                    .catch(error => {
-                      if (error.name !== 'QuotaExceededError') {
-                        //console.log('Cache put failed:', error.message);
-                      }
-                    });
-                } catch (error) {
-                  // Ignore cloning errors
-                }
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            // Return cached image and update in background
+            fetch(request).then((networkResponse) => {
+              if (networkResponse.ok) {
+                cache.put(request, networkResponse.clone());
               }
-              return response;
-            });
-        })
-    );
-    return;
-  }
-  
-  // Stale-while-revalidate for other requests
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        const fetchPromise = fetch(event.request)
-          .then(networkResponse => {
-            // Clone IMMEDIATELY after fetch, before any other operations
+            }).catch(() => {});
+            return cachedResponse;
+          }
+
+          // Fetch from network and cache
+          return fetch(request).then((networkResponse) => {
             if (networkResponse.ok) {
-              try {
-                const responseClone = networkResponse.clone();
-                caches.open(DYNAMIC_CACHE)
-                  .then(cache => cache.put(event.request, responseClone))
-                  .catch(error => {
-                    if (error.name !== 'QuotaExceededError') {
-                      //console.log('Cache put failed:', error.message);
-                    }
-                  });
-              } catch (error) {
-                // Ignore cloning errors
-              }
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch(() => {
+            return new Response('Image unavailable offline', { status: 503 });
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Handle API requests with network-first strategy
+  if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {
+    event.respondWith(
+      caches.open(RUNTIME_CACHE).then((cache) => {
+        return fetch(request)
+          .then((networkResponse) => {
+            // Cache successful responses
+            if (networkResponse.ok && request.method === 'GET') {
+              cache.put(request, networkResponse.clone());
             }
             return networkResponse;
           })
-          .catch(error => {
-            //console.log('Network fetch failed:', error);
-            return response; // Return cached response if available
+          .catch(() => {
+            // Fallback to cache on network failure
+            return cache.match(request).then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              return new Response(JSON.stringify({ offline: true, error: 'Network unavailable' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              });
+            });
           });
-        
-        return response || fetchPromise;
       })
+    );
+    return;
+  }
+
+  // Handle navigation requests
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return caches.match('/offline.html').then((response) => {
+          return response || new Response('Offline', { status: 503 });
+        });
+      })
+    );
+    return;
+  }
+
+  // Default: cache-first strategy for static assets
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return caches.open(RUNTIME_CACHE).then((cache) => {
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        });
+      });
+    })
   );
 });
 
-// Background sync for offline form submissions
+// Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(syncData());
+  if (event.tag === 'sync-offline-actions') {
+    event.waitUntil(syncOfflineActions());
   }
 });
 
-async function syncData() {
-  // Handle offline data sync
-  const offlineData = await getOfflineData();
-  if (offlineData.length > 0) {
-    for (const data of offlineData) {
-      try {
-        await submitData(data);
-        await removeOfflineData(data.id);
-      } catch (error) {
-        //console.error('Sync failed for:', data, error);
-      }
-    }
-  }
+async function syncOfflineActions() {
+  console.log('[SW] Syncing offline actions...');
+  // This will be handled by the useOfflineSync hook in the app
 }
 
-async function getOfflineData() {
-  // Retrieve offline data from IndexedDB
-  return [];
-}
-
-async function submitData(data) {
-  // Submit data to server
-  return fetch('/api/sync', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-async function removeOfflineData(id) {
-// Remove synced data from IndexedDB
-}
-
-// Notify clients of service worker updates
-async function notifyClientsOfUpdate() {
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => {
-    client.postMessage({
-      type: 'SW_UPDATE',
-      message: 'New version available',
-      timestamp: BUILD_TIMESTAMP
-    });
-  });
-}
-
-// Handle messages from clients
+// Handle messages from the app
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    //console.log('[SW] Received SKIP_WAITING message');
     self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CACHE_URLS') {
+    const urls = event.data.urls;
+    caches.open(IMAGE_CACHE).then((cache) => {
+      cache.addAll(urls).catch(console.error);
+    });
   }
 });
