@@ -152,6 +152,13 @@ export function ModernAdminSidebar() {
       badge: null,
     },
     {
+      name: 'Customers',
+      icon: Users2,
+      path: '/supersmartkenyaadmin123/customers',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
       name: 'Locations',
       icon: MapPin,
       path: '/supersmartkenyaadmin123/locations',
