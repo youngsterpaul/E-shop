@@ -74,6 +74,7 @@ const AdminPurchaseOrdersPage = lazy(() => import("./pages/admin/AdminPurchaseOr
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage"));
 const AdminCustomerViewPage = lazy(() => import("./pages/admin/AdminCustomerViewPage"));
+const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -263,6 +264,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/purchase-orders" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrdersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers" element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers/:customerId" element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/analytics" element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
