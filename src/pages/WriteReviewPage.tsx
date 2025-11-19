@@ -114,9 +114,28 @@ const WriteReviewPage = () => {
       return;
     }
 
-    if (!comment.trim()) {
+    const trimmedComment = comment.trim();
+    if (!trimmedComment) {
       toast({
         title: "Please write a comment",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (trimmedComment.length < 10) {
+      toast({
+        title: "Comment too short",
+        description: "Please write at least 10 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (trimmedComment.length > 500) {
+      toast({
+        title: "Comment too long",
+        description: "Please keep your review under 500 characters",
         variant: "destructive"
       });
       return;
@@ -135,7 +154,7 @@ const WriteReviewPage = () => {
       await submitReview({
         product_id: productId,
         rating,
-        comment: comment.trim(),
+        comment: trimmedComment,
         media_urls: uploadedUrls
       });
 
@@ -309,13 +328,14 @@ const WriteReviewPage = () => {
                 <Textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Share your experience with this product..."
+                  placeholder="Share your experience with this product... (minimum 10 characters)"
                   rows={5}
                   className="resize-none"
                   disabled={isSubmitting}
+                  maxLength={500}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {comment.length}/500 characters
+                  {comment.length}/500 characters {comment.trim().length < 10 && comment.length > 0 && '(minimum 10)'}
                 </p>
               </div>
 
