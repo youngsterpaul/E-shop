@@ -7,13 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, UserCircle, TrendingUp, ShoppingBag } from 'lucide-react';
+import { Search, Eye, UserCircle, TrendingUp, ShoppingBag, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminCustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [itemsPerPage] = useState(20);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(20);
   const navigate = useNavigate();
 
   const { data: customers, isLoading } = useQuery({
@@ -56,6 +58,21 @@ export default function AdminCustomersPage() {
       return customersWithStats;
     },
   });
+
+  const displayedCustomers = customers?.slice(0, displayedItemsCount) || [];
+  const hasMoreCustomers = (customers?.length || 0) > displayedItemsCount;
+
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => prev + itemsPerPage);
+  };
+
+  const handleShowAll = () => {
+    setDisplayedItemsCount(customers?.length || 0);
+  };
+
+  const handleShowLess = () => {
+    setDisplayedItemsCount(itemsPerPage);
+  };
 
   const stats = {
     totalCustomers: customers?.length || 0,
@@ -145,70 +162,111 @@ export default function AdminCustomersPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Orders</TableHead>
-                        <TableHead>Lifetime Value</TableHead>
-                        <TableHead>Avg Order</TableHead>
-                        <TableHead>Last Order</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers?.map((customer) => (
-                        <TableRow key={customer.user_id}>
-                          <TableCell>
-                            <div className="font-medium">
-                              {customer.first_name && customer.last_name
-                                ? `${customer.first_name} ${customer.last_name}`
-                                : 'N/A'}
-                            </div>
-                          </TableCell>
-                          <TableCell>{customer.email}</TableCell>
-                          <TableCell>{customer.totalOrders}</TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(customer.lifetimeValue)}
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrency(customer.averageOrderValue)}
-                          </TableCell>
-                          <TableCell>
-                            {customer.lastOrderDate
-                              ? new Date(customer.lastOrderDate).toLocaleDateString()
-                              : 'Never'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={customer.totalOrders > 0 ? 'default' : 'secondary'}>
-                              {customer.totalOrders > 0 ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate(`/supersmartkenyaadmin123/customers/${customer.user_id}`)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {customers?.length === 0 && (
+                <>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                            No customers found
-                          </TableCell>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Orders</TableHead>
+                          <TableHead>Lifetime Value</TableHead>
+                          <TableHead>Avg Order</TableHead>
+                          <TableHead>Last Order</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {displayedCustomers.map((customer) => (
+                          <TableRow key={customer.user_id}>
+                            <TableCell>
+                              <div className="font-medium">
+                                {customer.first_name && customer.last_name
+                                  ? `${customer.first_name} ${customer.last_name}`
+                                  : 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell>{customer.email}</TableCell>
+                            <TableCell>{customer.totalOrders}</TableCell>
+                            <TableCell className="font-medium">
+                              {formatCurrency(customer.lifetimeValue)}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrency(customer.averageOrderValue)}
+                            </TableCell>
+                            <TableCell>
+                              {customer.lastOrderDate
+                                ? new Date(customer.lastOrderDate).toLocaleDateString()
+                                : 'Never'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={customer.totalOrders > 0 ? 'default' : 'secondary'}>
+                                {customer.totalOrders > 0 ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/supersmartkenyaadmin123/customers/${customer.user_id}`)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {displayedCustomers.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                              No customers found
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {customers && customers.length > itemsPerPage && (
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {displayedItemsCount} of {customers.length} customers
+                      </p>
+                      <div className="flex gap-2">
+                        {hasMoreCustomers && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleShowMore}
+                            >
+                              <ChevronDown className="h-4 w-4 mr-1" />
+                              Show More ({Math.min(itemsPerPage, customers.length - displayedItemsCount)})
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleShowAll}
+                            >
+                              Show All ({customers.length})
+                            </Button>
+                          </>
+                        )}
+                        {displayedItemsCount > itemsPerPage && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleShowLess}
+                          >
+                            Show Less
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
