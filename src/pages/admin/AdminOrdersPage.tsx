@@ -65,6 +65,10 @@ const AdminOrdersPage = () => {
     open: false,
     order: null,
   });
+  const [viewOrderModal, setViewOrderModal] = useState<{ open: boolean; order: Order | null }>({
+    open: false,
+    order: null,
+  });
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -396,7 +400,12 @@ const AdminOrdersPage = () => {
                                 <Truck className="h-4 w-4 mr-1" />
                                 Fulfill
                               </Button>
-                              <Button variant="ghost" size="sm">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => setViewOrderModal({ open: true, order })}
+                                title="View Order Details"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </div>
@@ -457,6 +466,158 @@ const AdminOrdersPage = () => {
         order={fulfillmentModal.order}
         onSuccess={fetchOrders}
       />
+
+      {/* Order Details Modal */}
+      <Dialog open={viewOrderModal.open} onOpenChange={(open) => !open && setViewOrderModal({ open: false, order: null })}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              Complete information about order #{viewOrderModal.order?.order_id.slice(0, 8)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewOrderModal.order && (
+            <div className="space-y-6">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Order ID</p>
+                  <p className="text-sm font-mono">{viewOrderModal.order.order_id}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={getStatusColor(viewOrderModal.order.status)}>
+                    {viewOrderModal.order.status}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Date</p>
+                  <p className="text-sm">{format(new Date(viewOrderModal.order.created_at), 'PPP p')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Amount</p>
+                  <p className="text-sm font-semibold">KSH {viewOrderModal.order.amount?.toLocaleString() || '0'}</p>
+                </div>
+                {viewOrderModal.order.mpesa_receipt_number && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">M-Pesa Code</p>
+                    <p className="text-sm font-mono text-primary">{viewOrderModal.order.mpesa_receipt_number}</p>
+                  </div>
+                )}
+                {viewOrderModal.order.tracking_number && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Tracking Number</p>
+                    <p className="text-sm font-mono">{viewOrderModal.order.tracking_number}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Customer Info */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Customer Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                    <p className="text-sm">{viewOrderModal.order.username || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Email</p>
+                    <p className="text-sm">{viewOrderModal.order.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                    <p className="text-sm">{viewOrderModal.order.phone_number || 'N/A'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground">Shipping Address</p>
+                    <p className="text-sm">{viewOrderModal.order.shipping_address || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Order Items</h3>
+                <div className="space-y-3">
+                  {viewOrderModal.order.items && viewOrderModal.order.items.length > 0 ? (
+                    viewOrderModal.order.items.map((item, index) => (
+                      <div key={item.id || index} className="flex gap-4 p-3 border rounded-lg">
+                        {item.product.image ? (
+                          <img 
+                            src={item.product.image} 
+                            alt={item.product.name}
+                            className="w-20 h-20 object-cover rounded-md border"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center">
+                            <Package className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium">{item.product.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Quantity: {item.quantity} × KSH {item.product.price.toLocaleString()}
+                          </p>
+                          {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Variants: {Object.entries(item.variant_selections).map(([key, value]) => `${key}: ${value}`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">
+                            KSH {(item.quantity * item.product.price).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="mx-auto h-12 w-12 mb-2" />
+                      <p>No items in this order</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="border-t pt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>
+                      KSH {((viewOrderModal.order.amount || 0) - (viewOrderModal.order.delivery_fee || 0)).toLocaleString()}
+                    </span>
+                  </div>
+                  {viewOrderModal.order.delivery_fee && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Delivery Fee</span>
+                      <span>KSH {viewOrderModal.order.delivery_fee.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                    <span>Total</span>
+                    <span>KSH {viewOrderModal.order.amount?.toLocaleString() || '0'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewOrderModal({ open: false, order: null })}>
+              Close
+            </Button>
+            {viewOrderModal.order && (
+              <Button onClick={() => handleDownloadReceipt(viewOrderModal.order!)}>
+                <Download className="h-4 w-4 mr-2" />
+                Download Receipt
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
