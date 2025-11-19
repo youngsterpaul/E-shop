@@ -22,6 +22,7 @@ import {
   Warehouse,
   Truck,
   Users2,
+  BarChart3,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -68,6 +69,13 @@ export function ModernAdminSidebar() {
       name: 'Dashboard',
       icon: LayoutDashboard,
       path: '/supersmartkenyaadmin123',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
+      name: 'Analytics',
+      icon: BarChart3,
+      path: '/supersmartkenyaadmin123/analytics',
       roles: ['superadmin'],
       badge: null,
     },
