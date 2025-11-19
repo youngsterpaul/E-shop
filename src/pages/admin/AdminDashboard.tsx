@@ -4,8 +4,11 @@ import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { 
   ShoppingCart, 
   Users, 
@@ -18,7 +21,11 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const AdminDashboard = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole(user?.id);
+  
+  // Enable real-time notifications for admins
+  useAdminNotifications(isAdmin);
   
   const {
     useSummaryMetrics,
