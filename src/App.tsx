@@ -5,8 +5,6 @@ import React, { lazy, Suspense, ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import TopProgressBar from './components/TopProgressBar';
-import { OfflineIndicator } from './components/OfflineIndicator';
-import { OfflineCacheManager } from './components/OfflineCacheManager';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { isMobileUserAgent } from './hooks/use-mobile';
@@ -192,8 +190,6 @@ function App() {
   return (
       <TooltipProvider>
       <TopProgressBar/>
-      <OfflineIndicator />
-      <OfflineCacheManager />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="flex flex-col min-h-screen bg-background">
