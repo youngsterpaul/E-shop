@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,12 +109,11 @@ const AdminUserAddPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div>
           <Button 
-            variant="ghost" 
+            variant="ghost"
             onClick={() => navigate('/supersmartkenyaadmin123/users')}
             className="mb-4"
           >
@@ -251,7 +250,7 @@ const AdminUserAddPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

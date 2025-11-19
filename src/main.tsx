@@ -11,6 +11,7 @@ import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 //import { CookieConsent } from '@/components/CookieConsent';
 //import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { OfflineCacheManager } from '@/components/OfflineCacheManager';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
@@ -40,8 +41,10 @@ const AppWithAnalytics = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes in memory (formerly cacheTime)
       retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -64,6 +67,7 @@ createRoot(document.getElementById('root')!).render(
                     {/* <Analytics />*/}
                     {/* <PWAInstallPrompt /> */}
                     <OfflineIndicator />
+                    <OfflineCacheManager />
                   </CheckoutProvider>
                 </SelectiveCartProvider>
               </CartProvider>

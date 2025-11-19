@@ -1,1124 +1,640 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
+import { ExportButton } from '@/components/admin/ExportButton';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
+import { OrderFulfillmentModal } from '@/components/admin/OrderFulfillmentModal';
+import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { Search, Eye, RefreshCw, FileText, Package, ShoppingBag, MapPin, Phone, Mail, Clock, Download, Trash2, AlertTriangle, ChevronDown, Loader2 } from 'lucide-react';
+import { toast } from "@/hooks/use-toast";
+import { Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { Json } from '@/integrations/supabase/types';
 import { downloadReceipt } from '@/utils/receiptGenerator';
-import { Checkbox } from '@/components/ui/checkbox';
 
-// Updated interface to match OrderDetailPage structure
 interface OrderItem {
-  id?: string;
+  id: string;
   product: {
     id: string;
     name: string;
     price: number;
     image?: string;
   };
+  quantity: number;
   variant_selections?: Record<string, any>;
-  quantity: number;
-  // Legacy fields for backward compatibility
-  product_id?: string;
-  name?: string;
-  price?: number;
-  image?: string;
-}
-
-// Legacy interface for receipt generation
-interface LegacyOrderItem {
-  product_id: string;
-  quantity: number;
-  name: string;
-  price: number;
-  image?: string;
 }
 
 interface Order {
   order_id: string;
   user_id: string | null;
   email: string | null;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
   phone_number: string | null;
   status: string;
   amount: number | null;
+  delivery_fee: number | null;
   items: OrderItem[] | null;
+  tracking_number: string | null;
   shipping_address: string | null;
-  delivery_fee: number;
   created_at: string;
   updated_at: string;
-  first_name?: string;
-  last_name?: string;
-  mpesa_checkout_request_id?: string;
-  payment_id?: string;
-  mpesa_payments: {
-    mpesa_receipt_number: string | null;
-  }[] | null;
-
+  mpesa_receipt_number?: string | null;
 }
 
-const orderStatuses = ["all", "pending", "paid", "processing", "shipped", "delivered", "cancelled"];
-const ORDERS_PER_PAGE = 20; // Number of orders to load per page
+const orderStatuses = ["all", "pending", "processing", "packed", "shipped", "delivered", "cancelled"];
 
 const AdminOrdersPage = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
   const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreOrders, setHasMoreOrders] = useState(false);
-
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [updatedStatus, setUpdatedStatus] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Delete confirmation dialog states
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  // Add these new state variables
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
-  
-  const [orderCount, setOrderCount] = useState({ 
-    total: 0, 
-    pending: 0,
-    paid: 0, 
-    processing: 0, 
-    shipped: 0,
-    delivered: 0,
-    cancelled: 0
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
+  const itemsPerPage = 50;
+  const [fulfillmentModal, setFulfillmentModal] = useState<{ open: boolean; order: any }>({
+    open: false,
+    order: null,
+  });
+  const [viewOrderModal, setViewOrderModal] = useState<{ open: boolean; order: Order | null }>({
+    open: false,
+    order: null,
   });
 
-  // Add this function after your state declarations
-const recalculateOrderCounts = (ordersList: Order[]) => {
-  const counts = {
-    total: ordersList.length,
-    pending: ordersList.filter(order => order.status === 'pending').length,
-    paid: ordersList.filter(order => order.status === 'paid').length,
-    processing: ordersList.filter(order => order.status === 'processing').length,
-    shipped: ordersList.filter(order => order.status === 'shipped').length,
-    delivered: ordersList.filter(order => order.status === 'delivered').length,
-    cancelled: ordersList.filter(order => order.status === 'cancelled').length
+  const fetchOrders = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        mpesa_payments!left(mpesa_receipt_number)
+      `)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      toast({ title: "Error", description: "Failed to fetch orders", variant: "destructive" });
+    } else {
+      setOrders((data || []).map(order => ({
+        ...order,
+        items: order.items as unknown as OrderItem[] | null,
+        username: order.username ?? undefined,
+        mpesa_receipt_number: (order.mpesa_payments as any)?.[0]?.mpesa_receipt_number || null,
+      })));
+    }
+    setLoading(false);
   };
-  setOrderCount(counts);
-};
 
-    // Format date
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'Africa/Nairobi',
-    };
-
-    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
-    return formatted.replace(/\sGMT.*$/, '');
-  };
-  
-  // Fetch orders on initial load
   useEffect(() => {
     fetchOrders();
   }, []);
-  
-  // Apply filters whenever search query or status filter changes
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = searchQuery === '' || 
+      order.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.username?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const displayedOrders = filteredOrders.slice(0, displayedItemsCount);
+  const hasMoreOrders = filteredOrders.length > displayedItemsCount;
+
   useEffect(() => {
-    if (!loading) {
-      applyFilters();
-    }
-  }, [searchQuery, statusFilter, orders]);
-
-  // Reset displayed items when filters change
-  useEffect(() => {
-    updateDisplayedOrders();
-    setSelectedOrders([]); // Clear selection when filters change
-    setIsAllSelected(false);
-  }, [filteredOrders, currentPage]);
-
-
-  // Handle bulk selection (only for displayed orders)
-const toggleSelectAll = () => {
-  if (isAllSelected) {
+    setDisplayedItemsCount(itemsPerPage);
     setSelectedOrders([]);
-  } else {
-    setSelectedOrders(displayedOrders.map(order => order.order_id));
-  }
-  setIsAllSelected(!isAllSelected);
-};
+    setIsAllSelected(false);
+  }, [searchQuery, statusFilter, itemsPerPage]);
 
-const toggleSelectOrder = (orderId: string) => {
-  if (selectedOrders.includes(orderId)) {
-    setSelectedOrders(selectedOrders.filter(id => id !== orderId));
-  } else {
-    setSelectedOrders([...selectedOrders, orderId]);
-  }
-};
-
-  // Update isAllSelected based on current selection
-  useEffect(() => {
-    const displayedOrderIds = displayedOrders.map(o => o.order_id);
-    const allDisplayedSelected = displayedOrderIds.length > 0 && 
-      displayedOrderIds.every(id => selectedOrders.includes(id));
-    setIsAllSelected(allDisplayedSelected);
-  }, [selectedOrders, displayedOrders]);
-
-  // Function to normalize order items for display
-  const normalizeOrderItem = (item: any): OrderItem => {
-    // If it's already in the new format
-    if (item.product && typeof item.product === 'object') {
-      return item;
-    }
-    
-    // Convert legacy format to new format
-    return {
-      id: item.product_id || item.id,
-      product: {
-        id: item.product_id || item.id || '',
-        name: item.name || '',
-        price: item.price || 0,
-        image: item.image
-      },
-      variant_selections: item.variant_selections,
-      quantity: item.quantity || 0
-    };
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => prev + itemsPerPage);
   };
 
-  // Function to display variant selections
-  const renderVariantSelections = (variant_selections?: Record<string, any>) => {
-    if (!variant_selections || Object.keys(variant_selections).length === 0) {
-      return null;
-    }
+  const handleShowAll = () => {
+    setDisplayedItemsCount(filteredOrders.length);
+  };
 
-    return (
-      <div className="text-xs text-gray-500 mt-1">
-        {Object.entries(variant_selections).map(([key, value], index) => (
-          <span key={key}>
-            {key}: {value}
-            {index < Object.entries(variant_selections).length - 1 && ', '}
-          </span>
-        ))}
-      </div>
+  const handleShowLess = () => {
+    setDisplayedItemsCount(itemsPerPage);
+  };
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedOrders([]);
+      setIsAllSelected(false);
+    } else {
+      setSelectedOrders(displayedOrders.map(o => o.order_id));
+      setIsAllSelected(true);
+    }
+  };
+
+  const handleSelectOrder = (orderId: string) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
     );
   };
-  
-  const fetchOrders = async () => {
-    setLoading(true);
+
+  const handleBulkDelete = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          mpesa_payments:mpesa_payments(
-            mpesa_receipt_number
-          )
-        `)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      if (data) {
-        const typedOrders: Order[] = data.map(order => ({
-          ...order,
-          items: order.items ? (order.items as unknown as OrderItem[]) : null,
-          amount: order.amount || 0,
-          discount_amount: order.discount_amount || 0,
-          email: order.email || null,
-          phone_number: order.phone_number || null,
-          shipping_address: order.shipping_address || null,
-          tracking_number: order.tracking_number || undefined,
-          delivery_fee: order.delivery_fee || 0,
-          username: order.username || undefined,
-          mpesa_payments: Array.isArray(order.mpesa_payments)
-            ? order.mpesa_payments.map((p: any) => ({
-                mpesa_receipt_number: p.mpesa_receipt_number || null,
-              }))
-            : null,
-
-        }));
-        
-        setOrders(typedOrders);
-        setFilteredOrders(typedOrders);
-        
-        // Count orders by status
-        const counts = {
-          total: typedOrders.length,
-          pending: typedOrders.filter(order => order.status === 'pending').length,
-          paid: typedOrders.filter(order => order.status === 'paid').length,
-          processing: typedOrders.filter(order => order.status === 'processing').length,
-          shipped: typedOrders.filter(order => order.status === 'shipped').length,
-          delivered: typedOrders.filter(order => order.status === 'delivered').length,
-          cancelled: typedOrders.filter(order => order.status === 'cancelled').length
-        };
-        setOrderCount(counts);
-      }
-    } catch (error: any) {
-      console.error('Error fetching orders:', error);
-      toast({
-        title: "Failed to fetch orders",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const applyFilters = () => {
-    let result = [...orders];
-    
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(order => 
-        order.order_id.toLowerCase().includes(query) || 
-        order.email?.toLowerCase().includes(query) ||
-        order.phone_number?.toLowerCase().includes(query)
-      );
-    }
-    
-    // Apply status filter
-    if (statusFilter !== "all") {
-      result = result.filter(order => order.status === statusFilter);
-    }
-    
-    setFilteredOrders(result);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const updateDisplayedOrders = () => {
-    const startIndex = 0;
-    const endIndex = currentPage * ORDERS_PER_PAGE;
-    const ordersToShow = filteredOrders.slice(startIndex, endIndex);
-    
-    setDisplayedOrders(ordersToShow);
-    setHasMoreOrders(endIndex < filteredOrders.length);
-  };
-
-  const handleLoadMore = () => {
-    setLoadingMore(true);
-    
-    // Simulate a brief loading state for better UX
-    setTimeout(() => {
-      setCurrentPage(prev => prev + 1);
-      setLoadingMore(false);
-    }, 300);
-  };
-
-  const resetPagination = () => {
-    setCurrentPage(1);
-    setDisplayedOrders([]);
-  };
-  
-  const handleOrderClick = (order: Order) => {
-    setSelectedOrder(order);
-    setUpdatedStatus(order.status);
-    setIsUpdateDialogOpen(true);
-  };
-  
-  const handleStatusUpdate = async () => {
-    if (!selectedOrder) return;
-    
-    try {
-      setIsUpdating(true);
-      
       const { error } = await supabase
         .from('orders')
-        .update({ 
-          status: updatedStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('order_id', selectedOrder.order_id);
-        
+        .delete()
+        .in('order_id', selectedOrders);
+
       if (error) throw error;
-      
-      // Update orders in state
-      const updatedOrders = orders.map(order => 
-        order.order_id === selectedOrder.order_id 
-          ? { ...order, status: updatedStatus, updated_at: new Date().toISOString() } 
-          : order
-      );
-      
-      setOrders(updatedOrders);
-      
-      toast({
-        title: "Order status updated",
-        description: `Order #${selectedOrder.order_id} has been updated to ${updatedStatus}.`,
-      });
-      
-      // Close dialog
-      setIsUpdateDialogOpen(false);
-      
-    } catch (error: any) {
-      console.error('Error updating order status:', error);
-      toast({
-        title: "Failed to update order status",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
-  // Handle delete order confirmation
-  const handleDeleteClick = (order: Order, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOrderToDelete(order);
-    setIsDeleteDialogOpen(true);
-  };
-
-  // Delete order function
-  const handleDeleteOrder = async () => {
-    if (!orderToDelete && selectedOrders.length === 0) return;
-
-    try {
-      setIsDeleting(true);
-
-      if (orderToDelete) {
-        // Single delete
-        const { error } = await supabase
-          .from('orders')
-          .delete()
-          .eq('order_id', orderToDelete.order_id);
-
-        if (error) throw error;
-
-        // Remove order from state
-        const updatedOrders = orders.filter(order => order.order_id !== orderToDelete.order_id);
-          setOrders(updatedOrders);
-          recalculateOrderCounts(updatedOrders);
-
-        toast({
-          title: "Order deleted",
-          description: `Order #${orderToDelete.order_id.slice(-8).toUpperCase()} has been permanently deleted.`,
-        });
-      } else {
-        // Bulk delete
-        const { error } = await supabase
-          .from('orders')
-          .delete()
-          .in('order_id', selectedOrders);
-
-        if (error) throw error;
-
-        // Remove orders from state
-        const updatedOrders = orders.filter(order => !selectedOrders.includes(order.order_id));
-          setOrders(updatedOrders);
-          recalculateOrderCounts(updatedOrders);
-
-        toast({
-          title: "Orders deleted",
-          description: `${selectedOrders.length} orders have been permanently deleted.`,
-        });
-        
-        setSelectedOrders([]);
-      }
-
-      // Close dialog and reset state
+      toast({ title: "Success", description: `${selectedOrders.length} orders deleted` });
+      setSelectedOrders([]);
+      setIsAllSelected(false);
       setIsDeleteDialogOpen(false);
-      setOrderToDelete(null);
-
-    } catch (error: any) {
-      console.error('Error deleting order:', error);
-      toast({
-        title: "Failed to delete order",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-};
-  
-  const handleDownloadReceipt = (order: Order, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    
-    try {
-      // Transform the order to match the expected structure for downloadReceipt (legacy format)
-      const transformedOrder = {
-        ...order,
-        items: order.items?.map(item => {
-          const normalizedItem = normalizeOrderItem(item);
-          return {
-            product_id: normalizedItem.product.id,
-            quantity: normalizedItem.quantity,
-            name: normalizedItem.product.name,
-            price: normalizedItem.product.price,
-            image: normalizedItem.product.image
-          } as LegacyOrderItem;
-        }) || null,
-        delivery_fee: order.delivery_fee, // Add default delivery fee
-      };
-
-      downloadReceipt(transformedOrder);
-      toast({
-        title: "Receipt downloaded",
-        description: `Receipt for order #${order.order_id.slice(-8).toUpperCase()} has been downloaded.`,
-      });
+      fetchOrders();
     } catch (error) {
-      console.error('Error downloading receipt:', error);
-      toast({
-        title: "Failed to download receipt",
-        description: "There was an error generating the receipt.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to delete orders", variant: "destructive" });
+    }
+  };
+
+  const handleDownloadReceipt = (order: Order) => {
+    try {
+      downloadReceipt(order);
+      toast({ title: "Success", description: "Receipt downloaded successfully" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to download receipt", variant: "destructive" });
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'paid':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-        case 'processing':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'shipped':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+    switch (status) {
       case 'delivered':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'default';
+      case 'shipped':
+        return 'secondary';
+      case 'packed':
+        return 'outline';
+      case 'processing':
+        return 'secondary';
+      case 'pending':
+        return 'outline';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'destructive';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'outline';
     }
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return '⏳';
-      case 'paid':
-        return '📦';
-      case 'processing':
-        return '⚙️';
-      case 'shipped':
-        return '🚚';
+    switch (status) {
       case 'delivered':
-        return '✅';
+        return CheckCircle;
+      case 'shipped':
+        return Truck;
+      case 'packed':
+      case 'processing':
+        return Package;
       case 'cancelled':
-        return '❌';
+        return XCircle;
       default:
-        return '📦';
+        return Package;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Orders Management</h1>
-            <p className="text-muted-foreground">Manage and update customer orders</p>
-          </div>
-          
-          <div className="mt-4 md:mt-0 flex gap-3">
-            <Button 
-              onClick={fetchOrders} 
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
-            
-            {/* Add this bulk delete button */}
-            <Button 
-              variant="outline" 
-              disabled={selectedOrders.length === 0}
-              onClick={() => {
-                setOrderToDelete(null); // null means bulk delete
-                setIsDeleteDialogOpen(true);
-              }}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:text-gray-400"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected ({selectedOrders.length})
-            </Button>
-          </div>
-        </div>
-        
-        {/* Order Status Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.total}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.pending}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Paid</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.paid}</p>
-            </CardContent>
-          </Card>
+    <AdminLayout>
+      <QuickActionsBar
+        title="Orders"
+        onRefresh={fetchOrders}
+      />
 
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Processing</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.processing}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Shipped</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.shipped}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Delivered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.delivered}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Cancelled</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{orderCount.cancelled}</p>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="Search orders by ID, email, or phone..." 
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {orderStatuses.map(status => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                  resetPagination();
-                }}
-              >
-                Reset Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-0">
-            <CardTitle className="flex items-center justify-between">
-              <span>Order List</span>
-              <div className="text-sm text-muted-foreground font-normal">
-                Showing {displayedOrders.length} of {filteredOrders.length} orders
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox 
-                        checked={isAllSelected && displayedOrders.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Transaction Code</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    Array(5).fill(0).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell><div className="h-5 w-24 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-5 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-5 w-10 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-5 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell className="text-right"><div className="h-8 w-8 bg-gray-200 rounded-full ml-auto animate-pulse"></div></TableCell>
-                      </TableRow>
-                    ))
-                  ) : displayedOrders.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10">
-                        <p className="text-muted-foreground">No orders found</p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    displayedOrders.map((order) => (
-                      <TableRow 
-                        key={order.order_id} 
-                        className="cursor-pointer hover:bg-muted/50" 
-                        onClick={() => handleOrderClick(order)}
-                      >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox 
-                            checked={selectedOrders.includes(order.order_id)}
-                            onCheckedChange={() => toggleSelectOrder(order.order_id)}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">#{order.order_id.slice(-8).toUpperCase()}</TableCell>
-                        <TableCell>{formatDate(order.created_at)}</TableCell>
-                        <TableCell>
-                          {order.mpesa_payments && order.mpesa_payments.length > 0
-                            ? order.mpesa_payments[0].mpesa_receipt_number || 'N/A'
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            {order.first_name && order.last_name && (
-                              <div className="text-sm font-medium">{order.first_name} {order.last_name}</div>
-                            )}
-                            {order.email && <div className="text-sm">{order.email}</div>}
-                            {order.phone_number && <div className="text-xs text-muted-foreground">{order.phone_number}</div>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            {order.items?.length || 0} items
-                          </Badge>
-                        </TableCell>
-                        <TableCell>Ksh {order.amount?.toLocaleString() || 0}</TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusColor(order.status)} border px-3 py-1 font-medium`}>
-                            <span className="mr-1">{getStatusIcon(order.status)}</span>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex justify-end gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDownloadReceipt(order, e);
-                              }}
-                              title="Download Receipt"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOrderClick(order);
-                              }}
-                              title="View Order"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(order, e);
-                              }}
-                              title="Delete Order"
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            {/* Load More Button */}
-            {hasMoreOrders && !loading && (
-              <div className="flex justify-center py-6 border-t">
-                <Button
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  variant="outline"
-                  className="min-w-[200px]"
-                >
-                  {loadingMore ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Loading more orders...
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Show More Orders ({filteredOrders.length - displayedOrders.length} remaining)
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-            
-            {/* End of results message */}
-            {!hasMoreOrders && displayedOrders.length > 0 && filteredOrders.length > ORDERS_PER_PAGE && (
-              <div className="flex justify-center py-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  You've reached the end of the list. Showing all {filteredOrders.length} orders.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {selectedOrders.length > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedOrders.length}
+          totalCount={displayedOrders.length}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={() => {
+            setSelectedOrders([]);
+            setIsAllSelected(false);
+          }}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
+      )}
+
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={filteredOrders}
+          filename="orders"
+          headers={[
+            { key: 'order_id', label: 'Order ID' },
+            { key: 'username', label: 'Customer Name' },
+            { key: 'email', label: 'Customer Email' },
+            { key: 'phone_number', label: 'Phone' },
+            { key: 'amount', label: 'Amount' },
+            { key: 'status', label: 'Status' },
+            { key: 'mpesa_receipt_number', label: 'Transaction Code' },
+            { key: 'tracking_number', label: 'Tracking Number' },
+            { key: 'created_at', label: 'Date' },
+          ]}
+        />
       </div>
 
-      {/* Delete Confirmation Dialog - MOVED OUTSIDE TABLE */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-semibold">Delete Order{orderToDelete === null ? 's' : ''}</DialogTitle>
-                <DialogDescription>
-                  {orderToDelete === null
-                    ? `Are you sure you want to permanently delete ${selectedOrders.length} selected orders?`
-                    : 'Are you sure you want to permanently delete this order?'}
-                </DialogDescription>
-              </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="mb-6 flex flex-col sm:flex-row gap-3">
+            <DebouncedSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search orders..."
+              className="flex-1"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                {orderStatuses.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
-          </DialogHeader>
-          
-          {orderToDelete ? (
-            <div className="py-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium">Order #{orderToDelete.order_id.slice(-8).toUpperCase()}</p>
-                    <p className="text-sm text-gray-600">
-                      {orderToDelete.first_name && orderToDelete.last_name 
-                        ? `${orderToDelete.first_name} ${orderToDelete.last_name}` 
-                        : orderToDelete.email || orderToDelete.phone_number}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Ksh {orderToDelete.amount?.toLocaleString() || 0} • {orderToDelete.items?.length || 0} items
-                    </p>
-                  </div>
-                  <Badge className={`${getStatusColor(orderToDelete.status)} border px-2 py-1 text-xs`}>
-                    {orderToDelete.status}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
-                  <strong>Warning:</strong> This action cannot be undone. The order and all associated data will be permanently deleted.
-                </p>
-              </div>
+          ) : displayedOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <p className="text-muted-foreground">
+                {searchQuery || statusFilter !== 'all' 
+                  ? 'Try adjusting your filters' 
+                  : 'Orders will appear here once customers place them'}
+              </p>
             </div>
           ) : (
-            <div className="py-4">
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
-                  <strong>Warning:</strong> This action cannot be undone. All {selectedOrders.length} selected orders and their associated data will be permanently deleted.
-                </p>
+            <>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Transaction Code</TableHead>
+                      <TableHead>Tracking</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayedOrders.map((order) => {
+                      const StatusIcon = getStatusIcon(order.status);
+                      return (
+                        <TableRow key={order.order_id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedOrders.includes(order.order_id)}
+                              onCheckedChange={() => handleSelectOrder(order.order_id)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-mono">
+                            #{order.order_id.slice(0, 8)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {order.username || order.email}
+                              </span>
+                              {order.username && order.email && (
+                                <span className="text-xs text-muted-foreground">
+                                  {order.email}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              {order.items && order.items.length > 0 ? (
+                                <>
+                                  <span className="text-xs font-medium">
+                                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground line-clamp-1">
+                                    {order.items.map(item => item.product.name).join(', ')}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No items</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            KSH {order.amount?.toLocaleString() || '0'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusColor(order.status)} className="gap-1">
+                              <StatusIcon className="h-3 w-3" />
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {order.mpesa_receipt_number ? (
+                              <span className="text-xs font-mono text-primary">
+                                {order.mpesa_receipt_number}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {order.tracking_number ? (
+                              <span className="text-xs font-mono text-muted-foreground">
+                                {order.tracking_number}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(order.created_at), 'MMM dd, yyyy')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownloadReceipt(order)}
+                                title="Download Receipt"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setFulfillmentModal({ open: true, order })}
+                              >
+                                <Truck className="h-4 w-4 mr-1" />
+                                Fulfill
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => setViewOrderModal({ open: true, order })}
+                                title="View Order Details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsDeleteDialogOpen(false);
-                setOrderToDelete(null);
-              }}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={handleDeleteOrder}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isDeleting ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Order{orderToDelete === null ? 's' : ''}
-                </>
+              
+              {/* Pagination Controls */}
+              {filteredOrders.length > itemsPerPage && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {displayedItemsCount} of {filteredOrders.length} orders
+                  </p>
+                  <div className="flex gap-2">
+                    {hasMoreOrders && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleShowMore}
+                        >
+                          <ChevronDown className="h-4 w-4 mr-1" />
+                          Show More ({Math.min(itemsPerPage, filteredOrders.length - displayedItemsCount)})
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleShowAll}
+                        >
+                          Show All ({filteredOrders.length})
+                        </Button>
+                      </>
+                    )}
+                    {displayedItemsCount > itemsPerPage && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleShowLess}
+                      >
+                        Show Less
+                      </Button>
+                    )}
+                  </div>
+                </div>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Enhanced Order Update Dialog - Similar to OrderDetailPage */}
-      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="border-b pb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold">
-                  Order #{selectedOrder?.order_id.slice(-8).toUpperCase()}
-                </DialogTitle>
-                <DialogDescription className="flex items-center mt-1">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Placed on {selectedOrder && format(new Date(selectedOrder.created_at), 'PPP')}
-                </DialogDescription>
-              </div>
-              <div className="ml-auto">
-                <Badge className={`${selectedOrder && getStatusColor(selectedOrder.status)} border px-4 py-2 font-medium`}>
-                  <span className="mr-2">{selectedOrder && getStatusIcon(selectedOrder.status)}</span>
-                  {selectedOrder && selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
-                </Badge>
-              </div>
-            </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <OrderFulfillmentModal
+        open={fulfillmentModal.open}
+        onOpenChange={(open) => setFulfillmentModal({ open, order: null })}
+        order={fulfillmentModal.order}
+        onSuccess={fetchOrders}
+      />
+
+      {/* Order Details Modal */}
+      <Dialog open={viewOrderModal.open} onOpenChange={(open) => !open && setViewOrderModal({ open: false, order: null })}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              Complete information about order #{viewOrderModal.order?.order_id.slice(0, 8)}
+            </DialogDescription>
           </DialogHeader>
           
-          {selectedOrder && (
-            <div className="space-y-6 py-4">
-              {/* Customer and Shipping Information
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                    <h3 className="font-semibold text-gray-900">Shipping Address</h3>
-                  </div>
-                  <div className="pl-8">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                      {selectedOrder.shipping_address || 'No shipping address provided'}
-                    </p>
-                  </div>
+          {viewOrderModal.order && (
+            <div className="space-y-6">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Order ID</p>
+                  <p className="text-sm font-mono">{viewOrderModal.order.order_id}</p>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Phone className="h-5 w-5 text-gray-400" />
-                    <h3 className="font-semibold text-gray-900">Contact Information</h3>
-                  </div>
-                  <div className="pl-8 space-y-2">
-                    {selectedOrder.first_name && selectedOrder.last_name && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-400">👤</span>
-                        <p className="text-gray-700">{selectedOrder.first_name} {selectedOrder.last_name}</p>
-                      </div>
-                    )}
-                    {selectedOrder.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <p className="text-gray-700">{selectedOrder.email}</p>
-                      </div>
-                    )}
-                    {selectedOrder.phone_number && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <p className="text-gray-700">{selectedOrder.phone_number}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>  */}
-              
-              {/* Order Items - Enhanced Display */}
-              <div className="bg-white border rounded-lg">
-                <div className="flex items-center gap-3 p-6 border-b">
-                  <ShoppingBag className="h-5 w-5 text-gray-400" />
-                  <h3 className="text-xl font-semibold text-gray-900">Order Items</h3>
-                  <Badge variant="secondary" className="ml-auto">
-                    {selectedOrder.items?.length || 0} items
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={getStatusColor(viewOrderModal.order.status)}>
+                    {viewOrderModal.order.status}
                   </Badge>
                 </div>
-                
-                <div className="p-6">
-                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                    <div className="space-y-6">
-                      <div className="divide-y divide-gray-100">
-                        {selectedOrder.items.map((item, i) => {
-                          const normalizedItem = normalizeOrderItem(item);
-                          return (
-                            <div key={i} className="flex py-6 items-center justify-between first:pt-0 last:pb-0">
-                              <div className="flex items-center flex-1">
-                                {normalizedItem.product.image ? (
-                                  <img 
-                                    src={normalizedItem.product.image} 
-                                    alt={normalizedItem.product.name}
-                                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                                  />
-                                ) : (
-                                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                                    <Package className="h-8 w-8 text-gray-400" />
-                                  </div>
-                                )}
-                                
-                                <div className="ml-6 flex-1">
-                                  <h4 className="font-semibold text-gray-900 text-lg mb-1">{normalizedItem.product.name}</h4>
-                                  {renderVariantSelections(normalizedItem.variant_selections)}
-                                  <p className="text-gray-500 mb-3">Quantity: {normalizedItem.quantity}</p>
-                                  <div className="space-y-1">
-                                    <p className="font-semibold text-gray-900">
-                                      Ksh {(normalizedItem.product.price || 0).toLocaleString()} each
-                                    </p>
-                                    <p className="text-lg font-bold text-primary">
-                                      Total: Ksh {((normalizedItem.product.price || 0) * (normalizedItem.quantity || 0)).toLocaleString()}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Total Section */}
-                      <div className="border-t border-gray-200 pt-6">
-                        <div className="flex justify-between items-center bg-gray-50 rounded-lg p-4">
-                          <div>
-                            <p className="text-gray-500 mb-1">Total Amount</p>
-                            <p className="text-sm text-gray-500">
-                              {selectedOrder.items?.length || 0} items
-                            </p>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Date</p>
+                  <p className="text-sm">{format(new Date(viewOrderModal.order.created_at), 'PPP p')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Amount</p>
+                  <p className="text-sm font-semibold">KSH {viewOrderModal.order.amount?.toLocaleString() || '0'}</p>
+                </div>
+                {viewOrderModal.order.mpesa_receipt_number && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">M-Pesa Code</p>
+                    <p className="text-sm font-mono text-primary">{viewOrderModal.order.mpesa_receipt_number}</p>
+                  </div>
+                )}
+                {viewOrderModal.order.tracking_number && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Tracking Number</p>
+                    <p className="text-sm font-mono">{viewOrderModal.order.tracking_number}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Customer Info */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Customer Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                    <p className="text-sm">{viewOrderModal.order.username || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Email</p>
+                    <p className="text-sm">{viewOrderModal.order.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                    <p className="text-sm">{viewOrderModal.order.phone_number || 'N/A'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground">Shipping Address</p>
+                    <p className="text-sm">{viewOrderModal.order.shipping_address || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Order Items</h3>
+                <div className="space-y-3">
+                  {viewOrderModal.order.items && viewOrderModal.order.items.length > 0 ? (
+                    viewOrderModal.order.items.map((item, index) => (
+                      <div key={item.id || index} className="flex gap-4 p-3 border rounded-lg">
+                        {item.product.image ? (
+                          <img 
+                            src={item.product.image} 
+                            alt={item.product.name}
+                            className="w-20 h-20 object-cover rounded-md border"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center">
+                            <Package className="h-8 w-8 text-muted-foreground" />
                           </div>
-                          <p className="text-3xl font-bold text-gray-900">
-                            Ksh {(selectedOrder.amount || 0).toLocaleString()}
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium">{item.product.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Quantity: {item.quantity} × KSH {item.product.price.toLocaleString()}
+                          </p>
+                          {item.variant_selections && Object.keys(item.variant_selections).length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Variants: {Object.entries(item.variant_selections).map(([key, value]) => `${key}: ${value}`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">
+                            KSH {(item.quantity * item.product.price).toLocaleString()}
                           </p>
                         </div>
                       </div>
-                    </div>
+                    ))
                   ) : (
-                    <div className="text-center py-16">
-                      <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                        <ShoppingBag className="h-8 w-8 text-gray-400" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Items Found</h3>
-                      <p className="text-gray-500">No items found in this order</p>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="mx-auto h-12 w-12 mb-2" />
+                      <p>No items in this order</p>
                     </div>
                   )}
                 </div>
               </div>
-              
-              {/* Status Update Section */}
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Order Status</h3>
-                <Select value={updatedStatus} onValueChange={setUpdatedStatus}>
-                  <SelectTrigger className="max-w-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Order Summary */}
+              <div className="border-t pt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>
+                      KSH {((viewOrderModal.order.amount || 0) - (viewOrderModal.order.delivery_fee || 0)).toLocaleString()}
+                    </span>
+                  </div>
+                  {viewOrderModal.order.delivery_fee && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Delivery Fee</span>
+                      <span>KSH {viewOrderModal.order.delivery_fee.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                    <span>Total</span>
+                    <span>KSH {viewOrderModal.order.amount?.toLocaleString() || '0'}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
-          
-          <DialogFooter className="border-t pt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => selectedOrder && handleDownloadReceipt(selectedOrder)}
-              className="mr-auto"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Download Receipt
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewOrderModal({ open: false, order: null })}>
+              Close
             </Button>
-            <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+            {viewOrderModal.order && (
+              <Button onClick={() => handleDownloadReceipt(viewOrderModal.order!)}>
+                <Download className="h-4 w-4 mr-2" />
+                Download Receipt
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Orders</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedOrders.length} order(s)? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              className="bg-primary hover:bg-primary/90" 
-              onClick={handleStatusUpdate}
-              disabled={isUpdating || !selectedOrder || selectedOrder.status === updatedStatus}
-            >
-              {isUpdating ? "Updating..." : "Update Status"}
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 };
 

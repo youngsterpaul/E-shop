@@ -1,72 +1,47 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
+import { ExportButton } from '@/components/admin/ExportButton';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, XCircle, Globe, Monitor, Search, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CheckCircle, XCircle, Monitor, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoginAudit {
   id: string;
-  user_id: string | null;
   email: string;
   success: boolean;
   ip_address: string | null;
   user_agent: string | null;
-  device_info: any;
-  failure_reason: string | null;
-  session_id: string | null;
   created_at: string;
 }
 
 const AdminLoginAuditPage = () => {
+  const { toast } = useToast();
   const [searchEmail, setSearchEmail] = useState('');
   const [filter, setFilter] = useState<'all' | 'success' | 'failed'>('all');
-  const [dateRange, setDateRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d');
+  const [selectedAudits, setSelectedAudits] = useState<string[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
 
-  const { data: audits, isLoading } = useQuery({
-    queryKey: ['login-audit', filter, dateRange, searchEmail],
+  const { data: audits, isLoading, refetch } = useQuery({
+    queryKey: ['login-audit', filter, searchEmail],
     queryFn: async () => {
-      let query = supabase
-        .from('login_audit')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (filter === 'success') {
-        query = query.eq('success', true);
-      } else if (filter === 'failed') {
-        query = query.eq('success', false);
-      }
-
-      if (dateRange !== 'all') {
-        const hours = dateRange === '24h' ? 24 : dateRange === '7d' ? 168 : 720;
-        const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-        query = query.gte('created_at', since);
-      }
-
-      if (searchEmail) {
-        query = query.ilike('email', `%${searchEmail}%`);
-      }
-
+      let query = supabase.from('login_audit').select('*').order('created_at', { ascending: false }).limit(500);
+      if (filter === 'success') query = query.eq('success', true);
+      else if (filter === 'failed') query = query.eq('success', false);
+      if (searchEmail) query = query.ilike('email', `%${searchEmail}%`);
       const { data, error } = await query;
       if (error) throw error;
       return data as LoginAudit[];
@@ -77,105 +52,125 @@ const AdminLoginAuditPage = () => {
     total: audits?.length || 0,
     successful: audits?.filter(a => a.success).length || 0,
     failed: audits?.filter(a => !a.success).length || 0,
-    uniqueIPs: new Set(audits?.map(a => a.ip_address).filter(Boolean)).size,
   };
 
-  const getDeviceName = (userAgent: string | null) => {
-    if (!userAgent) return 'Unknown';
-    if (userAgent.includes('Mobile')) return 'Mobile';
-    if (userAgent.includes('Tablet')) return 'Tablet';
-    return 'Desktop';
+  const displayedAudits = audits?.slice(0, displayedItemsCount) || [];
+  const hasMoreAudits = (audits?.length || 0) > displayedItemsCount;
+
+  const handleSelectAudit = (id: string) => {
+    setSelectedAudits(prev =>
+      prev.includes(id) ? prev.filter(auditId => auditId !== id) : [...prev, id]
+    );
   };
 
-  const getBrowserName = (userAgent: string | null) => {
-    if (!userAgent) return 'Unknown';
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    return 'Other';
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedAudits([]);
+      setIsAllSelected(false);
+    } else {
+      setSelectedAudits(displayedAudits.map(a => a.id));
+      setIsAllSelected(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('login_audit')
+        .delete()
+        .in('id', selectedAudits);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Deleted ${selectedAudits.length} audit log(s)`,
+      });
+
+      setSelectedAudits([]);
+      setIsAllSelected(false);
+      setIsDeleteDialogOpen(false);
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => Math.min(prev + 50, audits?.length || 0));
+  };
+
+  const handleShowAll = () => {
+    setDisplayedItemsCount(audits?.length || 0);
+  };
+
+  const handleShowLess = () => {
+    setDisplayedItemsCount(50);
+    setSelectedAudits([]);
+    setIsAllSelected(false);
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <AdminSidebar />
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Login Audit Log</h1>
-        <p className="text-muted-foreground">
-          Track and monitor all authentication attempts
-        </p>
+    <AdminLayout>
+      <QuickActionsBar title="Login Audit Log" onRefresh={() => refetch()} />
+
+      {selectedAudits.length > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedAudits.length}
+          totalCount={displayedAudits.length}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={() => {
+            setSelectedAudits([]);
+            setIsAllSelected(false);
+          }}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
+      )}
+
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={audits || []}
+          filename="login-audit"
+          headers={[
+            { key: 'email', label: 'Email' },
+            { key: 'success', label: 'Success' },
+            { key: 'ip_address', label: 'IP Address' },
+            { key: 'created_at', label: 'Date' },
+          ]}
+        />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 mb-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Attempts</CardTitle>
-            <Monitor className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Attempts</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Successful</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.successful}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.total > 0 ? ((stats.successful / stats.total) * 100).toFixed(1) : 0}% success rate
-            </p>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Successful</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-green-600">{stats.successful}</div></CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.failed}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Potential security threats
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unique IPs</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.uniqueIPs}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Different locations
-            </p>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Failed</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-red-600">{stats.failed}</div></CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by email..."
-                  value={searchEmail}
-                  onChange={(e) => setSearchEmail(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Search by email..."
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+              className="max-w-sm"
+            />
             <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Attempts</SelectItem>
@@ -183,88 +178,113 @@ const AdminLoginAuditPage = () => {
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={dateRange} onValueChange={(v: any) => setDateRange(v)}>
-              <SelectTrigger className="w-[180px]">
-                <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Date range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">Last 24 hours</SelectItem>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="all">All time</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Audit Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Login Attempts</CardTitle>
-          <CardDescription>
-            Detailed log of all authentication attempts
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading audit log...</div>
-          ) : audits && audits.length > 0 ? (
+        <CardContent className="p-6">
+          {isLoading ? <div className="text-center py-8">Loading...</div> : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>IP Address</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>Browser</TableHead>
                   <TableHead>Timestamp</TableHead>
-                  <TableHead>Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {audits.map((audit) => (
+                {displayedAudits.map((audit) => (
                   <TableRow key={audit.id}>
                     <TableCell>
-                      {audit.success ? (
-                        <Badge variant="default" className="gap-1 bg-green-600">
-                          <CheckCircle className="h-3 w-3" />
-                          Success
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive" className="gap-1">
-                          <XCircle className="h-3 w-3" />
-                          Failed
-                        </Badge>
-                      )}
+                      <Checkbox
+                        checked={selectedAudits.includes(audit.id)}
+                        onCheckedChange={() => handleSelectAudit(audit.id)}
+                      />
                     </TableCell>
                     <TableCell className="font-medium">{audit.email}</TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {audit.ip_address || 'N/A'}
-                    </TableCell>
-                    <TableCell>{getDeviceName(audit.user_agent)}</TableCell>
-                    <TableCell>{getBrowserName(audit.user_agent)}</TableCell>
-                    <TableCell>{format(new Date(audit.created_at), 'PPp')}</TableCell>
                     <TableCell>
-                      {audit.failure_reason && (
-                        <span className="text-xs text-destructive">
-                          {audit.failure_reason}
-                        </span>
-                      )}
+                      <Badge variant={audit.success ? "default" : "destructive"}>
+                        {audit.success ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        {audit.success ? 'Success' : 'Failed'}
+                      </Badge>
                     </TableCell>
+                    <TableCell>{audit.ip_address || 'Unknown'}</TableCell>
+                    <TableCell>{format(new Date(audit.created_at), 'PPp')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No login attempts found
+          )}
+
+          {/* Pagination Controls */}
+          {!isLoading && audits && audits.length > 50 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {displayedItemsCount} of {audits.length} audit logs
+              </p>
+              <div className="flex gap-2">
+                {hasMoreAudits && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShowMore}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Show More (50)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShowAll}
+                    >
+                      Show All ({audits.length})
+                    </Button>
+                  </>
+                )}
+                {displayedItemsCount > 50 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShowLess}
+                  >
+                    Show Less
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-    </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Audit Logs</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedAudits.length} audit log(s)? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminLayout>
   );
 };
 

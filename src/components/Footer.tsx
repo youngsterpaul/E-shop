@@ -136,8 +136,8 @@ const Footer = ({ className }: FooterProps) => {
             <div key={section.title} className="min-w-0">
               <h3 className="font-bold text-gray-900 text-xl mb-4">{section.title}</h3>
               <ul className="space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.href}>
+                {section.links.map((link, idx) => (
+                  <li key={`${section.title}-${link.href}-${idx}`}>
                     <Link
                       to={link.href}
                       className="text-gray-600 hover:text-orange-500 transition-colors text-sm block truncate"

@@ -1,0 +1,14 @@
+{
+  "iconBackgroundColor": "#f97316",
+  "iconForegroundColor": "#ffffff",
+  "splashBackgroundColor": "#f97316",
+  "splashBackgroundColorDark": "#ea580c",
+  "android": {
+    "iconBackgroundColor": "#f97316",
+    "adaptiveIconForeground": "public/app-icon.png",
+    "adaptiveIconBackground": "#f97316"
+  },
+  "ios": {
+    "iconBackgroundColor": "#f97316"
+  }
+}

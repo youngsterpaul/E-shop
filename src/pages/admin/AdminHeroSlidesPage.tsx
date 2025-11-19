@@ -1,39 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
+import { EmptyState } from '@/components/admin/EmptyState';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Loader2, 
-  CheckCircle, 
-  Upload, 
-  Trash2, 
-  Edit, 
-  Eye, 
-  EyeOff,
-  Plus,
-  X,
-  GripVertical
-} from 'lucide-react';
+import { Image as ImageIcon, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 
 interface HeroSlide {
   id: string;
@@ -42,35 +20,25 @@ interface HeroSlide {
   link: string | null;
   display_order: number;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 const AdminHeroSlidesPage = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  
-  // Form state
   const [formData, setFormData] = useState({
     title: '',
     link: '',
-    display_order: 0,
+    display_order: 1,
     is_active: true,
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-
-  useEffect(() => {
-    fetchSlides();
-  }, []);
+  const [uploading, setUploading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [slideToDelete, setSlideToDelete] = useState<string | null>(null);
 
   const fetchSlides = async () => {
     try {
@@ -82,30 +50,72 @@ const AdminHeroSlidesPage = () => {
       if (error) throw error;
       setSlides(data || []);
     } catch (error: any) {
-      console.error('Error fetching slides:', error);
-      toast({
-        title: "Failed to load slides",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    fetchSlides();
+  }, []);
+
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('hero_slides')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast({ title: "Success", description: "Slide visibility updated" });
+      fetchSlides();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleOpenForm = (slide?: HeroSlide) => {
+    if (slide) {
+      setEditingSlide(slide);
+      setFormData({
+        title: slide.title,
+        link: slide.link || '',
+        display_order: slide.display_order,
+        is_active: slide.is_active,
+      });
+      setImagePreview(slide.image_url);
+    } else {
+      setEditingSlide(null);
+      setFormData({
+        title: '',
+        link: '',
+        display_order: slides.length + 1,
+        is_active: true,
+      });
+      setImagePreview('');
+    }
+    setImageFile(null);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingSlide(null);
+    setImageFile(null);
+    setImagePreview('');
+    setFormData({
+      title: '',
+      link: '',
+      display_order: 1,
+      is_active: true,
+    });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Image must be less than 5MB",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setSelectedImage(file);
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -114,72 +124,35 @@ const AdminHeroSlidesPage = () => {
     }
   };
 
-  const uploadImageToStorage = async (file: File): Promise<string> => {
-    try {
-      setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `hero-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `hero-slides/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('hero-slides')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('hero-slides')
-        .getPublicUrl(filePath);
-
-      setUploadProgress(100);
-      return publicUrl;
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.title) {
-      toast({
-        title: "Missing information",
-        description: "Please enter a title.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!editingSlide && !selectedImage) {
-      toast({
-        title: "Missing image",
-        description: "Please select an image.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploading(true);
 
     try {
-      setIsSubmitting(true);
-
       let imageUrl = editingSlide?.image_url || '';
 
       // Upload new image if selected
-      if (selectedImage) {
-        imageUrl = await uploadImageToStorage(selectedImage);
-        
-        // Delete old image if editing
-        if (editingSlide?.image_url) {
-          const oldPath = editingSlide.image_url.split('/').slice(-2).join('/');
-          await supabase.storage
-            .from('hero-slides')
-            .remove([oldPath]);
-        }
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `hero-slides/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('hero-slides')
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('hero-slides')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
+      if (!imageUrl && !editingSlide) {
+        toast({ title: "Error", description: "Please select an image", variant: "destructive" });
+        return;
       }
 
       const slideData = {
@@ -198,372 +171,242 @@ const AdminHeroSlidesPage = () => {
           .eq('id', editingSlide.id);
 
         if (error) throw error;
-
-        toast({
-          title: "Slide updated",
-          description: "Hero slide has been updated successfully.",
-        });
+        toast({ title: "Success", description: "Hero slide updated successfully" });
       } else {
         // Create new slide
         const { error } = await supabase
           .from('hero_slides')
-          .insert(slideData);
+          .insert([slideData]);
 
         if (error) throw error;
-
-        toast({
-          title: "Slide created",
-          description: "New hero slide has been added successfully.",
-        });
+        toast({ title: "Success", description: "Hero slide created successfully" });
       }
 
-      resetForm();
-      setIsDialogOpen(false);
+      handleCloseForm();
       fetchSlides();
     } catch (error: any) {
-      console.error('Error saving slide:', error);
-      toast({
-        title: "Failed to save slide",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
-      setIsSubmitting(false);
+      setUploading(false);
     }
   };
 
-  const handleEdit = (slide: HeroSlide) => {
-    setEditingSlide(slide);
-    setFormData({
-      title: slide.title,
-      link: slide.link || '',
-      display_order: slide.display_order,
-      is_active: slide.is_active,
-    });
-    setImagePreview(slide.image_url);
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = async (slide: HeroSlide) => {
-    if (!confirm(`Are you sure you want to delete "${slide.title}"?`)) return;
+  const handleDelete = async () => {
+    if (!slideToDelete) return;
 
     try {
-      // Delete image from storage
-      const imagePath = slide.image_url.split('/').slice(-2).join('/');
-      await supabase.storage
-        .from('hero-slides')
-        .remove([imagePath]);
-
-      // Delete from database
       const { error } = await supabase
         .from('hero_slides')
         .delete()
-        .eq('id', slide.id);
+        .eq('id', slideToDelete);
 
       if (error) throw error;
-
-      toast({
-        title: "Slide deleted",
-        description: "Hero slide has been removed successfully.",
-      });
-
+      toast({ title: "Success", description: "Hero slide deleted successfully" });
       fetchSlides();
     } catch (error: any) {
-      console.error('Error deleting slide:', error);
-      toast({
-        title: "Failed to delete slide",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSlideToDelete(null);
     }
   };
-
-  const toggleActive = async (slide: HeroSlide) => {
-    try {
-      const { error } = await supabase
-        .from('hero_slides')
-        .update({ is_active: !slide.is_active })
-        .eq('id', slide.id);
-
-      if (error) throw error;
-
-      toast({
-        title: slide.is_active ? "Slide deactivated" : "Slide activated",
-        description: `Hero slide is now ${!slide.is_active ? 'visible' : 'hidden'}.`,
-      });
-
-      fetchSlides();
-    } catch (error: any) {
-      console.error('Error toggling slide:', error);
-      toast({
-        title: "Failed to update slide",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      link: '',
-      display_order: 0,
-      is_active: true,
-    });
-    setSelectedImage(null);
-    setImagePreview('');
-    setEditingSlide(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <AdminSidebar />
-        <div className="ml-0 md:ml-64 p-4 md:p-6 flex items-center justify-center h-screen">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Hero Slides Management</h1>
-            <p className="text-muted-foreground">Manage homepage hero carousel slides</p>
-          </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add New Slide
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingSlide ? 'Edit' : 'Create'} Hero Slide</DialogTitle>
-                <DialogDescription>
-                  {editingSlide ? 'Update the hero slide information' : 'Add a new slide to the hero carousel'}
-                </DialogDescription>
-              </DialogHeader>
+    <AdminLayout>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Hero Slides</h1>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchSlides}>
+            Refresh
+          </Button>
+          <Button onClick={() => handleOpenForm()}>
+            Add Slide
+          </Button>
+        </div>
+      </div>
 
-              <div className="space-y-4 mt-4">
-                {/* Image Upload */}
-                <div>
-                  <Label>Slide Image *</Label>
-                  <div className="mt-2">
-                    {imagePreview ? (
-                      <div className="relative">
-                        <img 
-                          src={imagePreview} 
-                          alt="Preview" 
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
+      <Card>
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="text-center py-8">Loading slides...</div>
+          ) : slides.length === 0 ? (
+            <EmptyState
+              icon={ImageIcon}
+              title="No hero slides yet"
+              description="Create engaging hero slides for your homepage"
+              actionLabel="Add Slide"
+              onAction={() => handleOpenForm()}
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Image</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {slides.map((slide) => (
+                  <TableRow key={slide.id}>
+                    <TableCell className="font-medium">{slide.display_order}</TableCell>
+                    <TableCell>{slide.title}</TableCell>
+                    <TableCell>
+                      <img src={slide.image_url} alt={slide.title} className="h-10 w-20 object-cover rounded" />
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={slide.is_active ? "default" : "secondary"}>
+                        {slide.is_active ? 'Active' : 'Hidden'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
                         <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2"
-                          onClick={() => {
-                            setImagePreview('');
-                            setSelectedImage(null);
-                          }}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleActive(slide.id, slide.is_active)}
+                          title={slide.is_active ? 'Hide slide' : 'Show slide'}
                         >
-                          <X className="h-4 w-4" />
+                          {slide.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenForm(slide)}
+                          title="Edit slide"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSlideToDelete(slide.id);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          title="Delete slide"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
-                    ) : (
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                        <p className="mt-2 text-sm text-gray-600">Click to upload image</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, WEBP up to 5MB</p>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          className="mt-2"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
-                {/* Title */}
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g., Summer Tech Sale"
-                  />
-                </div>
+      {/* Add/Edit Form Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={(open) => !open && handleCloseForm()}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingSlide ? 'Edit Hero Slide' : 'Add Hero Slide'}</DialogTitle>
+            <DialogDescription>
+              {editingSlide ? 'Update the hero slide details below' : 'Create a new hero slide for your homepage'}
+            </DialogDescription>
+          </DialogHeader>
 
-                {/* Link */}
-                <div>
-                  <Label htmlFor="link">Link (optional)</Label>
-                  <Input
-                    id="link"
-                    value={formData.link}
-                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    placeholder="/products?category=tech"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Where users go when clicking the slide</p>
-                </div>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Enter slide title"
+                  required
+                />
+              </div>
 
-                {/* Display Order */}
-                <div>
-                  <Label htmlFor="order">Display Order</Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
-                </div>
+              <div>
+                <Label htmlFor="link">Link (Optional)</Label>
+                <Input
+                  id="link"
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
 
-                {/* Active Status */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked as boolean })}
-                  />
-                  <Label htmlFor="active" className="cursor-pointer">
-                    Active (visible on homepage)
-                  </Label>
-                </div>
+              <div>
+                <Label htmlFor="display_order">Display Order</Label>
+                <Input
+                  id="display_order"
+                  type="number"
+                  min="1"
+                  value={formData.display_order}
+                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
 
-                {/* Upload Progress */}
-                {isUploading && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Uploading...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
+              <div>
+                <Label htmlFor="image">Slide Image *</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required={!editingSlide}
+                />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img src={imagePreview} alt="Preview" className="h-32 w-full object-cover rounded-md border" />
                   </div>
                 )}
-
-                {/* Submit Button */}
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || isUploading}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        {editingSlide ? 'Update' : 'Create'} Slide
-                      </>
-                    )}
-                  </Button>
-                </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
 
-        {/* Slides List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Current Slides ({slides.length})</CardTitle>
-            <CardDescription>
-              Manage your homepage hero carousel slides
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {slides.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No slides yet. Create your first slide!</p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded"
+                />
+                <Label htmlFor="is_active" className="cursor-pointer">
+                  Active (Show on homepage)
+                </Label>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {slides.map((slide) => (
-                  <div
-                    key={slide.id}
-                    className={`border rounded-lg p-4 flex items-center gap-4 ${
-                      slide.is_active ? 'bg-white' : 'bg-gray-50'
-                    }`}
-                  >
-                    <GripVertical className="text-gray-400 cursor-move" size={20} />
-                    
-                    <img
-                      src={slide.image_url}
-                      alt={slide.title}
-                      className="w-32 h-20 object-cover rounded"
-                    />
-                    
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{slide.title}</h3>
-                      <p className="text-sm text-gray-600">Order: {slide.display_order}</p>
-                      {slide.link && (
-                        <p className="text-sm text-blue-600 truncate">Link: {slide.link}</p>
-                      )}
-                    </div>
+            </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        variant={slide.is_active ? "default" : "outline"}
-                        size="icon"
-                        onClick={() => toggleActive(slide)}
-                        title={slide.is_active ? 'Active' : 'Inactive'}
-                      >
-                        {slide.is_active ? <Eye size={20} /> : <EyeOff size={20} />}
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEdit(slide)}
-                      >
-                        <Edit size={20} />
-                      </Button>
-                      
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(slide)}
-                      >
-                        <Trash2 size={20} />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={handleCloseForm}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={uploading}>
+                {uploading ? 'Uploading...' : editingSlide ? 'Update Slide' : 'Create Slide'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Hero Slide</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this hero slide? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminLayout>
   );
 };
 

@@ -2,10 +2,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/hooks/useProducts';
+import { cacheProducts, getCachedProducts } from '@/utils/offlineStorage';
+import { useNetworkStatus } from './useNetworkStatus';
 
 export const useOptimizedProducts = () => {
+  const { isOnline } = useNetworkStatus();
+  
   const fetchProducts = async (): Promise<Product[]> => {
-    const { data, error } = await supabase
+    // Try to fetch from network if online
+    if (isOnline) {
+      try {
+        const { data, error } = await supabase
       .from('products')
       .select(`
         product_id,
@@ -17,14 +24,28 @@ export const useOptimizedProducts = () => {
         featured,
         rating
       `)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching products:', error);
-      throw new Error(error.message);
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const products = data as Product[];
+        
+        // Cache products for offline use
+        if (products && products.length > 0) {
+          await cacheProducts(products);
+        }
+        
+        return products;
+      } catch (error) {
+        console.error('Error fetching products, falling back to cache:', error);
+        // Fall back to cached data if network request fails
+        return await getCachedProducts();
+      }
     }
-
-    return data as Product[];
+    
+    // Use cached data when offline
+    console.log('Offline mode: Using cached products');
+    return await getCachedProducts();
   };
 
   const fetchFeaturedProducts = async (): Promise<Product[]> => {

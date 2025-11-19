@@ -2,8 +2,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense, ReactNode } from "react";
-//import { Toaster } from "@/components/ui/toaster";
-//import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import TopProgressBar from './components/TopProgressBar';
@@ -27,6 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
 import { useCart } from './hooks/useCart';
+import SecurityHeaders from './components/SecurityHeaders';
+import { useSessionTimeout } from './hooks/useSessionTimeout';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -62,7 +62,6 @@ const AdminProductEditPage = lazy(() => import("./pages/admin/AdminProductEditPa
 const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
 const AdminStoresPage = lazy(() => import("./pages/admin/AdminStoresPage"));
 const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
-const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
 const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
 const AdminHeroSlidesPage = lazy(() => import("./pages/admin/AdminHeroSlidesPage"));
@@ -70,6 +69,14 @@ const AdminLocationsPage = lazy(() => import("./pages/admin/AdminLocationsPage")
 const AdminSecurityAlertsPage = lazy(() => import("./pages/admin/AdminSecurityAlertsPage"));
 const AdminLoginAuditPage = lazy(() => import("./pages/admin/AdminLoginAuditPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
+const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPage"));
+const AdminSuppliersPage = lazy(() => import("./pages/admin/AdminSuppliersPage"));
+const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
+const AdminPurchaseOrdersPage = lazy(() => import("./pages/admin/AdminPurchaseOrdersPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage"));
+const AdminCustomerViewPage = lazy(() => import("./pages/admin/AdminCustomerViewPage"));
+const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -79,6 +86,9 @@ function App() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Enable session timeout for authenticated users
+  useSessionTimeout();
 
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
@@ -188,9 +198,13 @@ function App() {
     }
 
   const { title, backTo, rightAction } = getHeaderProps();
+  
+  // Enable session timeout for authenticated users
+  useSessionTimeout();
 
   return (
       <TooltipProvider>
+      <SecurityHeaders />
       <TopProgressBar/>
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
@@ -253,6 +267,13 @@ function App() {
             <Route path="/supersmartkenyaadmin123/security-alerts" element={<AdminRoute requiredRole="superadmin"><AdminSecurityAlertsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/login-audit" element={<AdminRoute requiredRole="superadmin"><AdminLoginAuditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/activity-log" element={<AdminRoute requiredRole="superadmin"><AdminActivityLogPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/suppliers" element={<AdminRoute requiredRole="admin"><AdminSuppliersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/inventory" element={<AdminRoute requiredRole="admin"><AdminInventoryPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/purchase-orders" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/customers" element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/customers/:customerId" element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/analytics" element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

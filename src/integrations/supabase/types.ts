@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          changes: Json | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          record_name: string | null
+          table_name: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          record_name?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          record_name?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string | null
@@ -647,9 +695,11 @@ export type Database = {
           is_digital: boolean | null
           low_stock_threshold: number | null
           name: string
+          preferred_supplier_id: string | null
           price: number | null
           product_id: string
           rating: number | null
+          reorder_point: number | null
           specification: Json | null
           stock: number | null
           store: string | null
@@ -666,9 +716,11 @@ export type Database = {
           is_digital?: boolean | null
           low_stock_threshold?: number | null
           name: string
+          preferred_supplier_id?: string | null
           price?: number | null
           product_id?: string
           rating?: number | null
+          reorder_point?: number | null
           specification?: Json | null
           stock?: number | null
           store?: string | null
@@ -685,16 +737,26 @@ export type Database = {
           is_digital?: boolean | null
           low_stock_threshold?: number | null
           name?: string
+          preferred_supplier_id?: string | null
           price?: number | null
           product_id?: string
           rating?: number | null
+          reorder_point?: number | null
           specification?: Json | null
           stock?: number | null
           store?: string | null
           subcategory_id?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_preferred_supplier_id_fkey"
+            columns: ["preferred_supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -743,6 +805,107 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number | null
+          total_price: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity?: number | null
+          total_price?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number | null
+          total_price?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          actual_delivery_date: string | null
+          created_at: string
+          created_by: string
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          po_number: string
+          status: string
+          supplier_id: string | null
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          created_at?: string
+          created_by: string
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number: string
+          status?: string
+          supplier_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          created_at?: string
+          created_by?: string
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number?: string
+          status?: string
+          supplier_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reviews: {
         Row: {
@@ -873,6 +1036,48 @@ export type Database = {
         }
         Relationships: []
       }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -927,8 +1132,19 @@ export type Database = {
         Args: { p_product_id: string; p_user_id: string }
         Returns: boolean
       }
+      check_low_stock: {
+        Args: never
+        Returns: {
+          current_stock: number
+          preferred_supplier_name: string
+          product_id: string
+          product_name: string
+          reorder_point: number
+        }[]
+      }
       cleanup_expired_carts: { Args: never; Returns: number }
       cleanup_expired_sessions: { Args: never; Returns: number }
+      generate_po_number: { Args: never; Returns: string }
       get_or_create_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: string

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -202,12 +202,11 @@ const AdminDailySalesPage = () => {
   const totals = calculateTotals();
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="mb-6 flex justify-between items-center">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Daily Sales</h1>
+            <h1 className="text-3xl font-bold text-foreground">Daily Sales</h1>
             <p className="text-muted-foreground">Monitor and manage daily sales records</p>
           </div>
           
@@ -537,7 +536,7 @@ const AdminDailySalesPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
