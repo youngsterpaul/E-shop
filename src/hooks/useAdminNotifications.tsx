@@ -50,21 +50,22 @@ export const useAdminNotifications = (isAdmin: boolean) => {
           const product = payload.new as any;
           const oldProduct = payload.old as any;
           
-          // Check if stock went below threshold
-          const lowStockThreshold = product.low_stock_threshold || 10;
+          // Check if stock went below reorder point
+          const reorderPoint = product.reorder_point || 10;
           if (
-            product.stock <= lowStockThreshold && 
-            oldProduct.stock > lowStockThreshold
+            product.stock <= reorderPoint && 
+            oldProduct.stock > reorderPoint
           ) {
             toast({
               title: '⚠️ Low Stock Alert',
-              description: `${product.name} is running low (${product.stock} units left)`,
+              description: `${product.name} needs reordering (${product.stock} units left, reorder point: ${reorderPoint})`,
               variant: 'destructive',
               duration: 7000,
             });
             
             // Invalidate low stock products query
             queryClient.invalidateQueries({ queryKey: ['adminLowStockProducts'] });
+            queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
           }
         }
       )
