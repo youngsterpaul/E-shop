@@ -11,6 +11,7 @@ import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 //import { CookieConsent } from '@/components/CookieConsent';
 //import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { OfflineCacheManager } from '@/components/OfflineCacheManager';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
@@ -64,6 +65,7 @@ createRoot(document.getElementById('root')!).render(
                     {/* <Analytics />*/}
                     {/* <PWAInstallPrompt /> */}
                     <OfflineIndicator />
+                    <OfflineCacheManager />
                   </CheckoutProvider>
                 </SelectiveCartProvider>
               </CartProvider>
