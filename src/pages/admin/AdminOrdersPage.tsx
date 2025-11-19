@@ -4,8 +4,8 @@ import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { OrderFulfillmentModal } from '@/components/admin/OrderFulfillmentModal';
+import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Search, Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown } from 'lucide-react';
+import { Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
@@ -59,8 +59,8 @@ const AdminOrdersPage = () => {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
+  const itemsPerPage = 50;
   const [fulfillmentModal, setFulfillmentModal] = useState<{ open: boolean; order: any }>({
     open: false,
     order: null,
@@ -249,16 +249,12 @@ const AdminOrdersPage = () => {
       <Card>
         <CardContent className="p-6">
           <div className="mb-6 flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search orders..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <DebouncedSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search orders..."
+              className="flex-1"
+            />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by status" />

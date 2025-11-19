@@ -5,8 +5,8 @@ import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { EmptyState } from '@/components/admin/EmptyState';
+import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Edit, Trash2, X, Check, Settings, ChevronDown, Package } from 'lucide-react';
+import { Edit, Trash2, X, Check, Settings, ChevronDown, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
@@ -45,8 +45,8 @@ const AdminProductsPage = () => {
   const [showVariantsDialog, setShowVariantsDialog] = useState(false);
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
   
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
+  const itemsPerPage = 50;
   
   const categoryOptions = [{ id: 0, category: 'All Categories' }, ...categories];
 
@@ -250,16 +250,12 @@ const AdminProductsPage = () => {
         <CardContent className="p-6">
           <div className="mb-6 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <DebouncedSearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search products..."
+                className="flex-1"
+              />
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Select category" />

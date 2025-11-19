@@ -41,8 +41,10 @@ const AppWithAnalytics = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes in memory (formerly cacheTime)
       retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
