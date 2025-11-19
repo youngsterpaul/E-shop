@@ -180,13 +180,29 @@ If you encounter issues:
 2. Review [Common Issues](https://capacitorjs.com/docs/troubleshooting)
 3. Ask in the [Lovable Discord](https://discord.gg/lovable)
 
-## ✨ Next Features to Consider
+## 🎯 Next Features to Consider
 
 - Push notifications (@capacitor/push-notifications)
 - Camera integration (@capacitor/camera)
 - Geolocation (@capacitor/geolocation)
 - In-app purchases (@capacitor/purchases)
 - Local notifications (@capacitor/local-notifications)
+
+---
+
+## 📊 Version Management
+
+Your app now has automated version management! 
+
+**Quick version bump commands:**
+```bash
+npm run version:patch   # Bug fixes: 1.0.0 → 1.0.1
+npm run version:minor   # Features: 1.0.0 → 1.1.0
+npm run version:major   # Breaking: 1.0.0 → 2.0.0
+npm run version:build   # Build only: build 1 → 2
+```
+
+**See `APP_VERSIONING_GUIDE.md` and `VERSION_QUICK_REFERENCE.md` for complete details.**
 
 ---
 
