@@ -23,6 +23,7 @@ import {
   Truck,
   Users2,
   BarChart3,
+  Home,
 } from 'lucide-react';
 import {
   Sidebar,
