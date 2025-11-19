@@ -19,11 +19,15 @@ import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
 
 interface OrderItem {
-  product_id: string;
+  id: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+  };
   quantity: number;
-  name: string;
-  price: number;
-  image?: string;
+  variant_selections?: Record<string, any>;
 }
 
 interface Order {
@@ -42,8 +46,7 @@ interface Order {
   shipping_address: string | null;
   created_at: string;
   updated_at: string;
-  mpesa_checkout_request_id?: string;
-  payment_id?: string;
+  mpesa_receipt_number?: string | null;
 }
 
 const orderStatuses = ["all", "pending", "processing", "packed", "shipped", "delivered", "cancelled"];
@@ -67,7 +70,10 @@ const AdminOrdersPage = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('orders')
-      .select('*')
+      .select(`
+        *,
+        mpesa_payments!left(mpesa_receipt_number)
+      `)
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -77,6 +83,7 @@ const AdminOrdersPage = () => {
         ...order,
         items: order.items as unknown as OrderItem[] | null,
         username: order.username ?? undefined,
+        mpesa_receipt_number: (order.mpesa_payments as any)?.[0]?.mpesa_receipt_number || null,
       })));
     }
     setLoading(false);
@@ -228,6 +235,7 @@ const AdminOrdersPage = () => {
             { key: 'phone_number', label: 'Phone' },
             { key: 'amount', label: 'Amount' },
             { key: 'status', label: 'Status' },
+            { key: 'mpesa_receipt_number', label: 'Transaction Code' },
             { key: 'tracking_number', label: 'Tracking Number' },
             { key: 'created_at', label: 'Date' },
           ]}
@@ -289,8 +297,10 @@ const AdminOrdersPage = () => {
                       </TableHead>
                       <TableHead>Order ID</TableHead>
                       <TableHead>Customer</TableHead>
+                      <TableHead>Items</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Transaction Code</TableHead>
                       <TableHead>Tracking</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -322,6 +332,22 @@ const AdminOrdersPage = () => {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              {order.items && order.items.length > 0 ? (
+                                <>
+                                  <span className="text-xs font-medium">
+                                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground line-clamp-1">
+                                    {order.items.map(item => item.product.name).join(', ')}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No items</span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="font-medium">
                             KSH {order.amount?.toLocaleString() || '0'}
                           </TableCell>
@@ -330,6 +356,15 @@ const AdminOrdersPage = () => {
                               <StatusIcon className="h-3 w-3" />
                               {order.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {order.mpesa_receipt_number ? (
+                              <span className="text-xs font-mono text-primary">
+                                {order.mpesa_receipt_number}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {order.tracking_number ? (

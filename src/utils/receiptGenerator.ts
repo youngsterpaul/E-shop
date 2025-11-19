@@ -5,11 +5,15 @@ import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 
 interface OrderItem {
-  product_id: string;
+  id: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image?: string;
+  };
   quantity: number;
-  name: string;
-  price: number;
-  image?: string;
+  variant_selections?: Record<string, any>;
 }
 
 interface Order {
@@ -27,8 +31,7 @@ interface Order {
   shipping_address: string | null;
   created_at: string;
   updated_at: string;
-  mpesa_checkout_request_id?: string;
-  payment_id?: string;
+  mpesa_receipt_number?: string | null;
 }
 
 async function getBase64ImageFromURL(url: string): Promise<string> {
@@ -120,6 +123,9 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     doc.text(`Email: ${order.email || 'N/A'}`, 4, y); y += 4;
     doc.text(`Phone: ${order.phone_number || 'N/A'}`, 4, y); y += 4;
     doc.text(`Address: ${order.shipping_address || 'N/A'}`, 4, y); y += 4;
+    if (order.mpesa_receipt_number) {
+      doc.text(`M-Pesa Code: ${order.mpesa_receipt_number}`, 4, y); y += 4;
+    }
 
     doc.line(4, y, receiptWidth - 4, y);
     y += 4;
@@ -129,12 +135,12 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
 
     const tableBody = items.map((item) => {
       const qty = item.quantity || 0;
-      const price = item.price || 0;
+      const price = item.product.price || 0;
       const total = qty * price;
 
       return [
         qty.toString(),
-        item.name || 'Unknown Item',
+        item.product.name || 'Unknown Item',
         `KES ${price.toLocaleString()}`,
         `KES ${total.toLocaleString()}`
       ];
@@ -156,7 +162,7 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     });
 
     // Summary Section
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.price || 0), 0);
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.product.price || 0), 0);
     const deliveryFee = order.delivery_fee ?? 0; // Use 0 if null or undefined
     const grandTotal = subtotal + deliveryFee;
 
