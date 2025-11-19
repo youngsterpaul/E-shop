@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import AdvancedProductForm from '@/components/admin/AdvancedProductForm';
 import ProductBasicInfoForm from '@/components/admin/ProductBasicInfoForm';
 import ProductCategorySelect from '@/components/admin/ProductCategorySelect';
@@ -187,12 +187,11 @@ const AdminProductAdd = () => {
   const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="flex items-center justify-between mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Add Product</h1>
+            <h1 className="text-3xl font-bold text-foreground">Add Product</h1>
             <p className="text-muted-foreground">Add a new product to your inventory</p>
           </div>
           
@@ -276,7 +275,7 @@ const AdminProductAdd = () => {
           </form>
         </Form>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
