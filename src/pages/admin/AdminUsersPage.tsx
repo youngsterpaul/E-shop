@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
+import { ExportButton } from '@/components/admin/ExportButton';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
+import { EmptyState } from '@/components/admin/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,9 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash2, FileUp, Mail, Phone, ChevronDown, RefreshCw } from 'lucide-react';
+import { Search, Edit, Trash2, Mail, Phone, ChevronDown, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { AppRole } from '@/hooks/useUserRole';
@@ -38,7 +42,6 @@ const AdminUsersPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
-  // Pagination state
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
   
@@ -54,9 +57,7 @@ const AdminUsersPage = () => {
     return ['superadmin', 'admin', 'moderator', 'user'].includes(role);
   };
   
-  // Fetch users with their roles
   const fetchUsers = async () => {
-    // Fetch all profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('*')
@@ -64,29 +65,25 @@ const AdminUsersPage = () => {
       
     if (profilesError) throw profilesError;
 
-    // Fetch all user roles
     const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
       .select('user_id, role');
       
     if (rolesError) throw rolesError;
 
-    // Create a map of user_id to highest role
     const roleMap = new Map<string, AppRole>();
     const roleHierarchy: AppRole[] = ['superadmin', 'admin', 'moderator', 'user'];
     
-  userRoles?.forEach(ur => {
-    // Add type assertion here
-    const role = ur.role as AppRole;
-    if (isValidRole(role)) {
-      const currentRole = roleMap.get(ur.user_id);
-      if (!currentRole || roleHierarchy.indexOf(role) < roleHierarchy.indexOf(currentRole)) {
-        roleMap.set(ur.user_id, role);
+    userRoles?.forEach(ur => {
+      const role = ur.role as AppRole;
+      if (isValidRole(role)) {
+        const currentRole = roleMap.get(ur.user_id);
+        if (!currentRole || roleHierarchy.indexOf(role) < roleHierarchy.indexOf(currentRole)) {
+          roleMap.set(ur.user_id, role);
+        }
       }
-    }
-  });
+    });
 
-    // Combine profiles with roles
     const usersWithRoles: User[] = profiles.map(profile => ({
       ...profile,
       role: roleMap.get(profile.user_id) || 'user'
@@ -100,439 +97,391 @@ const AdminUsersPage = () => {
     queryFn: fetchUsers
   });
   
-  // Apply filtering
   const filteredUsers = users.filter(user => {
-    // Search filter
     const searchMatch = searchQuery === '' || 
       user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.last_sign_in_at?.toLowerCase().includes(searchQuery.toLowerCase()) ||  
-      `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Role filter
+      user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.last_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
     const roleMatch = selectedRole === 'All Roles' || 
-      (selectedRole === 'Super Admin' && user.role === 'superadmin') ||
-      (selectedRole === 'Admin' && user.role === 'admin') ||
-      (selectedRole === 'Moderator' && user.role === 'moderator') ||
-      (selectedRole === 'User' && user.role === 'user');
-    
+      getRoleName(user.role).includes(selectedRole.replace(' Admin', 'admin').replace('User', 'user'));
+
     return searchMatch && roleMatch;
   });
 
-  // Get users to display (with pagination)
   const displayedUsers = filteredUsers.slice(0, displayedItemsCount);
   const hasMoreUsers = filteredUsers.length > displayedItemsCount;
 
-  // Reset displayed items when filters change
   useEffect(() => {
     setDisplayedItemsCount(itemsPerPage);
     setSelectedUsers([]);
     setIsAllSelected(false);
   }, [searchQuery, selectedRole, itemsPerPage]);
 
-  // Handle "Show More" button
   const handleShowMore = () => {
     setDisplayedItemsCount(prev => prev + itemsPerPage);
   };
 
-  // Handle "Show All" button
   const handleShowAll = () => {
     setDisplayedItemsCount(filteredUsers.length);
   };
 
-  // Handle "Show Less" button
   const handleShowLess = () => {
     setDisplayedItemsCount(itemsPerPage);
-    document.querySelector('[data-table-container]')?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  // Handle bulk selection
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelectedUsers([]);
-    } else {
-      setSelectedUsers(displayedUsers.map(user => user.user_id));
-    }
-    setIsAllSelected(!isAllSelected);
-  };
-  
-  const toggleSelectUser = (userId: string) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
-    } else {
-      setSelectedUsers([...selectedUsers, userId]);
-    }
   };
 
-  // Update isAllSelected based on current selection
-  useEffect(() => {
-    const displayedUserIds = displayedUsers.map(u => u.user_id);
-    const allDisplayedSelected = displayedUserIds.length > 0 && 
-      displayedUserIds.every(id => selectedUsers.includes(id));
-    setIsAllSelected(allDisplayedSelected);
-  }, [selectedUsers, displayedUsers]);
-  
-  // Handle delete
+  const handleEdit = (userId: string) => {
+    navigate(`/supersmartkenyaadmin123/users/edit/${userId}`);
+  };
+
   const handleDeleteClick = (userId: string) => {
     setUserToDelete(userId);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const handleBulkDeleteClick = () => {
     setUserToDelete(null);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const confirmDelete = async () => {
     try {
-      if (userToDelete !== null) {
+      if (userToDelete) {
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('user_id', userToDelete);
+
+        if (error) throw error;
+
         toast({
-          title: "User deleted",
-          description: "The user has been successfully deleted.",
+          title: "Success",
+          description: "User deleted successfully",
         });
       } else {
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .in('user_id', selectedUsers);
+
+        if (error) throw error;
+
         toast({
-          title: "Users deleted",
-          description: `${selectedUsers.length} users have been successfully deleted.`,
+          title: "Success",
+          description: `${selectedUsers.length} users deleted successfully`,
         });
+
         setSelectedUsers([]);
+        setIsAllSelected(false);
       }
+
       refetch();
-    } catch (error: any) {
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
       console.error('Error deleting users:', error);
       toast({
-        title: "Delete failed",
-        description: error.message,
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to delete users",
+        variant: "destructive",
       });
-    } finally {
-      setIsDeleteDialogOpen(false);
     }
   };
-  
-  // Reset filters
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedRole('All Roles');
+
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .in('user_id', selectedUsers);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${selectedUsers.length} users deleted successfully`,
+      });
+
+      setSelectedUsers([]);
+      setIsAllSelected(false);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete users",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Format date
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUsers([]);
+      setIsAllSelected(false);
+    } else {
+      setSelectedUsers(displayedUsers.map(u => u.user_id));
+      setIsAllSelected(true);
+    }
+  };
 
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'Africa/Nairobi',
+  const handleSelectAll = () => {
+    setSelectedUsers(displayedUsers.map(u => u.user_id));
+    setIsAllSelected(true);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedUsers([]);
+    setIsAllSelected(false);
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
+  };
+
+  const getRoleName = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      'superadmin': 'Super Admin',
+      'admin': 'Admin',
+      'moderator': 'Moderator',
+      'user': 'User'
     };
-
-    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
-    return formatted.replace(/\sGMT.*$/, '');
+    return roleMap[role] || 'User';
   };
 
-  // Get role display info
-  const getRoleInfo = (role: AppRole) => {
+  const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'superadmin':
-        return { label: 'Super Admin', color: 'bg-purple-600' };
+        return 'bg-purple-500';
       case 'admin':
-        return { label: 'Admin', color: 'bg-blue-500' };
+        return 'bg-blue-500';
       case 'moderator':
-        return { label: 'Moderator', color: 'bg-green-500' };
+        return 'bg-green-500';
       case 'user':
       default:
-        return { label: 'User', color: 'bg-gray-500' };
+        return 'bg-gray-500';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 md:ml-64 p-4 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Users</h1>
-            <p className="text-muted-foreground">Manage your users</p>
-          </div>
-          
-          <div className="mt-4 md:mt-0 flex flex-wrap md:flex-nowrap gap-3">
-            <Button 
-              className="bg-green-500 hover:bg-green-600"
-              onClick={() => navigate('/supersmartkenyaadmin123/users/add')}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add User
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              disabled={selectedUsers.length === 0}
-              onClick={handleBulkDeleteClick}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected ({selectedUsers.length})
-            </Button>
+    <AdminLayout>
+      <QuickActionsBar
+        title="Users"
+        onRefresh={() => refetch()}
+        addNewPath="/supersmartkenyaadmin123/users/add"
+        addNewLabel="Add User"
+      />
 
-            <Button 
-              onClick={() => refetch()}
-              variant="outline"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-            
-            <Button variant="outline">
-              <FileUp className="mr-2 h-4 w-4" /> Export
-            </Button>
-          </div>
-        </div>
-        
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={filteredUsers}
+          filename="users"
+          headers={[
+            { key: 'email', label: 'Email' },
+            { key: 'first_name', label: 'First Name' },
+            { key: 'last_name', label: 'Last Name' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'role', label: 'Role' },
+            { key: 'created_at', label: 'Created At' },
+          ]}
+        />
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="mb-6 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="Search users by name or email..." 
-                  className="pl-8"
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
                 />
               </div>
-              
               <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Role" />
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map(role => (
+                  {roles.map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
 
-              <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                <SelectTrigger className="w-full md:w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 per page</SelectItem>
-                  <SelectItem value="25">25 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
-                  <SelectItem value="100">100 per page</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button variant="outline" onClick={resetFilters}>
-                Reset Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card data-table-container>
-          <CardHeader className="pb-0">
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  Showing {displayedUsers.length} of {filteredUsers.length} users
-                  {selectedUsers.length > 0 && (
-                    <span className="ml-2 text-green-600 font-medium">
-                      • {selectedUsers.length} selected
-                    </span>
-                  )}
-                </CardDescription>
-              </div>
-              {filteredUsers.length > itemsPerPage && (
-                <div className="text-sm text-muted-foreground">
-                  {hasMoreUsers ? (
-                    <span>{displayedItemsCount} of {filteredUsers.length} shown</span>
-                  ) : (
-                    <span>All {filteredUsers.length} users shown</span>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox 
-                        checked={isAllSelected && displayedUsers.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Last Sign In</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array(5).fill(0).map((_, i) => (
-                      <TableRow key={i}>
+          {isLoading ? (
+            <div className="text-center py-8">Loading users...</div>
+          ) : filteredUsers.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No users found"
+              description={searchQuery || selectedRole !== 'All Roles'
+                ? "Try adjusting your filters"
+                : "Get started by adding your first user"
+              }
+              actionLabel="Add User"
+              onAction={() => navigate('/supersmartkenyaadmin123/users/add')}
+            />
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox 
+                          checked={isAllSelected && displayedUsers.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Last Sign In</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayedUsers.map((user) => (
+                      <TableRow key={user.user_id}>
                         <TableCell>
-                          <div className="h-4 w-4 bg-gray-200 animate-pulse rounded" />
+                          <Checkbox
+                            checked={selectedUsers.includes(user.user_id)}
+                            onCheckedChange={() => toggleUserSelection(user.user_id)}
+                          />
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full" />
-                            <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            {user.email}
                           </div>
                         </TableCell>
-                        <TableCell><div className="h-5 w-32 bg-gray-200 animate-pulse rounded" /></TableCell>
-                        <TableCell><div className="h-5 w-16 bg-gray-200 animate-pulse rounded" /></TableCell>
-                        <TableCell><div className="h-5 w-24 bg-gray-200 animate-pulse rounded" /></TableCell>
-                        <TableCell><div className="h-5 w-24 bg-gray-200 animate-pulse rounded" /></TableCell>
-                        <TableCell className="text-right"><div className="h-8 w-16 ml-auto bg-gray-200 animate-pulse rounded" /></TableCell>
+                        <TableCell>
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}` 
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {user.phone ? (
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              {user.phone}
+                            </div>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getRoleBadgeColor(user.role)}>
+                            {getRoleName(user.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {user.last_sign_in_at 
+                            ? new Date(user.last_sign_in_at).toLocaleDateString() 
+                            : 'Never'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEdit(user.user_id)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteClick(user.user_id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    ))
-                  ) : filteredUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        <p className="text-muted-foreground">No users found</p>
-                        <Button variant="link" className="mt-2" onClick={resetFilters}>
-                          Reset filters
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    displayedUsers.map((user) => {
-                      const roleInfo = getRoleInfo(user.role);
-                      return (
-                        <TableRow key={user.user_id}>
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedUsers.includes(user.user_id)}
-                              onCheckedChange={() => toggleSelectUser(user.user_id)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                {user.avatar_url ? (
-                                  <img 
-                                    src={user.avatar_url} 
-                                    alt={user.first_name || ''} 
-                                    className="h-10 w-10 object-cover rounded-full"
-                                  />
-                                ) : (
-                                  <span className="font-semibold text-gray-500">
-                                    {user.first_name ? user.first_name[0] : user.email[0].toUpperCase()}
-                                  </span>
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-medium">
-                                  {user.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Unnamed User'}
-                                </div>
-                                <div className="text-sm text-muted-foreground">{user.email}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col text-sm">
-                              <div className="flex items-center">
-                                <Mail className="h-3 w-3 mr-2" />
-                                {user.email}
-                              </div>
-                              {user.phone && (
-                                <div className="flex items-center mt-1">
-                                  <Phone className="h-3 w-3 mr-2" />
-                                  {user.phone}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={roleInfo.color}>
-                              {roleInfo.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatDate(user.created_at)}</TableCell>
-                          <TableCell>{formatDate(user.last_sign_in_at)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleDeleteClick(user.user_id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-            {/* Pagination Controls */}
-            {filteredUsers.length > itemsPerPage && !isLoading && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-6 border-t bg-gray-50/50">
-                <div className="flex items-center gap-2">
-                  {hasMoreUsers && (
-                    <>
+              {filteredUsers.length > itemsPerPage && (
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-6 border-t bg-gray-50/50">
+                  <div className="flex items-center gap-2">
+                    {hasMoreUsers && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          onClick={handleShowMore}
+                          className="flex items-center gap-2"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                          Show More ({Math.min(itemsPerPage, filteredUsers.length - displayedItemsCount)} more)
+                        </Button>
+                        
+                        {filteredUsers.length - displayedItemsCount > itemsPerPage && (
+                          <Button 
+                            variant="ghost" 
+                            onClick={handleShowAll}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            Show All ({filteredUsers.length})
+                          </Button>
+                        )}
+                      </>
+                    )}
+                    
+                    {!hasMoreUsers && displayedItemsCount > itemsPerPage && (
                       <Button 
                         variant="outline" 
-                        onClick={handleShowMore}
+                        onClick={handleShowLess}
                         className="flex items-center gap-2"
                       >
-                        <ChevronDown className="h-4 w-4" />
-                        Show More ({Math.min(itemsPerPage, filteredUsers.length - displayedItemsCount)} more)
+                        Show Less
                       </Button>
-                      
-                      {filteredUsers.length - displayedItemsCount > itemsPerPage && (
-                        <Button 
-                          variant="ghost" 
-                          onClick={handleShowAll}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          Show All ({filteredUsers.length})
-                        </Button>
-                      )}
-                    </>
-                  )}
-                  
-                  {!hasMoreUsers && displayedItemsCount > itemsPerPage && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleShowLess}
-                      className="flex items-center gap-2"
-                    >
-                      Show Less
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Delete Confirmation Dialog */}
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <BulkActionsBar
+        selectedCount={selectedUsers.length}
+        totalCount={displayedUsers.length}
+        onSelectAll={handleSelectAll}
+        onDeselectAll={handleDeselectAll}
+        onDelete={handleBulkDelete}
+        onExport={() => {
+          const selected = displayedUsers.filter(u => selectedUsers.includes(u.user_id));
+          const csv = [
+            ['Email', 'Name', 'Phone', 'Role'].join(','),
+            ...selected.map(u => [u.email, `${u.first_name} ${u.last_name}`, u.phone, u.role].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'selected-users.csv';
+          a.click();
+        }}
+      />
+
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -556,7 +505,7 @@ const AdminUsersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 };
 
