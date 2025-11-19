@@ -25,6 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
 import { useCart } from './hooks/useCart';
+import SecurityHeaders from './components/SecurityHeaders';
+import { useSessionTimeout } from './hooks/useSessionTimeout';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -84,6 +86,9 @@ function App() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Enable session timeout for authenticated users
+  useSessionTimeout();
 
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
@@ -193,9 +198,13 @@ function App() {
     }
 
   const { title, backTo, rightAction } = getHeaderProps();
+  
+  // Enable session timeout for authenticated users
+  useSessionTimeout();
 
   return (
       <TooltipProvider>
+      <SecurityHeaders />
       <TopProgressBar/>
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
