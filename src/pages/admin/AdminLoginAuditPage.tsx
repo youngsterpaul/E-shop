@@ -4,13 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, XCircle, Monitor } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CheckCircle, XCircle, Monitor, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoginAudit {
   id: string;
@@ -22,13 +27,18 @@ interface LoginAudit {
 }
 
 const AdminLoginAuditPage = () => {
+  const { toast } = useToast();
   const [searchEmail, setSearchEmail] = useState('');
   const [filter, setFilter] = useState<'all' | 'success' | 'failed'>('all');
+  const [selectedAudits, setSelectedAudits] = useState<string[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
 
-  const { data: audits, isLoading } = useQuery({
+  const { data: audits, isLoading, refetch } = useQuery({
     queryKey: ['login-audit', filter, searchEmail],
     queryFn: async () => {
-      let query = supabase.from('login_audit').select('*').order('created_at', { ascending: false }).limit(100);
+      let query = supabase.from('login_audit').select('*').order('created_at', { ascending: false }).limit(500);
       if (filter === 'success') query = query.eq('success', true);
       else if (filter === 'failed') query = query.eq('success', false);
       if (searchEmail) query = query.ilike('email', `%${searchEmail}%`);
@@ -44,9 +54,82 @@ const AdminLoginAuditPage = () => {
     failed: audits?.filter(a => !a.success).length || 0,
   };
 
+  const displayedAudits = audits?.slice(0, displayedItemsCount) || [];
+  const hasMoreAudits = (audits?.length || 0) > displayedItemsCount;
+
+  const handleSelectAudit = (id: string) => {
+    setSelectedAudits(prev =>
+      prev.includes(id) ? prev.filter(auditId => auditId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedAudits([]);
+      setIsAllSelected(false);
+    } else {
+      setSelectedAudits(displayedAudits.map(a => a.id));
+      setIsAllSelected(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('login_audit')
+        .delete()
+        .in('id', selectedAudits);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Deleted ${selectedAudits.length} audit log(s)`,
+      });
+
+      setSelectedAudits([]);
+      setIsAllSelected(false);
+      setIsDeleteDialogOpen(false);
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShowMore = () => {
+    setDisplayedItemsCount(prev => Math.min(prev + 50, audits?.length || 0));
+  };
+
+  const handleShowAll = () => {
+    setDisplayedItemsCount(audits?.length || 0);
+  };
+
+  const handleShowLess = () => {
+    setDisplayedItemsCount(50);
+    setSelectedAudits([]);
+    setIsAllSelected(false);
+  };
+
   return (
     <AdminLayout>
-      <QuickActionsBar title="Login Audit Log" />
+      <QuickActionsBar title="Login Audit Log" onRefresh={() => refetch()} />
+
+      {selectedAudits.length > 0 && (
+        <BulkActionsBar
+          selectedCount={selectedAudits.length}
+          totalCount={displayedAudits.length}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={() => {
+            setSelectedAudits([]);
+            setIsAllSelected(false);
+          }}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
+      )}
 
       <div className="flex justify-end mb-4">
         <ExportButton
@@ -105,6 +188,12 @@ const AdminLoginAuditPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>IP Address</TableHead>
@@ -112,8 +201,14 @@ const AdminLoginAuditPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {audits?.map((audit) => (
+                {displayedAudits.map((audit) => (
                   <TableRow key={audit.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedAudits.includes(audit.id)}
+                        onCheckedChange={() => handleSelectAudit(audit.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{audit.email}</TableCell>
                     <TableCell>
                       <Badge variant={audit.success ? "default" : "destructive"}>
@@ -128,8 +223,67 @@ const AdminLoginAuditPage = () => {
               </TableBody>
             </Table>
           )}
+
+          {/* Pagination Controls */}
+          {!isLoading && audits && audits.length > 50 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {displayedItemsCount} of {audits.length} audit logs
+              </p>
+              <div className="flex gap-2">
+                {hasMoreAudits && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShowMore}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Show More (50)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShowAll}
+                    >
+                      Show All ({audits.length})
+                    </Button>
+                  </>
+                )}
+                {displayedItemsCount > 50 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShowLess}
+                  >
+                    Show Less
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Audit Logs</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedAudits.length} audit log(s)? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
