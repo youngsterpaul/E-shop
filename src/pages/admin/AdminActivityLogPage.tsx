@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, FileText, Plus, Edit, Trash2, Clock, User, Database } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface ActivityLog {
   id: string;
@@ -33,6 +35,8 @@ const AdminActivityLogPage = () => {
   const [tableFilter, setTableFilter] = useState('all');
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedLogs, setSelectedLogs] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: activityLogs, isLoading, refetch } = useQuery({
     queryKey: ['activityLogs'],
@@ -107,6 +111,56 @@ const AdminActivityLogPage = () => {
     setDetailsOpen(true);
   };
 
+  const toggleSelectLog = (logId: string) => {
+    const newSelected = new Set(selectedLogs);
+    if (newSelected.has(logId)) {
+      newSelected.delete(logId);
+    } else {
+      newSelected.add(logId);
+    }
+    setSelectedLogs(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLogs.size === filteredLogs.length) {
+      setSelectedLogs(new Set());
+    } else {
+      setSelectedLogs(new Set(filteredLogs.map(log => log.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedLogs.size === 0) {
+      toast.error('No logs selected');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedLogs.size} activity log(s)? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('admin_activity_logs')
+        .delete()
+        .in('id', Array.from(selectedLogs));
+
+      if (error) throw error;
+
+      toast.success(`Successfully deleted ${selectedLogs.size} activity log(s)`);
+      setSelectedLogs(new Set());
+      refetch();
+    } catch (error) {
+      console.error('Error deleting logs:', error);
+      toast.error('Failed to delete activity logs');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const tables = [...new Set(activityLogs?.map(log => log.table_name) || [])];
 
   return (
@@ -116,7 +170,19 @@ const AdminActivityLogPage = () => {
         onRefresh={refetch}
       />
 
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-2">
+          {selectedLogs.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteSelected}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedLogs.size})
+            </Button>
+          )}
+        </div>
         <ExportButton
           data={filteredLogs}
           filename="activity-log"
@@ -133,6 +199,23 @@ const AdminActivityLogPage = () => {
 
       <Card>
         <CardContent className="p-6">
+          {/* Select All Checkbox */}
+          {filteredLogs.length > 0 && (
+            <div className="mb-4 flex items-center gap-2 pb-3 border-b">
+              <Checkbox
+                checked={selectedLogs.size === filteredLogs.length && filteredLogs.length > 0}
+                onCheckedChange={toggleSelectAll}
+                id="select-all"
+              />
+              <label
+                htmlFor="select-all"
+                className="text-sm font-medium cursor-pointer"
+              >
+                Select All ({filteredLogs.length} logs)
+              </label>
+            </div>
+          )}
+
           {/* Filters */}
           <div className="mb-6 flex flex-col lg:flex-row gap-3">
             <div className="relative flex-1">
@@ -196,10 +279,18 @@ const AdminActivityLogPage = () => {
                   <div key={log.id} className="relative">
                     {/* Timeline line */}
                     {!isLast && (
-                      <div className="absolute left-4 top-10 w-0.5 h-full bg-border" />
+                      <div className="absolute left-10 top-10 w-0.5 h-full bg-border" />
                     )}
 
                     <div className="flex gap-4 group">
+                      {/* Checkbox */}
+                      <div className="relative z-10 flex items-center justify-center pt-1">
+                        <Checkbox
+                          checked={selectedLogs.has(log.id)}
+                          onCheckedChange={() => toggleSelectLog(log.id)}
+                        />
+                      </div>
+
                       {/* Icon */}
                       <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-background border-2 border-border group-hover:border-primary transition-colors">
                         <ActionIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -324,20 +415,24 @@ const AdminActivityLogPage = () => {
                 <div>
                   <h4 className="font-semibold mb-2">Changes</h4>
                   <div className="space-y-2">
-                    {Object.entries(selectedLog.changes).map(([key, value]: [string, any]) => (
+                     {Object.entries(selectedLog.changes).map(([key, value]: [string, any]) => (
                       <div key={key} className="p-3 bg-muted rounded-lg">
                         <p className="font-medium text-sm mb-1 capitalize">{key}</p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
                             <p className="text-muted-foreground mb-1">Old Value:</p>
                             <code className="block p-2 bg-background rounded border">
-                              {JSON.stringify(value.old, null, 2)}
+                              {value && typeof value === 'object' && 'old' in value
+                                ? JSON.stringify(value.old, null, 2)
+                                : JSON.stringify(value, null, 2)}
                             </code>
                           </div>
                           <div>
                             <p className="text-muted-foreground mb-1">New Value:</p>
                             <code className="block p-2 bg-background rounded border">
-                              {JSON.stringify(value.new, null, 2)}
+                              {value && typeof value === 'object' && 'new' in value
+                                ? JSON.stringify(value.new, null, 2)
+                                : 'N/A'}
                             </code>
                           </div>
                         </div>
