@@ -19,6 +19,9 @@ import {
   Activity,
   TrendingUp,
   ChevronRight,
+  Warehouse,
+  Truck,
+  Users2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -91,6 +94,27 @@ export function ModernAdminSidebar() {
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
       roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'Inventory',
+      icon: Warehouse,
+      path: '/supersmartkenyaadmin123/inventory',
+      roles: ['admin'],
+      badge: null,
+    },
+    {
+      name: 'Purchase Orders',
+      icon: Truck,
+      path: '/supersmartkenyaadmin123/purchase-orders',
+      roles: ['admin'],
+      badge: null,
+    },
+    {
+      name: 'Suppliers',
+      icon: Users2,
+      path: '/supersmartkenyaadmin123/suppliers',
+      roles: ['admin'],
       badge: null,
     },
     {

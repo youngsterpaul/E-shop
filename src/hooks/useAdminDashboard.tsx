@@ -93,11 +93,16 @@ export const useAdminDashboard = () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .lt('stock', 10)
+      .not('reorder_point', 'is', null)
+      .order('stock', { ascending: true })
       .limit(5);
       
     if (error) throw error;
-    return data;
+    
+    // Filter products where stock is at or below reorder point
+    return data?.filter(product => 
+      (product.stock ?? 0) <= (product.reorder_point ?? 10)
+    ) || [];
   };
   
   // Fetch admin settings
