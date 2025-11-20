@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit } from 'lucide-react';
+import { Search, Plus, Edit, Shield } from 'lucide-react';
+import { RoleAssignmentDialog } from '@/components/admin/RoleAssignmentDialog';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -134,14 +137,27 @@ export default function AdminUsersPage() {
                           {new Date(user.created_at || '').toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setRoleDialogOpen(true);
+                              }}
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              Roles
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -166,6 +182,18 @@ export default function AdminUsersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Role Assignment Dialog */}
+      {selectedUser && (
+        <RoleAssignmentDialog
+          open={roleDialogOpen}
+          onOpenChange={setRoleDialogOpen}
+          user={selectedUser}
+          onSuccess={() => {
+            refetch();
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }
