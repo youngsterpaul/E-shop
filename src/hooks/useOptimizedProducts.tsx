@@ -1,10 +1,22 @@
+/**
+ * @deprecated This hook is consolidated into centralized product queries
+ * 
+ * Migration guide:
+ * - Use useFeaturedProducts from @/hooks/useProducts instead
+ * - Use productFetchers from @/queries/productQueries for direct fetching
+ * - Offline caching is now handled at the React Query level via persistence
+ */
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from '@/hooks/useProducts';
+import { Product, productKeys } from '@/queries/productQueries';
 import { cacheProducts, getCachedProducts } from '@/utils/offlineStorage';
 import { useNetworkStatus } from './useNetworkStatus';
 
+/**
+ * Legacy hook - kept for offline support but now uses centralized keys
+ * @deprecated Prefer useFeaturedProducts from @/hooks/useProducts
+ */
 export const useOptimizedProducts = () => {
   const { isOnline } = useNetworkStatus();
   
@@ -38,7 +50,6 @@ export const useOptimizedProducts = () => {
         return products;
       } catch (error) {
         console.error('Error fetching products, falling back to cache:', error);
-        // Fall back to cached data if network request fails
         return await getCachedProducts();
       }
     }
@@ -102,13 +113,17 @@ export const useOptimizedProducts = () => {
   };
 };
 
+/**
+ * @deprecated Use useFeaturedProducts from @/hooks/useProducts instead
+ */
 export const useOptimizedFeaturedProducts = () => {
   const { fetchFeaturedProducts } = useOptimizedProducts();
   
   return useQuery({
-    queryKey: ['optimized-featured-products'],
+    queryKey: productKeys.featured(8), // Use centralized key
     queryFn: fetchFeaturedProducts,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000 // Keep in cache for 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 };
+

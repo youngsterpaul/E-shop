@@ -1,8 +1,13 @@
+/**
+ * Optimized Products Data Hook with Filtering
+ * Now uses centralized product queries for cache sharing
+ */
 
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { productKeys, Product } from '@/queries/productQueries';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProductCardData {
   id: string;
@@ -41,9 +46,9 @@ export const useOptimizedProductsData = ({
 }: UseOptimizedProductsDataProps) => {
   const { toast } = useToast();
 
-  // Fetch products with caching
+  // Fetch products with centralized caching
   const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['products'],
+    queryKey: productKeys.list('all-filtered'),
     queryFn: async (): Promise<ProductCardData[]> => {
       const { data: productData, error } = await supabase
         .from('products')
@@ -80,12 +85,12 @@ export const useOptimizedProductsData = ({
         };
       }) || [];
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: 2
   });
 
-  // Handle errors using useEffect instead of onError
+  // Handle errors using useEffect
   useEffect(() => {
     if (error) {
       console.error('Error fetching products:', error);
@@ -170,7 +175,8 @@ export const useOptimizedProductsData = ({
     totalPages,
     isLoading,
     refetch: () => {
-      // Refetch will be handled by react-query
+      // Refetch handled by react-query
     }
   };
 };
+
