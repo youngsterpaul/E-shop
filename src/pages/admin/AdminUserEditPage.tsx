@@ -9,6 +9,8 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AppRole } from '@/hooks/useUserRole';
 
 interface UserFormData {
   email: string;
@@ -23,6 +25,9 @@ const AdminUserEditPage = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedRoles, setSelectedRoles] = useState<AppRole[]>([]);
+  
+  const availableRoles: AppRole[] = ['user', 'moderator', 'admin', 'superadmin'];
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -64,6 +69,16 @@ const AdminUserEditPage = () => {
             phone: profile.phone || '',
           });
         }
+
+        // Fetch user roles
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        
+        if (rolesData) {
+          setSelectedRoles(rolesData.map(r => r.role as AppRole));
+        }
       } catch (error: any) {
         console.error('Error fetching user:', error);
         toast({
@@ -97,6 +112,28 @@ const AdminUserEditPage = () => {
         .eq('user_id', userId);
 
       if (profileError) throw profileError;
+
+      // Update roles - delete existing and insert new ones
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) throw deleteError;
+
+      // Insert new roles
+      if (selectedRoles.length > 0) {
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert(
+            selectedRoles.map(role => ({
+              user_id: userId,
+              role: role,
+            }))
+          );
+
+        if (insertError) throw insertError;
+      }
 
       toast({
         title: "User updated",
@@ -211,6 +248,36 @@ const AdminUserEditPage = () => {
                     </FormItem>
                   )}
                 />
+
+                <div className="space-y-3">
+                  <FormLabel>User Roles</FormLabel>
+                  <div className="space-y-2">
+                    {availableRoles.map((role) => (
+                      <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={role}
+                          checked={selectedRoles.includes(role)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedRoles([...selectedRoles, role]);
+                            } else {
+                              setSelectedRoles(selectedRoles.filter(r => r !== role));
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={role}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
+                        >
+                          {role}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select one or more roles for this user
+                  </p>
+                </div>
 
                 <div className="flex gap-4 pt-4">
                   <Button 
