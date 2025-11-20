@@ -116,6 +116,9 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
+      // Get current user for created_by
+      const { data: { user } } = await supabase.auth.getUser();
+
       // Update role - delete existing roles and insert new one
       const { error: deleteError } = await supabase
         .from('user_roles')
@@ -126,10 +129,11 @@ const AdminUserEditPage = () => {
 
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({
+        .insert([{
           user_id: userId,
           role: data.role,
-        });
+          created_by: user?.id || null,
+        }]);
 
       if (roleError) throw roleError;
 
