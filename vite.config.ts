@@ -95,7 +95,7 @@ export default defineConfig(({ mode }) => {
             const ext = info?.[info.length - 1] ?? "";
 
             // Images go to /assets/images
-            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(ext)) {
               return `assets/images/[name]-[hash][extname]`;
             }
 
@@ -104,8 +104,31 @@ export default defineConfig(({ mode }) => {
               return `assets/css/[name]-[hash][extname]`;
             }
 
+            // Fonts
+            if (/woff2?|ttf|otf|eot/i.test(ext)) {
+              return `assets/fonts/[name]-[hash][extname]`;
+            }
+
             // Everything else stays in /assets
             return `assets/[name]-[hash][extname]`;
+          },
+          manualChunks: (id) => {
+            // Vendor chunks for better caching
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@radix-ui')) {
+                return 'vendor-ui';
+              }
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
+              return 'vendor';
+            }
           },
         },
       },
@@ -114,9 +137,11 @@ export default defineConfig(({ mode }) => {
       manifest: true,
 
       // ✅ Performance tuning
-      chunkSizeWarningLimit: 500,
+      chunkSizeWarningLimit: 1000,
       sourcemap: mode !== "production",
-      assetsInlineLimit: 0, // Always separate assets for better caching
+      assetsInlineLimit: 4096, // Inline small assets to reduce HTTP requests
+      cssCodeSplit: true, // Split CSS for better caching
+      reportCompressedSize: false, // Faster builds
 
       // ✅ Safari/iOS & legacy compatibility
       polyfillDynamicImport: false,
