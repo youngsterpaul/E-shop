@@ -5,7 +5,6 @@ import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
-import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -48,7 +47,6 @@ const Index = () => {
         }}
       />
       <CriticalCSS />
-      <ProductionOptimizer />
       
       <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
         <PerformanceMonitor />

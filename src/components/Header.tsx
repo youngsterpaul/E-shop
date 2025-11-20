@@ -4,7 +4,7 @@ import { Search as SearchIcon, ShoppingCart, User, Menu as MenuIcon, X, Home, Pa
 import { useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useCart } from '@/hooks/useCart';
+import { useCartContext } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import EnhancedSearchInput from './search/EnhancedSearchInput';
@@ -57,7 +57,7 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   try {
-    const cartData = useCart();
+    const cartData = useCartContext();
     items = cartData.cartItems || [];
     totalItems = items.reduce((total, item) => total + item.quantity, 0);
   } catch (error) {

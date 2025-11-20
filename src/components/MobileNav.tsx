@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageCircle, ShoppingCart, User, List } from 'lucide-react';
-import { useCart } from '@/hooks/useCart';
+import { useCartContext } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 
@@ -20,7 +20,7 @@ const MobileNav = () => {
   let totalItems = 0;
   
   try {
-    const cartData = useCart();
+    const cartData = useCartContext();
     items = cartData.cartItems || [];
     totalItems = items.reduce((total, item) => total + item.quantity, 0);
   } catch (error) {
