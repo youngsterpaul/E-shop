@@ -340,20 +340,18 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
               Confirm Role Assignment
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-4">
-              <div className="space-y-2">
-                <div>
-                  You are about to assign the <strong>{selectedRole}</strong> role to <strong>{userName}</strong>.
-                </div>
-                <div className="text-sm">
-                  {roleDescriptions[selectedRole].description}
-                </div>
-              </div>
+              <p>
+                You are about to assign the <strong>{selectedRole}</strong> role to <strong>{userName}</strong>.
+              </p>
+              <p className="text-sm">
+                {roleDescriptions[selectedRole].description}
+              </p>
               {selectedRole === 'superadmin' && (
                 <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
-                  <div className="text-sm font-semibold text-destructive">Warning:</div>
-                  <div className="text-sm text-destructive">
+                  <p className="text-sm font-semibold text-destructive">Warning:</p>
+                  <p className="text-sm text-destructive">
                     Superadmin role grants full system access including the ability to manage all users and access sensitive data.
-                  </div>
+                  </p>
                 </div>
               )}
               <div className="space-y-2">
@@ -386,13 +384,13 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               Confirm Role Removal
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <div>
+            <AlertDialogDescription>
+              <p>
                 You are about to remove the <strong>{roleToRemove}</strong> role from <strong>{userName}</strong>.
-              </div>
-              <div className="text-sm">
+              </p>
+              <p className="mt-2 text-sm">
                 This will immediately revoke all permissions associated with this role.
-              </div>
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
