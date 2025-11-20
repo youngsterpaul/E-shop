@@ -166,7 +166,7 @@ const WishlistPage = () => {
     <>
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
        
-        <main className={`${isMobile ? 'pb-20' : 'container pb-8 px-4 xl:px-24'}`}>
+        <main className={`${isMobile ? 'pb-20' : 'container px-4 xl:px-24 pb-8'}`}>
           <div className={`container mx-auto ${gridConfig.padding} py-8`}>
            {/* Header section */}
             <div className={`flex items-center justify-between mb-4 ${isMobile ? 'px-2' : ''}`}>

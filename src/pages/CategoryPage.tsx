@@ -289,7 +289,7 @@ const CategoryPage = () => {
         </div>
       )}
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'px-4 xl:px-24 pb-8 mt-8' : 'px-0'}`}>
         {/* Breadcrumbs */}
         {!isMobile && breadcrumbs.length > 0 && (
           <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6 bg-white p-4 rounded-lg shadow-sm">

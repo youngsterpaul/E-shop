@@ -206,7 +206,7 @@ const SearchPage = () => {
         </div>
       )}
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'xl:px-24 px-4 pb-8 mt-8' : 'px-0'}`}>
+      <main className={`flex-grow mx-auto container ${!isMobile ? 'px-4 xl:px-24 pb-8 mt-8' : 'px-0'}`}>
         <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
           {!isMobile && allProducts.length > 0 && (
             <div className="w-72 flex-shrink-0">
