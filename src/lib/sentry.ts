@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
@@ -16,8 +15,8 @@ export const initSentry = () => {
     
     // Performance Monitoring
     integrations: [
-      new BrowserTracing(),
-      new Sentry.Replay({
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
         maskAllText: true,
         blockAllMedia: true,
       }),
@@ -138,9 +137,9 @@ export const trackApiCall = (url: string, method: string, statusCode?: number) =
 
 // Track performance
 export const trackPerformance = (name: string, duration: number, data?: Record<string, any>) => {
-  Sentry.metrics.distribution(name, duration, {
-    unit: 'millisecond',
-    tags: data,
+  addBreadcrumb(`Performance: ${name} - ${duration}ms`, 'performance', {
+    duration,
+    ...data,
   });
 };
 
