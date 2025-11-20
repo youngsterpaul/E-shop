@@ -8,26 +8,45 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Plus, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AppRole } from '@/hooks/useUserRole';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const navigate = useNavigate();
 
-  const { data: users, isLoading, refetch } = useQuery({
-    queryKey: ['admin-users', searchTerm],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['admin-users', searchTerm, currentPage, pageSize],
     queryFn: async () => {
-      // Optimized query: fetch roles in one go using RPC or by fetching together
+      // Get total count first
+      let countQuery = supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (searchTerm) {
+        countQuery = countQuery.or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
+      }
+
+      const { count, error: countError } = await countQuery;
+      if (countError) throw countError;
+
+      // Fetch roles in one query
       const { data: rolesData } = await supabase
         .from('user_roles')
         .select('user_id, role');
+
+      // Calculate pagination range
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
 
       let query = supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100); // Add pagination limit
+        .range(from, to);
 
       if (searchTerm) {
         query = query.or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
@@ -36,7 +55,7 @@ export default function AdminUsersPage() {
       const { data: profilesData, error: profilesError } = await query;
       if (profilesError) throw profilesError;
 
-      // Map roles to users (more efficient than filtering for each user)
+      // Map roles to users efficiently
       const rolesMap = new Map<string, AppRole[]>();
       rolesData?.forEach(role => {
         if (!rolesMap.has(role.user_id)) {
@@ -50,9 +69,30 @@ export default function AdminUsersPage() {
         roles: rolesMap.get(user.user_id) || []
       }));
 
-      return usersWithRoles;
+      return {
+        users: usersWithRoles,
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      };
     },
   });
+
+  const users = data?.users || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = data?.totalPages || 0;
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
 
   return (
     <AdminLayout>
@@ -76,7 +116,26 @@ export default function AdminUsersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Users</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Users</CardTitle>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>Total: {totalCount} users</span>
+                <div className="flex items-center gap-2">
+                  <span>Show:</span>
+                  <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -85,7 +144,10 @@ export default function AdminUsersPage() {
                 <Input
                   placeholder="Search users..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="pl-9"
                 />
               </div>
@@ -117,7 +179,15 @@ export default function AdminUsersPage() {
                           <div className="flex gap-1 flex-wrap">
                             {user.roles?.length > 0 ? (
                               user.roles.map((role: AppRole) => (
-                                <Badge key={role} variant="secondary">
+                                <Badge 
+                                  key={role} 
+                                  variant={
+                                    role === 'superadmin' ? 'destructive' : 
+                                    role === 'admin' ? 'default' : 
+                                    role === 'moderator' ? 'secondary' : 
+                                    'outline'
+                                  }
+                                >
                                   {role}
                                 </Badge>
                               ))
@@ -162,6 +232,39 @@ export default function AdminUsersPage() {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {users.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to{' '}
+                  {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1 || isLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1 text-sm">
+                    <span className="font-medium">{currentPage}</span>
+                    <span className="text-muted-foreground">of</span>
+                    <span className="font-medium">{totalPages || 1}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages || isLoading || totalPages === 0}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
