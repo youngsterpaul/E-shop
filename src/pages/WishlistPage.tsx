@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Trash2, ShoppingCart, ArrowLeft, Settings } from 'lucide-react';
 import Header from '@/components/Header';
@@ -7,27 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
-import { supabase } from '@/integrations/supabase/client';
+import { useWishlist } from '@/hooks/useWishlist';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 
-interface WishlistItem {
-  id: string;
-  product_id: string;
-  products: {
-    product_id: string;
-    name: string;
-    image_urls: string[];
-    price: number;
-  };
-}
+// Using WishlistItem shape from useWishlist hook; no local interface needed
+
 
 const WishlistPage = () => {
   const isMobile = isMobileUserAgent();
   const { user } = useAuth();
   const { addToCart } = useCart();
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { wishlistItems, loading, removeFromWishlist: removeFromWishlistHook } = useWishlist();
   const { toast } = useToast();
 
   // Grid layout configuration similar to EnhancedFeaturedProducts
@@ -46,89 +37,23 @@ const WishlistPage = () => {
     };
   }, [isMobile]);
 
-  useEffect(() => {
-    if (user) {
-      fetchWishlistItems();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchWishlistItems = async () => {
-    try {
-      // First, get wishlist items
-      const { data: wishlistData, error: wishlistError } = await supabase
-        .from('wishlists')
-        .select('id, product_id')
-        .eq('user_id', user?.id || '');
-
-      if (wishlistError) throw wishlistError;
-
-      if (!wishlistData || wishlistData.length === 0) {
-        setWishlistItems([]);
-        setLoading(false);
-        return;
+  // Transform wishlist items to match the old interface
+  const transformedWishlistItems = useMemo(() => 
+    wishlistItems.map(item => ({
+      id: item.id,
+      product_id: item.product_id,
+      products: {
+        product_id: item.product.id,
+        name: item.product.name,
+        image_urls: [item.product.image],
+        price: item.product.price
       }
+    })), [wishlistItems]
+  );
 
-      // Then, get product details for each wishlist item
-      const productIds = wishlistData.map(item => item.product_id);
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('product_id, name, image_urls, price')
-        .in('product_id', productIds);
-
-      if (productsError) throw productsError;
-
-      // Combine the data
-      const combinedData = wishlistData.map(wishlistItem => {
-        const product = productsData?.find(p => p.product_id === wishlistItem.product_id);
-        return {
-          id: wishlistItem.id,
-          product_id: wishlistItem.product_id,
-          products: {
-            product_id: product?.product_id || '',
-            name: product?.name || '',
-            image_urls: product?.image_urls || [],
-            price: product?.price || 0
-          }
-        };
-      }).filter(item => item.products.name); // Filter out items where product wasn't found
-
-      setWishlistItems(combinedData);
-    } catch (error) {
-      console.error('Error fetching wishlist items:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const removeFromWishlist = async (productId: string) => {
-    try {
-      const { error } = await supabase
-        .from('wishlists')
-        .delete()
-        .eq('user_id', user?.id || '')
-        .eq('product_id', productId);
-
-      if (error) throw error;
-      setWishlistItems(wishlistItems.filter(item => item.product_id !== productId));
-      toast({
-        title: "Success",
-        description: "Item removed from wishlist.",
-      })
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove item from wishlist.",
-        variant: "destructive",
-      })
-    }
-  };
-
-  const moveToCart = async (item: WishlistItem) => {
+  const moveToCart = async (item: { id: string; product_id: string; products: any }) => {
     await addToCart(item.product_id, {}, 1);
-    removeFromWishlist(item.product_id);
+    removeFromWishlistHook(item.product_id);
   };
 
   const formatPrice = (price: number) => {
@@ -214,7 +139,7 @@ const WishlistPage = () => {
               <div className={`${!isMobile ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
                 {/* Products Grid with responsive layout */}
                 <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
-                  {wishlistItems.map((item) => (
+                  {transformedWishlistItems.map((item) => (
                     <Card key={item.product_id} className={`${isMobile ? 'rounded-lg' : 'rounded-none border-r border-b border-gray-200'}`}>
                       <CardContent className={`${isMobile ? 'p-3' : 'p-2'} relative`}>
                         <div className="relative">
@@ -227,7 +152,7 @@ const WishlistPage = () => {
                             variant="destructive"
                             size="icon"
                             className={`absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white shadow-md ${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`}
-                            onClick={() => removeFromWishlist(item.product_id)}
+                            onClick={() => removeFromWishlistHook(item.product_id)}
                           >
                             <Trash2 className={`${isMobile ? 'h-3 w-3' : 'h-2.5 w-2.5'}`} />
                           </Button>
