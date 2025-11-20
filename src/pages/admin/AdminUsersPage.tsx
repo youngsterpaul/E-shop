@@ -8,13 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit, Shield } from 'lucide-react';
-import { RoleAssignmentDialog } from '@/components/admin/RoleAssignmentDialog';
+import { Search, Plus, Edit } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -32,22 +29,7 @@ export default function AdminUsersPage() {
       const { data: profilesData, error: profilesError } = await query;
       if (profilesError) throw profilesError;
 
-      // Fetch roles for each user separately
-      const userIds = profilesData?.map(p => p.user_id) || [];
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('user_id', userIds);
-
-      if (rolesError) throw rolesError;
-
-      // Combine profiles with their roles
-      const usersWithRoles = profilesData?.map(profile => ({
-        ...profile,
-        user_roles: rolesData?.filter(r => r.user_id === profile.user_id) || []
-      }));
-
-      return usersWithRoles;
+      return profilesData;
     },
   });
 
@@ -94,7 +76,6 @@ export default function AdminUsersPage() {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Roles</TableHead>
                       <TableHead>Last Seen</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -111,24 +92,6 @@ export default function AdminUsersPage() {
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.phone || 'N/A'}</TableCell>
                         <TableCell>
-                          <div className="flex gap-1 flex-wrap">
-                            {user.user_roles && Array.isArray(user.user_roles) && user.user_roles.length > 0 ? (
-                              user.user_roles.map((ur: any, idx: number) => {
-                                const roleVariant = ur.role === 'superadmin' ? 'destructive' : 
-                                                   ur.role === 'admin' ? 'default' : 
-                                                   ur.role === 'moderator' ? 'secondary' : 'outline';
-                                return (
-                                  <Badge key={idx} variant={roleVariant}>
-                                    {ur.role}
-                                  </Badge>
-                                );
-                              })
-                            ) : (
-                              <Badge variant="outline">user</Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
                           {user.last_sign_in_at 
                             ? new Date(user.last_sign_in_at).toLocaleString()
                             : 'Never'}
@@ -137,40 +100,27 @@ export default function AdminUsersPage() {
                           {new Date(user.created_at || '').toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setRoleDialogOpen(true);
-                              }}
-                            >
-                              <Shield className="h-4 w-4 mr-2" />
-                              Roles
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
                     {!isLoading && users?.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                           No users found
                         </TableCell>
                       </TableRow>
                     )}
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                           Loading users...
                         </TableCell>
                       </TableRow>
@@ -182,18 +132,6 @@ export default function AdminUsersPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Role Assignment Dialog */}
-      {selectedUser && (
-        <RoleAssignmentDialog
-          open={roleDialogOpen}
-          onOpenChange={setRoleDialogOpen}
-          user={selectedUser}
-          onSuccess={() => {
-            refetch();
-          }}
-        />
-      )}
     </AdminLayout>
   );
 }
