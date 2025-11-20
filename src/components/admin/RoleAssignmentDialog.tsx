@@ -26,10 +26,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Shield, AlertTriangle, X, History } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { AppRole } from '@/hooks/useUserRole';
+import { RoleHistoryDialog } from './RoleHistoryDialog';
 
 interface RoleAssignmentDialogProps {
   open: boolean;
@@ -97,7 +101,10 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [roleToRemove, setRoleToRemove] = useState<AppRole | null>(null);
+  const [reason, setReason] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const currentRoles = user.user_roles.map(r => r.role);
   const userName = user.first_name && user.last_name 
@@ -117,22 +124,48 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
   };
 
   const confirmAddRole = async () => {
+    if (!reason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for this role change",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Insert the new role
+      const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
           user_id: user.user_id,
           role: selectedRole,
+          created_by: currentUser?.id,
         });
 
-      if (error) throw error;
+      if (roleError) throw roleError;
+
+      // Log the role change
+      const { error: historyError } = await supabase
+        .from('role_change_history')
+        .insert([{
+          user_id: user.user_id,
+          changed_by: currentUser?.id || '',
+          old_role: null,
+          new_role: selectedRole,
+          reason: reason.trim(),
+          action_type: 'add',
+        }]);
+
+      if (historyError) throw historyError;
 
       toast({
         title: "Role Assigned",
         description: `Successfully assigned ${selectedRole} role to ${userName}`,
       });
 
+      setReason('');
       onSuccess();
       setShowConfirmation(false);
       onOpenChange(false);
@@ -150,13 +183,28 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
   const handleRemoveRole = async (role: AppRole) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Delete the role
+      const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', user.user_id)
         .eq('role', role);
 
-      if (error) throw error;
+      if (roleError) throw roleError;
+
+      // Log the role change
+      const { error: historyError } = await supabase
+        .from('role_change_history')
+        .insert([{
+          user_id: user.user_id,
+          changed_by: currentUser?.id || '',
+          old_role: role as string,
+          new_role: null as any,
+          reason: 'Role removed by superadmin',
+          action_type: 'remove' as const,
+        }]);
+
+      if (historyError) throw historyError;
 
       toast({
         title: "Role Removed",
@@ -181,9 +229,19 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Manage Roles for {userName}
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Manage Roles for {userName}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(true)}
+              >
+                <History className="h-4 w-4 mr-2" />
+                View History
+              </Button>
             </DialogTitle>
             <DialogDescription>
               Assign or remove roles for this user. Changes take effect immediately.
@@ -281,21 +339,34 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               Confirm Role Assignment
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                You are about to assign the <strong>{selectedRole}</strong> role to <strong>{userName}</strong>.
-              </p>
-              <p className="text-sm">
-                {roleDescriptions[selectedRole].description}
-              </p>
+            <AlertDialogDescription className="space-y-4">
+              <div className="space-y-2">
+                <div>
+                  You are about to assign the <strong>{selectedRole}</strong> role to <strong>{userName}</strong>.
+                </div>
+                <div className="text-sm">
+                  {roleDescriptions[selectedRole].description}
+                </div>
+              </div>
               {selectedRole === 'superadmin' && (
-                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3 mt-2">
-                  <p className="text-sm font-semibold text-destructive">Warning:</p>
-                  <p className="text-sm text-destructive">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                  <div className="text-sm font-semibold text-destructive">Warning:</div>
+                  <div className="text-sm text-destructive">
                     Superadmin role grants full system access including the ability to manage all users and access sensitive data.
-                  </p>
+                  </div>
                 </div>
               )}
+              <div className="space-y-2">
+                <Label htmlFor="reason">Reason for Role Assignment *</Label>
+                <Textarea
+                  id="reason"
+                  placeholder="e.g., Promoted to admin for managing products and orders"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                  required
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -315,13 +386,13 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               Confirm Role Removal
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <p>
+            <AlertDialogDescription className="space-y-2">
+              <div>
                 You are about to remove the <strong>{roleToRemove}</strong> role from <strong>{userName}</strong>.
-              </p>
-              <p className="mt-2 text-sm">
+              </div>
+              <div className="text-sm">
                 This will immediately revoke all permissions associated with this role.
-              </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -336,6 +407,14 @@ export function RoleAssignmentDialog({ open, onOpenChange, user, onSuccess }: Ro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Role History Dialog */}
+      <RoleHistoryDialog
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        userId={user.user_id}
+        userName={userName}
+      />
     </>
   );
 }

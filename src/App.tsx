@@ -251,7 +251,7 @@ function App() {
             <Route path="/careers" element={<CareersPage />} />
 
             {/* Admin Routes */}
-            <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="admin"><AdminDashboard /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="moderator"><AdminProductsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="moderator"><AdminProductAddPage /></AdminRoute>} />

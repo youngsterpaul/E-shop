@@ -940,6 +940,45 @@ export type Database = {
         }
         Relationships: []
       }
+      role_change_history: {
+        Row: {
+          action_type: string
+          changed_by: string
+          created_at: string
+          id: string
+          new_role: string
+          old_role: string | null
+          reason: string | null
+          reverted_at: string | null
+          reverted_by: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_role: string
+          old_role?: string | null
+          reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_role?: string
+          old_role?: string | null
+          reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_alerts: {
         Row: {
           acknowledged: boolean | null
