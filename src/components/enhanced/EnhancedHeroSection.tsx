@@ -297,48 +297,43 @@ const EnhancedHeroSection = memo(() => {
 
   if (loading) {
     return (
-      <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24' : ''}`}>
-        <section className={`relative ${heroHeight} bg-gray-200 animate-pulse ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
-          <CategorySidebar />
-        </section>
-      </div>
+      <section className={`relative ${heroHeight} bg-gray-200 animate-pulse ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
+        <CategorySidebar />
+      </section>
     );
   }
 
   if (heroSlides.length === 0) {
     console.warn('No hero slides available');
     return (
-      <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24' : ''}`}>
-        <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
-          <CategorySidebar />
-          <div className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} flex items-center justify-center`}>
-            <p className="text-white text-lg">No banner images available</p>
-          </div>
-        </section>
-      </div>
+      <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
+        <CategorySidebar />
+        <div className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} flex items-center justify-center`}>
+          <p className="text-white text-lg">No banner images available</p>
+        </div>
+      </section>
     );
   }
 
   const currentSlideData = heroSlides[currentSlide] ?? heroSlides[0];
 
   return (
-    <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24' : ''}`}>
-      <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
-        <CategorySidebar />
-        <div 
-          className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} cursor-pointer`}
-          onClick={handleSlideClick}
-        >
-          <LazyImage
-            src={currentSlideData.image_url}
-            alt={currentSlideData.title}
-            priority
-            width={1920}
-            height={1080}
-            className={`object-cover w-full h-full ${!isMobile ? 'max-h-[500px]' : 'max-h-[180px]'}`}
-          />
-          <div className={`absolute inset-0 bg-black/30 ${isMobile ? 'overflow-hidden' : ''}`} />
-        </div>
+    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
+      <CategorySidebar />
+      <div 
+        className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} cursor-pointer`}
+        onClick={handleSlideClick}
+      >
+        <LazyImage
+          src={currentSlideData.image_url}
+          alt={currentSlideData.title}
+          priority
+          width={1920}
+          height={1080}
+          className={`object-cover w-full h-full ${!isMobile ? 'max-h-[500px]' : 'max-h-[180px]'}`}
+        />
+        <div className={`absolute inset-0 bg-black/30 ${isMobile ? 'overflow-hidden' : ''}`} />
+      </div>
 
       {heroSlides.length > 1 && (
         <div className={`absolute left-1/2 transform -translate-x-1/2 flex space-x-3 z-20 ${!isMobile ? 'bottom-8' : 'bottom-4'}`}>
@@ -359,8 +354,7 @@ const EnhancedHeroSection = memo(() => {
           ))}
         </div>
       )}
-      </section>
-    </div>
+    </section>
   );
 });
 
