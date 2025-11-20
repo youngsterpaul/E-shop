@@ -156,23 +156,23 @@ const Header = () => {
       })}
       </script>
 
-      <header className={`w-full bg-white shadow-sm top-0 z-50 ${!isMobile ? 'min-w-max' : 'sticky'}`}>
+      <header className={`bg-white shadow-sm top-0 z-50 ${!isMobile ? 'container xl:px-24 px-4 min-w-max' : 'sticky'}`}>
             
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && <nav className={`p-1 bg-white border-b transition-transform duration-300 ease-in-out ${showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} role="navigation" aria-label="Main Navigation">
-          <div className="container xl:px-24 mx-0 px-[137px]">
+          <div className="container mx-auto xl:px-24 mx-0 items-center justify-center">
             <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
               {mainNavItems.map(item => <li key={item.href}>
                   <Link to={item.href} className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors" title={item.description}>
                     {item.label}
                   </Link>
                 </li>)}
-            </ul>
+            </ul> 
           </div>
-        </nav>}
+        </nav>}   
 
 
-        <div className={`container mx-auto ${isMobile ? 'py-2 px-3 /border-b /border-gray-200' : `px-4 xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`}`}>
+        <div className={`${isMobile ? 'py-2 px-3 /border-b /border-gray-200' : `py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`}`}>
 
           <div className="flex items-center justify-between">
             {/* Logo */}

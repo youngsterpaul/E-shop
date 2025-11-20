@@ -49,7 +49,7 @@ const CartSummary = () => {
   }
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
-  return <Card className="sticky top-6 mx-0 px-[120px] ">
+  return <Card className="sticky top-6 mx-0">
       <CardHeader className="">
         <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />

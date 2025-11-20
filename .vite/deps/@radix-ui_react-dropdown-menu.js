@@ -10,14 +10,13 @@ import {
   Content,
   Root2,
   createPopperScope
-} from "./chunk-BY3JGMOT.js";
+} from "./chunk-JOAE67WF.js";
 import {
   createCollection
 } from "./chunk-YFJAWPMT.js";
 import {
   useDirection
 } from "./chunk-Y2ZVGGK4.js";
-import "./chunk-T2ZMOZ25.js";
 import {
   Combination_default,
   FocusScope,
@@ -35,6 +34,7 @@ import {
 import {
   useId
 } from "./chunk-AZAAA77X.js";
+import "./chunk-T2ZMOZ25.js";
 import {
   Presence
 } from "./chunk-OQFTGUX4.js";

@@ -81,8 +81,8 @@ const CartPage = () => {
   }
 
   return (
-    <div className={`min-h-screen mb-10 w-full bg-white ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24 py-8' : 'pb-36 px-2 pt-2 pb-6'}`}>
+    <div className={`mb-10 w-full bg-white ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24 py-8' : 'px-2 pt-2 pb-20'}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-xl font-bold text-gray-900">
@@ -100,7 +100,7 @@ const CartPage = () => {
         )}
 
         <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-1`}>
-          <div className="">
+          <div className={`${!isMobile ? 'w-3/4':''}`}>
             <div className="bg-white shadow-sm">
               <CartHeader
                 totalItems={cartItems.length}
@@ -121,7 +121,7 @@ const CartPage = () => {
           </div>
 
           {!isMobile && (
-            <div className="">
+            <div className="w-1/3">
               <CartSummary />
             </div>
           )}

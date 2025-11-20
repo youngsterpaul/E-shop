@@ -448,7 +448,7 @@ const CheckoutPage = () => {
   const selectedItems = getSelectedItems();
 
   // Step content renderers
-  const renderStep1 = () => <div className="min-h-screen mb-10 py-0 my-0">
+  const renderStep1 = () => <div className="py-0 my-0">
   {addresses.length > 0 && <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
@@ -570,7 +570,7 @@ const CheckoutPage = () => {
       </Card>
     </div>}
   </div>;
-  const renderStep2 = () => <div className='min-h-screen mb-10'>
+  const renderStep2 = () => <div className=''>
       <div className="space-y-6.">
         <div>
           <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
@@ -827,7 +827,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Navigation */}
-              <div className={`border-t bg-gray-50 ${isMobile ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2' : 'p-6'}`}>
+              <div className={`border-t ${isMobile ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2' : 'p-6'}`}>
                 <div className="flex justify-between max-w-md mx-auto">
                   <Button variant="outline" onClick={handleBack} className="flex-1 mr-2">
                     {currentStep === 1 ? 'Back to Cart' : 'Back'}

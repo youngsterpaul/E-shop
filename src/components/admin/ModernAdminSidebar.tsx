@@ -309,14 +309,6 @@ export function ModernAdminSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} tooltip={collapsed ? 'Logout' : undefined}>
-              <LogOut className="h-4 w-4" />
-              {!collapsed && <span>Logout</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
         {!collapsed && user && (
           <div className="p-4 text-xs text-muted-foreground border-t">
             <p className="font-medium truncate">{user.email}</p>

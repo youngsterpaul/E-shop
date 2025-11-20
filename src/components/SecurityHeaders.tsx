@@ -36,34 +36,6 @@ const SecurityHeaders = () => {
       meta.content = content;
     });
 
-    // Prevent right-click and F12 in production (optional)
-    if (process.env.NODE_ENV === 'production') {
-      const preventDevTools = (e: KeyboardEvent) => {
-        if (
-          e.key === 'F12' ||
-          (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-          (e.ctrlKey && e.shiftKey && e.key === 'C') ||
-          (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-          (e.ctrlKey && e.key === 'U')
-        ) {
-          e.preventDefault();
-          return false;
-        }
-      };
-
-      const preventContextMenu = (e: MouseEvent) => {
-        e.preventDefault();
-        return false;
-      };
-
-      document.addEventListener('keydown', preventDevTools);
-      document.addEventListener('contextmenu', preventContextMenu);
-
-      return () => {
-        document.removeEventListener('keydown', preventDevTools);
-        document.removeEventListener('contextmenu', preventContextMenu);
-      };
-    }
   }, []);
 
   return null;
