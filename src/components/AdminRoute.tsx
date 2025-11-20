@@ -12,7 +12,7 @@ interface AdminRouteProps {
 
 const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { roles, loading: rolesLoading, hasRole, isSuperAdmin, isAdmin } = useUserRole(user?.id);
+  const { roles, loading: rolesLoading, hasRole, isSuperAdmin, isAdmin, isModerator } = useUserRole(user?.id);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +39,8 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
       hasAccess = isSuperAdmin;
     } else if (requiredRole === 'admin') {
       hasAccess = isAdmin || isSuperAdmin;
+    } else if (requiredRole === 'moderator') {
+      hasAccess = isModerator || isAdmin || isSuperAdmin;
     } else {
       hasAccess = hasRole(requiredRole);
     }
@@ -52,8 +54,13 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
         variant: "destructive",
       });
 
-      // Prevent repeated redirects
-      navigate(isAdmin ? '/supersmartkenyaadmin123' : '/', { replace: true });
+      // Prevent repeated redirects - redirect moderators to products page
+      const redirectPath = isAdmin 
+        ? '/supersmartkenyaadmin123' 
+        : isModerator 
+        ? '/supersmartkenyaadmin123/products' 
+        : '/';
+      navigate(redirectPath, { replace: true });
     }
 
     // Only run once when user or role state changes from loading
@@ -83,10 +90,17 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
             <h2 className="text-lg font-semibold mb-2 text-red-600">Access Denied</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
-              onClick={() => navigate(isAdmin ? '/supersmartkenyaadmin123/products' : '/', { replace: true })}
+              onClick={() => {
+                const redirectPath = isAdmin 
+                  ? '/supersmartkenyaadmin123/products' 
+                  : isModerator 
+                  ? '/supersmartkenyaadmin123/products' 
+                  : '/';
+                navigate(redirectPath, { replace: true });
+              }}
               className="text-orange-500 hover:text-orange-600 underline"
             >
-              {isAdmin ? 'Go to Products' : 'Return to Home'}
+              {isAdmin || isModerator ? 'Go to Products' : 'Return to Home'}
             </button>
           </div>
         </div>
@@ -100,6 +114,8 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
       ? isSuperAdmin
       : requiredRole === 'admin'
       ? isAdmin || isSuperAdmin
+      : requiredRole === 'moderator'
+      ? isModerator || isAdmin || isSuperAdmin
       : hasRole(requiredRole);
 
   if (!hasAccess) return null;
