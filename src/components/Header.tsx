@@ -169,7 +169,7 @@ const Header = () => {
           role="navigation"
           aria-label="Main Navigation"
         >
-          <div className="container mx-auto xl:px-24">
+          <div className="container mx-auto px-4 xl:px-24">
             <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
               {mainNavItems.map((item) => (
                 <li key={item.href}>
