@@ -113,7 +113,7 @@ const AccountPage = () => {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`container mx-auto px-2 py-2 ${isMobile ? 'pb-8' : 'xl:px-24'}`}>
+      <div className={`container mx-auto py-2 ${isMobile ? 'pb-8 px-2' : 'px-4 xl:px-24'}`}>
         {!isMobile && (
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Account</h1>
