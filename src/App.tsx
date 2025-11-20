@@ -253,12 +253,12 @@ function App() {
             {/* Admin Routes */}
             <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="admin"><AdminDashboard /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="admin"><AdminProductsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="admin"><AdminProductAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute requiredRole="admin"><AdminProductEditPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="moderator"><AdminProductsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="moderator"><AdminProductAddPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute requiredRole="moderator"><AdminProductEditPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute requiredRole="superadmin"><AdminCategoriesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute requiredRole="admin"><AdminStoresPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute requiredRole="superadmin"><AdminOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute requiredRole="moderator"><AdminOrdersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute requiredRole="superadmin"><AdminUsersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute requiredRole="superadmin"><AdminUserAddPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />

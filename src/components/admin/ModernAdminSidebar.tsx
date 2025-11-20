@@ -56,7 +56,7 @@ export function ModernAdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { isSuperAdmin, isAdmin, loading } = useUserRole(user?.id);
+  const { isSuperAdmin, isAdmin, isModerator, loading } = useUserRole(user?.id);
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
 
@@ -91,7 +91,7 @@ export function ModernAdminSidebar() {
       name: 'Orders',
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
-      roles: ['superadmin'],
+      roles: ['superadmin', 'moderator'],
       badge: 'New',
       badgeVariant: 'default' as const,
     },
@@ -102,7 +102,7 @@ export function ModernAdminSidebar() {
       name: 'Products',
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
-      roles: ['superadmin', 'admin'],
+      roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
     {
@@ -215,6 +215,7 @@ export function ModernAdminSidebar() {
     return items.filter(item => {
       if (isSuperAdmin) return true;
       if (isAdmin) return item.roles.includes('admin');
+      if (isModerator) return item.roles.includes('moderator');
       return false;
     });
   };
