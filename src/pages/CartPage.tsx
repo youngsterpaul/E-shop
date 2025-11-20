@@ -32,11 +32,13 @@ const CartPage = () => {
   const { freeShippingThreshold } = useShippingSettings();
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
 
-  // Refetch cart data when component mounts to ensure fresh data
+  // Refetch cart data when component mounts - but only once
   useEffect(() => {
-    console.log('CartPage mounted, refetching cart data');
-    refetch();
-  }, [refetch]);
+    // Only refetch if cart is actually empty or stale
+    if (cartItems.length === 0) {
+      refetch();
+    }
+  }, []); // Empty deps - only on mount
 
   // Memoized handlers
   const handleSelectAll = useCallback((selectAll: boolean) => {

@@ -14,6 +14,7 @@ interface AuthContextType {
   updateProfile: (data: any) => Promise<void>;
   lastActivity: number;
   refreshSession: () => Promise<void>;
+  validatePassword: (password: string) => string[]; // Add to interface
 }
 
 interface FailedAttempt {
@@ -107,6 +108,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     return errors;
   };
+
+  // Export for reuse in password reset
+  const validatePassword = validatePasswordStrength;
 
   // Security: Session activity tracking
   const updateActivity = () => {
@@ -493,7 +497,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
     updateProfile,
     lastActivity,
-    refreshSession
+    refreshSession,
+    validatePassword: validatePasswordStrength,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
