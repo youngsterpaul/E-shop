@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { logError, addBreadcrumb, trackApiCall } from '@/lib/sentry';
 
 interface ErrorReport {
   message: string;
@@ -39,18 +40,21 @@ export const useErrorReporting = () => {
         return;
       }
 
-      // In production, you would send this to your error reporting service
-      // e.g., Sentry, LogRocket, Bugsnag, etc.
-      console.error('Production Error Report:', error);
+      // Report to Sentry
+      const errorObj = new Error(error.message);
+      if (error.stack) {
+        errorObj.stack = error.stack;
+      }
       
-      // Example: Send to your logging endpoint
-      // fetch('/api/errors', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(error)
-      // }).catch(() => {
-      //   // Silently fail if error reporting fails
-      // });
+      logError(errorObj, {
+        url: error.url,
+        lineNumber: error.lineNumber,
+        columnNumber: error.columnNumber,
+        timestamp: error.timestamp,
+        userAgent: error.userAgent,
+      });
+      
+      console.error('Production Error Report:', error);
     };
 
     // Global error handler
@@ -112,16 +116,26 @@ export const useErrorReporting = () => {
   return {
     reportCustomError: (message: string, details?: any) => {
       if (process.env.NODE_ENV === 'production') {
-        const error: ErrorReport = {
-          message: `Custom Error: ${message}`,
-          stack: details?.stack,
+        const errorObj = new Error(`Custom Error: ${message}`);
+        if (details?.stack) {
+          errorObj.stack = details.stack;
+        }
+        
+        logError(errorObj, {
           url: window.location.href,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
-        };
+          ...details,
+        });
         
-        console.error('Custom Error Report:', error, details);
+        console.error('Custom Error Report:', errorObj, details);
       }
+    },
+    logBreadcrumb: (message: string, category?: string, data?: Record<string, any>) => {
+      addBreadcrumb(message, category, data);
+    },
+    trackApiCall: (url: string, method: string, statusCode?: number) => {
+      trackApiCall(url, method, statusCode);
     }
   };
 };
