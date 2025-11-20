@@ -4,20 +4,17 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { AppRole } from '@/hooks/useUserRole';
 
 interface UserFormData {
   email: string;
   firstName: string;
   lastName: string;
   phone: string;
-  role: AppRole;
 }
 
 const AdminUserEditPage = () => {
@@ -33,7 +30,6 @@ const AdminUserEditPage = () => {
       firstName: '',
       lastName: '',
       phone: '',
-      role: 'user',
     },
   });
 
@@ -60,26 +56,12 @@ const AdminUserEditPage = () => {
 
         if (profileError) throw profileError;
 
-        // Fetch user roles
-        const { data: roles, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', userId);
-
-        if (rolesError) throw rolesError;
-
-        // Get highest role (superadmin > admin > moderator > user)
-        const roleHierarchy: AppRole[] = ['superadmin', 'admin', 'moderator', 'user'];
-        const userRoles = roles?.map(r => r.role) || [];
-        const highestRole = roleHierarchy.find(role => userRoles.includes(role)) || 'user';
-
         if (profile) {
           form.reset({
             email: profile.email || '',
             firstName: profile.first_name || '',
             lastName: profile.last_name || '',
             phone: profile.phone || '',
-            role: highestRole,
           });
         }
       } catch (error: any) {
@@ -115,27 +97,6 @@ const AdminUserEditPage = () => {
         .eq('user_id', userId);
 
       if (profileError) throw profileError;
-
-      // Get current user for created_by
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // Update role - delete existing roles and insert new one
-      const { error: deleteError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
-
-      if (deleteError) throw deleteError;
-
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([{
-          user_id: userId,
-          role: data.role,
-          created_by: user?.id || null,
-        }]);
-
-      if (roleError) throw roleError;
 
       toast({
         title: "User updated",
@@ -246,30 +207,6 @@ const AdminUserEditPage = () => {
                       <FormControl>
                         <Input {...field} type="tel" placeholder="+254..." />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>User Role</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="user">User (Regular Customer)</SelectItem>
-                          <SelectItem value="moderator">Moderator (Content Management)</SelectItem>
-                          <SelectItem value="admin">Admin (Products & Orders)</SelectItem>
-                          <SelectItem value="superadmin">Super Admin (Full Access)</SelectItem>
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
