@@ -909,8 +909,8 @@ return (
     ) : (
     <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <div
-          className={`container mx-auto .py-6 ${
-            !isMobile ? 'xl:px-24' : '.pb-32 px-0'
+          className={`container mx-auto py-6 ${
+            !isMobile ? 'px-4 xl:px-24' : 'pb-32 px-0'
           }`}
         >
           {!isMobile && (<div className="mb-6">
