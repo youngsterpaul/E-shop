@@ -49,9 +49,6 @@ const Header = () => {
   const [showTopHeader, setShowTopHeader] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
 
-  const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
-  const hideMainHeader =
-    hideMainHeaderOnPaths.includes(location.pathname)
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -206,7 +203,7 @@ const Header = () => {
             </Link>
     
             {/* Desktop Search */}
-            {!isMobile && !hideMainHeader && (
+            {!isMobile && (
               <>
               <div className="flex flex-1 mx-4 lg:mx-8 relative">
                 <EnhancedSearchInput
