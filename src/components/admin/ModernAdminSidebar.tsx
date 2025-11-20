@@ -67,10 +67,17 @@ export function ModernAdminSidebar() {
 
   const mainMenuItems = [
     {
+      name: 'Home',
+      icon: Home,
+      path: '/',
+      roles: ['superadmin', 'admin', 'moderator'],
+      badge: null,
+    },
+    {
       name: 'Dashboard',
       icon: LayoutDashboard,
       path: '/supersmartkenyaadmin123',
-      roles: ['superadmin'],
+      roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
     {
@@ -91,7 +98,7 @@ export function ModernAdminSidebar() {
       name: 'Orders',
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
-      roles: ['superadmin', 'moderator'],
+      roles: ['superadmin', 'admin', 'moderator'],
       badge: 'New',
       badgeVariant: 'default' as const,
     },
@@ -109,21 +116,21 @@ export function ModernAdminSidebar() {
       name: 'Inventory',
       icon: Warehouse,
       path: '/supersmartkenyaadmin123/inventory',
-      roles: ['admin'],
+      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Purchase Orders',
       icon: Truck,
       path: '/supersmartkenyaadmin123/purchase-orders',
-      roles: ['admin'],
+      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Suppliers',
       icon: Users2,
       path: '/supersmartkenyaadmin123/suppliers',
-      roles: ['admin'],
+      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
@@ -137,7 +144,7 @@ export function ModernAdminSidebar() {
       name: 'Stores',
       icon: Store,
       path: '/supersmartkenyaadmin123/stores',
-      roles: ['admin'],
+      roles: ['superadmin', 'admin'],
       badge: null,
     },
   ];
@@ -147,7 +154,7 @@ export function ModernAdminSidebar() {
       name: 'Hero Slides',
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
-      roles: ['admin'],
+      roles: ['superadmin', 'admin'],
       badge: null,
     },
   ];
@@ -214,8 +221,8 @@ export function ModernAdminSidebar() {
   const filterMenuItems = (items: MenuItem[]) => {
     return items.filter(item => {
       if (isSuperAdmin) return true;
-      if (isAdmin) return item.roles.includes('admin');
-      if (isModerator) return item.roles.includes('moderator');
+      if (isAdmin) return item.roles.includes('superadmin') || item.roles.includes('admin');
+      if (isModerator) return item.roles.includes('superadmin') || item.roles.includes('admin') || item.roles.includes('moderator');
       return false;
     });
   };
@@ -314,7 +321,7 @@ export function ModernAdminSidebar() {
           <div className="p-4 text-xs text-muted-foreground border-t">
             <p className="font-medium truncate">{user.email}</p>
             <p className="text-[10px] mt-1">
-              {isSuperAdmin ? 'Super Admin' : 'Admin'}
+              {isSuperAdmin ? 'Super Admin' : isAdmin ? 'Admin' : isModerator ? 'Moderator' : 'User'}
             </p>
           </div>
         )}
