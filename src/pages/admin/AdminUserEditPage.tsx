@@ -101,6 +101,51 @@ const AdminUserEditPage = () => {
     try {
       setIsSubmitting(true);
 
+      // Get current user
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser) {
+        throw new Error("You must be logged in to update users");
+      }
+
+      // SECURITY: Prevent editing own roles
+      if (currentUser.id === userId) {
+        toast({
+          title: "Access Denied",
+          description: "You cannot edit your own roles. Contact another admin.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // SECURITY: Check if removing last superadmin
+      if (!selectedRoles.includes('superadmin')) {
+        const { data: existingRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        
+        const hadSuperadmin = existingRoles?.some(r => r.role === 'superadmin');
+        
+        if (hadSuperadmin) {
+          const { count } = await supabase
+            .from('user_roles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'superadmin');
+          
+          if (count && count <= 1) {
+            toast({
+              title: "Cannot Remove Last Superadmin",
+              description: "System must have at least one superadmin. Assign another superadmin first.",
+              variant: "destructive"
+            });
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+
       // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
@@ -113,8 +158,11 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
-      // Get current user id for created_by
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // Get old roles for audit log
+      const { data: oldRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
       
       // Update roles - delete existing and insert new ones
       const { error: deleteError } = await supabase
@@ -129,7 +177,7 @@ const AdminUserEditPage = () => {
         const rolesToInsert = selectedRoles.map(role => ({
           user_id: userId,
           role: role,
-          created_by: currentUser?.id || null,
+          created_by: currentUser.id,
         }));
 
         const { error: insertError } = await supabase
@@ -137,6 +185,52 @@ const AdminUserEditPage = () => {
           .insert(rolesToInsert);
 
         if (insertError) throw insertError;
+      }
+
+      // Log role changes to audit table
+      const removedRoles = oldRoles?.filter(old => 
+        !selectedRoles.includes(old.role as AppRole)
+      ) || [];
+      const addedRoles = selectedRoles.filter(newRole => 
+        !oldRoles?.some(old => old.role === newRole)
+      );
+
+      // Insert audit logs for each change
+      if (removedRoles.length > 0 || addedRoles.length > 0) {
+        const auditLogs: Array<{
+          user_id: string;
+          changed_by: string;
+          action_type: string;
+          old_role: string;
+          new_role: string;
+          reason: string;
+        }> = [];
+        
+        for (const removed of removedRoles) {
+          auditLogs.push({
+            user_id: userId,
+            changed_by: currentUser.id,
+            action_type: 'removed',
+            old_role: removed.role,
+            new_role: removed.role,
+            reason: 'Role removed via admin panel'
+          });
+        }
+        
+        for (const added of addedRoles) {
+          auditLogs.push({
+            user_id: userId,
+            changed_by: currentUser.id,
+            action_type: 'added',
+            old_role: '',
+            new_role: added,
+            reason: 'Role added via admin panel'
+          });
+        }
+
+        if (auditLogs.length > 0) {
+          await supabase.from('role_change_history').insert(auditLogs);
+        }
       }
 
       toast({
