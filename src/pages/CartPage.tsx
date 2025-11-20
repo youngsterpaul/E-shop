@@ -99,7 +99,7 @@ const CartPage = () => {
           </div>
         )}
 
-        <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-8`}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-1`}>
           {/* Cart Items */}
           <div className=".lg:col-span-2">
             <div className="bg-white shadow-sm">
