@@ -1,4 +1,3 @@
-
 import { Routes, Route, Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense, ReactNode } from "react";
@@ -11,15 +10,8 @@ import { isMobileUserAgent } from './hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
 import { MobileHeader } from './components/ui/mobile-header';
 import { useLocation } from "react-router-dom";
-
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -41,7 +33,6 @@ const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
-
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const FAQPage = lazy(() => import("./pages/FAQPage"));
@@ -81,15 +72,17 @@ const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage")
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
-
 function App() {
-  const { user, profile, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    signOut
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Enable session timeout for authenticated users
   useSessionTimeout();
-
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");
@@ -99,10 +92,11 @@ function App() {
     await signOut();
     navigate("/");
   };
-
   let totalItems = 0;
   try {
-    const { cartItems } = useCart();
+    const {
+      cartItems
+    } = useCart();
     totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
   } catch {
     totalItems = 0;
@@ -113,11 +107,9 @@ function App() {
     let title = "";
     let backTo = "/";
     let rightAction: ReactNode = null;
-
     if (location.pathname.startsWith("/account")) {
       title = "Account";
-      rightAction = (
-        <DropdownMenu>
+      rightAction = <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="p-2">
               <Settings className="h-4 w-4" />
@@ -126,22 +118,16 @@ function App() {
           <DropdownMenuContent align="end">
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={handleLogout}
-              >
+              <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleLogout}>
                 <LogOut className="mr-3 h-5 w-5" />
                 Sign Out
               </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
-      );
-      } else if (location.pathname.startsWith("/product")) {
-        title = "Product Details";
-        rightAction = (
-          <div className="flex items-center gap-2">
+        </DropdownMenu>;
+    } else if (location.pathname.startsWith("/product")) {
+      title = "Product Details";
+      rightAction = <div className="flex items-center gap-2">
             <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
               <Search className="h-4 w-4" />
             </Button>
@@ -150,74 +136,69 @@ function App() {
             </Button>
             <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
               <ShoppingCart size={16} />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
+              {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
                   {totalItems > 99 ? '99+' : totalItems}
-                </span>
-              )}
+                </span>}
             </Link>
-          </div>
-      );
-      } else if (location.pathname.startsWith("/category")) {
-        title = "Product Category";
-      } else if (location.pathname.startsWith("/orders")) {
-        title = "My Orders";
-      } else if (location.pathname.startsWith("/order")) {
-        title = "Order Detail";
-      } else if (location.pathname.startsWith("/about")) {
-        title = "About Smartkenya";
-      } else if (location.pathname.startsWith("/faq")) {
-        title = "Faqs";
-      } else if (location.pathname.startsWith("/contact")) {
-        title = "Contact Us";
-      } else if (location.pathname.startsWith("/returns")) {
-        title = "Returns";
-      } else if (location.pathname.startsWith("/terms")) {
-        title = "Terms & Conditions";
-      } else if (location.pathname.startsWith("/wishlist")) {
-        title = "Wishlist";
-      } else if (location.pathname.startsWith("/reviews")) {
-        title = "Write Review";
-      } else if (location.pathname.startsWith("/privacy")) {
-        title = "Privacy";
-      } else if (location.pathname.startsWith("/category")) {
-        title = "Product Category";
-      } else if (location.pathname.startsWith("/checkout")) {
-        title = "Place Order";
-      } else if (location.pathname.startsWith("/chat")) {
-        title = "Customer Support";
-      } else if (location.pathname.startsWith("/cart")) {
-        title = "Shopping Cart";
-      } else if (location.pathname.startsWith("/careers")) {
-        title = "Careers";
-      } else if (location.pathname.startsWith("/profile")) {
-        title = "My Profile";
-      }
-
-      return { title, backTo, rightAction };
+          </div>;
+    } else if (location.pathname.startsWith("/category")) {
+      title = "Product Category";
+    } else if (location.pathname.startsWith("/orders")) {
+      title = "My Orders";
+    } else if (location.pathname.startsWith("/order")) {
+      title = "Order Detail";
+    } else if (location.pathname.startsWith("/about")) {
+      title = "About Smartkenya";
+    } else if (location.pathname.startsWith("/faq")) {
+      title = "Faqs";
+    } else if (location.pathname.startsWith("/contact")) {
+      title = "Contact Us";
+    } else if (location.pathname.startsWith("/returns")) {
+      title = "Returns";
+    } else if (location.pathname.startsWith("/terms")) {
+      title = "Terms & Conditions";
+    } else if (location.pathname.startsWith("/wishlist")) {
+      title = "Wishlist";
+    } else if (location.pathname.startsWith("/reviews")) {
+      title = "Write Review";
+    } else if (location.pathname.startsWith("/privacy")) {
+      title = "Privacy";
+    } else if (location.pathname.startsWith("/category")) {
+      title = "Product Category";
+    } else if (location.pathname.startsWith("/checkout")) {
+      title = "Place Order";
+    } else if (location.pathname.startsWith("/chat")) {
+      title = "Customer Support";
+    } else if (location.pathname.startsWith("/cart")) {
+      title = "Shopping Cart";
+    } else if (location.pathname.startsWith("/careers")) {
+      title = "Careers";
+    } else if (location.pathname.startsWith("/profile")) {
+      title = "My Profile";
     }
+    return {
+      title,
+      backTo,
+      rightAction
+    };
+  };
+  const {
+    title,
+    backTo,
+    rightAction
+  } = getHeaderProps();
 
-  const { title, backTo, rightAction } = getHeaderProps();
-  
   // Enable session timeout for authenticated users
   useSessionTimeout();
-
-  return (
-      <TooltipProvider>
+  return <TooltipProvider>
       <SecurityHeaders />
-      <TopProgressBar/>
+      <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="flex flex-col min-h-screen bg-background">
         {/* ✅ Header stays at top */}
-        {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
-        {isMobile && !isAdminRoute && !isAuthRoute && (
-          <MobileHeader
-            title={title}
-            backTo={backTo}
-            rightAction={rightAction}
-          />
-        )}
+        {!isMobile && !isAdminRoute && !isAuthRoute && <Header className="px-px mx-[116px]" />}
+        {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           {/* main content fills available space */}
@@ -283,16 +264,12 @@ function App() {
         
       {/*<Toaster />*/}
       {/* ✅ Footer stays at bottom naturally (not fixed) */}
-      {isMobile && isAuthRoute && (
-      <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
+      {isMobile && isAuthRoute && <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
         © 2025 SmartKenya. All rights reserved.
-      </div>
-      )}
+      </div>}
       {!isMobile && <Footer />}
       {isMobile && <MobileNav />}
       </div>
-      </TooltipProvider>
-  );
+      </TooltipProvider>;
 }
-
 export default App;
