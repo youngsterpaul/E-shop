@@ -144,7 +144,6 @@ function App() {
                 </span>}
             </Link>
           </div>
-      );
       } else if (location.pathname.startsWith("/category")) {
         title = "Product Category";
       } else if (location.pathname.startsWith("/orders")) {
