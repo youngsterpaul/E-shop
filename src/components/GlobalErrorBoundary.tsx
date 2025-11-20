@@ -28,12 +28,15 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Check if it's a chunk loading error
+    // Check if it's a chunk loading / runtime update error
     const isChunkError = 
       error.name === 'ChunkLoadError' ||
       error.message?.includes('Loading chunk') ||
       error.message?.includes('Failed to fetch dynamically imported module') ||
-      error.message?.includes('Importing a module script failed');
+      error.message?.includes('Importing a module script failed') ||
+      // Handle React runtime hook errors caused by mixed bundle versions
+      error.message?.includes("Cannot read properties of null (reading 'useState')") ||
+      error.message?.includes("Cannot read property 'useState' of null");
 
     return {
       hasError: true,
