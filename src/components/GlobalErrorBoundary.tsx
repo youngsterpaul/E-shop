@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logError } from '@/lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -48,6 +49,14 @@ export class GlobalErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
+    // Report to Sentry with component stack
+    logError(error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: true,
+      isChunkError: this.state.isChunkError,
+      timestamp: new Date().toISOString(),
+    });
+
     // Check if we haven't attempted a reload yet for chunk errors
     const hasReloadedKey = 'chunk_error_reloaded';
     const hasReloaded = sessionStorage.getItem(hasReloadedKey);
@@ -85,12 +94,6 @@ export class GlobalErrorBoundary extends Component<Props, State> {
     // Clear the reload flag if we're showing the error UI
     if (this.state.isChunkError && hasReloaded) {
       sessionStorage.removeItem(hasReloadedKey);
-    }
-
-    // Log error to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
-      console.error('Global Error Boundary caught an error:', error, errorInfo);
-      // You can add error reporting here (e.g., Sentry, LogRocket, etc.)
     }
   }
 
