@@ -14,25 +14,37 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['admin-users', searchTerm],
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
         query = query.or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
+      const { data: profilesData, error: profilesError } = await query;
+      if (profilesError) throw profilesError;
 
-      return data;
+      // Fetch roles for each user separately
+      const userIds = profilesData?.map(p => p.user_id) || [];
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      if (rolesError) throw rolesError;
+
+      // Combine profiles with their roles
+      const usersWithRoles = profilesData?.map(profile => ({
+        ...profile,
+        user_roles: rolesData?.filter(r => r.user_id === profile.user_id) || []
+      }));
+
+      return usersWithRoles;
     },
   });
 
@@ -44,10 +56,16 @@ export default function AdminUsersPage() {
             <h1 className="text-3xl font-bold text-foreground">User Management</h1>
             <p className="text-muted-foreground mt-1">Manage system users and their roles</p>
           </div>
-          <Button onClick={() => navigate('/supersmartkenyaadmin123/users/add')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => refetch()}>
+              <Search className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button onClick={() => navigate('/supersmartkenyaadmin123/users/add')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -74,6 +92,7 @@ export default function AdminUsersPage() {
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Roles</TableHead>
+                      <TableHead>Last Seen</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -91,15 +110,25 @@ export default function AdminUsersPage() {
                         <TableCell>
                           <div className="flex gap-1 flex-wrap">
                             {user.user_roles && Array.isArray(user.user_roles) && user.user_roles.length > 0 ? (
-                              user.user_roles.map((ur: any, idx: number) => (
-                                <Badge key={idx} variant="secondary">
-                                  {ur.role}
-                                </Badge>
-                              ))
+                              user.user_roles.map((ur: any, idx: number) => {
+                                const roleVariant = ur.role === 'superadmin' ? 'destructive' : 
+                                                   ur.role === 'admin' ? 'default' : 
+                                                   ur.role === 'moderator' ? 'secondary' : 'outline';
+                                return (
+                                  <Badge key={idx} variant={roleVariant}>
+                                    {ur.role}
+                                  </Badge>
+                                );
+                              })
                             ) : (
                               <Badge variant="outline">user</Badge>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {user.last_sign_in_at 
+                            ? new Date(user.last_sign_in_at).toLocaleString()
+                            : 'Never'}
                         </TableCell>
                         <TableCell>
                           {new Date(user.created_at || '').toLocaleDateString()}
@@ -116,10 +145,17 @@ export default function AdminUsersPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {users?.length === 0 && (
+                    {!isLoading && users?.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                           No users found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {isLoading && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          Loading users...
                         </TableCell>
                       </TableRow>
                     )}

@@ -218,9 +218,9 @@ const AdminUserAddPage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="moderator">Moderator</SelectItem>
-                          <SelectItem value="admin">Admin (Products Only)</SelectItem>
+                          <SelectItem value="user">User (Regular Customer)</SelectItem>
+                          <SelectItem value="moderator">Moderator (Content Management)</SelectItem>
+                          <SelectItem value="admin">Admin (Products & Orders)</SelectItem>
                           <SelectItem value="superadmin">Super Admin (Full Access)</SelectItem>
                         </SelectContent>
                       </Select>
