@@ -169,7 +169,7 @@ const Header = () => {
           role="navigation"
           aria-label="Main Navigation"
         >
-          <div className="container mx-auto xl:px-24">
+          <div className="max-w-6xl lg:max-w-7xl container mx-auto">
             <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
               {mainNavItems.map((item) => (
                 <li key={item.href}>
@@ -189,10 +189,10 @@ const Header = () => {
 
 
         <div
-          className={`container mx-auto ${
+          className={`max-w-6xl lg:max-w-7xl container mx-auto ${
             isMobile
               ? 'py-2 px-3 /border-b /border-gray-200'
-              : `px-4 xl:px-24 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
+              : `px-4 py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`
           }`}>
 
           <div className="flex items-center justify-between">
