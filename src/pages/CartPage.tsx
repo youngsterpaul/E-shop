@@ -99,7 +99,7 @@ const CartPage = () => {
           </div>
         )}
 
-        <div className={`grid gap-8 ${isMobile ? 'grid-cols-1 .lg:grid-cols-3' : 'grid-cols-2'}`}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-8`}>
           {/* Cart Items */}
           <div className=".lg:col-span-2">
             <div className="bg-white shadow-sm">
