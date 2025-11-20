@@ -100,8 +100,7 @@ const CartPage = () => {
         )}
 
         <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-1`}>
-          {/* Cart Items */}
-          <div className=".lg:col-span-2">
+          <div className="">
             <div className="bg-white shadow-sm">
               <CartHeader
                 totalItems={cartItems.length}
@@ -121,9 +120,8 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Cart Summary - Desktop Only */}
           {!isMobile && (
-            <div className=".lg:col-span-1 max-w-[400px]">
+            <div className="">
               <CartSummary />
             </div>
           )}
