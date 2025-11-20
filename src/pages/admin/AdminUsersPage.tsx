@@ -18,10 +18,16 @@ export default function AdminUsersPage() {
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['admin-users', searchTerm],
     queryFn: async () => {
+      // Optimized query: fetch roles in one go using RPC or by fetching together
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
       let query = supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Add pagination limit
 
       if (searchTerm) {
         query = query.or(`email.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
@@ -30,14 +36,18 @@ export default function AdminUsersPage() {
       const { data: profilesData, error: profilesError } = await query;
       if (profilesError) throw profilesError;
 
-      // Fetch roles for all users
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      // Map roles to users (more efficient than filtering for each user)
+      const rolesMap = new Map<string, AppRole[]>();
+      rolesData?.forEach(role => {
+        if (!rolesMap.has(role.user_id)) {
+          rolesMap.set(role.user_id, []);
+        }
+        rolesMap.get(role.user_id)?.push(role.role as AppRole);
+      });
 
       const usersWithRoles = profilesData?.map(user => ({
         ...user,
-        roles: rolesData?.filter(r => r.user_id === user.user_id).map(r => r.role as AppRole) || []
+        roles: rolesMap.get(user.user_id) || []
       }));
 
       return usersWithRoles;
