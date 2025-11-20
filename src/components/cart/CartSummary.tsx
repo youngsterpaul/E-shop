@@ -7,23 +7,27 @@ import { ShoppingCart, ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
-
 const CartSummary = () => {
-  const { calculations } = useSelectiveCart();
+  const {
+    calculations
+  } = useSelectiveCart();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
-  const { freeShippingThreshold, isLoading: settingsLoading } = useShippingSettings();
-
+  const {
+    freeShippingThreshold,
+    isLoading: settingsLoading
+  } = useShippingSettings();
   const handleCheckout = async () => {
     try {
       setIsNavigating(true);
       // Add any pre-checkout validation here
       await new Promise(resolve => setTimeout(resolve, 300)); // Simulate async operation
       if (user) {
-        navigate ('/checkout')
-      }
-      else if (!user) {
+        navigate('/checkout');
+      } else if (!user) {
         navigate('/auth');
       }
     } catch (err) {
@@ -35,50 +39,42 @@ const CartSummary = () => {
 
   // Empty state
   if (calculations.selectedItemsCount === 0) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="p-6 text-center">
           <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500">No items selected</p>
           <p className="text-sm text-gray-400">Select items to see summary</p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
-
-  return (
-    <Card className="sticky top-6">
-      <CardHeader>
+  return <Card className="sticky top-6 mx-0 px-[120px] ">
+      <CardHeader className="">
         <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
           Order Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 mx-0 px-[20px] my-0">
         {/* Selected Items Count */}
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-sm px-0">
           <span className="text-gray-600">
             {calculations.selectedItemsCount} item{calculations.selectedItemsCount !== 1 ? 's' : ''} selected
           </span>
         </div>
 
         {/* Free delivery progress */}
-        {!isEligibleForFreeDelivery && amountNeededForFreeDelivery > 0 && (
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+        {!isEligibleForFreeDelivery && amountNeededForFreeDelivery > 0 && <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-700">
               Add KES {amountNeededForFreeDelivery.toLocaleString()} more for free delivery!
             </p>
             <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((calculations.subtotal / (freeShippingThreshold || 1)) * 100, 100)}%` }}
-              />
+              <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{
+            width: `${Math.min(calculations.subtotal / (freeShippingThreshold || 1) * 100, 100)}%`
+          }} />
             </div>
-          </div>
-        )}
+          </div>}
 
         <Separator />
 
@@ -92,24 +88,19 @@ const CartSummary = () => {
           <div className="flex justify-between">
             <span className="text-gray-600">Delivery</span>
             <span className={`font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
-              {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
-               isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
+              {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
             </span>
           </div>
 
-          {calculations.tax > 0 && (
-            <div className="flex justify-between">
+          {calculations.tax > 0 && <div className="flex justify-between">
               <span className="text-gray-600">Tax</span>
               <span className="font-medium">KES {calculations.tax.toLocaleString()}</span>
-            </div>
-          )}
+            </div>}
 
-          {calculations.discount > 0 && (
-            <div className="flex justify-between text-green-600">
+          {calculations.discount > 0 && <div className="flex justify-between text-green-600">
               <span>Discount</span>
               <span className="font-medium">-KES {calculations.discount.toLocaleString()}</span>
-            </div>
-          )}
+            </div>}
         </div>
 
         <Separator />
@@ -123,37 +114,23 @@ const CartSummary = () => {
         </div>
 
         {/* Checkout Button */}
-        <Button 
-          onClick={handleCheckout}
-          disabled={isNavigating}
-          className="w-full h-12 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold transition-all duration-200"
-          size="lg"
-        >
-          {isNavigating ? (
-            <>
+        <Button onClick={handleCheckout} disabled={isNavigating} className="w-full h-12 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold transition-all duration-200" size="lg">
+          {isNavigating ? <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Processing...
-            </>
-          ) : (
-            <>
+            </> : <>
               Proceed to Checkout
               <ArrowRight className="h-4 w-4 ml-2" />
-            </>
-          )}
+            </>}
         </Button>
 
         {/* Additional Info */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            {isEligibleForFreeDelivery 
-              ? "🎉 You qualify for free delivery!" 
-              : `Free delivery on orders over KES ${(freeShippingThreshold || 0).toLocaleString()}`
-            }
+            {isEligibleForFreeDelivery ? "🎉 You qualify for free delivery!" : `Free delivery on orders over KES ${(freeShippingThreshold || 0).toLocaleString()}`}
           </p>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default CartSummary;
