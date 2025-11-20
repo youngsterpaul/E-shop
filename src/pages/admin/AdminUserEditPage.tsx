@@ -113,6 +113,9 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
+      // Get current user id for created_by
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
       // Update roles - delete existing and insert new ones
       const { error: deleteError } = await supabase
         .from('user_roles')
@@ -123,14 +126,15 @@ const AdminUserEditPage = () => {
 
       // Insert new roles
       if (selectedRoles.length > 0) {
+        const rolesToInsert = selectedRoles.map(role => ({
+          user_id: userId,
+          role: role,
+          created_by: currentUser?.id || null,
+        }));
+
         const { error: insertError } = await supabase
           .from('user_roles')
-          .insert(
-            selectedRoles.map(role => ({
-              user_id: userId,
-              role: role,
-            }))
-          );
+          .insert(rolesToInsert);
 
         if (insertError) throw insertError;
       }
