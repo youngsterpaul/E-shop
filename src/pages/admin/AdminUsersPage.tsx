@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Edit } from 'lucide-react';
+import { AppRole } from '@/hooks/useUserRole';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,7 +30,17 @@ export default function AdminUsersPage() {
       const { data: profilesData, error: profilesError } = await query;
       if (profilesError) throw profilesError;
 
-      return profilesData;
+      // Fetch roles for all users
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      const usersWithRoles = profilesData?.map(user => ({
+        ...user,
+        roles: rolesData?.filter(r => r.user_id === user.user_id).map(r => r.role as AppRole) || []
+      }));
+
+      return usersWithRoles;
     },
   });
 
@@ -76,6 +87,7 @@ export default function AdminUsersPage() {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
+                      <TableHead>Roles</TableHead>
                       <TableHead>Last Seen</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -91,6 +103,19 @@ export default function AdminUsersPage() {
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.phone || 'N/A'}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {user.roles?.length > 0 ? (
+                              user.roles.map((role: AppRole) => (
+                                <Badge key={role} variant="secondary">
+                                  {role}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-sm">No roles</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {user.last_sign_in_at 
                             ? new Date(user.last_sign_in_at).toLocaleString()
@@ -113,14 +138,14 @@ export default function AdminUsersPage() {
                     ))}
                     {!isLoading && users?.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                           No users found
                         </TableCell>
                       </TableRow>
                     )}
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                           Loading users...
                         </TableCell>
                       </TableRow>
