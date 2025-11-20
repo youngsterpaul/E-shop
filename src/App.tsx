@@ -197,7 +197,7 @@ function App() {
       {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="flex flex-col min-h-screen bg-background">
         {/* ✅ Header stays at top */}
-        {!isMobile && !isAdminRoute && !isAuthRoute && <Header className="px-px mx-[116px]" />}
+        {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
         {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>

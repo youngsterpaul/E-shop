@@ -156,11 +156,11 @@ const Header = () => {
       })}
       </script>
 
-      <header className={`bg-white shadow-sm top-0 z-50 ${!isMobile ? 'container xl:px-24 px-4 min-w-max' : 'sticky'}`}>
+      <header className="bg-white shadow-sm sticky top-0 z-50 w-full">
             
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && <nav className={`p-1 bg-white border-b transition-transform duration-300 ease-in-out ${showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} role="navigation" aria-label="Main Navigation">
-          <div className="container mx-auto xl:px-24 mx-0 items-center justify-center">
+          <div className="container mx-auto px-4 xl:px-24 items-center justify-center">
             <ul className="flex items-center justify-center space-x-8 /pt-2 /pb-4">
               {mainNavItems.map(item => <li key={item.href}>
                   <Link to={item.href} className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors" title={item.description}>
@@ -172,9 +172,9 @@ const Header = () => {
         </nav>}   
 
 
-        <div className={`${isMobile ? 'py-2 px-3 /border-b /border-gray-200' : `py-4 transition-all duration-300 /fixed top-0 left-0 right-0 /z-50`}`}>
+        <div className={`${isMobile ? 'py-2 px-3' : 'py-4 px-4 xl:px-24'}`}>
 
-          <div className="flex items-center justify-between">
+          <div className="container mx-auto flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
               <img src={smartkenyaLogo} alt="SmartKenya Logo" className={`object-fill  ${!isMobile ? 'h-12 w-48' : 'h-8 w-34'}`} />
