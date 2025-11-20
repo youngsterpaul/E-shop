@@ -241,7 +241,7 @@ const Header = () => {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="px-2 hidden md:flex">
+                      className="px-2">
                       <User className="h-6 w-6" /> Account
                     </Button>
                   </DropdownMenuTrigger>
