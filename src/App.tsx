@@ -80,9 +80,6 @@ function App() {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Enable session timeout for authenticated users
-  useSessionTimeout();
 
   // Enable session timeout for authenticated users
   useSessionTimeout();
@@ -143,51 +140,59 @@ function App() {
                   {totalItems > 99 ? '99+' : totalItems}
                 </span>}
             </Link>
-          </div>
-      } else if (location.pathname.startsWith("/category")) {
-        title = "Product Category";
-      } else if (location.pathname.startsWith("/orders")) {
-        title = "My Orders";
-      } else if (location.pathname.startsWith("/order")) {
-        title = "Order Detail";
-      } else if (location.pathname.startsWith("/about")) {
-        title = "About Smartkenya";
-      } else if (location.pathname.startsWith("/faq")) {
-        title = "Faqs";
-      } else if (location.pathname.startsWith("/contact")) {
-        title = "Contact Us";
-      } else if (location.pathname.startsWith("/returns")) {
-        title = "Returns";
-      } else if (location.pathname.startsWith("/terms")) {
-        title = "Terms & Conditions";
-      } else if (location.pathname.startsWith("/wishlist")) {
-        title = "Wishlist";
-      } else if (location.pathname.startsWith("/reviews")) {
-        title = "Write Review";
-      } else if (location.pathname.startsWith("/privacy")) {
-        title = "Privacy";
-      } else if (location.pathname.startsWith("/category")) {
-        title = "Product Category";
-      } else if (location.pathname.startsWith("/checkout")) {
-        title = "Place Order";
-      } else if (location.pathname.startsWith("/chat")) {
-        title = "Customer Support";
-      } else if (location.pathname.startsWith("/cart")) {
-        title = "Shopping Cart";
-      } else if (location.pathname.startsWith("/careers")) {
-        title = "Careers";
-      } else if (location.pathname.startsWith("/profile")) {
-        title = "My Profile";
-      }
-
-      return { title, backTo, rightAction };
+          </div>;
+    } else if (location.pathname.startsWith("/category")) {
+      title = "Product Category";
+    } else if (location.pathname.startsWith("/orders")) {
+      title = "My Orders";
+    } else if (location.pathname.startsWith("/order")) {
+      title = "Order Detail";
+    } else if (location.pathname.startsWith("/about")) {
+      title = "About Smartkenya";
+    } else if (location.pathname.startsWith("/faq")) {
+      title = "Faqs";
+    } else if (location.pathname.startsWith("/contact")) {
+      title = "Contact Us";
+    } else if (location.pathname.startsWith("/returns")) {
+      title = "Returns";
+    } else if (location.pathname.startsWith("/terms")) {
+      title = "Terms & Conditions";
+    } else if (location.pathname.startsWith("/wishlist")) {
+      title = "Wishlist";
+    } else if (location.pathname.startsWith("/reviews")) {
+      title = "Write Review";
+    } else if (location.pathname.startsWith("/privacy")) {
+      title = "Privacy";
+    } else if (location.pathname.startsWith("/category")) {
+      title = "Product Category";
+    } else if (location.pathname.startsWith("/checkout")) {
+      title = "Place Order";
+    } else if (location.pathname.startsWith("/chat")) {
+      title = "Customer Support";
+    } else if (location.pathname.startsWith("/cart")) {
+      title = "Shopping Cart";
+    } else if (location.pathname.startsWith("/careers")) {
+      title = "Careers";
+    } else if (location.pathname.startsWith("/profile")) {
+      title = "My Profile";
     }
+    return {
+      title,
+      backTo,
+      rightAction
+    };
+  };
+  const {
+    title,
+    backTo,
+    rightAction
+  } = getHeaderProps();
 
-  const { title, backTo, rightAction } = getHeaderProps();
-
-  return (
-      <TooltipProvider>
-      <TopProgressBar/>
+  // Enable session timeout for authenticated users
+  useSessionTimeout();
+  return <TooltipProvider>
+      <SecurityHeaders />
+      <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="flex flex-col min-h-screen bg-background">
