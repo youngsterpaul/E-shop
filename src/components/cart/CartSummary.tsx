@@ -50,13 +50,13 @@ const CartSummary = () => {
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
   return <Card className="sticky top-6 m-0 p-0">
-      <CardHeader className="">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="p-0 m-0 border-b-0">
+        <CardTitle className="flex items-center gap-2 p-0 m-0">
           <ShoppingCart className="h-5 w-5" />
           Order Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 m-0 p-0">
+      <CardContent className="space-y-4 m-0 p-0 pt-0">
         {/* Selected Items Count */}
         <div className="flex justify-between text-sm px-0">
           <span className="text-gray-600">
