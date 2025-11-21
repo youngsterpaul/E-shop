@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { productKeys, productFetchers } from '@/queries/productQueries';
 
 export interface Review {
   review_id: string;
@@ -26,17 +27,6 @@ export const useReviews = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const fetchProductReviews = async (productId: string) => {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data as Review[];
-  };
 
   const canUserReviewProduct = async (productId: string) => {
     if (!user) return false;
@@ -230,7 +220,7 @@ export const useReviews = () => {
     }
 
     // Invalidate reviews cache
-    queryClient.invalidateQueries({ queryKey: ['reviews', reviewData.product_id] });
+    queryClient.invalidateQueries({ queryKey: productKeys.reviews(reviewData.product_id) });
     
     return data;
   };
@@ -262,7 +252,6 @@ export const useReviews = () => {
   };
 
   return {
-    fetchProductReviews,
     canUserReviewProduct,
     submitReview,
     uploadReviewMedia,
@@ -273,11 +262,10 @@ export const useReviews = () => {
 };
 
 export const useProductReviews = (productId: string) => {
-  const { fetchProductReviews } = useReviews();
-  
   return useQuery({
-    queryKey: ['reviews', productId],
-    queryFn: () => fetchProductReviews(productId),
-    enabled: !!productId
+    queryKey: productKeys.reviews(productId),
+    queryFn: () => productFetchers.fetchProductReviews(productId),
+    enabled: !!productId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

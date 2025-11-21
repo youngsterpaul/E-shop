@@ -72,6 +72,7 @@ export const productKeys = {
     [...productKeys.all, 'search', query, pageSize] as const,
   related: (category: string, currentProductId: string) =>
     [...productKeys.all, 'related', category, currentProductId] as const,
+  reviews: (productId: string) => ['reviews', productId] as const,
 };
 
 // ============================================================================
@@ -285,5 +286,20 @@ export const productFetchers = {
     }
 
     return processProducts(data || []);
+  },
+
+  /** Fetch product reviews */
+  fetchProductReviews: async (productId: string) => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching reviews:', error);
+      throw new Error(error.message);
+    }
+    return data;
   },
 };
