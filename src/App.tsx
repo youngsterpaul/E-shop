@@ -206,7 +206,7 @@ function App() {
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index />} className="mb-0 py-0 pb-[30px]" />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
             <Route path="/category" element={<MobileCategoryPage />} /> 
