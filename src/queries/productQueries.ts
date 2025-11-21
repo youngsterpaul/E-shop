@@ -26,7 +26,8 @@ export type Product = {
   name: string;
   price: number;
   discount_price?: number;
-  reviews?: number;
+  reviews?: number; // Legacy field
+  reviews_count?: number; // New accurate count from DB
   rating?: number;
   description?: string;
   image_urls?: string[];

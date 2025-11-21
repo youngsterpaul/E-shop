@@ -98,7 +98,7 @@ const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProp
               originalPrice: undefined, // or map if available
               image: product.image_urls?.[0] || '',
               rating: product.rating || 4,
-              reviews: 0, // you can set default or map if available
+              reviews_count: product.reviews_count || 0,
               discount: undefined, // map if available
               category: product.categories || '',
               inStock: true,
