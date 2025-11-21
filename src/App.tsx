@@ -94,7 +94,9 @@ function App() {
   };
   let totalItems = 0;
   try {
-    const { cartItems } = useCartContext();
+    const {
+      cartItems
+    } = useCartContext();
     totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
   } catch {
     totalItems = 0;
@@ -193,7 +195,7 @@ function App() {
       <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col min-h-screen bg-white">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
         {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
