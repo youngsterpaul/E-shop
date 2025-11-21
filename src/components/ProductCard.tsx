@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useProductReviews } from '@/hooks/useReviews';
 import OptimizedImage from './OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -13,7 +14,7 @@ interface Product {
   originalPrice?: number;
   image: string;
   rating: number;
-  review_count?: number;
+  reviews: number;
   discount?: number;                                 
   category: string;
   inStock: boolean;
@@ -29,6 +30,9 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const isMobile = isMobileUserAgent();
+  
+  // Fetch real reviews data using the same hook as ProductTabs
+  const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.id);
 
   const productSlug = product.name
     .toLowerCase()
@@ -49,6 +53,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
       currency: 'KES',
     }).format(price);
   };
+
+  // Calculate real rating and review count from fetched reviews
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+    : product.rating; // fallback to product.rating if no reviews
+
+  // Use real review count or fallback to product.reviews
+  const displayReviewCount = totalReviews > 0 ? totalReviews : product.reviews;
 
   return (
     <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full mx-auto ${isMobile ? 'max-w-[800px]':'max-w-[180px] hover:rounded-lg'}`}>
@@ -111,25 +124,26 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </h3>
           </Link>
 
-          {/* Rating - Compact with product data */}
-          <div className="flex items-center gap-1">
-            <div className="flex items-center">
+          {/* Rating - More compact with real data */}
+          <div className="flex items-center">
+            <div className="flex items-center mr-1">
               {[...Array(5)].map((_, i) => (
                 <span
                   key={i}
                   className={`text-xs ${
-                    i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'
+                    i < Math.floor(averageRating) ? 'text-yellow-400' : 'text-gray-300'
                   }`}
                 >
                   ★
                 </span>
               ))}
             </div>
-            <span className="text-xs font-medium text-muted-foreground">
-              {product.rating.toFixed(1)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              ({product.review_count || 0})
+            <span className="text-xs text-gray-500">
+              {reviewsLoading ? (
+                <span className="animate-pulse">...</span>
+              ) : (
+                `(${displayReviewCount > 999 ? '999+' : displayReviewCount})`
+              )}
             </span>
           </div>
 

@@ -26,7 +26,7 @@ export type Product = {
   name: string;
   price: number;
   discount_price?: number;
-  review_count?: number;
+  reviews?: number;
   rating?: number;
   description?: string;
   image_urls?: string[];
@@ -112,27 +112,6 @@ async function fetchPage(
 
   const total = count || 0;
   const products = processProducts(data || []);
-
-  // Fetch review counts for all products
-  if (products.length > 0) {
-    const productIds = products.map(p => p.product_id);
-    const { data: reviewCounts } = await supabase
-      .from('reviews')
-      .select('product_id')
-      .in('product_id', productIds);
-
-    // Count reviews per product
-    const countMap = (reviewCounts || []).reduce((acc, review) => {
-      acc[review.product_id] = (acc[review.product_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Add review counts to products
-    products.forEach(product => {
-      product.review_count = countMap[product.product_id] || 0;
-    });
-  }
-
   const hasNextPage = total > from + products.length;
 
   return {

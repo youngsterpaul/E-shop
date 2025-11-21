@@ -14,7 +14,7 @@ interface MobileBottomActionsProps {
     originalPrice?: number;
     description?: string;
     rating: number;
-    review_count?: number;
+    reviews?: number;
     inStock: boolean;
     category: string;
     subcategory?: string;
