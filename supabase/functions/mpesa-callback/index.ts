@@ -78,11 +78,11 @@ async function sendPaymentConfirmationEmail(orderId: string) {
     const emailResponse = await resend.emails.send({
       from: "SMARTKENYA ONLINE SHOPPING <info@smartkenya.co.ke>",
       to: [order.email],
-      subject: `Payment Confirmation - Order #${orderId}`,
+      subject: `Payment Successful`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Payment Confirmed!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">Payment Successful!</h1>
           </div>
           
           <div style="background: #fff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px;">
@@ -97,7 +97,6 @@ async function sendPaymentConfirmationEmail(orderId: string) {
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
               <h3 style="color: #f97316; margin-top: 0;">Payment Details</h3>
               <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
-              <p style="margin: 8px 0;"><strong>Tracking Number:</strong> ${order.tracking_number || 'N/A'}</p>
               <p style="margin: 8px 0;"><strong>Amount Paid:</strong> Ksh ${order.amount.toLocaleString()}</p>
               <p style="margin: 8px 0;"><strong>Payment Method:</strong> M-Pesa</p>
               <p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #22c55e; font-weight: bold;">Confirmed</span></p>
@@ -113,7 +112,7 @@ async function sendPaymentConfirmationEmail(orderId: string) {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://smartkenya.co.ke/order/${orderId}" 
+              <a href="https://smartkenya.co.ke/orders" 
                  style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 View Order Status
               </a>

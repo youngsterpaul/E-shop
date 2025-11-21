@@ -372,7 +372,7 @@ const CheckoutPage = () => {
               clearInterval(pollPayment);
               setTimeout(() => {
                 setShowPaymentModal(false);
-                navigate(`/order/${newOrderId}`);
+                navigate(`/orders`);
               }, 2000);
             } else if (status?.status === 'failed') {
               const failedStatus = {
