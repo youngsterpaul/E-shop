@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useProductReviews } from '@/hooks/useReviews';
 import OptimizedImage from './OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -28,7 +29,10 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { data: reviews, isLoading: reviewsLoading } = useProductReviews(product.id);
   const isMobile = isMobileUserAgent();
+  
+  const latestReview = reviews?.[0];
 
   const productSlug = product.name
     .toLowerCase()
@@ -111,23 +115,32 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </h3>
           </Link>
 
-          {/* Rating - Compact with product data */}
-          <div className="flex items-center">
-            <div className="flex items-center mr-1">
-              {[...Array(5)].map((_, i) => (
-                <span
-                  key={i}
-                  className={`text-xs ${
-                    i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
+          {/* Rating and Reviews */}
+          <div className="space-y-1">
+            <div className="flex items-center">
+              <div className="flex items-center mr-1">
+                {[...Array(5)].map((_, i) => (
+                  <span
+                    key={i}
+                    className={`text-xs ${
+                      i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'
+                    }`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <span className="text-xs text-gray-500">
+                ({product.reviews > 999 ? '999+' : product.reviews})
+              </span>
             </div>
-            <span className="text-xs text-gray-500">
-              ({product.reviews > 999 ? '999+' : product.reviews})
-            </span>
+            
+            {/* Latest Review Snippet */}
+            {latestReview && !reviewsLoading && (
+              <p className="text-xs text-gray-600 line-clamp-1 italic">
+                "{latestReview.comment}"
+              </p>
+            )}
           </div>
 
           {/* Price Section - Kilimall style */}
