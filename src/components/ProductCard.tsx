@@ -13,7 +13,8 @@ interface Product {
   originalPrice?: number;
   image: string;
   rating: number;
-  reviews: number;
+  reviews?: number; // Legacy field, use reviews_count
+  reviews_count?: number;
   discount?: number;                                 
   category: string;
   inStock: boolean;
@@ -51,8 +52,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   // Use product data directly (no fetch needed in card view)
-  const averageRating = product.rating;
-  const displayReviewCount = product.reviews;
+  const averageRating = product.rating || 5;
+  const displayReviewCount = product.reviews_count ?? product.reviews ?? 0;
 
   return (
     <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full mx-auto ${isMobile ? 'max-w-[800px]':'max-w-[180px] hover:rounded-lg'}`}>

@@ -13,6 +13,7 @@ interface Product {
   isNew?: boolean;
   isSale?: boolean;
   rating?: number;
+  reviews_count?: number;
 }
 
 interface ProductGridProps {
@@ -59,7 +60,7 @@ const ProductGrid = ({ products, loading }: ProductGridProps) => {
           originalPrice: product.originalPrice,
           image: product.image,
           rating: product.rating || 4,
-          reviews: 0,
+          reviews_count: product.reviews_count || 0,
           discount: undefined,
           category: product.category,
           inStock: true,

@@ -59,6 +59,7 @@ export const useOptimizedProductsData = ({
           image_urls,
           categories,
           rating,
+          reviews_count,
           featured,
           stock
         `);
@@ -81,6 +82,7 @@ export const useOptimizedProductsData = ({
           isNew: Math.random() > 0.7,
           isSale: Math.random() > 0.7,
           rating: product.rating || Math.floor(Math.random() * 5) + 1,
+          reviews_count: product.reviews_count || 0,
           brand: 'Unknown'
         };
       }) || [];
