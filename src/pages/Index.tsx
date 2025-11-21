@@ -1,3 +1,4 @@
+
 import Header from '@/components/Header';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
@@ -6,39 +7,52 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+
 const Index = () => {
   const isMobile = isMobileUserAgent();
-  return <>
-      <SEOHelmet title="SmartKenya - Quality Electronics & Gadgets Online Shopping" description="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed." keywords="electronics, gadgets, smartphones, laptops, accessories, Kenya, online shopping, fast delivery, best prices" canonical="https://www.smartkenya.co.ke" structuredData={{
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": "SmartKenya - Quality Electronics & Gadgets Online Shopping",
-      "description": "Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed.",
-      "url": "https://www.smartkenya.co.ke",
-      "mainEntity": {
-        "@type": "Organization",
-        "name": "SmartKenya",
-        "url": "https://www.smartkenya.co.ke",
-        "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
-        "sameAs": ["https://twitter.com/Smartkenya_Online_Shopping"]
-      },
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [{
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://www.smartkenya.co.ke"
-        }]
-      }
-    }} />
+  
+  return (
+    <>
+      <SEOHelmet
+        title="SmartKenya - Quality Electronics & Gadgets Online Shopping"
+        description="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed."
+        keywords="electronics, gadgets, smartphones, laptops, accessories, Kenya, online shopping, fast delivery, best prices"
+        canonical="https://www.smartkenya.co.ke"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "SmartKenya - Quality Electronics & Gadgets Online Shopping",
+          "description": "Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed.",
+          "url": "https://www.smartkenya.co.ke",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": "SmartKenya",
+            "url": "https://www.smartkenya.co.ke",
+            "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
+            "sameAs": [
+              "https://twitter.com/Smartkenya_Online_Shopping"
+            ]
+          },
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://www.smartkenya.co.ke"
+              }
+            ]
+          }
+        }}
+      />
       <CriticalCSS />
       
       <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
         <PerformanceMonitor />
         {isMobile && <Header />}
 
-        <main className="mx-[169px]">
+        <main className={`flex-grow pb-8 ${!isMobile ? 'container px-0 xl:px-24' : ''}`}>
           <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'mb-8 relative /z-40'}> {/* Added relative z-40 for desktop */}
               <EnhancedHeroSection />
@@ -55,6 +69,8 @@ const Index = () => {
           </div>
         </main>      
       </div>
-    </>;
+    </>
+  );
 };
+
 export default Index;

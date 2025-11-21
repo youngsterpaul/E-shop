@@ -94,9 +94,7 @@ function App() {
   };
   let totalItems = 0;
   try {
-    const {
-      cartItems
-    } = useCartContext();
+    const { cartItems } = useCartContext();
     totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
   } catch {
     totalItems = 0;
@@ -195,7 +193,7 @@ function App() {
       <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-background">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
         {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
@@ -206,7 +204,7 @@ function App() {
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
-            <Route path="/" element={<Index />} className="mb-0 py-0 pb-[30px]" />
+            <Route path="/" element={<Index />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
             <Route path="/category" element={<MobileCategoryPage />} /> 
