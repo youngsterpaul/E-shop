@@ -13,7 +13,7 @@ interface Product {
   originalPrice?: number;
   image: string;
   rating: number;
-  reviews: number;
+  review_count?: number;
   discount?: number;                                 
   category: string;
   inStock: boolean;
@@ -129,7 +129,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               {product.rating.toFixed(1)}
             </span>
             <span className="text-xs text-muted-foreground">
-              ({product.reviews > 999 ? '999+' : product.reviews} reviews)
+              ({product.review_count || 0})
             </span>
           </div>
 
