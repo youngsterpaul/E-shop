@@ -112,8 +112,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Link>
 
           {/* Rating - Compact with product data */}
-          <div className="flex items-center">
-            <div className="flex items-center mr-1">
+          <div className="flex items-center gap-1">
+            <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <span
                   key={i}
@@ -125,8 +125,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 </span>
               ))}
             </div>
-            <span className="text-xs text-gray-500">
-              ({product.reviews > 999 ? '999+' : product.reviews})
+            <span className="text-xs font-medium text-muted-foreground">
+              {product.rating.toFixed(1)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({product.reviews > 999 ? '999+' : product.reviews} reviews)
             </span>
           </div>
 
