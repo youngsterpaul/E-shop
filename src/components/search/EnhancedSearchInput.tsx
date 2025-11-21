@@ -122,7 +122,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
         </div>
       </div>
 
-      {isFocused && <SearchSuggestions suggestions={suggestions} query={value} isLoading={isLoading} selectedIndex={selectedIndex} onSuggestionClick={handleSuggestionClick} onRemoveFromHistory={removeFromHistory} onClearHistory={clearHistory} hasHistory={searchHistory.length > 0} className="rounded-none" />}
+      {isFocused && <SearchSuggestions suggestions={suggestions} query={value} isLoading={isLoading} selectedIndex={selectedIndex} onSuggestionClick={handleSuggestionClick} onRemoveFromHistory={removeFromHistory} onClearHistory={clearHistory} hasHistory={searchHistory.length > 0} />}
     </div>;
 };
 export default EnhancedSearchInput;

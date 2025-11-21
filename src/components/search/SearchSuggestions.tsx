@@ -65,19 +65,26 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   }
 
   const isMobile = isMobileUserAgent();
-
-  return (
-    <div className={cn(
-      "bg-white border border-gray-200 shadow-lg z-50 max-h-80 overflow-y-auto",
-      isMobile ? [
-        // Mobile: Kilimall-style full-screen overlay
-        "fixed inset-0 top-16 bg-white z-50 max-h-none overflow-y-auto",
-        "border-none shadow-none"
-      ] : [
-        // Desktop: Original dropdown style
-        "absolute top-full left-0 right-0 rounded-b-lg"
-      ]
-    )}>
+    return (
+        <div
+          className={cn(
+            "bg-white border border-gray-200 shadow-lg z-50 overflow-y-auto overscroll-contain",
+            isMobile
+              ? [
+                  "fixed inset-0 top-16 bg-white z-50 max-h-none overflow-y-auto",
+                  "border-none shadow-none"
+                ]
+              : [
+                "absolute top-full left-0 right-0",
+                "max-h-[480px]",
+                "overflow-y-auto overscroll-contain",
+                "bg-white rounded-md border border-gray-200",
+                "shadow-[0_2px_8px_rgba(0,0,0,0.08)]",
+                "scrollbar-kilimall",        // <-- replace plugin scrollbar with this!
+                "animate-fade-in"
+              ]
+          )}
+        >
       {isLoading && (
         <div className={cn(
           "text-center text-gray-500",

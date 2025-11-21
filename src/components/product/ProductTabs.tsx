@@ -567,7 +567,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
               <div className="p-2 md:p-6 border-b">
                 <h3 className="text-md font-medium text-gray-900 mb-2">Customer Reviews</h3>
               </div>
-              <div className="pb-4 .md:p-6">
+              <div className=".pb-4 .md:p-6">
                 <div className="space-y-6">
                   {/* Review Summary */}
                   {totalReviews > 0 && (

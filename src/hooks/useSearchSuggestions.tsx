@@ -9,12 +9,12 @@ interface SearchSuggestion {
 }
 
 const POPULAR_SEARCHES = [
-  'smartphones',
+  'smart phones',
   'laptops',
   'headphones',
   'cameras',
   'tablets',
-  'smartwatches',
+  'smart watches',
   'speakers',
   'accessories'
 ];

@@ -268,4 +268,28 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
+
+  /* Kilimall Thin Scrollbar */
+  .scrollbar-kilimall {
+    scrollbar-width: thin;             /* Firefox */
+    scrollbar-color: #d1d5db #f3f4f6;  /* thumb | track */
+  }
+
+  .scrollbar-kilimall::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-kilimall::-webkit-scrollbar-track {
+    background: #f3f4f6;               /* light gray track */
+    border-radius: 3px;
+  }
+
+  .scrollbar-kilimall::-webkit-scrollbar-thumb {
+    background: #d1d5db;               /* gray thumb */
+    border-radius: 3px;
+  }
+
+  .scrollbar-kilimall::-webkit-scrollbar-thumb:hover {
+    background: #c4c4c4;               /* hover color */
+  }
 }
