@@ -301,7 +301,7 @@ const productForTabs = useMemo(() => {
               <ProductInfo 
                 name={product.name}
                 rating={product.rating}
-                reviews={product.reviews}
+                reviews={product.review_count || 0}
               />
 
               <PriceDisplay 
@@ -360,7 +360,7 @@ const productForTabs = useMemo(() => {
               originalPrice: undefined,
               description: product.description,
               rating: product.rating || 0,
-              reviews: product.reviews || 0,
+              review_count: product.review_count || 0,
               inStock: product.stock ? product.stock > 0 : true,
               category: product.categories || 'general',
               subcategory: undefined,

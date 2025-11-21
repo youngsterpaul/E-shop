@@ -367,7 +367,7 @@ const CategoryPage = () => {
                         originalPrice: p.price * 1.2,
                         image: p.image_urls?.[0] || '',
                         rating: 4.5,
-                        reviews: 0,
+                        review_count: p.review_count || 0,
                         category: p.categories || '',
                         inStock: true,
                       }}
