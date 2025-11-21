@@ -113,17 +113,4 @@ export const useOptimizedProducts = () => {
   };
 };
 
-/**
- * @deprecated Use useFeaturedProducts from @/hooks/useProducts instead
- */
-export const useOptimizedFeaturedProducts = () => {
-  const { fetchFeaturedProducts } = useOptimizedProducts();
-  
-  return useQuery({
-    queryKey: productKeys.featured(8), // Use centralized key
-    queryFn: fetchFeaturedProducts,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
-  });
-};
 
