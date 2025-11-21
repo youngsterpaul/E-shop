@@ -156,7 +156,7 @@ const Header = () => {
       })}
       </script>
 
-      <header className={`bg-white shadow-sm top-0 z-50 ${!isMobile ? 'container min-w-max' : 'sticky'}`}>
+      <header className={`bg-white shadow-sm top-0 z-50 ${!isMobile ? 'container xl:px-24 px-4 min-w-max' : 'sticky'}`}>
             
       {/* Main navigation for desktop - important for sitelinks */}
       {!isMobile && <nav className={`p-1 bg-white border-b transition-transform duration-300 ease-in-out ${showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} role="navigation" aria-label="Main Navigation">
