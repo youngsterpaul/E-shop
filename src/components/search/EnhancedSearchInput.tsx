@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, SearchIcon, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,6 @@ import { useSearchHistory } from '@/hooks/useSearchHistory';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useLocation } from 'react-router-dom';
-
 interface EnhancedSearchInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -16,7 +14,6 @@ interface EnhancedSearchInputProps {
   placeholder?: string;
   className?: string;
 }
-
 const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   value,
   onChange,
@@ -30,8 +27,16 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const location = useLocation(); // 👈 add this
 
-  const { searchHistory, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
-  const { suggestions, isLoading } = useSearchSuggestions(value, searchHistory);
+  const {
+    searchHistory,
+    addToHistory,
+    removeFromHistory,
+    clearHistory
+  } = useSearchHistory();
+  const {
+    suggestions,
+    isLoading
+  } = useSearchSuggestions(value, searchHistory);
   const isMobile = isMobileUserAgent();
 
   // Hide input when navigating to another route
@@ -39,7 +44,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
     onChange('');
     setIsFocused(false);
     setSelectedIndex(-1);
-  }, [location.pathname]); 
+  }, [location.pathname]);
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -49,14 +54,11 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
         setSelectedIndex(-1);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   const handleSubmit = (query: string = value) => {
     if (!query.trim()) return;
-    
     const trimmedQuery = query.trim();
     addToHistory(trimmedQuery);
     onSearch(trimmedQuery);
@@ -64,7 +66,6 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
     setSelectedIndex(-1);
     inputRef.current?.blur();
   };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isFocused || suggestions.length === 0) {
       if (e.key === 'Enter') {
@@ -72,19 +73,14 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
       }
       return;
     }
-
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : -1
-        );
+        setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : -1);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev > -1 ? prev - 1 : suggestions.length - 1
-        );
+        setSelectedIndex(prev => prev > -1 ? prev - 1 : suggestions.length - 1);
         break;
       case 'Enter':
         e.preventDefault();
@@ -102,66 +98,31 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
         break;
     }
   };
-
   const handleSuggestionClick = (suggestion: string) => {
     const truncatedSuggestion = suggestion.split(' ').slice(0, 3).join(' ');
     onChange(truncatedSuggestion);
     handleSubmit(truncatedSuggestion);
   };
-
   const handleClear = () => {
     onChange('');
     inputRef.current?.focus();
   };
-
-  return (
-    <div ref={containerRef} className={`relative ${className}`}>
+  return <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        {!isMobile && (
-          <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground pointer-events-none item-center" />
-        )}
-        <Input
-          ref={inputRef}
-          type="search"
-          placeholder={placeholder}
-          className={`/pr-16 h-12 text-base border-2 border-gray-200 rounded-lg transition-all duration-200 ${isMobile ? 'pl-3' : 'pl-9'}`}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => {
-            setIsFocused(true);
-            setSelectedIndex(-1);
-          }}
-          onKeyDown={handleKeyDown}
-        />
+        {!isMobile && <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground pointer-events-none item-center" />}
+        <Input ref={inputRef} type="search" placeholder={placeholder} className={`/pr-16 h-12 text-base border-2 border-gray-200 rounded-lg transition-all duration-200 ${isMobile ? 'pl-3' : 'pl-9'}`} value={value} onChange={e => onChange(e.target.value)} onFocus={() => {
+        setIsFocused(true);
+        setSelectedIndex(-1);
+      }} onKeyDown={handleKeyDown} />
         
         <div className="absolute right-2 top-2 flex items-center space-x-1">
-          {!isMobile && (
-            <Button
-              type="button"
-              onClick={() => handleSubmit()}
-              className="h-8 bg-gray-50 hover:bg-gray-100 px-3"
-              aria-label="Search"
-            >
+          {!isMobile && <Button type="button" onClick={() => handleSubmit()} className="h-8 bg-gray-50 hover:bg-gray-100 px-3" aria-label="Search">
               <SearchIcon className="text-gray-800 h-4 w-4" />
-            </Button>
-          )}
+            </Button>}
         </div>
       </div>
 
-      {isFocused && (
-        <SearchSuggestions
-          suggestions={suggestions}
-          query={value}
-          isLoading={isLoading}
-          selectedIndex={selectedIndex}
-          onSuggestionClick={handleSuggestionClick}
-          onRemoveFromHistory={removeFromHistory}
-          onClearHistory={clearHistory}
-          hasHistory={searchHistory.length > 0}
-        />
-      )}
-    </div>
-  );
+      {isFocused && <SearchSuggestions suggestions={suggestions} query={value} isLoading={isLoading} selectedIndex={selectedIndex} onSuggestionClick={handleSuggestionClick} onRemoveFromHistory={removeFromHistory} onClearHistory={clearHistory} hasHistory={searchHistory.length > 0} />}
+    </div>;
 };
-
 export default EnhancedSearchInput;

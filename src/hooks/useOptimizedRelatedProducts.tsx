@@ -1,5 +1,9 @@
+/**
+ * Optimized Related Products Hook
+ * Now uses centralized product queries for cache sharing
+ */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { productKeys, productFetchers } from '@/queries/productQueries';
 
 const decodeSafe = (str: string) => {
   try {
@@ -10,28 +14,14 @@ const decodeSafe = (str: string) => {
 };
 
 export const useOptimizedRelatedProducts = (category: string, currentProductId: string) => {
+  const safeCategory = category ? decodeSafe(category.trim()) : '';
+  
   return useQuery({
-    queryKey: ['related-products', category, currentProductId],
-    queryFn: async () => {
-      if (!category) return [];
-
-      const safeCategory = decodeSafe(category.trim());
-
-      const { data, error } = await supabase
-        .from('products')
-        .select('product_id,name,price,image_urls,categories,rating')
-        .eq('categories', safeCategory)
-        .neq('product_id', currentProductId)
-        .limit(12);
-
-      if (error) {
-        console.error('Supabase related-products error:', error.message);
-        throw error;
-      }
-
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
+    queryKey: productKeys.related(safeCategory, currentProductId),
+    queryFn: () => productFetchers.fetchRelatedProducts(safeCategory, currentProductId, 12),
     enabled: !!category && !!currentProductId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 };
+

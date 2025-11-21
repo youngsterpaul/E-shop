@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ShoppingBag } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
@@ -47,10 +47,50 @@ const generateCategoryUrl = (
 };
 
 const CategorySidebar = memo(() => {
-  const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<{ id: number; top: number; } | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null); 
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
   const { data: categories, isLoading, error } = useCategoryHierarchy();
+
+  // State to store the calculated fixed top position for the mega menu
+  // This will now align with the top of the entire sidebar container.
+  const [menuTopOffset, setMenuTopOffset] = useState<number | null>(null);
+
+  // Effect to calculate and update the fixed top position on mount/resize/scroll
+  useEffect(() => {
+    const calculateOffset = () => {
+        if (sidebarRef.current) {
+          // Get the viewport position of the whole sidebar
+          const sidebarRect = sidebarRef.current.getBoundingClientRect();
+          
+          // Target position is the absolute top of the viewport where the sidebar begins.
+          // This aligns the mega menu perfectly with the top edge of the hero banner.
+          const targetTop = sidebarRect.top; 
+          setMenuTopOffset(targetTop);
+        }
+    };
+
+    // Calculate once on mount
+    calculateOffset();
+    
+    // Recalculate on scroll and resize events for perfect fixed alignment
+    // This is crucial because the sidebar is absolute and scrolls with the page, 
+    // but the mega menu is fixed and must track the sidebar's position.
+    window.addEventListener('scroll', calculateOffset);
+    window.addEventListener('resize', calculateOffset);
+
+    // Cleanup listeners
+    return () => {
+        window.removeEventListener('scroll', calculateOffset);
+        window.removeEventListener('resize', calculateOffset);
+    };
+  }, [categories]); 
+
+  const handleMouseEnter = (category: any) => {
+    // Only set the hover ID; the menu position is derived from menuTopOffset
+    setHoveredCategory({ id: category.id, top: 0 }); 
+  };
 
   const handleCategoryClick = (category: any, e?: React.MouseEvent) => {
     if (e) {
@@ -80,8 +120,9 @@ const CategorySidebar = memo(() => {
 
   // Show loading state
   if (isLoading) {
+    // The sidebar should explicitly use the hero section height (500px) on desktop
     return (
-      <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r">
+      <div className="absolute left-0 top-0 w-64 h-[500px] bg-white shadow-lg z-40 border-r overflow-hidden">
         <div className="p-3 bg-green-500 text-white font-semibold text-sm">
           ALL CATEGORIES
         </div>
@@ -94,11 +135,12 @@ const CategorySidebar = memo(() => {
     );
   }
 
-  // Show error state but don't hide the whole sidebar
+  // Show error state
   if (error) {
     console.error('Category hierarchy error:', error);
+    // The sidebar should explicitly use the hero section height (500px) on desktop
     return (
-      <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r">
+      <div className="absolute left-0 top-0 w-64 h-[500px] bg-white shadow-lg z-40 border-r overflow-hidden">
         <div className="p-3 bg-green-500 text-white font-semibold text-sm">
           ALL CATEGORIES
         </div>
@@ -111,8 +153,9 @@ const CategorySidebar = memo(() => {
 
   // No categories available
   if (!categories || categories.length === 0) {
+    // The sidebar should explicitly use the hero section height (500px) on desktop
     return (
-      <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r">
+      <div className="absolute left-0 top-0 w-64 h-[500px] bg-white shadow-lg z-40 border-r overflow-hidden">
         <div className="p-3 bg-green-500 text-white font-semibold text-sm">
           ALL CATEGORIES
         </div>
@@ -122,21 +165,30 @@ const CategorySidebar = memo(() => {
       </div>
     );
   }
+  
+  // Calculate the height of the header for the mega menu scroll calculation
+  const HEADER_HEIGHT = 43; // Estimate of the green header height (p-3 = 12px padding + text height)
+  const FOOTER_HEIGHT = 47; // Estimate of the mega menu footer height (py-2.5 = 10px padding + text height)
+  const MEGA_MENU_HEIGHT = 500; // Fixed height matching the hero section
+  const SCROLLABLE_CONTENT_MAX_HEIGHT = MEGA_MENU_HEIGHT - HEADER_HEIGHT - FOOTER_HEIGHT;
+
 
   return (
-    <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg z-40 border-r">
-      <div className="p-3 bg-green-500 text-white font-semibold text-sm pl-8 xl:pl-3">
+    // Use fixed height h-[500px] to match the Hero Section height on desktop
+    <div ref={sidebarRef} className="absolute left-0 top-0 w-64 h-[500px] bg-white shadow-lg z-40 border-r overflow-hidden">
+      {/* Category Header Bar */}
+      <div className="category-header-bar p-3 bg-green-500 text-white font-semibold text-sm pl-8 xl:pl-3">
         ALL CATEGORIES
       </div>
       
-      <div className="relative .pl-4 .xl:pl-0">
+      <div className="relative h-[calc(100%-43px)] overflow-y-auto">
         {categories.map((category) => {
           const IconComponent = category.icon || ShoppingBag;
           return (
             <div
               key={category.id}
               className="relative"
-              onMouseEnter={() => setHoveredCategory(category.id)}
+              onMouseEnter={() => handleMouseEnter(category)} 
               onMouseLeave={() => setHoveredCategory(null)}
             >
               <div
@@ -154,12 +206,13 @@ const CategorySidebar = memo(() => {
                 )}
               </div>
 
-              {hoveredCategory === category.id && category.subcategories.length > 0 && (
+              {/* Mega Menu Dropdown: Aligned to the Top of the Hero Section and fixed height */}
+              {hoveredCategory?.id === category.id && category.subcategories.length > 0 && menuTopOffset !== null && (
                 <div 
-                  className="fixed ml-64 w-[954px] bg-white shadow-2xl border border-gray-200 z-[60] .rounded-r-lg overflow-hidden"
+                  className="fixed ml-64 w-[954px] bg-white shadow-2xl border border-gray-200 z-[60] overflow-hidden h-[500px]"
                   style={{ 
-                    top: '110px',
-                    maxHeight: 'calc(100vh - 80px)'
+                    // ALIGNMENT FIX: Aligns the menu with the calculated top edge of the Hero Section.
+                    top: `${menuTopOffset}px`, 
                   }}
                 >
                   {/* Sticky Header */}
@@ -169,12 +222,13 @@ const CategorySidebar = memo(() => {
                     </span>
                   </div>
                   
-                  {/* Scrollable Content with Custom Scrollbar */}
+                  {/* Scrollable Content */}
                   <div 
-                    className="overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-gray-100 hover:scrollbar-thumb-orange-400" 
-                    style={{ maxHeight: 'calc(100vh - 160px)' }}
+                    className="overflow-y-auto overflow-x-hidden p-4" 
+                    // Calculate scrollable height based on fixed 500px total height minus header/footer.
+                    style={{ maxHeight: `${SCROLLABLE_CONTENT_MAX_HEIGHT}px` }} 
                   >
-                    <div className="grid grid-cols-8 gap-3 p-4">
+                    <div className="grid grid-cols-8 gap-3">
                       {category.subcategories.map((subcategory: any) => {
                         const SubIcon = ShoppingBag;
                         return (
@@ -183,7 +237,6 @@ const CategorySidebar = memo(() => {
                             onClick={(e) => handleSubcategoryClick(category, subcategory, e)}
                             className="flex flex-col items-center p-2 rounded-lg hover:bg-orange-50 hover:shadow-md transition-all duration-200 cursor-pointer group"
                           >
-                            {/* Smaller Image - 60px instead of 80px */}
                             <div className="relative w-14 h-14 mb-1.5 rounded-md overflow-hidden bg-gray-100 group-hover:scale-110 transition-transform duration-300 shadow-sm">
                               {subcategory.productImage ? (
                                 <>
@@ -191,7 +244,6 @@ const CategorySidebar = memo(() => {
                                     src={subcategory.productImage}
                                     alt={subcategory.name}
                                     className="w-full h-full object-cover"
-                                    aspectRatio="square"
                                     priority={false}
                                   />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -361,3 +413,5 @@ const EnhancedHeroSection = memo(() => {
 EnhancedHeroSection.displayName = 'EnhancedHeroSection';
 
 export default EnhancedHeroSection;
+
+

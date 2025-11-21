@@ -3,21 +3,25 @@ import {
   VISUALLY_HIDDEN_STYLES
 } from "./chunk-SEIASNHJ.js";
 import {
-  clamp
-} from "./chunk-TCQMTAGU.js";
+  createCollection
+} from "./chunk-YFJAWPMT.js";
 import {
   Anchor,
   Arrow,
   Content,
   Root2,
   createPopperScope
-} from "./chunk-JOAE67WF.js";
+} from "./chunk-BY3JGMOT.js";
 import {
-  createCollection
-} from "./chunk-YFJAWPMT.js";
+  clamp
+} from "./chunk-TCQMTAGU.js";
 import {
   useDirection
 } from "./chunk-Y2ZVGGK4.js";
+import {
+  usePrevious
+} from "./chunk-VVN3GYGW.js";
+import "./chunk-T2ZMOZ25.js";
 import {
   Combination_default,
   FocusScope,
@@ -35,10 +39,6 @@ import {
 import {
   useId
 } from "./chunk-AZAAA77X.js";
-import {
-  usePrevious
-} from "./chunk-VVN3GYGW.js";
-import "./chunk-T2ZMOZ25.js";
 import {
   useControllableState
 } from "./chunk-ZIS7NQG5.js";

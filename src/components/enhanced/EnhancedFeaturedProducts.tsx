@@ -112,7 +112,7 @@ const EnhancedFeaturedProducts = memo(() => {
     originalPrice: undefined,
     image: product.image_urls?.[0] || '/placeholder-image.webp',
     rating: product.rating || 4,
-    reviews: 0,
+    reviews_count: product.reviews_count || 0,
     discount: undefined,
     category: product.categories || '',
     inStock: (product.stock || 0) > 0,

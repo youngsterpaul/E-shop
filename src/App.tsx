@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
-import { useCart } from './hooks/useCart';
+import { useCartContext } from '@/contexts/CartContext';
 import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 
@@ -96,7 +96,7 @@ function App() {
   try {
     const {
       cartItems
-    } = useCart();
+    } = useCartContext();
     totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
   } catch {
     totalItems = 0;
@@ -195,9 +195,9 @@ function App() {
       <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
-      <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex flex-col min-h-screen bg-white">
         {/* ✅ Header stays at top */}
-        {!isMobile && !isAdminRoute && !isAuthRoute && <Header className="px-px mx-[116px]" />}
+        {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
         {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
 
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>

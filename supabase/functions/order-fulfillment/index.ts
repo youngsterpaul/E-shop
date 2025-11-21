@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (order.email) {
       const emailResponse = await resend.emails.send({
-        from: "SmartKenya <orders@smartkenya.com>",
+        from: "SMARTKENYA ONLINE SHOPPING <info@smartkenya.co.ke>",
         to: [order.email],
         subject: emailContent.subject,
         html: emailContent.html,
@@ -112,31 +112,32 @@ function generateEmailContent(
   notes?: string
 ) {
   const customerName = order.username || "Valued Customer";
-  const orderNumber = order.order_id.slice(0, 8).toUpperCase();
+  const orderNumberShort = order.order_id.slice(0, 8).toUpperCase();
+  const orderNumber = order.order_id.toUpperCase();
   
   const statusMessages: Record<string, { subject: string; title: string; message: string }> = {
     processing: {
-      subject: `Order ${orderNumber} is Being Processed`,
+      subject: `Order ${orderNumberShort} is Being Processed`,
       title: "Order Processing Started",
       message: "We've received your order and are preparing it for shipment."
     },
     packed: {
-      subject: `Order ${orderNumber} Has Been Packed`,
+      subject: `Order ${orderNumberShort} Has Been Packed`,
       title: "Order Packed",
       message: "Your order has been carefully packed and will be shipped soon."
     },
     shipped: {
-      subject: `Order ${orderNumber} Has Been Shipped`,
+      subject: `Order ${orderNumberShort} Has Been Shipped`,
       title: "Order Shipped",
       message: "Your order is on its way! You can track your package using the tracking number below."
     },
     delivered: {
-      subject: `Order ${orderNumber} Has Been Delivered`,
+      subject: `Order ${orderNumberShort} Has Been Delivered`,
       title: "Order Delivered",
       message: "Your order has been successfully delivered. We hope you enjoy your purchase!"
     },
     cancelled: {
-      subject: `Order ${orderNumber} Has Been Cancelled`,
+      subject: `Order ${orderNumberShort} Has Been Cancelled`,
       title: "Order Cancelled",
       message: "Your order has been cancelled. If you didn't request this, please contact us immediately."
     }
@@ -208,7 +209,7 @@ function generateEmailContent(
 
                     ${trackingNumber ? `
                     <div style="text-align: center; margin: 30px 0;">
-                      <a href="https://www.google.com/search?q=${trackingNumber}" 
+                      <a href="https://smartkenya.co.ke/orders" 
                          style="background-color: #22c55e; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">
                         Track Your Order
                       </a>

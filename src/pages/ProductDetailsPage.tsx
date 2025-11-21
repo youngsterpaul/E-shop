@@ -268,10 +268,18 @@ const productForTabs = useMemo(() => {
   }
 
   // ------------------ DATA PREP ------------------
+  const truncateToTwoWords = (name: string) => {
+    const words = name.split(' ');
+    return words.slice(0, 2).join(' ');
+  };
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
-    { label: product.categories || 'Products', href: `/category/${product.categories || 'all'}` },
-    { label: product.name }
+    { 
+      label: product.categories || 'Products', 
+      href: `/category/${product.categories || 'all'}?form=category&source=category|allCategory|${encodeURIComponent(product.categories || 'Products')}` 
+    },
+    { label: truncateToTwoWords(product.name) }
   ];
 
   const productWithImages = {
@@ -288,7 +296,7 @@ const productForTabs = useMemo(() => {
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
         <main className={`${isMobile ? 'pb-16 px-0' : 'px-4 xl:px-24 py-6'} container mx-auto`}>
-          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden" />}
+          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden." />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
             <EnhancedProductImageGallery 

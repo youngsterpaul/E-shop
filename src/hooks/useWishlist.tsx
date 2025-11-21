@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -17,17 +17,12 @@ interface WishlistItem {
 }
 
 export const useWishlist = () => {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchWishlist = async () => {
-    if (!user) {
-      setWishlistItems([]);
-      setLoading(false);
-      return;
-    }
+  const fetchWishlist = async (): Promise<WishlistItem[]> => {
+    if (!user) return [];
 
     try {
       // First get wishlist items
@@ -37,12 +32,7 @@ export const useWishlist = () => {
         .eq('user_id', user.id);
 
       if (wishlistError) throw wishlistError;
-
-      if (!wishlistData || wishlistData.length === 0) {
-        setWishlistItems([]);
-        setLoading(false);
-        return;
-      }
+      if (!wishlistData || wishlistData.length === 0) return [];
 
       // Get product details for wishlist items
       const productIds = wishlistData.map(item => item.product_id);
@@ -68,15 +58,51 @@ export const useWishlist = () => {
           },
           added_at: wishlistItem.added_at || new Date().toISOString()
         };
-      }).filter(item => item.product.name); // Filter out items where product wasn't found
+      }).filter(item => item.product.name);
 
-      setWishlistItems(formattedItems);
+      return formattedItems;
     } catch (error: any) {
       console.error('Error fetching wishlist:', error);
-    } finally {
-      setLoading(false);
+      return [];
     }
   };
+
+  // Use React Query for wishlist data
+  const { data: wishlistItems = [], isLoading: loading } = useQuery({
+    queryKey: ['wishlist', user?.id],
+    queryFn: fetchWishlist,
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // Add to wishlist mutation
+  const addMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('wishlists')
+        .insert({
+          user_id: user!.id,
+          product_id: productId
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlist', user?.id] });
+      toast({
+        title: "Added to wishlist",
+        description: "Item has been added to your wishlist"
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error adding to wishlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to wishlist",
+        variant: "destructive"
+      });
+    }
+  });
 
   const addToWishlist = async (productId: string) => {
     if (!user) {
@@ -87,61 +113,39 @@ export const useWishlist = () => {
       });
       return;
     }
-
-    try {
-      const { error } = await supabase
-        .from('wishlists')
-        .insert({
-          user_id: user.id,
-          product_id: productId
-        });
-
-      if (error) throw error;
-
-      await fetchWishlist();
-      toast({
-        title: "Added to wishlist",
-        description: "Item has been added to your wishlist"
-      });
-    } catch (error: any) {
-      console.error('Error adding to wishlist:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add item to wishlist",
-        variant: "destructive"
-      });
-    }
+    await addMutation.mutateAsync(productId);
   };
 
-  const removeFromWishlist = async (productId: string) => {
-    if (!user) return;
-
-    try {
+  // Remove from wishlist mutation
+  const removeMutation = useMutation({
+    mutationFn: async (productId: string) => {
       const { error } = await supabase
         .from('wishlists')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .eq('product_id', productId);
-
       if (error) throw error;
-
-      await fetchWishlist();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlist', user?.id] });
       toast({
         title: "Removed from wishlist",
         description: "Item has been removed from your wishlist"
       });
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       console.error('Error removing from wishlist:', error);
     }
+  });
+
+  const removeFromWishlist = async (productId: string) => {
+    if (!user) return;
+    await removeMutation.mutateAsync(productId);
   };
 
   const isInWishlist = (productId: string) => {
     return wishlistItems.some(item => item.product_id === productId);
   };
-
-  useEffect(() => {
-    fetchWishlist();
-  }, [user]);
 
   return {
     wishlistItems,
@@ -149,7 +153,7 @@ export const useWishlist = () => {
     addToWishlist,
     removeFromWishlist,
     isInWishlist,
-    refetch: fetchWishlist
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['wishlist', user?.id] })
   };
 };
 

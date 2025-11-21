@@ -700,6 +700,7 @@ export type Database = {
           product_id: string
           rating: number | null
           reorder_point: number | null
+          reviews_count: number
           specification: Json | null
           stock: number | null
           store: string | null
@@ -721,6 +722,7 @@ export type Database = {
           product_id?: string
           rating?: number | null
           reorder_point?: number | null
+          reviews_count?: number
           specification?: Json | null
           stock?: number | null
           store?: string | null
@@ -742,6 +744,7 @@ export type Database = {
           product_id?: string
           rating?: number | null
           reorder_point?: number | null
+          reviews_count?: number
           specification?: Json | null
           stock?: number | null
           store?: string | null
