@@ -68,12 +68,12 @@ const PrivacyPage = () => {
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-3">2. Data Controller Information</h2>
-              <p className="mb-2"><strong>Company Name:</strong> SmartKenya Limited</p>
+              <p className="mb-2"><strong>Company Name:</strong> SmartKenya Online Shopping Limited</p>
               <p className="mb-2"><strong>Registered Address:</strong> 38-60100 Embu Town, Embu, Kenya</p>
               <p className="mb-2"><strong>Email:</strong> privacy@smartkenya.co.ke</p>
-              <p className="mb-2"><strong>Phone:</strong> +254 758 475 467</p>
+              <p className="mb-2"><strong>Phone:</strong> +254 798 229 783</p>
               <p className="mt-3">
-                For data protection inquiries, please contact our Data Protection Officer at: dpo@smartkenya.co.ke
+                For data protection inquiries, please contact our Data Protection Officer at: legal@smartkenya.co.ke
               </p>
             </section>
             
@@ -348,11 +348,11 @@ const PrivacyPage = () => {
                 If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="mb-2"><strong>SmartKenya Limited</strong></p>
+                <p className="mb-2"><strong>SmartKenya Online Shopping Limited</strong></p>
                 <p className="mb-2">Data Protection Officer</p>
                 <p className="mb-2">Email: privacy@smartkenya.co.ke</p>
-                <p className="mb-2">Alternate: dpo@smartkenya.co.ke</p>
-                <p className="mb-2">Phone: +254 758 475 467</p>
+                <p className="mb-2">Alternate: legal@smartkenya.co.ke</p>
+                <p className="mb-2">Phone: +254 798 229 783</p>
                 <p className="mb-2">Address: 38-60100 Embu Town, Embu, Kenya</p>
               </div>
 
@@ -378,7 +378,7 @@ const PrivacyPage = () => {
             <div className="mt-8 p-4 bg-blue-50 border-l-4 border-primary rounded">
               <p className="text-sm font-semibold mb-2">Your Privacy Matters</p>
               <p className="text-sm">
-                We are committed to transparency and protecting your rights. If you have any questions or need to exercise your data protection rights, please don't hesitate to contact our Data Protection Officer at dpo@smartkenya.co.ke.
+                We are committed to transparency and protecting your rights. If you have any questions or need to exercise your data protection rights, please don't hesitate to contact our Data Protection Officer at legal@smartkenya.co.ke.
               </p>
             </div>
           </div>
