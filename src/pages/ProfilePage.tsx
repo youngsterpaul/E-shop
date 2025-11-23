@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { LoyaltyPointsWidget } from "@/components/loyalty/LoyaltyPointsWidget";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -100,6 +101,9 @@ export default function ProfilePage() {
             <AlertDescription>{status.msg}</AlertDescription>
           </Alert>
         )}
+
+        {/* ✅ Loyalty Points Widget */}
+        <LoyaltyPointsWidget />
 
         {/* ✅ Profile Form */}
         <Card className="border shadow-sm">

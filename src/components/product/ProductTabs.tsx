@@ -2,8 +2,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Star,
-  ThumbsUp,
-  ThumbsDown,
   Filter,
   ChevronDown,
   ChevronUp,
@@ -12,6 +10,7 @@ import {
   Play,
   Pause,
 } from 'lucide-react';
+import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
