@@ -430,6 +430,107 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_usage: {
+        Row: {
+          discount_amount: number
+          discount_id: string | null
+          id: string
+          order_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          discount_amount: number
+          discount_id?: string | null
+          id?: string
+          order_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          discount_amount?: number
+          discount_id?: string | null
+          id?: string
+          order_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_usage_discount_id_fkey"
+            columns: ["discount_id"]
+            isOneToOne: false
+            referencedRelation: "discounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discounts: {
+        Row: {
+          applies_to: string | null
+          category_ids: number[] | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          max_discount_amount: number | null
+          min_purchase_amount: number | null
+          per_user_limit: number | null
+          product_ids: string[] | null
+          start_date: string
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+        }
+        Insert: {
+          applies_to?: string | null
+          category_ids?: number[] | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_purchase_amount?: number | null
+          per_user_limit?: number | null
+          product_ids?: string[] | null
+          start_date?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Update: {
+          applies_to?: string | null
+          category_ids?: number[] | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          min_purchase_amount?: number | null
+          per_user_limit?: number | null
+          product_ids?: string[] | null
+          start_date?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Relationships: []
+      }
       hero_slides: {
         Row: {
           created_at: string
