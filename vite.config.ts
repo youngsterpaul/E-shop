@@ -127,13 +127,10 @@ export default defineConfig(({ mode }) => {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
 
-    // ✅ Recommended cache control for local dev only
-    // (Production caching handled by Vercel)
+    // ✅ Optimized dependency pre-bundling
     optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
-    force: true // Force re-optimization
-    },
-    // Clear cache on startup
-    cacheDir: '.vite'
+      include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js'],
+      exclude: []
+    }
   };
 });
