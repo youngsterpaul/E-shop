@@ -64,6 +64,7 @@ const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPa
 const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
 const AdminDiscountsPage = lazy(() => import("./pages/admin/AdminDiscountsPage"));
 const AdminReportsPage = lazy(() => import("./pages/admin/AdminReportsPage"));
+const AdminReturnsPage = lazy(() => import("./pages/admin/AdminReturnsPage"));
 const AdminSuppliersPage = lazy(() => import("./pages/admin/AdminSuppliersPage"));
 const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
 const AdminPurchaseOrdersPage = lazy(() => import("./pages/admin/AdminPurchaseOrdersPage"));
@@ -258,6 +259,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/reviews" element={<AdminRoute requiredRole="moderator"><AdminReviewsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/discounts" element={<AdminRoute requiredRole="admin"><AdminDiscountsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/reports" element={<AdminRoute requiredRole="admin"><AdminReportsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/returns" element={<AdminRoute requiredRole="admin"><AdminReturnsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers" element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers/:customerId" element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/analytics" element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />
