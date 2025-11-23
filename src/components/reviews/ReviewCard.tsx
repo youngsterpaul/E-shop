@@ -17,10 +17,10 @@ interface Review {
   username: string;
   rating: number;
   comment: string;
-  created_at: string;
+  created_at: string | null;
   media_urls?: string[] | null;
-  verified_purchase?: boolean;
-  helpful_count?: number;
+  verified_purchase?: boolean | null;
+  helpful_count?: number | null;
   replies?: Array<{
     id: string;
     reply_text: string;
@@ -95,7 +95,7 @@ export const ReviewCard = ({ review }: { review: Review }) => {
               </Badge>
             )}
             <span className="text-sm text-muted-foreground">
-              {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+              {review.created_at && formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
             </span>
           </div>
 
