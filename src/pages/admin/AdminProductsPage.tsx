@@ -6,6 +6,7 @@ import { ExportButton } from '@/components/admin/ExportButton';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
+import { CSVProductImportExport } from '@/components/admin/CSVProductImportExport';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -230,6 +231,10 @@ const AdminProductsPage = () => {
         addNewPath="/supersmartkenyaadmin123/products/add"
         addNewLabel="Add Product"
       />
+
+      <div className="mb-4">
+        <CSVProductImportExport />
+      </div>
 
       <div className="flex justify-end mb-4">
         <ExportButton

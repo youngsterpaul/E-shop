@@ -31,6 +31,9 @@ import {
   Users2,
   BarChart3,
   Home,
+  Mail,
+  FileText,
+  DollarSign,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -244,6 +247,13 @@ export function ModernAdminSidebar() {
       roles: ['superadmin'],
       badge: null,
     },
+    {
+      name: 'Email Templates',
+      icon: Mail,
+      path: '/supersmartkenyaadmin123/email-templates',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
   ];
 
   const analyticsMenuItems: MenuItem[] = [
@@ -255,8 +265,15 @@ export function ModernAdminSidebar() {
       badge: null,
     },
     {
+      name: 'Revenue Dashboard',
+      icon: DollarSign,
+      path: '/supersmartkenyaadmin123/revenue-dashboard',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
       name: 'Reports',
-      icon: BarChart3,
+      icon: FileText,
       path: '/supersmartkenyaadmin123/reports',
       roles: ['superadmin', 'admin'],
       badge: null,
