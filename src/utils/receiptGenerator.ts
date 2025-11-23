@@ -27,6 +27,7 @@ interface Order {
   status: string;
   amount: number | null;
   delivery_fee: number | null;
+  discount_amount: number | null;
   items: OrderItem[] | null;
   shipping_address: string | null;
   created_at: string;
@@ -163,8 +164,9 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
 
     // Summary Section
     const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.product.price || 0), 0);
-    const deliveryFee = order.delivery_fee ?? 0; // Use 0 if null or undefined
-    const grandTotal = subtotal + deliveryFee;
+    const discountAmount = order.discount_amount ?? 0;
+    const deliveryFee = order.delivery_fee ?? 0;
+    const grandTotal = subtotal - discountAmount + deliveryFee;
 
     // Spacing from items table
     y += 6;
@@ -172,9 +174,18 @@ export const generatePDFReceipt = async (order: Order): Promise<void> => {
     // Subtotal line
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text('Subtotal:', 10, y);  // Left aligned a bit more inside
+    doc.text('Subtotal:', 10, y);
     doc.text(`KES ${subtotal.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
     y += 6;
+
+    // Discount line (if applicable)
+    if (discountAmount > 0) {
+      doc.setTextColor(0, 150, 0); // Green color for discount
+      doc.text('Discount:', 10, y);
+      doc.text(`-KES ${discountAmount.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
+      doc.setTextColor(0, 0, 0); // Reset to black
+      y += 6;
+    }
 
     // Delivery line
     doc.text('Delivery:', 10, y);
