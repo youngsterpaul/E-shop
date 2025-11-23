@@ -628,29 +628,31 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                   {/* Review Filters */}
                   {totalReviews > 0 && (
                     <div className="bg-white border rounded-lg p-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Filter size={16} className="text-gray-600" aria-hidden="true" />
-                        <span className="text-sm font-medium">Filter by rating:</span>
-                        <div className="flex gap-1 md:gap-2 flex-wrap">
-                          <Button
-                            variant={reviewFilter === 'all' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setReviewFilter('all')}
-                            aria-pressed={reviewFilter === 'all'}
-                          >
-                            All
-                          </Button>
-                          {[5, 4, 3, 2, 1].map((rating) => (
+                      <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Filter size={16} className="text-gray-600" aria-hidden="true" />
+                          <span className="text-sm font-medium">Filter:</span>
+                          <div className="flex gap-1 md:gap-2 flex-wrap">
                             <Button
-                              key={rating}
-                              variant={reviewFilter === rating.toString() ? 'default' : 'outline'}
+                              variant={reviewFilter === 'all' ? 'default' : 'outline'}
                               size="sm"
-                              onClick={() => setReviewFilter(rating.toString())}
-                              aria-pressed={reviewFilter === rating.toString()}
+                              onClick={() => setReviewFilter('all')}
+                              aria-pressed={reviewFilter === 'all'}
                             >
-                              {rating}★
+                              All
                             </Button>
-                          ))}
+                            {[5, 4, 3, 2, 1].map((rating) => (
+                              <Button
+                                key={rating}
+                                variant={reviewFilter === rating.toString() ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setReviewFilter(rating.toString())}
+                                aria-pressed={reviewFilter === rating.toString()}
+                              >
+                                {rating}★
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

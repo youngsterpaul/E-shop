@@ -21,6 +21,7 @@ import {
   XCircle,
   AlertCircle,
   ChevronDown,
+  PackageX,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -130,14 +131,19 @@ const OrdersPage = memo(() => {
     <div className={`container min-h-screen bg-gray-50 pb-24 flex-grow mx-auto py-8 ${!isMobile ? 'px-4 xl:px-24' : 'px-2'}`}>
       <div className="bg-gray-50 border-b .px-4 .sm:px-8 py-3">
         {!isMobile && ( 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
           <div className="flex items-center gap-2">
             <Package className="text-primary h-5 w-5" />
             <h1 className="text-lg font-bold text-gray-800">My Orders</h1>
           </div>
-          <Button variant="outline" onClick={fetchOrders} size="sm" className="mt-2 sm:mt-0">
-            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
+              <PackageX className="h-4 w-4 mr-1" /> Returns
+            </Button>
+            <Button variant="outline" onClick={fetchOrders} size="sm">
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+          </div>
         </div>
         )}
 

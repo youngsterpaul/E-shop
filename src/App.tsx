@@ -39,6 +39,7 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
+const CustomerReturnsPage = lazy(() => import("./pages/CustomerReturnsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // New pages
@@ -232,7 +233,8 @@ function App() {
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/returns" element={<ReturnsPage />} />
+          <Route path="/returns" element={<ReturnsPage />} />
+          <Route path="/my-returns" element={<CustomerReturnsPage />} />
                     
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />

@@ -25,6 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 // Icons
 import { ArrowLeft, User, Mail, Phone, MapPin, CheckCircle, Loader2, X, Download, ShoppingBag } from 'lucide-react';
 import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
+import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
@@ -641,6 +642,14 @@ const CheckoutPage = () => {
                 </div>)}
             </div>
           </ScrollArea>
+
+            <Separator />
+
+            {/* Discount Code Input */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Have a discount code?</p>
+              <DiscountCodeInput />
+            </div>
 
             <Separator />
 
