@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ModernAdminSidebar } from './ModernAdminSidebar';
+import { NotificationCenter } from './NotificationCenter';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <SidebarTrigger />
             <div className="flex-1" />
+            <NotificationCenter />
           </header>
           
           {/* Main content */}
