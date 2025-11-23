@@ -60,30 +60,59 @@ export class GlobalErrorBoundary extends Component<Props, State> {
       timestamp: new Date().toISOString(),
     });
 
-    // Check if we haven't attempted a reload yet for chunk errors
+    // Enhanced reload logic with retry limit
     const hasReloadedKey = 'chunk_error_reloaded';
+    const reloadCountKey = 'chunk_error_reload_count';
+    const reloadTimestampKey = 'chunk_error_reload_timestamp';
+    
     const hasReloaded = sessionStorage.getItem(hasReloadedKey);
-
-    if (this.state.isChunkError && !hasReloaded) {
-      console.log('[ErrorBoundary] Chunk load error detected, attempting automatic reload...');
+    const reloadCount = parseInt(sessionStorage.getItem(reloadCountKey) || '0');
+    const lastReloadTime = parseInt(sessionStorage.getItem(reloadTimestampKey) || '0');
+    const now = Date.now();
+    
+    // Reset count if last reload was more than 5 minutes ago
+    if (now - lastReloadTime > 5 * 60 * 1000) {
+      sessionStorage.setItem(reloadCountKey, '0');
+    }
+    
+    // Only auto-reload for chunk errors if we haven't exceeded retry limit
+    if (this.state.isChunkError && !hasReloaded && reloadCount < 3) {
+      console.log(`[ErrorBoundary] Chunk/React error detected (attempt ${reloadCount + 1}/3), clearing caches and reloading...`);
       
-      // Mark that we've attempted a reload
+      // Increment reload count and mark that we've attempted a reload
       sessionStorage.setItem(hasReloadedKey, 'true');
+      sessionStorage.setItem(reloadCountKey, (reloadCount + 1).toString());
+      sessionStorage.setItem(reloadTimestampKey, now.toString());
       this.setState({ hasAttemptedReload: true });
       
-      // Clear caches and reload after a brief moment
+      // Aggressive cache clearing
       setTimeout(async () => {
         try {
-          // Clear service worker caches
+          // Clear all caches
           if ('caches' in window) {
             const cacheNames = await caches.keys();
             await Promise.all(cacheNames.map(name => caches.delete(name)));
+            console.log('[ErrorBoundary] Cleared', cacheNames.length, 'caches');
           }
           
-          // Clear version marker to force fresh check
-          localStorage.removeItem('app_version');
+          // Clear all local/session storage except reload tracking
+          const reloadData = {
+            hasReloaded: sessionStorage.getItem(hasReloadedKey),
+            reloadCount: sessionStorage.getItem(reloadCountKey),
+            reloadTimestamp: sessionStorage.getItem(reloadTimestampKey)
+          };
           
-          // Hard reload
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Restore reload tracking
+          Object.entries(reloadData).forEach(([key, value]) => {
+            if (value) sessionStorage.setItem(key.replace(/([A-Z])/g, '_$1').toLowerCase(), value);
+          });
+          
+          console.log('[ErrorBoundary] Cleared storage, performing hard reload...');
+          
+          // Hard reload without cache
           window.location.reload();
         } catch (e) {
           console.error('[ErrorBoundary] Failed to clear caches:', e);
@@ -94,9 +123,14 @@ export class GlobalErrorBoundary extends Component<Props, State> {
       return; // Don't show error UI yet
     }
 
-    // Clear the reload flag if we're showing the error UI
-    if (this.state.isChunkError && hasReloaded) {
+    // Clear the reload flags if we're showing the error UI or exceeded retries
+    if (this.state.isChunkError) {
       sessionStorage.removeItem(hasReloadedKey);
+      if (reloadCount >= 3) {
+        console.error('[ErrorBoundary] Max reload attempts reached, showing error UI');
+        sessionStorage.removeItem(reloadCountKey);
+        sessionStorage.removeItem(reloadTimestampKey);
+      }
     }
   }
 
@@ -144,10 +178,21 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             <CardContent className="space-y-4">
               <p className="text-muted-foreground text-center">
                 {this.state.isChunkError 
-                  ? "A new version of the app is available. Please reload the page to get the latest updates."
+                  ? "A new version of the app is available, or there was a loading error. We'll try to fix this automatically."
                   : "We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists."
                 }
               </p>
+              
+              {this.state.isChunkError && (
+                <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-2">
+                  <p className="font-semibold">If the issue persists:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                    <li>Try reloading the page</li>
+                    <li>Clear your browser cache (Ctrl+Shift+Delete)</li>
+                    <li>Try opening in an incognito/private window</li>
+                  </ol>
+                </div>
+              )}
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mt-4 p-3 bg-muted rounded-lg text-xs">

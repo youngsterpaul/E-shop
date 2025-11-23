@@ -34,6 +34,7 @@ const AppWithAnalytics = () => {
   useErrorReporting();
   return (
     <>
+      <ScrollToTop />
       <ProductionOptimizer />
       <VersionManager />
       <App />
@@ -61,7 +62,6 @@ createRoot(document.getElementById('root')!).render(
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <ScrollToTop />
             <AuthProvider>
               <NotificationProvider>
                 <CartProvider>
