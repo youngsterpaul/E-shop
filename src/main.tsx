@@ -18,6 +18,9 @@ import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
 import { ProductionOptimizer } from '@/components/ProductionOptimizer';
 import { VersionManager } from '@/components/VersionManager';
+import SecurityHeaders from '@/components/SecurityHeaders';
+import PerformanceMonitor from '@/components/PerformanceMonitor';
+import CriticalCSS from '@/components/performance/CriticalCSS';
 //import { UpdateNotification } from '@/components/UpdateNotification';
 // import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
@@ -36,6 +39,9 @@ const AppWithAnalytics = () => {
   useErrorReporting();
   return (
     <>
+      <SecurityHeaders />
+      <CriticalCSS />
+      <PerformanceMonitor />
       <EnhancedSEO />
       <ScrollToTop />
       <ProductionOptimizer />
