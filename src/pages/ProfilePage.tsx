@@ -144,40 +144,46 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               {/* County Dropdown */}
-              <Select
-                value={form.county}
-                onValueChange={(v) => updateField('county', v)}
-                disabled={locationLoading}
-              >
-                <SelectTrigger className="h-10 border-gray-300 text-sm">
-                  <SelectValue placeholder="Select County" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getCountyOptions().map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <Label className={smallText}>County</Label>
+                <Select
+                  value={form.county || undefined}
+                  onValueChange={(v) => updateField('county', v)}
+                  disabled={locationLoading}
+                >
+                  <SelectTrigger className="h-10 border-gray-300 text-sm">
+                    <SelectValue placeholder="Select County" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getCountyOptions().map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* City Dropdown */}
-              <Select
-                value={form.city}
-                onValueChange={(v) => updateField('city', v)}
-                disabled={!form.county || locationLoading}
-              >
-                <SelectTrigger className="h-10 border-gray-300 text-sm">
-                  <SelectValue placeholder={form.county ? "Select City" : "Select County first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {cityOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <Label className={smallText}>City</Label>
+                <Select
+                  value={form.city || undefined}
+                  onValueChange={(v) => updateField('city', v)}
+                  disabled={!form.county || locationLoading}
+                >
+                  <SelectTrigger className="h-10 border-gray-300 text-sm">
+                    <SelectValue placeholder={form.county ? "Select City" : "Select County first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cityOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* ✅ Address Input (Free Text) */}
