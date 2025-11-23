@@ -23,6 +23,8 @@ import { VersionManager } from '@/components/VersionManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from "@vercel/analytics/next"
+import { EnhancedSEO } from '@/components/EnhancedSEO';
+import { ABTestProvider } from '@/components/ABTestProvider';
 import App from './App.tsx';
 import './index.css';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -34,6 +36,7 @@ const AppWithAnalytics = () => {
   useErrorReporting();
   return (
     <>
+      <EnhancedSEO />
       <ScrollToTop />
       <ProductionOptimizer />
       <VersionManager />
@@ -63,22 +66,24 @@ createRoot(document.getElementById('root')!).render(
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <AuthProvider>
-              <NotificationProvider>
-                <CartProvider>
-                  <SelectiveCartProvider>
-                    <CheckoutProvider>
-                      <AccessibilitySkipLink />
-                      <AppWithAnalytics />
-                    {/* <CookieConsent /> */}
-                    <SpeedInsights />
-                    {/* <Analytics />*/}
-                    {/* <PWAInstallPrompt /> */}
-                      <OfflineIndicator />
-                      <OfflineCacheManager />
-                    </CheckoutProvider>
-                  </SelectiveCartProvider>
-                </CartProvider>
-              </NotificationProvider>
+              <ABTestProvider>
+                <NotificationProvider>
+                  <CartProvider>
+                    <SelectiveCartProvider>
+                      <CheckoutProvider>
+                        <AccessibilitySkipLink />
+                        <AppWithAnalytics />
+                      {/* <CookieConsent /> */}
+                      <SpeedInsights />
+                      {/* <Analytics />*/}
+                      {/* <PWAInstallPrompt /> */}
+                        <OfflineIndicator />
+                        <OfflineCacheManager />
+                      </CheckoutProvider>
+                    </SelectiveCartProvider>
+                  </CartProvider>
+                </NotificationProvider>
+              </ABTestProvider>
             </AuthProvider>
           </BrowserRouter>
         </QueryClientProvider>

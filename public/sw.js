@@ -1,12 +1,24 @@
-const CACHE_NAME = 'smartkenya-offline-v1';
-const RUNTIME_CACHE = 'smartkenya-runtime-v1';
-const IMAGE_CACHE = 'smartkenya-images-v1';
+const CACHE_VERSION = '2';
+const CACHE_NAME = `smartkenya-offline-v${CACHE_VERSION}`;
+const RUNTIME_CACHE = `smartkenya-runtime-v${CACHE_VERSION}`;
+const IMAGE_CACHE = `smartkenya-images-v${CACHE_VERSION}`;
+const STATIC_CACHE = `smartkenya-static-v${CACHE_VERSION}`;
 
-// Assets to cache on install
+// Cache duration in milliseconds
+const CACHE_DURATION = {
+  images: 7 * 24 * 60 * 60 * 1000, // 7 days
+  api: 5 * 60 * 1000, // 5 minutes
+  static: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
+// Assets to cache on install - expanded for better offline experience
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
+  '/smartkenya-logo.png',
+  '/apple-touch-icon.png',
+  '/android-chrome-192x192.png',
 ];
 
 // Install event - precache assets
@@ -22,12 +34,16 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker...');
+  const currentCaches = [CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE, STATIC_CACHE];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME && name !== RUNTIME_CACHE && name !== IMAGE_CACHE)
-          .map((name) => caches.delete(name))
+          .filter((name) => !currentCaches.includes(name))
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
       );
     }).then(() => self.clients.claim())
   );
@@ -47,29 +63,48 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle images with cache-first strategy
-  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) {
+  // Handle images with stale-while-revalidate strategy
+  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/)) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {
         return cache.match(request).then((cachedResponse) => {
+          const fetchPromise = fetch(request).then((networkResponse) => {
+            if (networkResponse.ok) {
+              // Add cache metadata
+              const headers = new Headers(networkResponse.headers);
+              headers.set('sw-cache-time', Date.now().toString());
+              const responseToCache = new Response(networkResponse.body, {
+                status: networkResponse.status,
+                statusText: networkResponse.statusText,
+                headers: headers
+              });
+              cache.put(request, responseToCache);
+            }
+            return networkResponse;
+          }).catch(() => null);
+
+          // Return cached response immediately if available, but still fetch in background
+          return cachedResponse || fetchPromise || new Response('Image unavailable', { status: 503 });
+        });
+      })
+    );
+    return;
+  }
+
+  // Handle static assets (JS, CSS, fonts) with cache-first strategy
+  if (url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/)) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then((cache) => {
+        return cache.match(request).then((cachedResponse) => {
           if (cachedResponse) {
-            // Return cached image and update in background
-            fetch(request).then((networkResponse) => {
-              if (networkResponse.ok) {
-                cache.put(request, networkResponse.clone());
-              }
-            }).catch(() => {});
             return cachedResponse;
           }
 
-          // Fetch from network and cache
           return fetch(request).then((networkResponse) => {
             if (networkResponse.ok) {
               cache.put(request, networkResponse.clone());
             }
             return networkResponse;
-          }).catch(() => {
-            return new Response('Image unavailable offline', { status: 503 });
           });
         });
       })
@@ -77,21 +112,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API requests with network-first strategy
+  // Handle API requests with network-first + stale-while-revalidate
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {
     event.respondWith(
       caches.open(RUNTIME_CACHE).then((cache) => {
-        return fetch(request)
-          .then((networkResponse) => {
-            // Cache successful responses
-            if (networkResponse.ok && request.method === 'GET') {
-              cache.put(request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Fallback to cache on network failure
-            return cache.match(request).then((cachedResponse) => {
+        return cache.match(request).then((cachedResponse) => {
+          const fetchPromise = fetch(request)
+            .then((networkResponse) => {
+              // Cache successful GET responses with timestamp
+              if (networkResponse.ok && request.method === 'GET') {
+                const headers = new Headers(networkResponse.headers);
+                headers.set('sw-cache-time', Date.now().toString());
+                const responseToCache = new Response(networkResponse.body, {
+                  status: networkResponse.status,
+                  statusText: networkResponse.statusText,
+                  headers: headers
+                });
+                cache.put(request, responseToCache.clone());
+              }
+              return networkResponse;
+            })
+            .catch(() => {
+              // Fallback to cache on network failure
               if (cachedResponse) {
                 return cachedResponse;
               }
@@ -100,7 +142,20 @@ self.addEventListener('fetch', (event) => {
                 headers: { 'Content-Type': 'application/json' }
               });
             });
-          });
+
+          // Check if cache is fresh (less than 5 minutes old)
+          if (cachedResponse) {
+            const cacheTime = cachedResponse.headers.get('sw-cache-time');
+            if (cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION.api) {
+              // Return cached response and update in background
+              fetchPromise.catch(() => {});
+              return cachedResponse;
+            }
+          }
+
+          // Cache is stale or doesn't exist, wait for network
+          return fetchPromise;
+        });
       })
     );
     return;

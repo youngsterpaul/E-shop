@@ -9,6 +9,13 @@ interface SEOHelmetProps {
   ogType?: string;
   noindex?: boolean;
   structuredData?: object;
+  breadcrumbs?: Array<{ name: string; url: string }>;
+  article?: {
+    publishedTime?: string;
+    modifiedTime?: string;
+    author?: string;
+    section?: string;
+  };
 }
 
 export const SEOHelmet = ({
@@ -19,7 +26,9 @@ export const SEOHelmet = ({
   ogImage = 'https://www.smartkenya.co.ke/apple-touch-icon.png',
   ogType = 'website',
   noindex = false,
-  structuredData
+  structuredData,
+  breadcrumbs,
+  article
 }: SEOHelmetProps) => {
   const fullTitle = title.includes('SmartKenya') ? title : `${title} | SmartKenya`;
   const currentUrl = canonical || (typeof window !== 'undefined' ? window.location.href : '');
@@ -53,6 +62,41 @@ export const SEOHelmet = ({
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta httpEquiv="Content-Language" content="en" />
       
+      {/* Article specific meta tags */}
+      {article && ogType === 'article' && (
+        <>
+          {article.publishedTime && (
+            <meta property="article:published_time" content={article.publishedTime} />
+          )}
+          {article.modifiedTime && (
+            <meta property="article:modified_time" content={article.modifiedTime} />
+          )}
+          {article.author && (
+            <meta property="article:author" content={article.author} />
+          )}
+          {article.section && (
+            <meta property="article:section" content={article.section} />
+          )}
+        </>
+      )}
+      
+      {/* Breadcrumb Schema */}
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: breadcrumbs.map((crumb, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: crumb.name,
+              item: crumb.url
+            }))
+          })}
+        </script>
+      )}
+      
+      {/* Main Structured Data */}
       {structuredData && (
         <script type="application/ld+json">
           {JSON.stringify(structuredData)}
