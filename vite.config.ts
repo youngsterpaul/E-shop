@@ -83,6 +83,7 @@ export default defineConfig(({ mode }) => {
         compress: {
           drop_console: true,
           drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info'],
         },
       },
 
@@ -108,19 +109,30 @@ export default defineConfig(({ mode }) => {
             // Everything else stays in /assets
             return `assets/[name]-[hash][extname]`;
           },
+          // ✅ Advanced code splitting for fewer HTTP requests
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
+            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-forms': ['react-hook-form', 'zod'],
+          },
         },
       },
 
       // ✅ Include manifest.json for SSR or deployment platforms
       manifest: true,
 
-      // ✅ Performance tuning
-      chunkSizeWarningLimit: 500,
+      // ✅ Performance tuning - inline small assets to reduce HTTP requests
+      chunkSizeWarningLimit: 1000,
       sourcemap: mode !== "production",
-      assetsInlineLimit: 0, // Always separate assets for better caching
+      assetsInlineLimit: 4096, // Inline assets smaller than 4kb
 
       // ✅ Safari/iOS & legacy compatibility
       polyfillDynamicImport: false,
+      
+      // ✅ Enable CSS code splitting
+      cssCodeSplit: true,
     },
 
     esbuild: {
