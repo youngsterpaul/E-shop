@@ -70,15 +70,7 @@ self.addEventListener('fetch', (event) => {
         return cache.match(request).then((cachedResponse) => {
           const fetchPromise = fetch(request).then((networkResponse) => {
             if (networkResponse.ok) {
-              // Add cache metadata
-              const headers = new Headers(networkResponse.headers);
-              headers.set('sw-cache-time', Date.now().toString());
-              const responseToCache = new Response(networkResponse.body, {
-                status: networkResponse.status,
-                statusText: networkResponse.statusText,
-                headers: headers
-              });
-              cache.put(request, responseToCache);
+              cache.put(request, networkResponse.clone());
             }
             return networkResponse;
           }).catch(() => null);
@@ -112,52 +104,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API requests with network-first + stale-while-revalidate
+  // Handle API requests with network-first strategy (NO CACHING to avoid issues)
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {
-    event.respondWith(
-      caches.open(RUNTIME_CACHE).then((cache) => {
-        return cache.match(request).then((cachedResponse) => {
-          const fetchPromise = fetch(request)
-            .then((networkResponse) => {
-              // Cache successful GET responses with timestamp
-              if (networkResponse.ok && request.method === 'GET') {
-                const headers = new Headers(networkResponse.headers);
-                headers.set('sw-cache-time', Date.now().toString());
-                const responseToCache = new Response(networkResponse.body, {
-                  status: networkResponse.status,
-                  statusText: networkResponse.statusText,
-                  headers: headers
-                });
-                cache.put(request, responseToCache.clone());
-              }
-              return networkResponse;
-            })
-            .catch(() => {
-              // Fallback to cache on network failure
-              if (cachedResponse) {
-                return cachedResponse;
-              }
-              return new Response(JSON.stringify({ offline: true, error: 'Network unavailable' }), {
-                status: 503,
-                headers: { 'Content-Type': 'application/json' }
-              });
-            });
-
-          // Check if cache is fresh (less than 5 minutes old)
-          if (cachedResponse) {
-            const cacheTime = cachedResponse.headers.get('sw-cache-time');
-            if (cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION.api) {
-              // Return cached response and update in background
-              fetchPromise.catch(() => {});
-              return cachedResponse;
-            }
-          }
-
-          // Cache is stale or doesn't exist, wait for network
-          return fetchPromise;
-        });
-      })
-    );
+    event.respondWith(fetch(request));
     return;
   }
 
