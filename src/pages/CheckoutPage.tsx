@@ -533,7 +533,7 @@ const CheckoutPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="county">County</Label>
-              <Select value={deliveryData.county} onValueChange={value => handleDeliveryChange('county', value)}>
+              <Select value={deliveryData.county || undefined} onValueChange={value => handleDeliveryChange('county', value)}>
                 <SelectTrigger className={errors.county ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select county" />
                 </SelectTrigger>
@@ -548,7 +548,7 @@ const CheckoutPage = () => {
             
             <div>
               <Label htmlFor="city">City/Town</Label>
-              <Select value={deliveryData.city} onValueChange={value => handleDeliveryChange('city', value)} disabled={!deliveryData.county}>
+              <Select value={deliveryData.city || undefined} onValueChange={value => handleDeliveryChange('city', value)} disabled={!deliveryData.county}>
                 <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
                   <SelectValue placeholder={deliveryData.county ? "Select city" : "Select county first"} />
                 </SelectTrigger>

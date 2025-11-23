@@ -199,7 +199,7 @@ export default function CustomerReturnsPage() {
                       <div>
                         <Label>Select Order</Label>
                         <Select 
-                          value={selectedOrder?.order_id || ''} 
+                          value={selectedOrder?.order_id || undefined} 
                           onValueChange={(orderId) => {
                             const order = orders.find(o => o.order_id === orderId);
                             setSelectedOrder(order || null);
