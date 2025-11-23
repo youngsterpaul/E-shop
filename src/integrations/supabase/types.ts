@@ -1011,6 +1011,82 @@ export type Database = {
           },
         ]
       }
+      returns: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          items: Json
+          order_id: string
+          processed_at: string | null
+          processed_by: string | null
+          refund_amount: number | null
+          refund_method: string | null
+          return_number: string
+          return_reason: string
+          status: string
+          tracking_number: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          items: Json
+          order_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          refund_amount?: number | null
+          refund_method?: string | null
+          return_number: string
+          return_reason: string
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          order_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          refund_amount?: number | null
+          refund_method?: string | null
+          return_number?: string
+          return_reason?: string
+          status?: string
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "returns_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+          {
+            foreignKeyName: "returns_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "returns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string
@@ -1288,6 +1364,7 @@ export type Database = {
       cleanup_expired_carts: { Args: never; Returns: number }
       cleanup_expired_sessions: { Args: never; Returns: number }
       generate_po_number: { Args: never; Returns: string }
+      generate_return_number: { Args: never; Returns: string }
       get_or_create_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: string
