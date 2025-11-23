@@ -10,10 +10,10 @@ import {
   Play,
   Pause,
 } from 'lucide-react';
-import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { useProductReviews } from '@/hooks/useReviews';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import OptimizedImage from '../OptimizedImage';
@@ -666,80 +666,11 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                       </div>
                     ) : filteredReviews.length > 0 ? (
                       <>
-                        {visibleReviews.map((review) => (
-                          <Card key={review.review_id} className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-4 md:p-6">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-sm md:text-base truncate">{review.username}</span>
-                                    <div className="flex" role="img" aria-label={`${review.rating} out of 5 stars`}>
-                                      {[...Array(5)].map((_, i) => (
-                                        <Star
-                                          key={i}
-                                          className={`w-3 h-3 md:w-4 md:h-4 ${
-                                            i < review.rating 
-                                              ? 'text-yellow-400 fill-current' 
-                                              : 'text-gray-300'
-                                          }`}
-                                          aria-hidden="true"
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                  <p className="text-xs md:text-sm text-gray-600">
-                                    {formatDate(review.created_at)}
-                                  </p>
-                                </div>
-                                <Badge variant="outline" className="ml-2 flex-shrink-0">{review.rating}/5</Badge>
-                              </div>
-                              
-                              <p className="text-gray-700 mb-4 leading-relaxed text-sm md:text-base break-words">{review.comment}</p>
-                              
-                              {/* Enhanced Review Media with click handlers */}
-                              {review.media_urls && Array.isArray(review.media_urls) && review.media_urls.length > 0 && (
-                                <div className="flex gap-2 overflow-x-auto mb-4">
-                                  {review.media_urls
-                                    .filter(url => url && typeof url === 'string' && url.trim() !== '')
-                                    .map((url, index) => (
-                                      <div key={index} className="flex-shrink-0">
-                                       {!imageErrors[url] && isVideoUrl(url) ? (
-                                          <div
-                                            onClick={() => openMediaModal(url, `Review video ${index + 1}`, true)}
-                                            className="cursor-pointer"
-                                          >
-                                            <video
-                                              src={url}
-                                              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg hover:opacity-80 transition-opacity"
-                                              onError={() => handleImageError(url)}
-                                            />
-                                          </div>
-                                        ) : !imageErrors[url] ? (
-                                          <div
-                                            onClick={() => openMediaModal(url, `Review image ${index + 1}`)}
-                                            className="cursor-pointer"
-                                          >
-                                            <OptimizedImage
-                                              src={url}
-                                              alt={`Review image ${index + 1}`}
-                                              width={isMobile ? 64 : 80}
-                                              height={isMobile ? 64 : 80}
-                                              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg hover:opacity-80 transition-opacity"
-                                              onError={() => handleImageError(url)}
-                                            />
-                                          </div>
-                                        ) : (
-                                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                                            <AlertCircle className="w-4 h-4 text-gray-400" />
-                                          </div>
-                                        )}
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
+                        <div className="space-y-4">
+                          {visibleReviews.map((review) => (
+                            <ReviewCard key={review.review_id} review={review} />
+                          ))}
+                        </div>
 
                       
                       {filteredReviews.length > REVIEWS_LIMIT && (
