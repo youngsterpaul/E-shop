@@ -44,6 +44,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // New pages
 const CareersPage = lazy(() => import("./pages/CareersPage"));
+const LoyaltyPage = lazy(() => import("./pages/LoyaltyPage"));
+const RewardsPage = lazy(() => import("./pages/RewardsPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -238,6 +240,8 @@ function App() {
                     
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />
+            <Route path="/loyalty" element={<LoyaltyPage />} />
+            <Route path="/rewards" element={<RewardsPage />} />
 
             {/* Admin Routes */}
             <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />

@@ -639,6 +639,36 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          points: number
+          total_earned: number
+          total_redeemed: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points?: number
+          total_earned?: number
+          total_redeemed?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points?: number
+          total_earned?: number
+          total_redeemed?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       mpesa_payments: {
         Row: {
           amount: number
@@ -779,6 +809,39 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      points_transactions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points: number
+          reference_id?: string | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          source?: string
+          transaction_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1047,6 +1110,39 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          points_awarded: number | null
+          referral_code: string
+          referred_user_id: string | null
+          referrer_user_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          referral_code: string
+          referred_user_id?: string | null
+          referrer_user_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          referral_code?: string
+          referred_user_id?: string | null
+          referrer_user_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       returns: {
         Row: {
           admin_notes: string | null
@@ -1123,36 +1219,204 @@ export type Database = {
           },
         ]
       }
+      review_replies: {
+        Row: {
+          created_at: string | null
+          id: string
+          reply_text: string
+          review_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reply_text: string
+          review_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reply_text?: string
+          review_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_replies_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["review_id"]
+          },
+        ]
+      }
+      review_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          review_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["review_id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string
           created_at: string | null
+          helpful_count: number | null
           media_urls: string[] | null
           product_id: string
           rating: number
           review_id: string
           user_id: string
           username: string
+          verified_purchase: boolean | null
         }
         Insert: {
           comment: string
           created_at?: string | null
+          helpful_count?: number | null
           media_urls?: string[] | null
           product_id: string
           rating: number
           review_id?: string
           user_id: string
           username: string
+          verified_purchase?: boolean | null
         }
         Update: {
           comment?: string
           created_at?: string | null
+          helpful_count?: number | null
           media_urls?: string[] | null
           product_id?: string
           rating?: number
           review_id?: string
           user_id?: string
           username?: string
+          verified_purchase?: boolean | null
+        }
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          expires_at: string | null
+          id: string
+          order_id: string | null
+          points_spent: number
+          redeemed_at: string | null
+          reward_id: string
+          status: string
+          used_at: string | null
+          user_id: string
+          voucher_code: string | null
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          points_spent: number
+          redeemed_at?: string | null
+          reward_id: string
+          status?: string
+          used_at?: string | null
+          user_id: string
+          voucher_code?: string | null
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          points_spent?: number
+          redeemed_at?: string | null
+          reward_id?: string
+          status?: string
+          used_at?: string | null
+          user_id?: string
+          voucher_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_redemptions_per_user: number | null
+          name: string
+          points_required: number
+          reward_type: string
+          reward_value: Json
+          stock_quantity: number | null
+          updated_at: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_redemptions_per_user?: number | null
+          name: string
+          points_required: number
+          reward_type: string
+          reward_value: Json
+          stock_quantity?: number | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_redemptions_per_user?: number | null
+          name?: string
+          points_required?: number
+          reward_type?: string
+          reward_value?: Json
+          stock_quantity?: number | null
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
         }
         Relationships: []
       }
@@ -1400,6 +1664,10 @@ export type Database = {
       cleanup_expired_carts: { Args: never; Returns: number }
       cleanup_expired_sessions: { Args: never; Returns: number }
       generate_po_number: { Args: never; Returns: string }
+      generate_referral_code: {
+        Args: { user_id_param: string }
+        Returns: string
+      }
       generate_return_number: { Args: never; Returns: string }
       get_or_create_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
