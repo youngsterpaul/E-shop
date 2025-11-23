@@ -8,6 +8,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/contexts/CartContext';
 import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 //import { CookieConsent } from '@/components/CookieConsent';
 //import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
@@ -62,20 +63,22 @@ createRoot(document.getElementById('root')!).render(
           <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
-              <CartProvider>
-                <SelectiveCartProvider>
-                  <CheckoutProvider>
-                    <AccessibilitySkipLink />
-                    <AppWithAnalytics />
+              <NotificationProvider>
+                <CartProvider>
+                  <SelectiveCartProvider>
+                    <CheckoutProvider>
+                      <AccessibilitySkipLink />
+                      <AppWithAnalytics />
                     {/* <CookieConsent /> */}
                     <SpeedInsights />
                     {/* <Analytics />*/}
                     {/* <PWAInstallPrompt /> */}
-                    <OfflineIndicator />
-                    <OfflineCacheManager />
-                  </CheckoutProvider>
-                </SelectiveCartProvider>
-              </CartProvider>
+                      <OfflineIndicator />
+                      <OfflineCacheManager />
+                    </CheckoutProvider>
+                  </SelectiveCartProvider>
+                </CartProvider>
+              </NotificationProvider>
             </AuthProvider>
           </BrowserRouter>
         </QueryClientProvider>

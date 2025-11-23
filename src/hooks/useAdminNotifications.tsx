@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { ShoppingCart, Package, Shield } from 'lucide-react';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 export const useAdminNotifications = (isAdmin: boolean) => {
   const queryClient = useQueryClient();
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -22,10 +23,18 @@ export const useAdminNotifications = (isAdmin: boolean) => {
         },
         (payload) => {
           const order = payload.new as any;
+          const message = `Order #${order.order_id?.slice(0, 8)} - KSH ${order.amount?.toLocaleString() || '0'}`;
+          
           toast({
             title: '🛒 New Order Received',
-            description: `Order #${order.order_id?.slice(0, 8)} - KSH ${order.amount?.toLocaleString() || '0'}`,
+            description: message,
             duration: 5000,
+          });
+
+          addNotification({
+            title: 'New Order Received',
+            description: message,
+            type: 'order',
           });
           
           // Invalidate queries to refresh data
@@ -56,11 +65,19 @@ export const useAdminNotifications = (isAdmin: boolean) => {
             product.stock <= reorderPoint && 
             oldProduct.stock > reorderPoint
           ) {
+            const message = `${product.name} needs reordering (${product.stock} units left, reorder point: ${reorderPoint})`;
+            
             toast({
               title: '⚠️ Low Stock Alert',
-              description: `${product.name} needs reordering (${product.stock} units left, reorder point: ${reorderPoint})`,
+              description: message,
               variant: 'destructive',
               duration: 7000,
+            });
+
+            addNotification({
+              title: 'Low Stock Alert',
+              description: message,
+              type: 'stock',
             });
             
             // Invalidate low stock products query
@@ -89,12 +106,20 @@ export const useAdminNotifications = (isAdmin: boolean) => {
             'medium': '⚡',
             'low': 'ℹ️'
           }[alert.severity] || '🔔';
+          
+          const message = `${alert.alert_type}: ${alert.identifier}`;
 
           toast({
             title: `${severityEmoji} Security Alert`,
-            description: `${alert.alert_type}: ${alert.identifier}`,
+            description: message,
             variant: alert.severity === 'critical' || alert.severity === 'high' ? 'destructive' : 'default',
             duration: 10000,
+          });
+
+          addNotification({
+            title: 'Security Alert',
+            description: message,
+            type: 'security',
           });
           
           // Invalidate security alerts queries
