@@ -39,6 +39,8 @@ interface Order {
   phone_number: string | null;
   status: string;
   amount: number | null;
+  delivery_fee: number | null;
+  discount_amount: number | null;
   items: OrderItem[] | null;
   shipping_address: string | null;
   created_at: string;
@@ -245,11 +247,19 @@ const OrdersPage = memo(() => {
                       </div>
                     ))}
 
-                    <div className="border-t pt-3 flex justify-between text-sm font-medium">
-                      <span>Total</span>
-                      <span className="text-primary font-semibold">
-                        Ksh {(order.amount || 0).toLocaleString()}
-                      </span>
+                    <div className="border-t pt-3 space-y-2">
+                      {order.discount_amount && order.discount_amount > 0 && (
+                        <div className="flex justify-between text-xs text-green-600">
+                          <span>Discount Applied</span>
+                          <span>-Ksh {order.discount_amount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Total</span>
+                        <span className="text-primary font-semibold">
+                          Ksh {(order.amount || 0).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

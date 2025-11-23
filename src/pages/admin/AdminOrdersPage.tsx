@@ -41,6 +41,7 @@ interface Order {
   status: string;
   amount: number | null;
   delivery_fee: number | null;
+  discount_amount: number | null;
   items: OrderItem[] | null;
   tracking_number: string | null;
   shipping_address: string | null;
@@ -583,9 +584,15 @@ const AdminOrdersPage = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>
-                      KSH {((viewOrderModal.order.amount || 0) - (viewOrderModal.order.delivery_fee || 0)).toLocaleString()}
+                      KSH {((viewOrderModal.order.amount || 0) - (viewOrderModal.order.delivery_fee || 0) + (viewOrderModal.order.discount_amount || 0)).toLocaleString()}
                     </span>
                   </div>
+                  {viewOrderModal.order.discount_amount && viewOrderModal.order.discount_amount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount</span>
+                      <span>-KSH {viewOrderModal.order.discount_amount.toLocaleString()}</span>
+                    </div>
+                  )}
                   {viewOrderModal.order.delivery_fee && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Delivery Fee</span>
