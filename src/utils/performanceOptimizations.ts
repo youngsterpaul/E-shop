@@ -7,31 +7,23 @@ export const preloadCriticalResources = () => {
     return;
   }
 
-  // Preload and load fonts immediately
-  const fontPreload = document.createElement('link');
-  fontPreload.rel = 'preload';
-  fontPreload.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
-  fontPreload.as = 'style';
-  fontPreload.crossOrigin = 'anonymous';
-  fontPreload.dataset.preload = 'critical';
-  
-  // Load the font stylesheet immediately after preload
-  fontPreload.onload = () => {
-    const fontLink = document.createElement('link');
-    fontLink.rel = 'stylesheet';
-    fontLink.href = fontPreload.href;
-    fontLink.crossOrigin = 'anonymous';
-    document.head.appendChild(fontLink);
-  };
-  
-  document.head.appendChild(fontPreload);
+  // Inline font CSS to reduce HTTP requests
+  const fontStyles = document.createElement('style');
+  fontStyles.textContent = `
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
+    }
+  `;
+  document.head.appendChild(fontStyles);
 
   const preconnectDomains = [
-  'https://fonts.gstatic.com',
-  'https://fonts.googleapis.com',
-  'https://sgpjnbdrmwrupeqhjqpj.supabase.co',
-  'https://www.google-analytics.com'
-];
+    'https://fonts.gstatic.com',
+    'https://sgpjnbdrmwrupeqhjqpj.supabase.co',
+  ];
 
   preconnectDomains.forEach(domain => {
     if (!document.querySelector(`link[href="${domain}"][rel="preconnect"]`)) {
@@ -41,6 +33,15 @@ export const preloadCriticalResources = () => {
       link.crossOrigin = 'anonymous';
       document.head.appendChild(link);
     }
+  });
+
+  // DNS prefetch for additional performance
+  const dnsPrefetchDomains = ['https://www.google-analytics.com'];
+  dnsPrefetchDomains.forEach(domain => {
+    const link = document.createElement('link');
+    link.rel = 'dns-prefetch';
+    link.href = domain;
+    document.head.appendChild(link);
   });
 
   // Only preload hero images that are actually used
@@ -54,6 +55,7 @@ export const preloadCriticalResources = () => {
     heroImageLink.href = '/assets/images/hero2.webp';
     heroImageLink.as = 'image';
     heroImageLink.dataset.preload = 'critical';
+    heroImageLink.fetchPriority = 'high';
     document.head.appendChild(heroImageLink);
   }
 };

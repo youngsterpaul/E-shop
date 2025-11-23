@@ -67,24 +67,29 @@
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
     
-    <!-- Performance Optimization -->
-    <!-- <link rel="preload" href="/src/pages/Index.tsx" as="script"> -->
-    <!-- <link rel="preload" href="/favicon.ico" as="image">-->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <!-- Performance Optimization - Resource Hints -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-    <link rel="preconnect" href="https://sgpjnbdrmwrupeqhjqpj.supabase.co" crossorigin>
-    <link rel="preconnect" href="https://cdn.gpteng.co" crossorigin>
-    <link rel="preconnect" href="https://sgpjnbdrmwrupeqhjqpj.supabase.co" />
+    <link rel="preconnect" href="https://sgpjnbdrmwrupeqhjqpj.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
-    <link rel="dns-prefetch" href="https://api.whatsapp.com" />
-    <link rel="dns-prefetch" href="https://www.google-analytics.com">
-    <link rel="dns-prefetch" href="https://sgpjnbdrmwrupeqhjqpj.supabase.co">
-    <link rel="dns-prefetch" href="https://cdn.gpteng.co">
     
-    <!-- Font Loading with Performance -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
+    <!-- Inline Critical Font CSS to Reduce HTTP Requests -->
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2) format('woff2');
+      }
+    </style>
     
     <!-- Accessibility -->
     <meta name="color-scheme" content="light dark" />
@@ -119,20 +124,23 @@
     }
     </script>
     
-    <!-- Preload Critical Resources -->
-    <!-- <link rel="preload" href="/assets/images/hero2.webp" as="image" fetchpriority="high" type="image/webp"> -->
+    <!-- Preload Critical Resources with High Priority -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="preload" href="/assets/images/hero2.webp" as="image" fetchpriority="high" type="image/webp" />
     
-    <!-- Service Worker Registration -->
+    <!-- Defer Service Worker Registration to Improve Initial Load -->
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller === null) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.log('SW registration failed: ', registrationError);
-            });
+          setTimeout(() => {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+              .then(registration => {
+                console.log('SW registered');
+              })
+              .catch(() => {
+                console.log('SW registration failed');
+              });
+          }, 2000);
         });
       }
     </script>
@@ -153,14 +161,23 @@
       </div>
     </noscript>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7CRV26DD82"></script>
+    <!-- Google tag (gtag.js) - Deferred for Performance -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-7CRV26DD82');
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtag/js?id=G-7CRV26DD82';
+          document.head.appendChild(script);
+          
+          script.onload = function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-7CRV26DD82');
+          };
+        }, 3000);
+      });
     </script>
 </body>
 </html>
