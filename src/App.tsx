@@ -61,6 +61,9 @@ const AdminSecurityAlertsPage = lazy(() => import("./pages/admin/AdminSecurityAl
 const AdminLoginAuditPage = lazy(() => import("./pages/admin/AdminLoginAuditPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPage"));
+const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
+const AdminDiscountsPage = lazy(() => import("./pages/admin/AdminDiscountsPage"));
+const AdminReportsPage = lazy(() => import("./pages/admin/AdminReportsPage"));
 const AdminSuppliersPage = lazy(() => import("./pages/admin/AdminSuppliersPage"));
 const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
 const AdminPurchaseOrdersPage = lazy(() => import("./pages/admin/AdminPurchaseOrdersPage"));
@@ -252,6 +255,9 @@ function App() {
             <Route path="/supersmartkenyaadmin123/suppliers" element={<AdminRoute requiredRole="admin"><AdminSuppliersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/inventory" element={<AdminRoute requiredRole="admin"><AdminInventoryPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/purchase-orders" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrdersPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/reviews" element={<AdminRoute requiredRole="moderator"><AdminReviewsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/discounts" element={<AdminRoute requiredRole="admin"><AdminDiscountsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/reports" element={<AdminRoute requiredRole="admin"><AdminReportsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers" element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/customers/:customerId" element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/analytics" element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />

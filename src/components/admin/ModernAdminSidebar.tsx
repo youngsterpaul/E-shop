@@ -11,6 +11,7 @@ import {
   LogOut,
   Plus,
   Tags,
+  Tag,
   Bell,
   Store,
   Image,
@@ -19,6 +20,11 @@ import {
   Activity,
   TrendingUp,
   ChevronRight,
+  Star,
+  Factory,
+  Building2,
+  FolderTree,
+  PackageSearch,
   Warehouse,
   Truck,
   Users2,
@@ -102,6 +108,13 @@ export function ModernAdminSidebar() {
       badge: 'New',
       badgeVariant: 'default' as const,
     },
+    {
+      name: 'Discounts',
+      icon: Tag,
+      path: '/supersmartkenyaadmin123/discounts',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
   ];
 
   const catalogMenuItems = [
@@ -109,6 +122,13 @@ export function ModernAdminSidebar() {
       name: 'Products',
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
+      roles: ['superadmin', 'admin', 'moderator'],
+      badge: null,
+    },
+    {
+      name: 'Reviews',
+      icon: Star,
+      path: '/supersmartkenyaadmin123/reviews',
       roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
@@ -218,6 +238,30 @@ export function ModernAdminSidebar() {
     },
   ];
 
+  const analyticsMenuItems: MenuItem[] = [
+    {
+      name: 'Analytics',
+      icon: TrendingUp,
+      path: '/supersmartkenyaadmin123/analytics',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
+      name: 'Reports',
+      icon: BarChart3,
+      path: '/supersmartkenyaadmin123/reports',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'Daily Sales',
+      icon: Activity,
+      path: '/supersmartkenyaadmin123/daily-sales',
+      roles: ['superadmin'],
+      badge: null,
+    },
+  ];
+
   const filterMenuItems = (items: MenuItem[]) => {
     return items.filter(item => {
       if (isSuperAdmin) return true;
@@ -303,6 +347,8 @@ export function ModernAdminSidebar() {
         {renderMenuGroup(contentMenuItems, 'Content')}
         <Separator className="my-2" />
         {renderMenuGroup(managementMenuItems, 'Management')}
+        <Separator className="my-2" />
+        {renderMenuGroup(analyticsMenuItems, 'Analytics')}
         <Separator className="my-2" />
         {renderMenuGroup(securityMenuItems, 'Security')}
         {renderMenuGroup(settingsMenuItems, 'System')}
