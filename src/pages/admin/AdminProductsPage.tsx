@@ -76,6 +76,9 @@ const SortableRow = ({ product, isSelected, onToggle, onEdit, onDelete, onManage
           onCheckedChange={onToggle}
         />
       </TableCell>
+      <TableCell className="text-center text-muted-foreground">
+        {product.display_order || 0}
+      </TableCell>
       <TableCell className="font-medium">{product.name}</TableCell>
       <TableCell>{product.categories}</TableCell>
       <TableCell>KSH {product.price?.toLocaleString()}</TableCell>
@@ -173,7 +176,9 @@ const AdminProductsPage = () => {
     const searchMatch = searchQuery === '' || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
+    // Handle category filtering for "Category > Subcategory" format
     const categoryMatch = selectedCategory === 'All Categories' || 
+      product.categories?.startsWith(selectedCategory) ||
       product.categories === selectedCategory;
 
     return searchMatch && categoryMatch;
@@ -451,6 +456,7 @@ const AdminProductsPage = () => {
                             onCheckedChange={toggleSelectAll}
                           />
                         </TableHead>
+                        <TableHead className="w-16 text-center">Order</TableHead>
                         <TableHead>Product Name</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
