@@ -164,44 +164,53 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
-      // Get old role for audit log - use maybeSingle to avoid 406 errors
-      const { data: oldRole } = await supabase
+      // Get existing role record for audit and update logic
+      const { data: existingRoleRecord, error: existingRoleError } = await supabase
         .from('user_roles')
-        .select('role')
+        .select('id, role')
         .eq('user_id', userId)
         .limit(1)
         .maybeSingle();
-      
-      // Update role - delete existing and insert new one
-      const { error: deleteError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
 
-      if (deleteError) throw deleteError;
+      if (existingRoleError) throw existingRoleError;
 
-      // Insert new role (only user_id and role fields)
-      const { error: insertError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: selectedRole,
-        });
+      const previousRole = existingRoleRecord?.role as AppRole | undefined;
 
-      if (insertError) throw insertError;
+      // Only change role if it actually changed
+      if (previousRole !== selectedRole) {
+        if (existingRoleRecord) {
+          // Update existing role row instead of delete + insert
+          const { error: updateRoleError } = await supabase
+            .from('user_roles')
+            .update({ role: selectedRole })
+            .eq('id', existingRoleRecord.id);
 
-      // Log role change to audit table
-      if (oldRole && oldRole.role !== selectedRole) {
-        await supabase.from('role_change_history').insert({
-          user_id: userId,
-          changed_by: currentUser.id,
-          action_type: 'updated',
-          old_role: oldRole.role,
-          new_role: selectedRole,
-          reason: 'Role updated via admin panel'
-        });
+          if (updateRoleError) throw updateRoleError;
+        } else {
+          // No existing role row, insert a new one
+          const { error: insertRoleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: userId,
+              role: selectedRole,
+            });
+
+          if (insertRoleError) throw insertRoleError;
+        }
+
+        // Log role change to audit table when there was a previous role
+        if (previousRole) {
+          await supabase.from('role_change_history').insert({
+            user_id: userId,
+            changed_by: currentUser.id,
+            action_type: 'updated',
+            old_role: previousRole,
+            new_role: selectedRole,
+            reason: 'Role updated via admin panel',
+          });
+        }
       }
-
+ 
       toast({
         title: "User updated",
         description: "The user has been successfully updated.",
