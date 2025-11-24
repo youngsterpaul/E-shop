@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useReviews } from '@/hooks/useReviews';
+import { useProductReviews } from '@/hooks/useReviews';
 import { Button } from '@/components/ui/button';
-import { Star } from 'lucide-react';
+import { Star, Edit } from 'lucide-react';
 
 interface ReviewButtonProps {
   productId: string;
@@ -14,64 +14,46 @@ interface ReviewButtonProps {
 const ReviewButton = ({ productId, productName, size = 'default' }: ReviewButtonProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { canUserReviewProduct } = useReviews();
-  const [canReview, setCanReview] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Add debugging
-  console.log('ReviewButton rendered for product:', productId);
-  console.log('User:', user);
-  console.log('isLoading:', isLoading);
-  console.log('canReview:', canReview);
+  const { data: reviews = [], isLoading } = useProductReviews(productId);
+  const [userReview, setUserReview] = useState<any>(null);
 
   useEffect(() => {
-    const checkReviewEligibility = async () => {
-      console.log('Checking review eligibility...');
-      
-      if (!user) {
-        console.log('No user found');
-        setCanReview(false);
-        setIsLoading(false);
-        return;
-      }
+    if (!user || !reviews.length) {
+      setUserReview(null);
+      return;
+    }
 
-      try {
-        console.log('Calling canUserReviewProduct...');
-        const eligible = await canUserReviewProduct(productId);
-        console.log('Review eligible result:', eligible);
-        setCanReview(eligible || true);
-      } catch (error) {
-        console.error('Error checking review eligibility:', error);
-        setCanReview(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Check if user has already reviewed this product
+    const existingReview = reviews.find((review) => review.user_id === user.id);
+    setUserReview(existingReview);
+  }, [user, reviews]);
 
-    checkReviewEligibility();
-  }, [user, productId, canUserReviewProduct]);
-
-  // Show loading state for debugging
-  if (isLoading) {
-    console.log('ReviewButton: Still loading...');
-    return <div>Loading review button...</div>; // Temporary for debugging
+  if (isLoading || !user) {
+    return null;
   }
 
-  if (!canReview) {
-    console.log('ReviewButton: Cannot review');
-    return <div>Cannot review this product</div>; // Temporary for debugging
-  }
+  const hasReviewed = !!userReview;
 
-  console.log('ReviewButton: Rendering button');
   return (
     <Button
       size={size}
       variant="outline"
-      onClick={() => navigate(`/products/${productId}/review`)}
-      className="flex items-center gap-2 border-orange-500 text-orange-500 hover:bg-orange-50"
+      onClick={() => navigate(`/products/${productId}/review`, { 
+        state: { existingReview: userReview } 
+      })}
+      className="flex items-center gap-2 border-primary text-primary hover:bg-primary/10"
     >
-      <Star className="h-4 w-4" />
-      Write Review
+      {hasReviewed ? (
+        <>
+          <Edit className="h-4 w-4" />
+          Edit Review
+        </>
+      ) : (
+        <>
+          <Star className="h-4 w-4" />
+          Write Review
+        </>
+      )}
     </Button>
   );
 };

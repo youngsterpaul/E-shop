@@ -18,6 +18,7 @@ import { useProductReviews } from '@/hooks/useReviews';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import OptimizedImage from '../OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import ReviewButton from '@/components/ReviewButton';
 
 interface ProductTabsProps {
   product: {
@@ -564,7 +565,14 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="p-2 md:p-6 border-b">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Customer Reviews</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-md font-medium text-gray-900 mb-2">Customer Reviews</h3>
+                  <ReviewButton 
+                    productId={product.product_id} 
+                    productName={product.name}
+                    size="sm"
+                  />
+                </div>
               </div>
               <div className=".pb-4 .md:p-6">
                 <div className="space-y-6">

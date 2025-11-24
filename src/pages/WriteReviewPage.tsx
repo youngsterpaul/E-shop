@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProduct } from '@/hooks/useProducts';
 import { useReviews, UploadProgress } from '@/hooks/useReviews';
@@ -20,16 +20,23 @@ const WriteReviewPage = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Get existing review from location state
+  const location = useLocation();
+  const existingReview = location.state?.existingReview;
+  
   const isMobile = isMobileUserAgent();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(existingReview?.rating || 0);
+  const [comment, setComment] = useState(existingReview?.comment || '');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [existingMediaUrls, setExistingMediaUrls] = useState<string[]>(existingReview?.media_urls || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
 
   const { data: product, isLoading } = useProduct(productId || '');
   const { submitReview, uploadMultipleMedia, validateFile } = useReviews();
+  
+  const isEditing = !!existingReview;
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -102,6 +109,10 @@ const WriteReviewPage = () => {
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
+  
+  const removeExistingMedia = (index: number) => {
+    setExistingMediaUrls(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     if (!user || !productId || !product) return;
@@ -144,22 +155,25 @@ const WriteReviewPage = () => {
     try {
       setIsSubmitting(true);
 
-      // Upload media files with progress tracking
+      // Upload new media files with progress tracking
       let uploadedUrls: string[] = [];
       if (mediaFiles.length > 0) {
         uploadedUrls = await uploadMultipleMedia(mediaFiles, setUploadProgress);
       }
 
-      // Submit review
+      // Combine existing media URLs with newly uploaded ones
+      const allMediaUrls = [...existingMediaUrls, ...uploadedUrls];
+
+      // Submit review (will update if existingReview exists)
       await submitReview({
         product_id: productId,
         rating,
         comment: trimmedComment,
-        media_urls: uploadedUrls
+        media_urls: allMediaUrls
       });
 
       toast({
-        title: "Review submitted successfully",
+        title: isEditing ? "Review updated successfully" : "Review submitted successfully",
         description: "Thank you for your feedback!"
       });
 
@@ -176,7 +190,7 @@ const WriteReviewPage = () => {
     } catch (error: any) {
       console.error('Error submitting review:', error);
       toast({
-        title: "Failed to submit review",
+        title: isEditing ? "Failed to update review" : "Failed to submit review",
         description: error.message,
         variant: "destructive"
       });
@@ -284,7 +298,7 @@ const WriteReviewPage = () => {
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Write a Review</CardTitle>
+              <CardTitle>{isEditing ? 'Edit Your Review' : 'Write a Review'}</CardTitle>
               <div className="flex items-center gap-4">
                 <img 
                   src={product.image_urls?.[0] || ''} 
@@ -397,6 +411,43 @@ const WriteReviewPage = () => {
                   </div>
                 )}
 
+                {/* Preview existing media */}
+                {existingMediaUrls.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Existing Media</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {existingMediaUrls.map((url, index) => (
+                        <div key={index} className="relative">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            {url.includes('.mp4') || url.includes('video') ? (
+                              <video
+                                src={url}
+                                className="w-full h-full object-cover"
+                                controls={false}
+                                muted
+                              />
+                            ) : (
+                              <img
+                                src={url}
+                                alt={`Existing media ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeExistingMedia(index)}
+                            disabled={isSubmitting}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Preview selected files */}
                 {mediaFiles.length > 0 && uploadProgress.length === 0 && (
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -457,12 +508,12 @@ const WriteReviewPage = () => {
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting || rating === 0 || !comment.trim()}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                  className="flex-1 bg-primary hover:bg-primary/90"
                 >
                   {isSubmitting ? (
-                    uploadProgress.length > 0 ? "Uploading..." : "Submitting..."
+                    uploadProgress.length > 0 ? "Uploading..." : isEditing ? "Updating..." : "Submitting..."
                   ) : (
-                    "Submit Review"
+                    isEditing ? "Update Review" : "Submit Review"
                   )}
                 </Button>
               </div>
