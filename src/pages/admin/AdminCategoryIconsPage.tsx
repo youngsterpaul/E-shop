@@ -1,9 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
-import { Loader2, Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SmartPagination from '@/components/ui/pagination';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Dialog,
   DialogContent,
@@ -39,13 +57,109 @@ import { useCategoryIconsAdmin } from '@/hooks/useCategoryIconsAdmin';
 import { Badge } from '@/components/ui/badge';
 import * as Icons from 'lucide-react';
 
+// Sortable row component
+const SortableRow = ({ icon, onEdit, onDelete }: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: icon.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const IconComponent = (iconName: string) => {
+    const Icon = (Icons as any)[iconName] || Icons.Smartphone;
+    return Icon;
+  };
+
+  const Icon = IconComponent(icon.icon_name);
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <button
+            className="cursor-grab active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className={`${icon.color} ${icon.icon_color} p-3 rounded-lg inline-block`}>
+          <Icon className="h-6 w-6" />
+        </div>
+      </TableCell>
+      <TableCell className="font-medium">{icon.name}</TableCell>
+      <TableCell>{icon.category?.category || 'N/A'}</TableCell>
+      <TableCell>{icon.subcategory?.category || '-'}</TableCell>
+      <TableCell>{icon.display_order}</TableCell>
+      <TableCell>
+        <Badge variant={icon.is_active ? 'default' : 'secondary'}>
+          {icon.is_active ? (
+            <>
+              <Eye className="h-3 w-3 mr-1" />
+              Active
+            </>
+          ) : (
+            <>
+              <EyeOff className="h-3 w-3 mr-1" />
+              Inactive
+            </>
+          )}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="icon" onClick={() => onEdit(icon)}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(icon.id)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 const AdminCategoryIconsPage = () => {
-  const { categoryIcons, categories, isLoading, isSubmitting, handleCreate, handleUpdate, handleDelete } =
+  const { categoryIcons, categories, isLoading, isSubmitting, handleCreate, handleUpdate, handleDelete, handleReorder } =
     useCategoryIconsAdmin();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIcon, setEditingIcon] = useState<any>(null);
   const [deleteIconId, setDeleteIconId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [localIcons, setLocalIcons] = useState<any[]>([]);
+  
+  const itemsPerPage = 10;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Update local icons when data changes
+  useEffect(() => {
+    setLocalIcons(categoryIcons);
+  }, [categoryIcons]);
+
+  // Pagination logic
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedIcons = localIcons.slice(startIndex, endIndex);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -136,6 +250,21 @@ const AdminCategoryIconsPage = () => {
       await handleDelete(deleteIconId);
       setDeleteIconId(null);
     }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = localIcons.findIndex((icon) => icon.id === active.id);
+    const newIndex = localIcons.findIndex((icon) => icon.id === over.id);
+
+    const reordered = arrayMove(localIcons, oldIndex, newIndex);
+    setLocalIcons(reordered);
+    await handleReorder(reordered);
   };
 
   const IconComponent = (iconName: string) => {
@@ -347,74 +476,61 @@ const AdminCategoryIconsPage = () => {
           <CardDescription>Manage icons displayed on the homepage for category navigation</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Preview</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Subcategory</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categoryIcons.length === 0 ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    No category icons yet. Create your first one!
-                  </TableCell>
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead>Preview</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Subcategory</TableHead>
+                  <TableHead>Order</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                categoryIcons.map((icon: any) => {
-                  const Icon = IconComponent(icon.icon_name);
-                  return (
-                    <TableRow key={icon.id}>
-                      <TableCell>
-                        <div className={`${icon.color} ${icon.icon_color} p-3 rounded-lg inline-block`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">{icon.name}</TableCell>
-                      <TableCell>{icon.category?.category || 'N/A'}</TableCell>
-                      <TableCell>{icon.subcategory?.category || '-'}</TableCell>
-                      <TableCell>{icon.display_order}</TableCell>
-                      <TableCell>
-                        <Badge variant={icon.is_active ? 'default' : 'secondary'}>
-                          {icon.is_active ? (
-                            <>
-                              <Eye className="h-3 w-3 mr-1" />
-                              Active
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="h-3 w-3 mr-1" />
-                              Inactive
-                            </>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(icon)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteIconId(icon.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedIcons.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      No category icons yet. Create your first one!
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <SortableContext
+                    items={paginatedIcons.map((icon) => icon.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {paginatedIcons.map((icon: any) => (
+                      <SortableRow
+                        key={icon.id}
+                        icon={icon}
+                        onEdit={openEditDialog}
+                        onDelete={setDeleteIconId}
+                      />
+                    ))}
+                  </SortableContext>
+                )}
+              </TableBody>
+            </Table>
+          </DndContext>
+
+          {localIcons.length > itemsPerPage && (
+            <SmartPagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(localIcons.length / itemsPerPage)}
+              totalItems={localIcons.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              showQuickJumper={false}
+              showSizeChanger={false}
+            />
+          )}
         </CardContent>
       </Card>
 
