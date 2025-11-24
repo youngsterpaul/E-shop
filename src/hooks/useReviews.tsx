@@ -3,6 +3,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { productKeys, productFetchers } from '@/queries/productQueries';
+
+export interface ReviewReply {
+  id: string;
+  reply_text: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Review {
   review_id: string;
