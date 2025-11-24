@@ -168,9 +168,9 @@ const TermsPage = () => {
             <section className="mb-8">
               <h2 className="text-xl font-semibold mb-3">16. Contact Information</h2>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="mb-2"><strong>SmartKenya Limited</strong></p>
+                <p className="mb-2"><strong>SmartKenya Online Shopping Limited</strong></p>
                 <p className="mb-2">Email: legal@smartkenya.co.ke</p>
-                <p className="mb-2">Phone: +254 758 475 467</p>
+                <p className="mb-2">Phone: +254 798 229 783</p>
                 <p>Address: 38-60100 Embu Town, Embu, Kenya</p>
               </div>
             </section>
