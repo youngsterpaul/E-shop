@@ -39,6 +39,8 @@ export const ReviewCard = ({ review }: { review: Review }) => {
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyText, setEditReplyText] = useState('');
 
   const canReply = isAdmin || isModerator;
 
@@ -73,6 +75,34 @@ export const ReviewCard = ({ review }: { review: Review }) => {
       });
     } finally {
       setIsSubmittingReply(false);
+    }
+  };
+
+  const handleEditReply = async (replyId: string) => {
+    if (!editReplyText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('review_replies')
+        .update({ reply_text: editReplyText.trim() })
+        .eq('id', replyId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reply updated",
+        description: "Your reply has been updated successfully"
+      });
+
+      setEditingReplyId(null);
+      setEditReplyText('');
+      queryClient.invalidateQueries({ queryKey: ['product-reviews'] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update reply",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
@@ -201,14 +231,61 @@ export const ReviewCard = ({ review }: { review: Review }) => {
           {review.replies && review.replies.length > 0 && (
             <div className="mt-4 pl-4 border-l-2 border-primary/20 space-y-3">
               {review.replies.map((reply) => (
-                <div key={reply.id} className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">Store Response</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                    </span>
+                <div key={reply.id} className="space-y-2">
+                  <div className="flex items-center gap-2 justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">Store Response</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    {canReply && user?.id === reply.user_id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingReplyId(reply.id);
+                          setEditReplyText(reply.reply_text);
+                        }}
+                        className="h-6 text-xs"
+                      >
+                        Edit
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-sm text-foreground">{reply.reply_text}</p>
+                  
+                  {editingReplyId === reply.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editReplyText}
+                        onChange={(e) => setEditReplyText(e.target.value)}
+                        placeholder="Edit your reply..."
+                        rows={3}
+                        className="resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditReply(reply.id)}
+                          disabled={!editReplyText.trim()}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingReplyId(null);
+                            setEditReplyText('');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground">{reply.reply_text}</p>
+                  )}
                 </div>
               ))}
             </div>
