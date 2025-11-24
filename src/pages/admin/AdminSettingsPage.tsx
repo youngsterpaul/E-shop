@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,13 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
+import { Loader2 } from 'lucide-react';
 
 const AdminSettingsPage = () => {
   const { toast } = useToast();
   const { useAdminSettings } = useAdminDashboard();
   const { data: settings = [], refetch } = useAdminSettings();
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -42,6 +44,7 @@ const AdminSettingsPage = () => {
   }, [settings, form]);
   
   const onSubmit = async (data: any) => {
+    setIsLoading(true);
     try {
       const settingsToUpdate = [
         { setting_key: 'site_name', setting_value: data.siteName, description: 'Site name' },
@@ -66,6 +69,8 @@ const AdminSettingsPage = () => {
       toast({ title: "Success", description: "Settings saved successfully" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -182,7 +187,10 @@ const AdminSettingsPage = () => {
             </TabsContent>
 
             <div className="flex justify-end mt-6">
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
             </div>
           </form>
         </Form>
