@@ -83,23 +83,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle static assets (JS, CSS, fonts) with cache-first strategy
+  // Handle static assets (JS, CSS, fonts) - use network-first for module scripts
   if (url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/)) {
     event.respondWith(
-      caches.open(STATIC_CACHE).then((cache) => {
-        return cache.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-
-          return fetch(request).then((networkResponse) => {
-            if (networkResponse.ok) {
-              cache.put(request, networkResponse.clone());
+      fetch(request)
+        .then((networkResponse) => {
+          // Only cache successful responses with correct MIME types
+          if (networkResponse.ok && networkResponse.status === 200) {
+            const contentType = networkResponse.headers.get('content-type');
+            // Don't cache if MIME type is wrong
+            if (contentType && !contentType.includes('octet-stream')) {
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(request, networkResponse.clone());
+              });
             }
-            return networkResponse;
-          });
-        });
-      })
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback to cache only if network fails
+          return caches.match(request);
+        })
     );
     return;
   }
