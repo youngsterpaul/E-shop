@@ -95,9 +95,17 @@ const SortableRow = ({ icon, onEdit, onDelete }: any) => {
         </div>
       </TableCell>
       <TableCell>
-        <div className={`${icon.color} ${icon.icon_color} p-3 rounded-lg inline-block`}>
-          <Icon className="h-6 w-6" />
-        </div>
+        {icon.product_image ? (
+          <img 
+            src={icon.product_image} 
+            alt={icon.name}
+            className="w-12 h-12 object-cover rounded-lg"
+          />
+        ) : (
+          <div className={`${icon.color} ${icon.icon_color} p-3 rounded-lg inline-flex items-center justify-center w-12 h-12`}>
+            <Icon className="h-6 w-6" />
+          </div>
+        )}
       </TableCell>
       <TableCell className="font-medium">{icon.name}</TableCell>
       <TableCell>{icon.category?.category || 'N/A'}</TableCell>
