@@ -12,10 +12,6 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "gzip"
         }
       ]
     },
@@ -38,10 +34,6 @@
         {
           "key": "Expires",
           "value": "Thu, 31 Dec 2037 23:55:55 GMT"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "gzip"
         }
       ]
     },
@@ -77,10 +69,6 @@
         {
           "key": "Expires",
           "value": "Thu, 31 Dec 2037 23:55:55 GMT"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "gzip"
         }
       ]
     },
