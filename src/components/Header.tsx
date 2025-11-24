@@ -20,6 +20,7 @@ const Header = () => {
   const {
     isAdmin,
     isSuperAdmin,
+    isModerator,
     hasAnyAdminRole
   } = useUserRole(user?.id);
   const [searchTerm, setSearchTerm] = useState('');
@@ -226,7 +227,7 @@ const Header = () => {
                         <Heart className="mr-2 h-4 w-4" /> Wishlist
                       </Link>
                     </DropdownMenuItem>
-                    {(isAdmin || isSuperAdmin) && <DropdownMenuItem asChild>
+                    {(isAdmin || isSuperAdmin || isModerator) && <DropdownMenuItem asChild>
                         <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center">
                           <Settings className="mr-2 h-4 w-4" /> Admin Dashboard
                         </Link>

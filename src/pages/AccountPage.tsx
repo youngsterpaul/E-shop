@@ -36,7 +36,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
-  const { isAdmin, isSuperAdmin, hasAnyAdminRole } = useUserRole(user?.id);
+  const { isAdmin, isSuperAdmin, isModerator, hasAnyAdminRole } = useUserRole(user?.id);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
 
@@ -181,7 +181,7 @@ const AccountPage = () => {
         </div>
 
         {/* Admin Panel Link */}
-        {(isAdmin || isSuperAdmin) && (
+        {(isAdmin || isSuperAdmin || isModerator) && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
             <CardContent className="p-2">
               <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">
