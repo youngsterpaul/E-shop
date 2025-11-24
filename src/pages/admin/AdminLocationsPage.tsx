@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Plus } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/admin/EmptyState';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface County {
   id: string;
@@ -53,6 +55,12 @@ const AdminLocationsPage = () => {
   const [cityForm, setCityForm] = useState({ name: '', slug: '', county_id: '' });
   const [isAddCountyOpen, setIsAddCountyOpen] = useState(false);
   const [isAddCityOpen, setIsAddCityOpen] = useState(false);
+  const [isEditCountyOpen, setIsEditCountyOpen] = useState(false);
+  const [isEditCityOpen, setIsEditCityOpen] = useState(false);
+  const [editingCounty, setEditingCounty] = useState<County | null>(null);
+  const [editingCity, setEditingCity] = useState<City | null>(null);
+  const [deleteCountyId, setDeleteCountyId] = useState<string | null>(null);
+  const [deleteCityId, setDeleteCityId] = useState<string | null>(null);
 
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -78,6 +86,62 @@ const AdminLocationsPage = () => {
       toast({ title: "Success", description: "City added" });
       setIsAddCityOpen(false);
       setCityForm({ name: '', slug: '', county_id: '' });
+      refetchCities();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleEditCounty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCounty) return;
+    try {
+      const { error } = await supabase.from('counties').update({ name: editingCounty.name, slug: editingCounty.slug }).eq('id', editingCounty.id);
+      if (error) throw error;
+      toast({ title: "Success", description: "County updated" });
+      setIsEditCountyOpen(false);
+      setEditingCounty(null);
+      refetchCounties();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleEditCity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCity) return;
+    try {
+      const { error } = await supabase.from('cities').update({ name: editingCity.name, slug: editingCity.slug, county_id: editingCity.county_id }).eq('id', editingCity.id);
+      if (error) throw error;
+      toast({ title: "Success", description: "City updated" });
+      setIsEditCityOpen(false);
+      setEditingCity(null);
+      refetchCities();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCounty = async () => {
+    if (!deleteCountyId) return;
+    try {
+      const { error } = await supabase.from('counties').delete().eq('id', deleteCountyId);
+      if (error) throw error;
+      toast({ title: "Success", description: "County deleted" });
+      setDeleteCountyId(null);
+      refetchCounties();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCity = async () => {
+    if (!deleteCityId) return;
+    try {
+      const { error } = await supabase.from('cities').delete().eq('id', deleteCityId);
+      if (error) throw error;
+      toast({ title: "Success", description: "City deleted" });
+      setDeleteCityId(null);
       refetchCities();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -123,12 +187,22 @@ const AdminLocationsPage = () => {
                 <EmptyState icon={MapPin} title="No counties" description="Add your first county" actionLabel="Add County" onAction={() => setIsAddCountyOpen(true)} />
               ) : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>County Name</TableHead><TableHead>Slug</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>County Name</TableHead><TableHead>Slug</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {counties.map((county) => (
                       <TableRow key={county.id}>
                         <TableCell className="font-medium">{county.name}</TableCell>
                         <TableCell>{county.slug}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => { setEditingCounty(county); setIsEditCountyOpen(true); }}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setDeleteCountyId(county.id)}>
+                              <Trash className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -168,12 +242,22 @@ const AdminLocationsPage = () => {
                 <EmptyState icon={MapPin} title="No cities" description="Add your first city" actionLabel="Add City" onAction={() => setIsAddCityOpen(true)} />
               ) : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>City Name</TableHead><TableHead>Slug</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>City Name</TableHead><TableHead>Slug</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {cities.map((city) => (
                       <TableRow key={city.id}>
                         <TableCell className="font-medium">{city.name}</TableCell>
                         <TableCell>{city.slug}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => { setEditingCity(city); setIsEditCityOpen(true); }}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setDeleteCityId(city.id)}>
+                              <Trash className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -183,6 +267,69 @@ const AdminLocationsPage = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit County Dialog */}
+      <Dialog open={isEditCountyOpen} onOpenChange={setIsEditCountyOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit County</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditCounty}>
+            <div className="space-y-4">
+              <div><Label>County Name *</Label><Input value={editingCounty?.name || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
+              <div><Label>Slug</Label><Input value={editingCounty?.slug || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setIsEditCountyOpen(false)}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit City Dialog */}
+      <Dialog open={isEditCityOpen} onOpenChange={setIsEditCityOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit City</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditCity}>
+            <div className="space-y-4">
+              <div><Label>City Name *</Label><Input value={editingCity?.name || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
+              <div><Label>Slug</Label><Input value={editingCity?.slug || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
+              <div><Label>County *</Label><select className="w-full p-2 border rounded" value={editingCity?.county_id || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, county_id: e.target.value } : null)} required>{counties?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setIsEditCityOpen(false)}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete County Confirmation */}
+      <AlertDialog open={!!deleteCountyId} onOpenChange={(open) => !open && setDeleteCountyId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete County</AlertDialogTitle>
+            <AlertDialogDescription>Are you sure? This will also delete all cities in this county.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCounty} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete City Confirmation */}
+      <AlertDialog open={!!deleteCityId} onOpenChange={(open) => !open && setDeleteCityId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete City</AlertDialogTitle>
+            <AlertDialogDescription>Are you sure you want to delete this city?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCity} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
