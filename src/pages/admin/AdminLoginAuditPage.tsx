@@ -21,6 +21,7 @@ interface LoginAudit {
   id: string;
   email: string;
   success: boolean;
+  failure_reason: string | null;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
@@ -196,6 +197,7 @@ const AdminLoginAuditPage = () => {
                   </TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Failure Reason</TableHead>
                   <TableHead>IP Address</TableHead>
                   <TableHead>Timestamp</TableHead>
                 </TableRow>
@@ -215,6 +217,9 @@ const AdminLoginAuditPage = () => {
                         {audit.success ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                         {audit.success ? 'Success' : 'Failed'}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {audit.failure_reason || (audit.success ? '—' : 'Unknown')}
                     </TableCell>
                     <TableCell>{audit.ip_address || 'Unknown'}</TableCell>
                     <TableCell>{format(new Date(audit.created_at), 'PPp')}</TableCell>
