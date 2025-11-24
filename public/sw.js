@@ -106,7 +106,15 @@ self.addEventListener('fetch', (event) => {
 
   // Handle API requests with network-first strategy (NO CACHING to avoid issues)
   if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch((error) => {
+        console.error('[SW] Supabase fetch failed:', error);
+        return new Response(JSON.stringify({ error: 'Network request failed' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
     return;
   }
 
