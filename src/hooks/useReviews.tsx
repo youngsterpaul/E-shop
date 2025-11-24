@@ -196,6 +196,7 @@ export const useReviews = () => {
     rating: number;
     comment: string;
     media_urls: string[];
+    review_id?: string; // Optional review_id for updates
   }) => {
     if (!user) throw new Error('User must be logged in');
 
@@ -210,22 +211,46 @@ export const useReviews = () => {
       ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous'
       : 'Anonymous';
 
-    const { data, error } = await supabase
-      .from('reviews')
-      .insert({
-        user_id: user.id,
-        product_id: reviewData.product_id,
-        rating: reviewData.rating,
-        comment: reviewData.comment,
-        username,
-        media_urls: reviewData.media_urls
-      })
-      .select()
-      .single();
+    let data, error;
+
+    if (reviewData.review_id) {
+      // Update existing review
+      const result = await supabase
+        .from('reviews')
+        .update({
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          media_urls: reviewData.media_urls
+        })
+        .eq('review_id', reviewData.review_id)
+        .eq('user_id', user.id) // Ensure user can only update their own review
+        .select()
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new review
+      const result = await supabase
+        .from('reviews')
+        .insert({
+          user_id: user.id,
+          product_id: reviewData.product_id,
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          username,
+          media_urls: reviewData.media_urls
+        })
+        .select()
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('Review submission error:', error);
-      throw new Error(`Failed to submit review: ${error.message}`);
+      throw new Error(`Failed to ${reviewData.review_id ? 'update' : 'submit'} review: ${error.message}`);
     }
 
     // Invalidate reviews cache
