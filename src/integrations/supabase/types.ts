@@ -889,6 +889,7 @@ export type Database = {
           categories: string | null
           created_at: string | null
           description: string | null
+          display_order: number | null
           featured: boolean | null
           features: Json | null
           image_urls: string[] | null
@@ -911,6 +912,7 @@ export type Database = {
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null
@@ -933,6 +935,7 @@ export type Database = {
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null

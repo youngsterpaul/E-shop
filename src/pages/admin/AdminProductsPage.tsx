@@ -15,11 +15,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { Edit, Trash2, X, Check, Settings, ChevronDown, Package } from 'lucide-react';
+import { Edit, Trash2, X, Check, Settings, ChevronDown, Package, GripVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
 import ProductVariantManagement from '@/components/admin/ProductVariantManagement';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 interface Product {
   product_id: string;
@@ -30,7 +34,94 @@ interface Product {
   categories: string;
   featured: boolean;
   created_at: string;
+  display_order: number;
 }
+
+interface SortableRowProps {
+  product: Product;
+  isSelected: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onManageVariants: () => void;
+  formatDate: (date: string) => string;
+}
+
+const SortableRow = ({ product, isSelected, onToggle, onEdit, onDelete, onManageVariants, formatDate }: SortableRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: product.product_id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-8">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </TableCell>
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onToggle}
+        />
+      </TableCell>
+      <TableCell className="font-medium">{product.name}</TableCell>
+      <TableCell>{product.categories}</TableCell>
+      <TableCell>KSH {product.price?.toLocaleString()}</TableCell>
+      <TableCell>
+        <Badge variant={product.stock < 10 ? "destructive" : "secondary"}>
+          {product.stock}
+        </Badge>
+      </TableCell>
+      <TableCell>{product.store}</TableCell>
+      <TableCell>
+        {product.featured ? (
+          <Check className="h-4 w-4 text-green-600" />
+        ) : (
+          <X className="h-4 w-4 text-gray-400" />
+        )}
+      </TableCell>
+      <TableCell>{formatDate(product.created_at)}</TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onManageVariants}
+            title="Manage Variants"
+          >
+            <Settings size={14} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onEdit}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const AdminProductsPage = () => {
   const navigate = useNavigate();
@@ -55,11 +146,19 @@ const AdminProductsPage = () => {
     navigate(`/supersmartkenyaadmin123/products/edit/${productId}`);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .order('created_at', { ascending: false});
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false });
       
     if (error) throw error;
     return data as Product[];
@@ -223,6 +322,50 @@ const AdminProductsPage = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = displayedProducts.findIndex((p) => p.product_id === active.id);
+    const newIndex = displayedProducts.findIndex((p) => p.product_id === over.id);
+
+    const reorderedProducts = arrayMove(displayedProducts, oldIndex, newIndex);
+
+    // Update display_order for all affected products
+    try {
+      const updates = reorderedProducts.map((product, index) => ({
+        product_id: product.product_id,
+        display_order: index + 1,
+      }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('products')
+          .update({ display_order: update.display_order })
+          .eq('product_id', update.product_id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Product order updated successfully",
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error updating product order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product order",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <AdminLayout>
       <QuickActionsBar
@@ -292,81 +435,53 @@ const AdminProductsPage = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox 
-                          checked={isAllSelected && displayedProducts.length > 0}
-                          onCheckedChange={toggleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Store</TableHead>
-                      <TableHead>Featured</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayedProducts.map((product) => (
-                      <TableRow key={product.product_id}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedProducts.includes(product.product_id)}
-                            onCheckedChange={() => toggleProductSelection(product.product_id)}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                  modifiers={[restrictToVerticalAxis]}
+                >
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-8"></TableHead>
+                        <TableHead className="w-12">
+                          <Checkbox 
+                            checked={isAllSelected && displayedProducts.length > 0}
+                            onCheckedChange={toggleSelectAll}
                           />
-                        </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.categories}</TableCell>
-                        <TableCell>KSH {product.price?.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant={product.stock < 10 ? "destructive" : "secondary"}>
-                            {product.stock}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{product.store}</TableCell>
-                        <TableCell>
-                          {product.featured ? (
-                            <Check className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <X className="h-4 w-4 text-gray-400" />
-                          )}
-                        </TableCell>
-                        <TableCell>{formatDate(product.created_at)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleManageVariants(product)}
-                              title="Manage Variants"
-                            >
-                              <Settings size={14} />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEdit(product.product_id)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteClick(product.product_id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                        </TableHead>
+                        <TableHead>Product Name</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead>Store</TableHead>
+                        <TableHead>Featured</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <SortableContext
+                      items={displayedProducts.map((p) => p.product_id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <TableBody>
+                        {displayedProducts.map((product) => (
+                          <SortableRow
+                            key={product.product_id}
+                            product={product}
+                            isSelected={selectedProducts.includes(product.product_id)}
+                            onToggle={() => toggleProductSelection(product.product_id)}
+                            onEdit={() => handleEdit(product.product_id)}
+                            onDelete={() => handleDeleteClick(product.product_id)}
+                            onManageVariants={() => handleManageVariants(product)}
+                            formatDate={formatDate}
+                          />
+                        ))}
+                      </TableBody>
+                    </SortableContext>
+                  </Table>
+                </DndContext>
               </div>
 
               {filteredProducts.length > itemsPerPage && (
