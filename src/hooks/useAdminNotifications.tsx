@@ -88,7 +88,7 @@ export const useAdminNotifications = (isAdmin: boolean) => {
       )
       .subscribe();
 
-    // Channel for security alerts
+    // Channel for security alerts - listen to INSERT, UPDATE, and DELETE
     const securityChannel = supabase
       .channel('admin-security-notifications')
       .on(
@@ -122,8 +122,35 @@ export const useAdminNotifications = (isAdmin: boolean) => {
             type: 'security',
           });
           
-          // Invalidate security alerts queries
-          queryClient.invalidateQueries({ queryKey: ['securityAlerts'] });
+          // Invalidate security alerts queries with correct key
+          queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
+          queryClient.invalidateQueries({ queryKey: ['security-alerts-count'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'security_alerts'
+        },
+        () => {
+          // Invalidate queries when alerts are updated (acknowledged)
+          queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
+          queryClient.invalidateQueries({ queryKey: ['security-alerts-count'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'security_alerts'
+        },
+        () => {
+          // Invalidate queries when alerts are deleted
+          queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
+          queryClient.invalidateQueries({ queryKey: ['security-alerts-count'] });
         }
       )
       .subscribe();

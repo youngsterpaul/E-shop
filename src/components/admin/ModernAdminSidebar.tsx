@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useSecurityAlertsCount } from '@/hooks/useSecurityAlertsCount';
+import { usePendingOrdersCount } from '@/hooks/usePendingOrdersCount';
+import { usePendingReturnsCount } from '@/hooks/usePendingReturnsCount';
 import {
   LayoutDashboard,
   Package,
@@ -69,6 +72,11 @@ export function ModernAdminSidebar() {
   const { isSuperAdmin, isAdmin, isModerator, loading } = useUserRole(user?.id);
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
+  
+  // Real-time badge counts
+  const securityAlertsCount = useSecurityAlertsCount();
+  const pendingOrdersCount = usePendingOrdersCount();
+  const pendingReturnsCount = usePendingReturnsCount();
 
   const handleLogout = async () => {
     await signOut();
@@ -109,7 +117,7 @@ export function ModernAdminSidebar() {
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
       roles: ['superadmin', 'admin', 'moderator'],
-      badge: 'New',
+      badge: pendingOrdersCount > 0 ? String(pendingOrdersCount) : null,
       badgeVariant: 'default' as const,
     },
     {
@@ -124,7 +132,8 @@ export function ModernAdminSidebar() {
       icon: PackageX,
       path: '/supersmartkenyaadmin123/returns',
       roles: ['superadmin', 'admin'],
-      badge: null,
+      badge: pendingReturnsCount > 0 ? String(pendingReturnsCount) : null,
+      badgeVariant: 'destructive' as const,
     },
   ];
 
@@ -220,7 +229,7 @@ export function ModernAdminSidebar() {
       icon: Shield,
       path: '/supersmartkenyaadmin123/security-alerts',
       roles: ['superadmin'],
-      badge: '2',
+      badge: securityAlertsCount > 0 ? String(securityAlertsCount) : null,
       badgeVariant: 'destructive',
     },
     {
