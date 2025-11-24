@@ -70,16 +70,19 @@ const AdminUserEditPage = () => {
           });
         }
 
-        // Fetch user role (single role)
-        const { data: rolesData } = await supabase
+        // Fetch user role (single role) - use maybeSingle to handle 0 or multiple rows
+        const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', userId)
           .limit(1)
-          .single();
+          .maybeSingle();
         
-        if (rolesData) {
-          setSelectedRole(rolesData.role as AppRole);
+        // Set role or default to 'user' if none exists
+        if (roleData) {
+          setSelectedRole(roleData.role as AppRole);
+        } else {
+          setSelectedRole('user');
         }
       } catch (error: any) {
         console.error('Error fetching user:', error);
@@ -161,12 +164,13 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
-      // Get old role for audit log
+      // Get old role for audit log - use maybeSingle to avoid 406 errors
       const { data: oldRole } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .limit(1)
+        .maybeSingle();
       
       // Update role - delete existing and insert new one
       const { error: deleteError } = await supabase
