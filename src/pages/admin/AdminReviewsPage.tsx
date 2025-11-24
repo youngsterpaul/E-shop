@@ -10,10 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, Search, Trash2, Check, X, Eye, TrendingUp, MessageSquare } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Star, Search, Trash2, Check, X, Eye, TrendingUp, MessageSquare, Reply } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+
+interface ReviewReply {
+  id: string;
+  reply_text: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface Review {
   review_id: string;
@@ -24,6 +34,7 @@ interface Review {
   comment: string;
   created_at: string;
   media_urls: string[] | null;
+  review_replies?: ReviewReply[];
   product?: {
     name: string;
     image_urls: string[];
@@ -34,15 +45,29 @@ export default function AdminReviewsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReviews, setSelectedReviews] = useState<string[]>([]);
   const [ratingFilter, setRatingFilter] = useState<string>('all');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyText, setEditReplyText] = useState('');
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  // Fetch all reviews with product info
+  // Fetch all reviews with product info and replies
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['admin-reviews', searchTerm, ratingFilter],
     queryFn: async () => {
       let query = supabase
         .from('reviews')
-        .select('*')
+        .select(`
+          *,
+          review_replies (
+            id,
+            reply_text,
+            user_id,
+            created_at,
+            updated_at
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -150,6 +175,63 @@ export default function AdminReviewsPage() {
     if (confirm('Delete this review?')) {
       deleteMutation.mutate([reviewId]);
     }
+  };
+
+  // Reply mutation
+  const replyMutation = useMutation({
+    mutationFn: async ({ reviewId, text }: { reviewId: string; text: string }) => {
+      if (!user) throw new Error('Not authenticated');
+      
+      const { error } = await supabase
+        .from('review_replies')
+        .insert({
+          review_id: reviewId,
+          user_id: user.id,
+          reply_text: text
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-reviews'] });
+      setReplyingTo(null);
+      setReplyText('');
+      toast.success('Reply posted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to post reply: ' + error.message);
+    }
+  });
+
+  // Edit reply mutation
+  const editReplyMutation = useMutation({
+    mutationFn: async ({ replyId, text }: { replyId: string; text: string }) => {
+      const { error } = await supabase
+        .from('review_replies')
+        .update({ reply_text: text, updated_at: new Date().toISOString() })
+        .eq('id', replyId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-reviews'] });
+      setEditingReplyId(null);
+      setEditReplyText('');
+      toast.success('Reply updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update reply: ' + error.message);
+    }
+  });
+
+  const handleReply = (reviewId: string) => {
+    if (!replyText.trim()) return;
+    replyMutation.mutate({ reviewId, text: replyText });
+  };
+
+  const handleEditReply = (replyId: string) => {
+    if (!editReplyText.trim()) return;
+    editReplyMutation.mutate({ replyId, text: editReplyText });
   };
 
   return (
@@ -277,7 +359,7 @@ export default function AdminReviewsPage() {
                       <TableHead>Product</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Rating</TableHead>
-                      <TableHead>Review</TableHead>
+                      <TableHead className="w-[400px]">Review & Replies</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -330,12 +412,115 @@ export default function AdminReviewsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="max-w-[300px]">
-                            <p className="text-sm line-clamp-2">{review.comment}</p>
-                            {review.media_urls && review.media_urls.length > 0 && (
-                              <Badge variant="secondary" className="mt-1">
-                                {review.media_urls.length} photo(s)
-                              </Badge>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm">{review.comment}</p>
+                              {review.media_urls && review.media_urls.length > 0 && (
+                                <Badge variant="secondary" className="mt-1">
+                                  {review.media_urls.length} photo(s)
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Display existing replies */}
+                            {review.review_replies && review.review_replies.length > 0 && (
+                              <div className="pl-4 border-l-2 border-primary/20 space-y-2">
+                                {review.review_replies.map((reply) => (
+                                  <div key={reply.id} className="bg-muted/50 p-2 rounded text-sm">
+                                    {editingReplyId === reply.id ? (
+                                      <div className="space-y-2">
+                                        <Textarea
+                                          value={editReplyText}
+                                          onChange={(e) => setEditReplyText(e.target.value)}
+                                          className="min-h-[60px]"
+                                        />
+                                        <div className="flex gap-2">
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleEditReply(reply.id)}
+                                            disabled={editReplyMutation.isPending}
+                                          >
+                                            Save
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => {
+                                              setEditingReplyId(null);
+                                              setEditReplyText('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <p className="text-primary font-medium mb-1">Admin Reply:</p>
+                                        <p>{reply.reply_text}</p>
+                                        <div className="flex items-center justify-between mt-1">
+                                          <span className="text-xs text-muted-foreground">
+                                            {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                                          </span>
+                                          {user?.id === reply.user_id && (
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => {
+                                                setEditingReplyId(reply.id);
+                                                setEditReplyText(reply.reply_text);
+                                              }}
+                                            >
+                                              Edit
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Reply form */}
+                            {replyingTo === review.review_id ? (
+                              <div className="space-y-2">
+                                <Textarea
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  placeholder="Write your reply..."
+                                  className="min-h-[80px]"
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleReply(review.review_id)}
+                                    disabled={replyMutation.isPending || !replyText.trim()}
+                                  >
+                                    <Reply className="h-4 w-4 mr-1" />
+                                    Post Reply
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setReplyingTo(null);
+                                      setReplyText('');
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setReplyingTo(review.review_id)}
+                              >
+                                <Reply className="h-4 w-4 mr-1" />
+                                Reply
+                              </Button>
                             )}
                           </div>
                         </TableCell>

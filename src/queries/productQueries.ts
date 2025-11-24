@@ -289,11 +289,20 @@ export const productFetchers = {
     return processProducts(data || []);
   },
 
-  /** Fetch product reviews */
+  /** Fetch product reviews with replies */
   fetchProductReviews: async (productId: string) => {
     const { data, error } = await supabase
       .from('reviews')
-      .select('*')
+      .select(`
+        *,
+        review_replies (
+          id,
+          reply_text,
+          user_id,
+          created_at,
+          updated_at
+        )
+      `)
       .eq('product_id', productId)
       .order('created_at', { ascending: false });
 
