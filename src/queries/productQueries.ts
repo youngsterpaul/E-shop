@@ -147,12 +147,37 @@ export const productFetchers = {
     return data ? processProducts([data])[0] : null;
   },
 
-  /** Fetch featured products */
-  fetchFeaturedProducts: (opts?: { pageParam?: number; pageSize?: number }) =>
-    fetchPage(
-      supabase.from('products').select('*', { count: 'exact' }).eq('featured', true),
-      opts
-    ),
+  /** Fetch featured products ordered by display_order */
+  fetchFeaturedProducts: async (opts?: { pageParam?: number; pageSize?: number }): Promise<PaginatedProducts> => {
+    const pageParam = opts?.pageParam ?? 0;
+    const pageSize = opts?.pageSize ?? PAGINATION_CONFIG.DESKTOP_PAGE_SIZE;
+    const from = pageParam * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .eq('featured', true)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      throw new Error(error.message);
+    }
+
+    const total = count || 0;
+    const products = processProducts(data || []);
+    const hasNextPage = total > from + products.length;
+
+    return {
+      products,
+      totalCount: total,
+      hasNextPage,
+      nextPage: hasNextPage ? pageParam + 1 : undefined,
+    };
+  },
 
   /** Fetch products by category name */
   fetchProductsByCategory: async (
