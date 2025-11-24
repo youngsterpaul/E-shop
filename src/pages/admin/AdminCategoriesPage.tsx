@@ -19,7 +19,8 @@ const AdminCategoriesPage = () => {
     getSubcategories,
     handleAddCategory,
     handleEditCategory,
-    handleDeleteCategory
+    handleDeleteCategory,
+    handleReorderCategories
   } = useAdminCategories();
 
   const [itemsPerPage, setItemsPerPage] = useState(1);
@@ -122,6 +123,7 @@ const AdminCategoriesPage = () => {
                     mainCategories={displayedCategories}
                     onEdit={handleEditCategory}
                     onDelete={handleDeleteCategory}
+                    onReorder={handleReorderCategories}
                     getSubcategories={getSubcategories}
                     isSubmitting={isSubmitting}
                   />

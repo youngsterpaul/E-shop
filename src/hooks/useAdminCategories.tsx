@@ -25,6 +25,7 @@ export const useAdminCategories = () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .order('display_order', { ascending: true })
         .order('category');
 
       if (error) throw error;
@@ -142,6 +143,35 @@ export const useAdminCategories = () => {
     }
   };
 
+  const handleReorderCategories = async (reorderedCategories: Category[]) => {
+    try {
+      // Update display_order for each category
+      const updates = reorderedCategories.map((category, index) => 
+        supabase
+          .from('categories')
+          .update({ display_order: index })
+          .eq('id', category.id)
+      );
+
+      await Promise.all(updates);
+      
+      // Refresh categories to reflect new order
+      fetchCategories();
+      
+      toast({
+        title: "Success",
+        description: "Categories reordered successfully"
+      });
+    } catch (error: any) {
+      console.error('Error reordering categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reorder categories",
+        variant: "destructive"
+      });
+    }
+  };
+
   const mainCategories = categories.filter(cat => cat.parent_id === null);
   const getSubcategories = (parentId: number) => 
     categories.filter(cat => cat.parent_id === parentId);
@@ -154,6 +184,7 @@ export const useAdminCategories = () => {
     getSubcategories,
     handleAddCategory,
     handleEditCategory,
-    handleDeleteCategory
+    handleDeleteCategory,
+    handleReorderCategories
   };
 };
