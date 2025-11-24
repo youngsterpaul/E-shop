@@ -6,11 +6,14 @@ import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle, Shield } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Shield, Eye, Trash, MoreVertical, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface SecurityAlert {
   id: string;
@@ -24,6 +27,9 @@ interface SecurityAlert {
 
 const AdminSecurityAlertsPage = () => {
   const [filter, setFilter] = useState<'all' | 'unacknowledged'>('unacknowledged');
+  const [selectedAlert, setSelectedAlert] = useState<SecurityAlert | null>(null);
+  const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
+  const [loadingAlertId, setLoadingAlertId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: alerts, isLoading } = useQuery({
@@ -39,6 +45,7 @@ const AdminSecurityAlertsPage = () => {
 
   const acknowledgeMutation = useMutation({
     mutationFn: async (alertId: string) => {
+      setLoadingAlertId(alertId);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('security_alerts').update({
@@ -51,6 +58,22 @@ const AdminSecurityAlertsPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
       toast.success('Alert acknowledged');
+      setLoadingAlertId(null);
+    },
+    onError: () => {
+      setLoadingAlertId(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (alertId: string) => {
+      const { error } = await supabase.from('security_alerts').delete().eq('id', alertId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['security-alerts'] });
+      toast.success('Alert deleted');
+      setDeleteAlertId(null);
     },
   });
 
@@ -146,11 +169,33 @@ const AdminSecurityAlertsPage = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {!alert.acknowledged && (
-                        <Button size="sm" onClick={() => acknowledgeMutation.mutate(alert.id)}>
-                          Acknowledge
-                        </Button>
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setSelectedAlert(alert)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          {!alert.acknowledged && (
+                            <DropdownMenuItem onClick={() => acknowledgeMutation.mutate(alert.id)} disabled={loadingAlertId === alert.id}>
+                              {loadingAlertId === alert.id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                              )}
+                              Acknowledge
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => setDeleteAlertId(alert.id)} className="text-destructive">
+                            <Trash className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -159,6 +204,69 @@ const AdminSecurityAlertsPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Details Dialog */}
+      <Dialog open={!!selectedAlert} onOpenChange={(open) => !open && setSelectedAlert(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Alert Details</DialogTitle>
+          </DialogHeader>
+          {selectedAlert && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Type</label>
+                <p className="text-sm text-muted-foreground">{selectedAlert.alert_type}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Severity</label>
+                <div className="mt-1">
+                  <Badge variant={getSeverityColor(selectedAlert.severity)}>{selectedAlert.severity}</Badge>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Identifier</label>
+                <p className="text-sm text-muted-foreground">{selectedAlert.identifier}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Created</label>
+                <p className="text-sm text-muted-foreground">{format(new Date(selectedAlert.created_at), 'PPp')}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <div className="mt-1">
+                  <Badge variant={selectedAlert.acknowledged ? "secondary" : "default"}>
+                    {selectedAlert.acknowledged ? 'Acknowledged' : 'Pending'}
+                  </Badge>
+                </div>
+              </div>
+              {selectedAlert.details && (
+                <div>
+                  <label className="text-sm font-medium">Details</label>
+                  <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-auto max-h-60">
+                    {JSON.stringify(selectedAlert.details, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteAlertId} onOpenChange={(open) => !open && setDeleteAlertId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Alert</AlertDialogTitle>
+            <AlertDialogDescription>Are you sure you want to delete this security alert? This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteAlertId && deleteMutation.mutate(deleteAlertId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
