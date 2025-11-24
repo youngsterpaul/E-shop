@@ -25,6 +25,15 @@
       ]
     },
     {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -51,16 +60,49 @@
       ]
     },
     {
-      "source": "/index.html",
+      "source": "/(.*)\\.(js)$",
       "headers": [
         {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        },
+        {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Expires",
+          "value": "Thu, 31 Dec 2037 23:55:55 GMT"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": ""
         }
       ]
     },
     {
-      "source": "/(.*)\\.(js|css)",
+      "source": "/(.*)\\.(css)$",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Expires",
+          "value": "Thu, 31 Dec 2037 23:55:55 GMT"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|gif|svg|ico|webp)$",
       "headers": [
         {
           "key": "Cache-Control",
@@ -73,20 +115,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(png|jpg|jpeg|gif|svg|ico|webp)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Expires",
-          "value": "Thu, 31 Dec 2037 23:55:55 GMT"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.(woff2?|ttf|eot)",
+      "source": "/(.*)\\.(woff2?|ttf|eot)$",
       "headers": [
         {
           "key": "Cache-Control",
