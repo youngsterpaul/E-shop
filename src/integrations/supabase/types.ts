@@ -213,6 +213,7 @@ export type Database = {
         Row: {
           category: string
           category_name: string | null
+          display_order: number | null
           icon_name: string | null
           id: number
           parent_id: number | null
@@ -221,6 +222,7 @@ export type Database = {
         Insert: {
           category: string
           category_name?: string | null
+          display_order?: number | null
           icon_name?: string | null
           id?: number
           parent_id?: number | null
@@ -229,6 +231,7 @@ export type Database = {
         Update: {
           category?: string
           category_name?: string | null
+          display_order?: number | null
           icon_name?: string | null
           id?: number
           parent_id?: number | null

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit2, Trash2, Save, X } from 'lucide-react';
+import { Edit2, Trash2, Save, X, GripVertical } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Category {
   id: number;
@@ -44,6 +46,26 @@ const CategoryItem = ({
   const [editName, setEditName] = useState(category.category);
   const [editParent, setEditParent] = useState(category.parent_id ? category.parent_id.toString() : 'none');
 
+  const isMainCategory = category.parent_id === null;
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id: category.id,
+    disabled: !isMainCategory // Only main categories can be dragged
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const handleEdit = async () => {
     if (!editName.trim()) return;
     
@@ -59,10 +81,12 @@ const CategoryItem = ({
     setIsEditing(false);
   };
 
-  const isMainCategory = category.parent_id === null;
-
   return (
-    <div className="border rounded-lg p-4">
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className="border rounded-lg p-4"
+    >
       <div className="flex items-center justify-between mb-2">
         {isEditing ? (
           <div className="flex-1 space-y-2">
@@ -99,10 +123,21 @@ const CategoryItem = ({
           </div>
         ) : (
           <>
-            <h3 className={`font-medium ${!isMainCategory ? 'text-sm text-gray-600' : ''}`}>
-              {!isMainCategory && '└ '}
-              {category.category}
-            </h3>
+            <div className="flex items-center gap-2">
+              {isMainCategory && (
+                <button
+                  className="cursor-grab active:cursor-grabbing p-1 hover:bg-accent rounded"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+              <h3 className={`font-medium ${!isMainCategory ? 'text-sm text-gray-600' : ''}`}>
+                {!isMainCategory && '└ '}
+                {category.category}
+              </h3>
+            </div>
             <div className="flex gap-2">
               <Button
                 size="sm"
