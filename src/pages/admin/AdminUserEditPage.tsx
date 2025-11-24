@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AppRole } from '@/hooks/useUserRole';
 
 interface UserFormData {
@@ -25,7 +25,7 @@ const AdminUserEditPage = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRoles, setSelectedRoles] = useState<AppRole[]>([]);
+  const [selectedRole, setSelectedRole] = useState<AppRole>('user');
   
   const availableRoles: AppRole[] = ['user', 'moderator', 'admin', 'superadmin'];
   
@@ -70,14 +70,16 @@ const AdminUserEditPage = () => {
           });
         }
 
-        // Fetch user roles
+        // Fetch user role (single role)
         const { data: rolesData } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .limit(1)
+          .single();
         
         if (rolesData) {
-          setSelectedRoles(rolesData.map(r => r.role as AppRole));
+          setSelectedRole(rolesData.role as AppRole);
         }
       } catch (error: any) {
         console.error('Error fetching user:', error);
@@ -120,13 +122,14 @@ const AdminUserEditPage = () => {
       }
 
       // SECURITY: Check if removing last superadmin
-      if (!selectedRoles.includes('superadmin')) {
-        const { data: existingRoles } = await supabase
+      if (selectedRole !== 'superadmin') {
+        const { data: existingRole } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .single();
         
-        const hadSuperadmin = existingRoles?.some(r => r.role === 'superadmin');
+        const hadSuperadmin = existingRole?.role === 'superadmin';
         
         if (hadSuperadmin) {
           const { count } = await supabase
@@ -158,13 +161,14 @@ const AdminUserEditPage = () => {
 
       if (profileError) throw profileError;
 
-      // Get old roles for audit log
-      const { data: oldRoles } = await supabase
+      // Get old role for audit log
+      const { data: oldRole } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .single();
       
-      // Update roles - delete existing and insert new ones
+      // Update role - delete existing and insert new one
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
@@ -172,65 +176,26 @@ const AdminUserEditPage = () => {
 
       if (deleteError) throw deleteError;
 
-      // Insert new roles
-      if (selectedRoles.length > 0) {
-        const rolesToInsert = selectedRoles.map(role => ({
+      // Insert new role (only user_id and role fields)
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
           user_id: userId,
-          role: role,
-          created_by: currentUser.id,
-        }));
+          role: selectedRole,
+        });
 
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert(rolesToInsert);
+      if (insertError) throw insertError;
 
-        if (insertError) throw insertError;
-      }
-
-      // Log role changes to audit table
-      const removedRoles = oldRoles?.filter(old => 
-        !selectedRoles.includes(old.role as AppRole)
-      ) || [];
-      const addedRoles = selectedRoles.filter(newRole => 
-        !oldRoles?.some(old => old.role === newRole)
-      );
-
-      // Insert audit logs for each change
-      if (removedRoles.length > 0 || addedRoles.length > 0) {
-        const auditLogs: Array<{
-          user_id: string;
-          changed_by: string;
-          action_type: string;
-          old_role: string;
-          new_role: string;
-          reason: string;
-        }> = [];
-        
-        for (const removed of removedRoles) {
-          auditLogs.push({
-            user_id: userId,
-            changed_by: currentUser.id,
-            action_type: 'removed',
-            old_role: removed.role,
-            new_role: removed.role,
-            reason: 'Role removed via admin panel'
-          });
-        }
-        
-        for (const added of addedRoles) {
-          auditLogs.push({
-            user_id: userId,
-            changed_by: currentUser.id,
-            action_type: 'added',
-            old_role: '',
-            new_role: added,
-            reason: 'Role added via admin panel'
-          });
-        }
-
-        if (auditLogs.length > 0) {
-          await supabase.from('role_change_history').insert(auditLogs);
-        }
+      // Log role change to audit table
+      if (oldRole && oldRole.role !== selectedRole) {
+        await supabase.from('role_change_history').insert({
+          user_id: userId,
+          changed_by: currentUser.id,
+          action_type: 'updated',
+          old_role: oldRole.role,
+          new_role: selectedRole,
+          reason: 'Role updated via admin panel'
+        });
       }
 
       toast({
@@ -348,32 +313,24 @@ const AdminUserEditPage = () => {
                 />
 
                 <div className="space-y-3">
-                  <FormLabel>User Roles</FormLabel>
-                  <div className="space-y-2">
-                    {availableRoles.map((role) => (
-                      <div key={role} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={role}
-                          checked={selectedRoles.includes(role)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedRoles([...selectedRoles, role]);
-                            } else {
-                              setSelectedRoles(selectedRoles.filter(r => r !== role));
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={role}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
-                        >
-                          {role}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                  <FormLabel>User Role</FormLabel>
+                  <RadioGroup value={selectedRole} onValueChange={(value) => setSelectedRole(value as AppRole)}>
+                    <div className="space-y-2">
+                      {availableRoles.map((role) => (
+                        <div key={role} className="flex items-center space-x-2">
+                          <RadioGroupItem value={role} id={role} />
+                          <label
+                            htmlFor={role}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
+                          >
+                            {role}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                   <p className="text-xs text-muted-foreground">
-                    Select one or more roles for this user
+                    Select one role for this user
                   </p>
                 </div>
 
