@@ -85,7 +85,7 @@ export default function AdminReturnsPage() {
     queryFn: async () => {
       let query = supabase
         .from('returns')
-        .select('*, order:orders(*), profile:profiles(*)')
+        .select('*, order:orders(*), profile:profiles!returns_user_id_fkey(*)')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
