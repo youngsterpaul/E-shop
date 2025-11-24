@@ -14,11 +14,12 @@ const LazySection = memo(({
   children, 
   fallback,
   className = '',
-  threshold = 0.1 
+  threshold = 0.01 // More aggressive - load earlier
 }: LazySectionProps) => {
   const { ref, isIntersecting } = useIntersectionObserver<HTMLDivElement>({ 
     threshold, 
-    triggerOnce: true 
+    triggerOnce: true,
+    rootMargin: '400px' // Preload 400px before visible
   });
 
   const defaultFallback = (
