@@ -52,7 +52,7 @@ export const lazyLoad = (importFunc: () => Promise<any>) => {
   return React.lazy(importFunc);
 };
 
-// Image optimization utility
+// Image optimization utility with better CDN support
 export const optimizeImageUrl = (url: string, width?: number, height?: number, quality = 80): string => {
   if (!url) return url;
   
@@ -66,7 +66,34 @@ export const optimizeImageUrl = (url: string, width?: number, height?: number, q
   if (width) params.set('w', width.toString());
   if (height) params.set('h', height.toString());
   params.set('q', quality.toString());
+  params.set('f', 'webp'); // Force WebP format for better compression
   
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}${params.toString()}`;
+};
+
+// Batch multiple API requests into a single call
+export const batchRequests = async <T>(
+  requests: (() => Promise<T>)[]
+): Promise<T[]> => {
+  return Promise.all(requests.map(req => req()));
+};
+
+// Resource preloading utility
+export const preloadResource = (href: string, as: string, type?: string) => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = as;
+  link.href = href;
+  if (type) link.type = type;
+  document.head.appendChild(link);
+};
+
+// Defer loading of non-critical resources
+export const deferLoad = (callback: () => void, delay = 0) => {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => callback(), { timeout: delay });
+  } else {
+    setTimeout(callback, delay);
+  }
 };
