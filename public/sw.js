@@ -1,4 +1,4 @@
-const CACHE_VERSION = '3';
+const CACHE_VERSION = '4';
 const CACHE_NAME = `smartkenya-offline-v${CACHE_VERSION}`;
 const RUNTIME_CACHE = `smartkenya-runtime-v${CACHE_VERSION}`;
 const IMAGE_CACHE = `smartkenya-images-v${CACHE_VERSION}`;
@@ -91,16 +91,23 @@ self.addEventListener('fetch', (event) => {
           // Only cache successful responses with correct MIME types
           if (networkResponse.ok && networkResponse.status === 200) {
             const contentType = networkResponse.headers.get('content-type');
-            // Don't cache if MIME type is wrong
-            if (contentType && !contentType.includes('octet-stream')) {
+            // Don't cache if MIME type is wrong or if it's octet-stream
+            if (contentType && 
+                !contentType.includes('octet-stream') &&
+                (contentType.includes('javascript') || 
+                 contentType.includes('css') || 
+                 contentType.includes('font'))) {
               caches.open(STATIC_CACHE).then((cache) => {
-                cache.put(request, networkResponse.clone());
+                cache.put(request, networkResponse.clone()).catch(err => {
+                  console.warn('[SW] Failed to cache:', request.url, err);
+                });
               });
             }
           }
           return networkResponse;
         })
-        .catch(() => {
+        .catch((err) => {
+          console.warn('[SW] Fetch failed, trying cache:', request.url, err);
           // Fallback to cache only if network fails
           return caches.match(request);
         })
@@ -136,7 +143,9 @@ self.addEventListener('fetch', (event) => {
       return caches.open(RUNTIME_CACHE).then((cache) => {
         return fetch(request).then((networkResponse) => {
           if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
+            cache.put(request, networkResponse.clone()).catch(err => {
+              console.warn('[SW] Failed to cache runtime:', request.url, err);
+            });
           }
           return networkResponse;
         });
