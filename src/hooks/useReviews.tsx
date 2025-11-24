@@ -5,6 +5,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { productKeys, productFetchers } from '@/queries/productQueries';
 
+export interface ReviewReply {
+  id: string;
+  reply_text: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Review {
   review_id: string;
   user_id: string;
@@ -14,6 +22,7 @@ export interface Review {
   username: string;
   media_urls: string[];
   created_at: string;
+  review_replies?: ReviewReply[];
 }
 
 export interface UploadProgress {
