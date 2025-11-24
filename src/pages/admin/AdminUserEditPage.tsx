@@ -130,7 +130,8 @@ const AdminUserEditPage = () => {
           .from('user_roles')
           .select('role')
           .eq('user_id', userId)
-          .single();
+          .limit(1)
+          .maybeSingle();
         
         const hadSuperadmin = existingRole?.role === 'superadmin';
         
