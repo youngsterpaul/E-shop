@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
 import ProductVariantManagement from '@/components/admin/ProductVariantManagement';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
@@ -55,31 +55,19 @@ const SortableRow = ({ product, isSelected, onToggle, onEdit, onDelete, onManage
     transform,
     transition,
     isDragging,
-    isOver,
   } = useSortable({ id: product.product_id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
-    <TableRow 
-      ref={setNodeRef} 
-      style={style}
-      className={`
-        ${isDragging ? 'opacity-30 bg-muted/50' : ''}
-        ${isOver ? 'border-t-2 border-t-primary shadow-lg' : ''}
-        transition-all duration-200
-      `}
-    >
+    <TableRow ref={setNodeRef} style={style}>
       <TableCell className="w-8">
-        <div 
-          {...attributes} 
-          {...listeners} 
-          className="cursor-grab active:cursor-grabbing hover:text-primary transition-colors p-1 rounded hover:bg-muted"
-        >
-          <GripVertical className="h-4 w-4" />
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
       </TableCell>
       <TableCell>
@@ -148,7 +136,6 @@ const AdminProductsPage = () => {
   const { categories } = useCategories();
   const [showVariantsDialog, setShowVariantsDialog] = useState(false);
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
   
   const [displayedItemsCount, setDisplayedItemsCount] = useState(50);
   const itemsPerPage = 50;
@@ -335,12 +322,7 @@ const AdminProductsPage = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
   const handleDragEnd = async (event: DragEndEvent) => {
-    setActiveId(null);
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
@@ -456,7 +438,6 @@ const AdminProductsPage = () => {
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
-                  onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   modifiers={[restrictToVerticalAxis]}
                 >
@@ -500,26 +481,6 @@ const AdminProductsPage = () => {
                       </TableBody>
                     </SortableContext>
                   </Table>
-                  <DragOverlay>
-                    {activeId ? (
-                      <div className="bg-card border-2 border-primary shadow-2xl rounded-lg p-4 opacity-95 animate-scale-in">
-                        <div className="flex items-center gap-4">
-                          <GripVertical className="h-5 w-5 text-primary" />
-                          <div className="flex-1">
-                            <p className="font-semibold text-foreground">
-                              {displayedProducts.find(p => p.product_id === activeId)?.name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {displayedProducts.find(p => p.product_id === activeId)?.categories}
-                            </p>
-                          </div>
-                          <Badge variant="secondary" className="ml-auto">
-                            Dragging...
-                          </Badge>
-                        </div>
-                      </div>
-                    ) : null}
-                  </DragOverlay>
                 </DndContext>
               </div>
 
