@@ -35,6 +35,7 @@ interface Product {
   featured: boolean;
   created_at: string;
   display_order: number;
+  image_urls: string[] | null;
 }
 
 interface SortableRowProps {
@@ -78,6 +79,19 @@ const SortableRow = ({ product, isSelected, onToggle, onEdit, onDelete, onManage
       </TableCell>
       <TableCell className="text-center text-muted-foreground">
         {product.display_order || 0}
+      </TableCell>
+      <TableCell>
+        {product.image_urls && product.image_urls.length > 0 ? (
+          <img 
+            src={product.image_urls[0]} 
+            alt={product.name}
+            className="w-12 h-12 object-cover rounded"
+          />
+        ) : (
+          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+            <Package className="h-6 w-6 text-muted-foreground" />
+          </div>
+        )}
       </TableCell>
       <TableCell className="font-medium">{product.name}</TableCell>
       <TableCell>{product.categories}</TableCell>
@@ -457,6 +471,7 @@ const AdminProductsPage = () => {
                           />
                         </TableHead>
                         <TableHead className="w-16 text-center">Order</TableHead>
+                        <TableHead className="w-16">Image</TableHead>
                         <TableHead>Product Name</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Price</TableHead>
