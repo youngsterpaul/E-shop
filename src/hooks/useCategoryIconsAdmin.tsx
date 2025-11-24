@@ -167,6 +167,34 @@ export const useCategoryIconsAdmin = () => {
     }
   };
 
+  const handleReorder = async (reorderedIcons: any[]) => {
+    try {
+      // Update display_order for all icons
+      const updates = reorderedIcons.map((icon, index) => 
+        supabase
+          .from('category_icons')
+          .update({ display_order: index })
+          .eq('id', icon.id)
+      );
+      
+      await Promise.all(updates);
+      
+      queryClient.invalidateQueries({ queryKey: ['admin-category-icons'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryIcons'] });
+      
+      toast({
+        title: "Success",
+        description: "Category icons reordered successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reorder category icons",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     categoryIcons,
     categories,
@@ -175,5 +203,6 @@ export const useCategoryIconsAdmin = () => {
     handleCreate,
     handleUpdate,
     handleDelete,
+    handleReorder,
   };
 };
