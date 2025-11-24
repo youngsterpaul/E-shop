@@ -54,13 +54,8 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
         variant: "destructive",
       });
 
-      // Prevent repeated redirects - redirect moderators to products page
-      const redirectPath = isAdmin 
-        ? '/supersmartkenyaadmin123' 
-        : isModerator 
-        ? '/supersmartkenyaadmin123/products' 
-        : '/';
-      navigate(redirectPath, { replace: true });
+      // Redirect to homepage for unauthorized access
+      navigate('/', { replace: true });
     }
 
     // Only run once when user or role state changes from loading
@@ -90,17 +85,10 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
             <h2 className="text-lg font-semibold mb-2 text-red-600">Access Denied</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
-              onClick={() => {
-                const redirectPath = isAdmin 
-                  ? '/supersmartkenyaadmin123/products' 
-                  : isModerator 
-                  ? '/supersmartkenyaadmin123/products' 
-                  : '/';
-                navigate(redirectPath, { replace: true });
-              }}
+              onClick={() => navigate('/', { replace: true })}
               className="text-orange-500 hover:text-orange-600 underline"
             >
-              {isAdmin || isModerator ? 'Go to Products' : 'Return to Home'}
+              Return to Home
             </button>
           </div>
         </div>

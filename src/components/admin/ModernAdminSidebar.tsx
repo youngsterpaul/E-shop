@@ -306,8 +306,8 @@ export function ModernAdminSidebar() {
   const filterMenuItems = (items: MenuItem[]) => {
     return items.filter(item => {
       if (isSuperAdmin) return true;
-      if (isAdmin) return item.roles.includes('superadmin') || item.roles.includes('admin');
-      if (isModerator) return item.roles.includes('superadmin') || item.roles.includes('admin') || item.roles.includes('moderator');
+      if (isAdmin) return item.roles.includes('admin');
+      if (isModerator) return item.roles.includes('moderator');
       return false;
     });
   };
