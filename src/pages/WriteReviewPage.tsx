@@ -169,7 +169,8 @@ const WriteReviewPage = () => {
         product_id: productId,
         rating,
         comment: trimmedComment,
-        media_urls: allMediaUrls
+        media_urls: allMediaUrls,
+        review_id: existingReview?.review_id // Pass review_id for updates
       });
 
       toast({
