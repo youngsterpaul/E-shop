@@ -34,6 +34,10 @@
         {
           "key": "Expires",
           "value": "Thu, 31 Dec 2037 23:55:55 GMT"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": "gzip"
         }
       ]
     },
@@ -60,33 +64,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(js|css)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Expires",
-          "value": "Thu, 31 Dec 2037 23:55:55 GMT"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.(png|jpg|jpeg|gif|svg|ico|webp)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Expires",
-          "value": "Thu, 31 Dec 2037 23:55:55 GMT"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.(woff2?|ttf|eot)",
+      "source": "/(.*)\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)",
       "headers": [
         {
           "key": "Cache-Control",
