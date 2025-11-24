@@ -4,7 +4,7 @@ import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Eye, EyeOff, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,6 +12,23 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface HeroSlide {
   id: string;
@@ -21,6 +38,76 @@ interface HeroSlide {
   display_order: number;
   is_active: boolean;
 }
+
+// Sortable row component
+const SortableRow = ({ slide, onToggleActive, onEdit, onDelete }: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: slide.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <button
+          className="cursor-grab active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{slide.display_order}</TableCell>
+      <TableCell>{slide.title}</TableCell>
+      <TableCell>
+        <img src={slide.image_url} alt={slide.title} className="h-10 w-20 object-cover rounded" />
+      </TableCell>
+      <TableCell>
+        <Badge variant={slide.is_active ? "default" : "secondary"}>
+          {slide.is_active ? 'Active' : 'Hidden'}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleActive(slide.id, slide.is_active)}
+            title={slide.is_active ? 'Hide slide' : 'Show slide'}
+          >
+            {slide.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(slide)}
+            title="Edit slide"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(slide.id)}
+            title="Delete slide"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const AdminHeroSlidesPage = () => {
   const { toast } = useToast();
@@ -39,6 +126,13 @@ const AdminHeroSlidesPage = () => {
   const [uploading, setUploading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [slideToDelete, setSlideToDelete] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchSlides = async () => {
     try {
@@ -211,6 +305,46 @@ const AdminHeroSlidesPage = () => {
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = slides.findIndex((slide) => slide.id === active.id);
+    const newIndex = slides.findIndex((slide) => slide.id === over.id);
+
+    const reordered = arrayMove(slides, oldIndex, newIndex);
+    setSlides(reordered);
+
+    try {
+      // Update display_order for all slides
+      const updates = reordered.map((slide, index) =>
+        supabase
+          .from('hero_slides')
+          .update({ display_order: index + 1 })
+          .eq('id', slide.id)
+      );
+
+      await Promise.all(updates);
+
+      toast({
+        title: "Success",
+        description: "Hero slides reordered successfully",
+      });
+      fetchSlides();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reorder hero slides",
+        variant: "destructive",
+      });
+      // Revert on error
+      fetchSlides();
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="flex justify-between items-center mb-6">
@@ -238,64 +372,43 @@ const AdminHeroSlidesPage = () => {
               onAction={() => handleOpenForm()}
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {slides.map((slide) => (
-                  <TableRow key={slide.id}>
-                    <TableCell className="font-medium">{slide.display_order}</TableCell>
-                    <TableCell>{slide.title}</TableCell>
-                    <TableCell>
-                      <img src={slide.image_url} alt={slide.title} className="h-10 w-20 object-cover rounded" />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={slide.is_active ? "default" : "secondary"}>
-                        {slide.is_active ? 'Active' : 'Hidden'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleActive(slide.id, slide.is_active)}
-                          title={slide.is_active ? 'Hide slide' : 'Show slide'}
-                        >
-                          {slide.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenForm(slide)}
-                          title="Edit slide"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSlideToDelete(slide.id);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                          title="Delete slide"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead>Order</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  <SortableContext
+                    items={slides.map((slide) => slide.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {slides.map((slide) => (
+                      <SortableRow
+                        key={slide.id}
+                        slide={slide}
+                        onToggleActive={toggleActive}
+                        onEdit={handleOpenForm}
+                        onDelete={(id: string) => {
+                          setSlideToDelete(id);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                      />
+                    ))}
+                  </SortableContext>
+                </TableBody>
+              </Table>
+            </DndContext>
           )}
         </CardContent>
       </Card>
