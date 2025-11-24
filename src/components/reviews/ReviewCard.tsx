@@ -21,11 +21,12 @@ interface Review {
   media_urls?: string[] | null;
   verified_purchase?: boolean | null;
   helpful_count?: number | null;
-  replies?: Array<{
+  review_replies?: Array<{
     id: string;
     reply_text: string;
-    created_at: string;
+    created_at: string | null;
     user_id: string;
+    updated_at?: string | null;
   }>;
 }
 
@@ -228,15 +229,15 @@ export const ReviewCard = ({ review }: { review: Review }) => {
             </div>
           )}
 
-          {review.replies && review.replies.length > 0 && (
+          {review.review_replies && review.review_replies.length > 0 && (
             <div className="mt-4 pl-4 border-l-2 border-primary/20 space-y-3">
-              {review.replies.map((reply) => (
+              {review.review_replies.map((reply) => (
                 <div key={reply.id} className="space-y-2">
                   <div className="flex items-center gap-2 justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">Store Response</Badge>
                       <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                        {reply.created_at && formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                       </span>
                     </div>
                     {canReply && user?.id === reply.user_id && (
