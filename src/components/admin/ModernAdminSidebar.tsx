@@ -181,6 +181,13 @@ export function ModernAdminSidebar() {
       badge: null,
     },
     {
+      name: 'Category Icons',
+      icon: Image,
+      path: '/supersmartkenyaadmin123/category-icons',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
       name: 'Stores',
       icon: Store,
       path: '/supersmartkenyaadmin123/stores',
