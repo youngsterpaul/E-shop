@@ -64,7 +64,7 @@ export const useCategoryHierarchy = () => {
         .from('categories')
         .select('id, category, slug, icon_name')
         .is('parent_id', null)
-        .order('id', { ascending: true });
+        .order('display_order', { ascending: true });
       
       if (parentError) {
         console.error('Error fetching parent categories:', parentError);
@@ -78,7 +78,7 @@ export const useCategoryHierarchy = () => {
         .from('categories')
         .select('id, category, slug, parent_id, icon_name')
         .not('parent_id', 'is', null)
-        .order('id', { ascending: true });
+        .order('display_order', { ascending: true });
       
       if (subError) {
         console.error('Error fetching subcategories:', subError);
