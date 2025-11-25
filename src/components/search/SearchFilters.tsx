@@ -11,6 +11,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface SearchFiltersProps {
   products: Product[];
+  value?: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   onApply?: () => void;
   className?: string;
@@ -51,18 +52,22 @@ const FilterOption = memo(({
 
 FilterOption.displayName = 'FilterOption';
 
-const SearchFilters = ({ products, onFiltersChange, onApply, className }: SearchFiltersProps) => {
+const SearchFilters = ({ products, value, onFiltersChange, onApply, className }: SearchFiltersProps) => {
   const isMobile = isMobileUserAgent();
 
   // Local state for price (to allow user to type without triggering filters)
-  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>([0, 200000]);
+  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>(
+    value?.priceRange || [0, 200000]
+  );
   
   // Applied filters state
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, 200000],
-    specifications: {},
-    ratings: [],
-  });
+  const [filters, setFilters] = useState<FilterState>(
+    value || {
+      priceRange: [0, 200000],
+      specifications: {},
+      ratings: [],
+    }
+  );
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
@@ -102,16 +107,24 @@ const SearchFilters = ({ products, onFiltersChange, onApply, className }: Search
     };
   }, [products]);
 
+  // Sync with parent value prop when it changes
+  useEffect(() => {
+    if (value) {
+      setFilters(value);
+      setLocalPriceRange(value.priceRange);
+    }
+  }, [value]);
+
   // Initialize price range
   useEffect(() => {
-    if (filterOptions.maxPrice > 0) {
+    if (filterOptions.maxPrice > 0 && !value) {
       setLocalPriceRange([0, filterOptions.maxPrice]);
       setFilters(prev => ({
         ...prev,
         priceRange: [0, filterOptions.maxPrice],
       }));
     }
-  }, [filterOptions.maxPrice]);
+  }, [filterOptions.maxPrice, value]);
 
   // Auto-apply filters for desktop only (except price)
   useEffect(() => {
