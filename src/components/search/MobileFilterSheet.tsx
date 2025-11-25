@@ -8,11 +8,12 @@ import { Product } from '@/hooks/useProducts';
 
 interface MobileFilterSheetProps {
   products: Product[];
+  filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   activeFiltersCount: number;
 }
 
-const MobileFilterSheet = memo(({ products, onFiltersChange, activeFiltersCount }: MobileFilterSheetProps) => {
+const MobileFilterSheet = memo(({ products, filters, onFiltersChange, activeFiltersCount }: MobileFilterSheetProps) => {
   const [open, setOpen] = useState(false);
 
   const handleFiltersChange = (filters: FilterState) => {
@@ -44,7 +45,8 @@ const MobileFilterSheet = memo(({ products, onFiltersChange, activeFiltersCount 
           </SheetTitle>
         </SheetHeader>
         <SearchFilters 
-          products={products} 
+          products={products}
+          value={filters}
           onFiltersChange={handleFiltersChange}
           onApply={handleApply}
           className="border-0 rounded-none flex-1"
