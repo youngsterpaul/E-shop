@@ -163,6 +163,15 @@ const CategoryPage = () => {
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
+  // Reset filters when search query or category changes
+  useEffect(() => {
+    setFilters({
+      priceRange: [0, 200000],
+      specifications: {},
+      ratings: [],
+    });
+  }, [searchQuery, categoryId]);
+
   const handleBreadcrumbClick = useCallback((index: number) => {
     if (index === 0) {
       navigate('/');
