@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, FileText, Plus, Edit, Trash2, Clock, User, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import SmartPagination from '@/components/ui/pagination';
 
 interface ActivityLog {
   id: string;
@@ -37,33 +38,54 @@ const AdminActivityLogPage = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedLogs, setSelectedLogs] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
 
-  const { data: activityLogs, isLoading, refetch } = useQuery({
-    queryKey: ['activityLogs'],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['activityLogs', searchQuery, actionFilter, tableFilter, currentPage, pageSize],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Build the base query
+      let query = supabase
         .from('admin_activity_logs')
-        .select('*')
+        .select('*', { count: 'exact' });
+
+      // Apply filters
+      if (searchQuery) {
+        query = query.or(
+          `user_email.ilike.%${searchQuery}%,record_name.ilike.%${searchQuery}%,record_id.ilike.%${searchQuery}%`
+        );
+      }
+
+      if (actionFilter !== 'all') {
+        query = query.eq('action_type', actionFilter);
+      }
+
+      if (tableFilter !== 'all') {
+        query = query.eq('table_name', tableFilter);
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, count, error } = await query
         .order('created_at', { ascending: false })
-        .limit(500);
+        .range(from, to);
 
       if (error) throw error;
-      return data as ActivityLog[];
+
+      return {
+        logs: data as ActivityLog[],
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      };
     },
   });
 
-  const filteredLogs = activityLogs?.filter(log => {
-    const matchesSearch = 
-      searchQuery === '' ||
-      log.user_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.record_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.record_id.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesAction = actionFilter === 'all' || log.action_type === actionFilter;
-    const matchesTable = tableFilter === 'all' || log.table_name === tableFilter;
-
-    return matchesSearch && matchesAction && matchesTable;
-  }) || [];
+  const activityLogs = data?.logs || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = data?.totalPages || 1;
+  const filteredLogs = activityLogs;
 
   const getActionIcon = (action: string) => {
     switch (action) {
@@ -161,7 +183,30 @@ const AdminActivityLogPage = () => {
     }
   };
 
-  const tables = [...new Set(activityLogs?.map(log => log.table_name) || [])];
+  // Fetch all unique tables for filter dropdown
+  const { data: tablesData } = useQuery({
+    queryKey: ['activityLogTables'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_activity_logs')
+        .select('table_name');
+      
+      if (error) throw error;
+      return [...new Set(data.map(log => log.table_name))];
+    },
+  });
+
+  const tables = tablesData || [];
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedLogs(new Set()); // Clear selections on page change
+  };
 
   return (
     <AdminLayout>
@@ -366,6 +411,19 @@ const AdminActivityLogPage = () => {
                 );
               })}
             </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && filteredLogs.length > 0 && (
+            <SmartPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              itemsPerPage={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[12, 24, 48, 96]}
+            />
           )}
         </CardContent>
       </Card>
