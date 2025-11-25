@@ -107,6 +107,15 @@ const SearchPage = () => {
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
+  // Reset filters when search query changes
+  useEffect(() => {
+    setFilters({
+      priceRange: [0, 200000],
+      specifications: {},
+      ratings: [],
+    });
+  }, [searchQuery]);
+
   return (
     <div className={`${!isMobile ? 'min-w-max' : ''}`}>
       <PageHeader
