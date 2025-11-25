@@ -139,7 +139,7 @@ export const ProductList = ({
       {/* Desktop Filters */}
       {!isMobile && products.length > 0 && (
         <div className="w-72 flex-shrink-0">
-          <SearchFilters products={products} onFiltersChange={onFiltersChange} />
+          <SearchFilters products={products} value={filters} onFiltersChange={onFiltersChange} />
         </div>
       )}
 
@@ -155,6 +155,7 @@ export const ProductList = ({
             {isMobile && (
               <MobileFilterSheet
                 products={products}
+                filters={filters}
                 onFiltersChange={onFiltersChange}
                 activeFiltersCount={activeFiltersCount}
               />
