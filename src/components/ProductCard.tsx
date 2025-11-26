@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useProductFlashSale } from '@/hooks/useFlashSales';
 import OptimizedImage from './OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -30,6 +31,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const isMobile = isMobileUserAgent();
+  const { data: flashSale } = useProductFlashSale(product.id);
 
   const productSlug = product.name
     .toLowerCase()
@@ -51,6 +53,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }).format(price);
   };
 
+  // Calculate flash sale price
+  const calculateFlashPrice = (basePrice: number) => {
+    if (!flashSale) return null;
+    if (flashSale.discount_type === 'percentage') {
+      return basePrice * (1 - flashSale.discount_value / 100);
+    }
+    return basePrice - flashSale.discount_value;
+  };
+
+  const flashPrice = flashSale ? calculateFlashPrice(product.price) : null;
+  const displayPrice = flashPrice || product.price;
+
   // Use product data directly (no fetch needed in card view)
   const averageRating = product.rating || 5;
   const displayReviewCount = product.reviews_count ?? product.reviews ?? 0;
@@ -70,9 +84,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
               sizes="200px"
             />
             
+            {/* Flash Sale Badge */}
+            {flashSale && (
+              <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 py-0.5 rounded text-xs font-medium shadow-sm flex items-center gap-1">
+                <Zap size={10} />
+                Flash Sale
+              </div>
+            )}
             
             {/* Discount Badge */}
-            {product.discount && (
+            {!flashSale && product.discount && (
               <div className="absolute top-1 left-1 bg-red-500 text-white px-1.5 py-0.5 rounded text-xs font-medium shadow-sm">
                 -{product.discount}%
               </div>
@@ -139,14 +160,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="mt-auto pt-1">
             <div className="flex flex-col space-y-0.5">
               <div className="flex items-center gap-1">
-                <span className="text-sm font-bold text-orange-600 leading-tight">
-                  {formatPrice(product.price)}
+                <span className={`text-sm font-bold leading-tight ${flashPrice ? 'text-red-600' : 'text-orange-600'}`}>
+                  {formatPrice(displayPrice)}
                 </span>
-                {/* {product.originalPrice && (
+                {flashPrice && (
                   <span className="text-xs text-gray-500 line-through">
-                    {formatPrice(product.originalPrice)}
+                    {formatPrice(product.price)}
                   </span>
-                )}   */}
+                )}
               </div>
             </div>
           </div>
