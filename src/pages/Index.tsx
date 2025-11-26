@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
+import FlashSaleBanner from '@/components/FlashSaleBanner';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
@@ -58,6 +59,10 @@ const Index = () => {
               <EnhancedHeroSection />
             </div>
 
+            {/* Flash Sale Banner */}
+            <div className={isMobile ? 'mb-4 px-4' : 'mb-8'}>
+              <FlashSaleBanner />
+            </div>
             
             <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
               <CategoryIcons showAll={false} />
@@ -67,7 +72,7 @@ const Index = () => {
               <EnhancedFeaturedProducts />
             </div>
           </div>
-        </main>      
+        </main>
       </div>
     </>
   );

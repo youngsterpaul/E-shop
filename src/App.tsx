@@ -66,6 +66,7 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPage"));
 const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
 const AdminDiscountsPage = lazy(() => import("./pages/admin/AdminDiscountsPage"));
+const AdminFlashSalesPage = lazy(() => import("./pages/admin/AdminFlashSalesPage"));
 const AdminReportsPage = lazy(() => import("./pages/admin/AdminReportsPage"));
 const AdminReturnsPage = lazy(() => import("./pages/admin/AdminReturnsPage"));
 const AdminEmailTemplatesPage = lazy(() => import("./pages/admin/AdminEmailTemplatesPage"));
@@ -270,6 +271,7 @@ function App() {
             <Route path="/supersmartkenyaadmin123/purchase-orders/create" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrderCreatePage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/reviews" element={<AdminRoute requiredRole="moderator"><AdminReviewsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/discounts" element={<AdminRoute requiredRole="admin"><AdminDiscountsPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/flash-sales" element={<AdminRoute requiredRole="admin"><AdminFlashSalesPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/reports" element={<AdminRoute requiredRole="admin"><AdminReportsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/returns" element={<AdminRoute requiredRole="admin"><AdminReturnsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/email-templates" element={<AdminRoute requiredRole="admin"><AdminEmailTemplatesPage /></AdminRoute>} />

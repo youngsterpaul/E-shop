@@ -12,6 +12,7 @@ import ProductMetadata from '@/components/product/ProductMetadata';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useProduct } from '@/hooks/useProducts';
 import { useProductVariants } from '@/hooks/useProductVariants';
+import { useProductFlashSale } from '@/hooks/useFlashSales';
 import { Skeleton } from '@/components/ui/skeleton';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
@@ -53,6 +54,7 @@ const ProductDetailsPage: React.FC = () => {
   const { variants } = useProductVariants(id || '');
   const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const { calculations } = useSelectiveCart();
+  const { data: flashSale } = useProductFlashSale(id || '');
 
   // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -169,6 +171,16 @@ const ProductDetailsPage: React.FC = () => {
 
     return total;
   }, [product, selectedVariants, variants]);
+
+  // Calculate flash sale price
+  const flashSalePrice = useMemo(() => {
+    if (!flashSale || !price) return null;
+    
+    if (flashSale.discount_type === 'percentage') {
+      return price * (1 - flashSale.discount_value / 100);
+    }
+    return price - flashSale.discount_value;
+  }, [flashSale, price]);
 
   const variantImages = useMemo(() => {
     const colorGroup = transformedVariants.find((v: any) => v.type === 'color');
@@ -315,6 +327,8 @@ const productForTabs = useMemo(() => {
               <PriceDisplay 
                 currentPrice={price}
                 originalPrice={product.price}
+                flashSalePrice={flashSalePrice || undefined}
+                showFlashBadge={true}
               />
 
               {!isMobile && transformedVariants.length > 0 && (
