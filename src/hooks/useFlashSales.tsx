@@ -257,3 +257,51 @@ export const useToggleFlashSale = () => {
     },
   });
 };
+
+// Fetch products for a specific flash sale with pagination
+export const useFlashSaleProductsWithDetails = (flashSaleId?: string, pageSize: number = 12) => {
+  return useQuery({
+    queryKey: ['flash-sale-products-details', flashSaleId, pageSize],
+    queryFn: async () => {
+      if (!flashSaleId) return { products: [], totalCount: 0 };
+      
+      // Get product IDs from flash_sale_products
+      const { data: flashSaleProducts, error: flashSaleError } = await supabase
+        .from('flash_sale_products')
+        .select('product_id')
+        .eq('flash_sale_id', flashSaleId);
+
+      if (flashSaleError) throw flashSaleError;
+      if (!flashSaleProducts || flashSaleProducts.length === 0) {
+        return { products: [], totalCount: 0 };
+      }
+
+      const productIds = flashSaleProducts.map(p => p.product_id);
+
+      // Fetch product details
+      const { data: products, error: productsError, count } = await supabase
+        .from('products')
+        .select(`
+          product_id,
+          name,
+          price,
+          image_urls,
+          categories,
+          stock,
+          rating,
+          reviews_count
+        `, { count: 'exact' })
+        .in('product_id', productIds)
+        .limit(pageSize);
+
+      if (productsError) throw productsError;
+
+      return {
+        products: products || [],
+        totalCount: count || 0
+      };
+    },
+    enabled: !!flashSaleId,
+    staleTime: 60 * 1000,
+  });
+};
