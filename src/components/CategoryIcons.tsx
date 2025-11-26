@@ -94,16 +94,21 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
             >
               <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent .shadow-lg .hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 {category.productImage ? (
-                  <>
-                    <OptimizedImage
-                      src={category.productImage}
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                      aspectRatio="square"
-                      priority={false}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </>
+                  (() => {
+                    const normalizedSrc = category.productImage.replace(/^http:\/\//, 'https://');
+                    return (
+                      <>
+                        <OptimizedImage
+                          src={normalizedSrc}
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                          aspectRatio="square"
+                          priority={false}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </>
+                    );
+                  })()
                 ) : (
                   <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
                     <IconComponent size={32} className="text-white" />

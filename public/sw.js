@@ -92,15 +92,22 @@ self.addEventListener('fetch', (event) => {
           if (networkResponse.ok && networkResponse.status === 200) {
             const contentType = networkResponse.headers.get('content-type');
             // Don't cache if MIME type is wrong or if it's octet-stream
-            if (contentType && 
-                !contentType.includes('octet-stream') &&
-                (contentType.includes('javascript') || 
-                 contentType.includes('css') || 
-                 contentType.includes('font'))) {
+            if (
+              contentType &&
+              !contentType.includes('octet-stream') &&
+              (contentType.includes('javascript') ||
+                contentType.includes('css') ||
+                contentType.includes('font'))
+            ) {
               caches.open(STATIC_CACHE).then((cache) => {
-                cache.put(request, networkResponse.clone()).catch(err => {
-                  console.warn('[SW] Failed to cache:', request.url, err);
-                });
+                try {
+                  const responseClone = networkResponse.clone();
+                  cache.put(request, responseClone).catch((err) => {
+                    console.warn('[SW] Failed to cache:', request.url, err);
+                  });
+                } catch (err) {
+                  console.warn('[SW] Failed to clone response for cache:', request.url, err);
+                }
               });
             }
           }
