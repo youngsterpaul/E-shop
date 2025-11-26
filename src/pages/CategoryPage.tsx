@@ -1,4 +1,4 @@
-// CategoryPage.tsx (Refactored with Global Search)
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
