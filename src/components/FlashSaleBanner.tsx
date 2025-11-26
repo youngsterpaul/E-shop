@@ -92,7 +92,7 @@ const FlashSaleBanner = () => {
           </div>
           
           <Link 
-            to="/search?flashSale=true"
+            to="/flash-sale"
             className="flex items-center gap-1 text-sm text-primary hover:underline"
           >
             View more
