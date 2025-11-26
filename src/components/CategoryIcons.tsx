@@ -60,7 +60,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   }
   
   const categoriesToShow = isMobile && !showAll 
-    ? categoryIcons.slice(0, 8) 
+    ? categoryIcons.slice(0, 0) 
     : categoryIcons;
   
   const gridCols = isMobile 
