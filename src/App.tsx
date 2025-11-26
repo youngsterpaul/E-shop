@@ -84,6 +84,7 @@ const AdminCategoryIconsPage = lazy(() => import("./pages/admin/AdminCategoryIco
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
+const FlashSalePage = lazy(() => import("./pages/FlashSalePage"));
 function App() {
   const {
     user,
@@ -245,6 +246,7 @@ function App() {
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/loyalty" element={<LoyaltyPage />} />
             <Route path="/rewards" element={<RewardsPage />} />
+            <Route path="/flash-sale" element={<FlashSalePage />} />
 
             {/* Admin Routes */}
             <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />
