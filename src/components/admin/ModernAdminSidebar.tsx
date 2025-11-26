@@ -37,6 +37,7 @@ import {
   Mail,
   FileText,
   DollarSign,
+  Zap,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -124,6 +125,13 @@ export function ModernAdminSidebar() {
       name: 'Discounts',
       icon: Tag,
       path: '/supersmartkenyaadmin123/discounts',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'Flash Sales',
+      icon: Zap,
+      path: '/supersmartkenyaadmin123/flash-sales',
       roles: ['superadmin', 'admin'],
       badge: null,
     },
