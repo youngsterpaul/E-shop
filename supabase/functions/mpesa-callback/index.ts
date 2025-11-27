@@ -173,7 +173,22 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const clientIP = getClientIP(req);
 
-    // Environment-aware IP checking
+    // CRITICAL SECURITY: Validate webhook secret from URL
+    const url = new URL(req.url);
+    const webhookSecret = url.searchParams.get('secret');
+    
+    if (!webhookSecret) {
+      console.error('Missing webhook secret in callback URL');
+      await supabase.from('security_alerts').insert({
+        alert_type: 'mpesa_callback_no_secret',
+        severity: 'critical',
+        identifier: clientIP,
+        details: { ip: clientIP, timestamp: new Date().toISOString() }
+      });
+      return new Response('Unauthorized - missing secret', { status: 401 });
+    }
+
+    // Environment-aware IP checking (secondary defense)
     if (MPESA_ENVIRONMENT === 'production') {
       const isWhitelisted = await isIPWhitelisted(clientIP, MPESA_ENVIRONMENT);
       if (!isWhitelisted) {
@@ -184,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
       // In sandbox, log but don't block (for easier testing)
       const isWhitelisted = await isIPWhitelisted(clientIP, MPESA_ENVIRONMENT);
       if (!isWhitelisted) {
-        // Continue processing instead of blocking
+        console.log('Non-whitelisted IP in sandbox mode:', clientIP);
       }
     }
 
@@ -235,6 +250,43 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Validate webhook secret matches order
+    const { data: payment, error: paymentError } = await supabase
+      .from('mpesa_payments')
+      .select('order_id')
+      .eq('checkout_request_id', CheckoutRequestID)
+      .single();
+
+    if (paymentError || !payment) {
+      console.error('Payment not found for CheckoutRequestID:', CheckoutRequestID);
+      return new Response('Payment not found', { 
+        status: 404,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
+    // Verify webhook secret matches the order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('webhook_secret')
+      .eq('order_id', payment.order_id)
+      .single();
+
+    if (orderError || !order || order.webhook_secret !== webhookSecret) {
+      console.error('Invalid webhook secret for order:', payment.order_id);
+      await supabase.from('security_alerts').insert({
+        alert_type: 'mpesa_callback_invalid_secret',
+        severity: 'critical',
+        identifier: clientIP,
+        details: { 
+          order_id: payment.order_id,
+          ip: clientIP,
+          timestamp: new Date().toISOString()
+        }
+      });
+      return new Response('Unauthorized - invalid secret', { status: 401 });
+    }
+
     // Update payment record
     const updateData: any = {
       merchant_request_id: MerchantRequestID,
@@ -259,12 +311,10 @@ const handler = async (req: Request): Promise<Response> => {
       updateData.status = 'failed';
     }
 
-    const { data: payment, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('mpesa_payments')
       .update(updateData)
-      .eq('checkout_request_id', CheckoutRequestID)
-      .select('order_id')
-      .single();
+      .eq('checkout_request_id', CheckoutRequestID);
 
     if (updateError) {
       console.error('Failed to update payment:', updateError);
@@ -278,7 +328,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If payment was successful, update order status and send confirmation email
     if (ResultCode === 0 && payment?.order_id) {
-      // Update order status to 'paid'
+      // Update order status to 'paid' (will be validated by database trigger)
       const { error: orderUpdateError } = await supabase
         .from('orders')
         .update({ 
@@ -290,6 +340,12 @@ const handler = async (req: Request): Promise<Response> => {
       if (orderUpdateError) {
         console.error('Failed to update order status:', orderUpdateError);
       }
+
+      // Clear webhook secret after successful payment
+      await supabase
+        .from('orders')
+        .update({ webhook_secret: null })
+        .eq('order_id', payment.order_id);
 
       // Send confirmation email
       await sendPaymentConfirmationEmail(payment.order_id);
