@@ -35,7 +35,8 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Zap, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import {
   useAllFlashSales,
   useCreateFlashSale,
@@ -55,6 +56,9 @@ const AdminFlashSalesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<FlashSale | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const { data: flashSales, isLoading } = useAllFlashSales();
   const createMutation = useCreateFlashSale();
@@ -62,18 +66,31 @@ const AdminFlashSalesPage = () => {
   const deleteMutation = useDeleteFlashSale();
   const toggleMutation = useToggleFlashSale();
 
-  // Fetch products for selection
-  const { data: products } = useQuery({
-    queryKey: ['products-list'],
+  // Fetch products for selection with search and pagination
+  const { data: productsData, isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['products-list', searchQuery, currentPage],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
         .from('products')
-        .select('product_id, name, price')
-        .order('name');
+        .select('product_id, name, price', { count: 'exact' })
+        .order('name')
+        .range(from, to);
+
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,categories.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data;
+      return { products: data || [], totalCount: count || 0 };
     },
   });
+
+  const products = productsData?.products || [];
+  const totalPages = Math.ceil((productsData?.totalCount || 0) / pageSize);
 
   // Fetch products for editing sale
   const { data: saleProducts } = useFlashSaleProducts(editingSale?.id);
@@ -100,6 +117,8 @@ const AdminFlashSalesPage = () => {
     });
     setSelectedProducts([]);
     setEditingSale(null);
+    setSearchQuery('');
+    setCurrentPage(1);
   };
 
   const handleEdit = (sale: FlashSale) => {
@@ -375,36 +394,82 @@ const AdminFlashSalesPage = () => {
 
               <div className="space-y-2">
                 <Label>Select Products *</Label>
+                <DebouncedSearchInput
+                  value={searchQuery}
+                  onChange={(value) => {
+                    setSearchQuery(value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Search products..."
+                  className="mb-2"
+                />
                 <ScrollArea className="h-[200px] border rounded-md p-4">
-                  <div className="space-y-2">
-                    {products?.map((product) => (
-                      <div key={product.product_id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={product.product_id}
-                          checked={selectedProducts.includes(product.product_id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedProducts([...selectedProducts, product.product_id]);
-                            } else {
-                              setSelectedProducts(
-                                selectedProducts.filter((id) => id !== product.product_id)
-                              );
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={product.product_id}
-                          className="text-sm cursor-pointer"
-                        >
-                          {product.name} - KES {product.price}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                  {isLoadingProducts ? (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      Loading products...
+                    </div>
+                  ) : products.length === 0 ? (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No products found
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {products.map((product) => (
+                        <div key={product.product_id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={product.product_id}
+                            checked={selectedProducts.includes(product.product_id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedProducts([...selectedProducts, product.product_id]);
+                              } else {
+                                setSelectedProducts(
+                                  selectedProducts.filter((id) => id !== product.product_id)
+                                );
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={product.product_id}
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {product.name} - KES {product.price}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </ScrollArea>
-                <p className="text-sm text-muted-foreground">
-                  {selectedProducts.length} product(s) selected
-                </p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {selectedProducts.length} product(s) selected
+                  </span>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
