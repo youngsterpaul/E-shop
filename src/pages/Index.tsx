@@ -64,7 +64,7 @@ const Index = () => {
               <FlashSaleBanner />
             </div>
             
-            {isMobile && (
+            {!isMobile && (
               <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
                 <CategoryIcons showAll={false} />
               </div>
