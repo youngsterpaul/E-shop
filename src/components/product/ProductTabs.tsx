@@ -567,11 +567,6 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
               <div className="p-2 md:p-6 border-b">
                 <div className="flex items-center justify-between">
                   <h3 className="text-md font-medium text-gray-900 mb-2">Customer Reviews</h3>
-                  <ReviewButton 
-                    productId={product.product_id} 
-                    productName={product.name}
-                    size="sm"
-                  />
                 </div>
               </div>
               <div className=".pb-4 .md:p-6">

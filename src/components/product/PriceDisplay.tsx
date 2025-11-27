@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Zap } from 'lucide-react';
 
 interface PriceDisplayProps {
@@ -20,6 +21,7 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
   const displayPrice = flashSalePrice || currentPrice;
   const showOriginalPrice = originalPrice && displayPrice !== originalPrice;
   const hasFlashSale = flashSalePrice && flashSalePrice < currentPrice;
+  const isMobile = isMobileUserAgent();
 
   return (
     <div className="space-y-2">
@@ -29,11 +31,14 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
           Flash Sale
         </Badge>
       )}
+
       <div className="flex items-center gap-4">
-        <span className={`text-lg font-bold ${hasFlashSale ? 'text-red-500' : 'text-orange-500'}`}>
-          {formatPrice(displayPrice)}
-        </span>
-        {(showOriginalPrice || hasFlashSale) && (
+        {!isMobile && (
+          <span className={`text-lg font-bold ${hasFlashSale ? 'text-red-500' : 'text-orange-500'}`}>
+            {formatPrice(displayPrice)}
+          </span>
+        )}
+        {(showOriginalPrice || hasFlashSale) && !isMobile && (
           <span className="text-xl text-gray-500 line-through">
             {formatPrice(hasFlashSale ? currentPrice : originalPrice!)}
           </span>
