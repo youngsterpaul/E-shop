@@ -842,6 +842,47 @@ export type Database = {
         }
         Relationships: []
       }
+      order_status_history: {
+        Row: {
+          change_reason: string | null
+          changed_at: string
+          changed_by: string | null
+          id: string
+          metadata: Json | null
+          new_status: string
+          old_status: string | null
+          order_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status: string
+          old_status?: string | null
+          order_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: string
+          old_status?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount: number | null
@@ -858,6 +899,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           username: string | null
+          webhook_secret: string | null
         }
         Insert: {
           amount?: number | null
@@ -874,6 +916,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           username?: string | null
+          webhook_secret?: string | null
         }
         Update: {
           amount?: number | null
@@ -890,6 +933,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           username?: string | null
+          webhook_secret?: string | null
         }
         Relationships: []
       }
@@ -1780,6 +1824,14 @@ export type Database = {
     }
     Enums: {
       app_role: "superadmin" | "admin" | "moderator" | "user"
+      order_status_enum:
+        | "pending"
+        | "processing"
+        | "paid"
+        | "packed"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1908,6 +1960,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["superadmin", "admin", "moderator", "user"],
+      order_status_enum: [
+        "pending",
+        "processing",
+        "paid",
+        "packed",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
     },
   },
 } as const
