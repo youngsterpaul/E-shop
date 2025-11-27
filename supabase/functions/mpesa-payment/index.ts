@@ -188,8 +188,17 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     formattedPhone = '254' + formattedPhone;
   }
 
-  // Use the project-specific function URL for callback
-  const callbackUrl = `https://sgpjnbdrmwrupeqhjqpj.supabase.co/functions/v1/mpesa-callback`;
+  // Generate unique webhook secret for this order
+  const webhookSecret = crypto.randomUUID();
+  
+  // Store webhook secret in order
+  await supabase
+    .from('orders')
+    .update({ webhook_secret: webhookSecret })
+    .eq('order_id', orderId);
+
+  // Use the project-specific function URL for callback with secret
+  const callbackUrl = `https://sgpjnbdrmwrupeqhjqpj.supabase.co/functions/v1/mpesa-callback?secret=${webhookSecret}`;
 
   const payload = {
     BusinessShortCode: shortcode,
