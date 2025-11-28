@@ -9,6 +9,11 @@ import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
+const STORAGE_KEY = 'otp_timer_signup_';
+const RATE_LIMIT_KEY = 'otp_requests_signup_';
+const MAX_REQUESTS = 3;
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,9 +26,50 @@ const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(600);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Check rate limiting
+  const checkRateLimit = (email: string): boolean => {
+    const key = RATE_LIMIT_KEY + email;
+    const stored = localStorage.getItem(key);
+    
+    if (!stored) return true;
+    
+    const requests = JSON.parse(stored);
+    const now = Date.now();
+    
+    // Filter out old requests
+    const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+    
+    if (recentRequests.length >= MAX_REQUESTS) {
+      const oldestRequest = Math.min(...recentRequests);
+      const timeUntilReset = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestRequest)) / 60000);
+      toast({
+        title: "Too many requests",
+        description: `Please wait ${timeUntilReset} minutes before requesting another code`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Add request to rate limit tracking
+  const addRateLimitRequest = (email: string) => {
+    const key = RATE_LIMIT_KEY + email;
+    const stored = localStorage.getItem(key);
+    const requests = stored ? JSON.parse(stored) : [];
+    const now = Date.now();
+    
+    // Keep only recent requests
+    const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+    recentRequests.push(now);
+    
+    localStorage.setItem(key, JSON.stringify(recentRequests));
+  };
 
   useEffect(() => {
     if (!email || !password) {
@@ -34,14 +80,37 @@ const VerifyOTP = () => {
     // Focus first input
     inputRefs.current[0]?.focus();
 
+    // Check for persisted timer
+    const storageKey = STORAGE_KEY + email;
+    const stored = localStorage.getItem(storageKey);
+    
+    let initialTime = 600;
+    if (stored) {
+      const { expiry } = JSON.parse(stored);
+      const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
+      initialTime = remaining;
+      if (remaining === 0) {
+        setCanResend(true);
+      }
+    }
+    
+    setTimeLeft(initialTime);
+
     // Countdown timer
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        const newTime = Math.max(0, prev - 1);
+        
+        // Update localStorage
+        if (newTime > 0) {
+          const expiry = Date.now() + (newTime * 1000);
+          localStorage.setItem(storageKey, JSON.stringify({ expiry, email }));
+        } else {
+          localStorage.removeItem(storageKey);
           setCanResend(true);
-          return 0;
         }
-        return prev - 1;
+        
+        return newTime;
       });
     }, 1000);
 
@@ -148,6 +217,11 @@ const VerifyOTP = () => {
   };
 
   const handleResend = async () => {
+    // Check rate limit
+    if (!checkRateLimit(email)) {
+      return;
+    }
+
     setIsResending(true);
     try {
       // Resend OTP by re-triggering signup
@@ -161,6 +235,9 @@ const VerifyOTP = () => {
 
       if (error) throw error;
 
+      // Track request
+      addRateLimitRequest(email);
+
       toast({
         title: "OTP resent",
         description: "A new verification code has been sent to your email",
@@ -169,6 +246,12 @@ const VerifyOTP = () => {
       setOtp(['', '', '', '', '', '']);
       setTimeLeft(600);
       setCanResend(false);
+      
+      // Update localStorage
+      const storageKey = STORAGE_KEY + email;
+      const expiry = Date.now() + (600 * 1000);
+      localStorage.setItem(storageKey, JSON.stringify({ expiry, email }));
+      
       inputRefs.current[0]?.focus();
     } catch (error: any) {
       console.error('Resend error:', error);

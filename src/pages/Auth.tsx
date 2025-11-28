@@ -16,6 +16,10 @@ import { MobileHeader } from '@/components/ui/mobile-header';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
+const RATE_LIMIT_KEY = 'otp_requests_reset_';
+const MAX_REQUESTS = 3;
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+
 const AuthPage = () => {
   const navigate = useNavigate();
   const { signIn, signUp, loading, user } = useAuth();
@@ -165,7 +169,47 @@ const AuthPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const checkRateLimit = (email: string): boolean => {
+    const key = RATE_LIMIT_KEY + email;
+    const stored = localStorage.getItem(key);
+    
+    if (!stored) return true;
+    
+    const requests = JSON.parse(stored);
+    const now = Date.now();
+    
+    // Filter out old requests
+    const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+    
+    if (recentRequests.length >= MAX_REQUESTS) {
+      const oldestRequest = Math.min(...recentRequests);
+      const timeUntilReset = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestRequest)) / 60000);
+      setAuthError(`Too many password reset attempts. Please wait ${timeUntilReset} minutes before trying again.`);
+      return false;
+    }
+    
+    return true;
+  };
+
+  const addRateLimitRequest = (email: string) => {
+    const key = RATE_LIMIT_KEY + email;
+    const stored = localStorage.getItem(key);
+    const requests = stored ? JSON.parse(stored) : [];
+    const now = Date.now();
+    
+    // Keep only recent requests
+    const recentRequests = requests.filter((time: number) => now - time < RATE_LIMIT_WINDOW);
+    recentRequests.push(now);
+    
+    localStorage.setItem(key, JSON.stringify(recentRequests));
+  };
+
   const handleForgotPassword = async () => {
+    // Check rate limit
+    if (!checkRateLimit(email)) {
+      return;
+    }
+
     try {
       // Send OTP for password recovery instead of reset link
       const { error } = await supabase.auth.signInWithOtp({
@@ -176,6 +220,9 @@ const AuthPage = () => {
       });
 
       if (error) throw error;
+
+      // Track request
+      addRateLimitRequest(email);
 
       // Navigate to OTP verification page for password reset
       navigate('/verify-password-reset-otp', { state: { email } });
