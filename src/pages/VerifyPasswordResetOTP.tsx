@@ -65,6 +65,11 @@ const VerifyPasswordResetOTP = () => {
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
+
+    // Auto-verify when all 6 digits are entered
+    if (value && index === 5 && newOtp.every(digit => digit !== '')) {
+      setTimeout(() => handleVerify(), 100);
+    }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -116,7 +121,7 @@ const VerifyPasswordResetOTP = () => {
 
       // OTP verified successfully - navigate to reset password page
       toast({
-        title: "Code verified!",
+        title: "Verification successful!",
         description: "Please enter your new password",
       });
 
@@ -124,17 +129,15 @@ const VerifyPasswordResetOTP = () => {
     } catch (error: any) {
       console.error('Verification error:', error);
       
-      let errorMessage = error.message || "Please try again";
+      let errorMessage = "Invalid OTP code. Please check and try again.";
       
       if (error.message?.includes('expired') || error.message?.includes('token_expired')) {
         errorMessage = "OTP has expired. Please request a new code.";
         setCanResend(true);
-      } else if (error.message?.includes('invalid') || error.message?.includes('token_hash')) {
-        errorMessage = "Invalid OTP code. Please check and try again.";
       }
 
       toast({
-        title: "Verification failed",
+        title: "Invalid code",
         description: errorMessage,
         variant: "destructive",
       });
