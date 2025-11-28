@@ -103,11 +103,11 @@ const VerifyOTP = () => {
     setIsVerifying(true);
 
     try {
-      // Use Supabase native verifyOtp for email verification
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+      // Verify the OTP token - this will automatically sign in the user
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email: email,
         token: otpCode,
-        type: 'email'
+        type: 'signup'
       });
 
       if (verifyError) {
@@ -115,27 +115,7 @@ const VerifyOTP = () => {
         throw verifyError;
       }
 
-      // After OTP verification, create the user account
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        }
-      });
-
-      if (signUpError) {
-        // If user already exists, just sign them in
-        if (signUpError.message.includes('already registered')) {
-          await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-          });
-        } else {
-          throw signUpError;
-        }
-      }
-
+      // OTP verified successfully - user is now signed in
       toast({
         title: "Account verified!",
         description: "Your account has been successfully created",
@@ -147,9 +127,10 @@ const VerifyOTP = () => {
       
       let errorMessage = error.message || "Please try again";
       
-      if (error.message?.includes('expired')) {
+      if (error.message?.includes('expired') || error.message?.includes('token_expired')) {
         errorMessage = "OTP has expired. Please request a new code.";
-      } else if (error.message?.includes('invalid')) {
+        setCanResend(true);
+      } else if (error.message?.includes('invalid') || error.message?.includes('token_hash')) {
         errorMessage = "Invalid OTP code. Please check and try again.";
       }
 
@@ -166,11 +147,11 @@ const VerifyOTP = () => {
   const handleResend = async () => {
     setIsResending(true);
     try {
-      // Use Supabase native resend OTP
-      const { error } = await supabase.auth.signInWithOtp({
+      // Resend OTP by re-triggering signup
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
         email: email,
         options: {
-          shouldCreateUser: false,
           emailRedirectTo: `${window.location.origin}/`,
         }
       });

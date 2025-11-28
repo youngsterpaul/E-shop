@@ -237,13 +237,16 @@ const AuthPage = () => {
       } else if (authMode === 'signup') {
         const result = await signUp(email, password);
         // Redirect to OTP verification page with email and password
-        if (result?.success) {
+        if (result.success) {
           navigate('/verify-otp', { 
             state: { 
               email: result.email || email, 
               password: result.password || password 
             } 
           });
+        } else {
+          // User was created and signed in immediately (no email confirmation required)
+          // Stay on this page, useEffect will redirect to home
         }
         return;
       } else {
