@@ -236,9 +236,14 @@ const AuthPage = () => {
         return;
       } else if (authMode === 'signup') {
         const result = await signUp(email, password);
-        // Redirect to OTP verification page
+        // Redirect to OTP verification page with email and password
         if (result?.success) {
-          navigate('/verify-otp', { state: { email, password } });
+          navigate('/verify-otp', { 
+            state: { 
+              email: result.email || email, 
+              password: result.password || password 
+            } 
+          });
         }
         return;
       } else {

@@ -9,7 +9,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{ success: boolean }>;
+  signUp: (email: string, password: string) => Promise<{ success: boolean; email?: string; password?: string }>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   lastActivity: number;
@@ -362,9 +362,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       cleanupAuthState();
       
-      // Send OTP instead of direct signup
-      const { error: otpError } = await supabase.functions.invoke('send-otp-email', {
-        body: { email: sanitizedEmail },
+      // Use Supabase native OTP - send verification email with OTP
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: sanitizedEmail,
+        options: {
+          shouldCreateUser: false, // Don't create user yet, just send OTP
+          emailRedirectTo: `${window.location.origin}/`,
+        }
       });
 
       if (otpError) {
@@ -374,11 +378,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Verification code sent",
-        description: "Please check your email for the verification code",
+        description: "Please check your email for the 6-digit verification code",
       });
 
-      // Return success without error to indicate OTP was sent
-      return { success: true };
+      // Return success to indicate OTP was sent, along with sanitized email and password
+      return { success: true, email: sanitizedEmail, password };
       
     } catch (error: any) {
       console.error('Registration error:', error);
