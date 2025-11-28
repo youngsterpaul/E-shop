@@ -360,28 +360,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(passwordErrors[0]);
       }
       
+      // Check if user already exists
+      const { data: existingUser } = await supabase.auth.signInWithPassword({
+        email: sanitizedEmail,
+        password: 'dummy-check-password'
+      });
+      
+      // If we get any response (even error), check if it's "Invalid login credentials"
+      // which could mean either wrong password OR user doesn't exist
+      // Better approach: try to sign up and handle the error
+      
       cleanupAuthState();
       
-      // Use Supabase native OTP - send verification email with OTP
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      // Use Supabase native OTP - create user and send OTP
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: sanitizedEmail,
+        password,
         options: {
-          shouldCreateUser: false, // Don't create user yet, just send OTP
           emailRedirectTo: `${window.location.origin}/`,
         }
       });
 
-      if (otpError) {
-        console.error('OTP send error:', otpError);
-        throw new Error('Failed to send verification code. Please try again.');
+      if (signUpError) {
+        console.error('SignUp error:', signUpError);
+        
+        // Handle user already exists
+        if (signUpError.message.includes('User already registered') || 
+            signUpError.message.includes('already been registered')) {
+          throw new Error('An account with this email already exists. Please sign in instead.');
+        }
+        
+        throw signUpError;
       }
 
-      toast({
-        title: "Verification code sent",
-        description: "Please check your email for the 6-digit verification code",
-      });
+      // If signup successful but email confirmation is disabled, user is created immediately
+      // If email confirmation is enabled, user needs to verify OTP
+      if (data.user && !data.session) {
+        toast({
+          title: "Verification code sent",
+          description: "Please check your email for the 6-digit verification code",
+        });
+        
+        return { success: true, email: sanitizedEmail, password };
+      } else if (data.session) {
+        // User created and signed in immediately (confirmations disabled)
+        toast({
+          title: "Account created!",
+          description: "You've been successfully registered and logged in.",
+        });
+        return { success: false }; // Don't redirect to OTP page
+      }
 
-      // Return success to indicate OTP was sent, along with sanitized email and password
       return { success: true, email: sanitizedEmail, password };
       
     } catch (error: any) {
