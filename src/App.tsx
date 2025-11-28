@@ -22,6 +22,8 @@ import { useSessionTimeout } from './hooks/useSessionTimeout';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
+const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
+const MFASetup = lazy(() => import("./pages/MFASetup"));
 const Index = lazy(() => import("./pages/Index"));
 const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
@@ -219,6 +221,7 @@ function App() {
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
+            <Route path="verify-otp" element={<VerifyOTP />} />
             <Route path="/" element={<Index />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
@@ -232,6 +235,7 @@ function App() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/mfa-setup" element={<MFASetup />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<AboutPage />} />

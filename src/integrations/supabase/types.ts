@@ -570,6 +570,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verifications: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          max_attempts: number | null
+          otp_code: string
+          verified: boolean | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          max_attempts?: number | null
+          otp_code: string
+          verified?: boolean | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          max_attempts?: number | null
+          otp_code?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       flash_sale_products: {
         Row: {
           created_at: string | null
@@ -1725,6 +1758,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_mfa_settings: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string | null
+          id: string
+          mfa_enabled: boolean | null
+          mfa_method: string | null
+          phone_number: string | null
+          totp_secret: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          id?: string
+          mfa_enabled?: boolean | null
+          mfa_method?: string | null
+          phone_number?: string | null
+          totp_secret?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          id?: string
+          mfa_enabled?: boolean | null
+          mfa_method?: string | null
+          phone_number?: string | null
+          totp_secret?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1790,6 +1859,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_carts: { Args: never; Returns: number }
+      cleanup_expired_otps: { Args: never; Returns: number }
       cleanup_expired_sessions: { Args: never; Returns: number }
       generate_po_number: { Args: never; Returns: string }
       generate_referral_code: {

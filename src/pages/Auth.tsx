@@ -235,21 +235,11 @@ const AuthPage = () => {
         await handlePasswordReset();
         return;
       } else if (authMode === 'signup') {
-        await signUp(email, password);
-
-        setSuccessMessage(
-          'Account created successfully! Please check your email inbox or spam folder to confirm your email before signing in.'
-        );
-
-        // Switch to sign-in form after a short delay
-        setTimeout(() => {
-          setSuccessMessage('');
-          setAuthMode('signin');
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-        }, 4000);
-
+        const result = await signUp(email, password);
+        // Redirect to OTP verification page
+        if (result?.success) {
+          navigate('/verify-otp', { state: { email, password } });
+        }
         return;
       } else {
         await signIn(email, password);
