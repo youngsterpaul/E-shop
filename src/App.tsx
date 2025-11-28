@@ -23,6 +23,7 @@ import { useSessionTimeout } from './hooks/useSessionTimeout';
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
+const VerifyPasswordResetOTP = lazy(() => import("./pages/VerifyPasswordResetOTP"));
 const MFASetup = lazy(() => import("./pages/MFASetup"));
 const Index = lazy(() => import("./pages/Index"));
 const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
@@ -222,6 +223,7 @@ function App() {
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
             <Route path="verify-otp" element={<VerifyOTP />} />
+            <Route path="verify-password-reset-otp" element={<VerifyPasswordResetOTP />} />
             <Route path="/" element={<Index />} />
             <Route path="/category/:categorySlug" element={<CategoryPage />} />
             <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />

@@ -167,19 +167,25 @@ const AuthPage = () => {
 
   const handleForgotPassword = async () => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?mode=reset`,
+      // Send OTP for password recovery instead of reset link
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false, // Don't create user if they don't exist
+        }
       });
 
       if (error) throw error;
 
-      setResetEmailSent(true);
+      // Navigate to OTP verification page for password reset
+      navigate('/verify-password-reset-otp', { state: { email } });
+      
       toast({
-        title: "Reset link sent",
-        description: "Check your email for a password reset link.",
+        title: "Reset code sent",
+        description: "Check your email for a 6-digit verification code.",
       });
     } catch (error: any) {
-      setAuthError(error.message || 'Failed to send reset email');
+      setAuthError(error.message || 'Failed to send reset code');
     }
   };
 
