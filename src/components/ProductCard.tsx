@@ -3,7 +3,7 @@ import { Heart, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
-import { useProductFlashSale } from '@/hooks/useFlashSales';
+import { useProductFlashSaleFromContext } from '@/contexts/FlashSaleContext';
 import OptimizedImage from './OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
@@ -31,7 +31,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const isMobile = isMobileUserAgent();
-  const { data: flashSale } = useProductFlashSale(product.id);
+  const { data: flashSale } = useProductFlashSaleFromContext(product.id);
 
   const productSlug = product.name
     .toLowerCase()

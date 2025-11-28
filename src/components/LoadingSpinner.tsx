@@ -10,36 +10,51 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
-  text = "Loading, please wait...",
+  text = "Loading",
   overlay = false,
   className,
 }) => {
   const sizeClasses = {
-    sm: "w-6 h-6 border-2",
-    md: "w-10 h-10 border-3",
-    lg: "w-16 h-16 border-4",
+    sm: "w-8 h-8",
+    md: "w-12 h-12",
+    lg: "w-16 h-16",
   };
 
   const spinner = (
-    <div className="flex flex-col items-center justify-center space-y-3">
-      <div
-        className={cn(
-          "rounded-full border-solid border-t-green-500 border-r-green-500 border-l-transparent border-b-transparent animate-spin",
-          sizeClasses[size]
-        )}
-        style={{ animationDuration: "0.9s" }}
-      ></div>
+    <div className="flex flex-col items-center justify-center gap-6">
+      <div className="relative">
+        <div
+          className={cn(
+            "rounded-full border-[3px] border-primary/20",
+            sizeClasses[size]
+          )}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 rounded-full border-[3px] border-transparent border-t-primary animate-spin",
+            sizeClasses[size]
+          )}
+          style={{ animationDuration: "0.8s" }}
+        />
+      </div>
       {text && (
-        <p className="text-gray-700 text-sm md:text-base font-medium animate-pulse">
-          {text}
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-foreground/80 text-sm font-medium tracking-wide">
+            {text}
+          </p>
+          <div className="flex gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+          </div>
+        </div>
       )}
     </div>
   );
 
   if (overlay) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-md z-50">
         {spinner}
       </div>
     );
@@ -48,7 +63,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center min-h-screen bg-white",
+        "flex items-center justify-center min-h-screen bg-background",
         className
       )}
     >
