@@ -9,7 +9,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{ success: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   lastActivity: number;
@@ -362,37 +362,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       cleanupAuthState();
       
-      const { data, error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            email_confirm: true,
-          }
-        }
+      // Send OTP instead of direct signup
+      const { error: otpError } = await supabase.functions.invoke('send-otp-email', {
+        body: { email: sanitizedEmail },
       });
 
-      if (error) {
-        //console.error('Sign up error:', error);
-        throw error;
+      if (otpError) {
+        console.error('OTP send error:', otpError);
+        throw new Error('Failed to send verification code. Please try again.');
       }
 
-      if (data.user && !data.user.email_confirmed_at) {
-        toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link. Please check your email to complete registration.",
-        });
-      } else {
-        updateActivity();
-        toast({
-          title: "Registration successful",
-          description: "Your account has been created.",
-        });
-      }
+      toast({
+        title: "Verification code sent",
+        description: "Please check your email for the verification code",
+      });
+
+      // Return success without error to indicate OTP was sent
+      return { success: true };
       
     } catch (error: any) {
-      //console.error('Registration error:', error);
+      console.error('Registration error:', error);
       throw error;
     } finally {
       setLoading(false);
