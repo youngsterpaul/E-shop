@@ -27,6 +27,8 @@ const VerifyPasswordResetOTP = () => {
   const [isResending, setIsResending] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
   const [canResend, setCanResend] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Check rate limiting
@@ -126,6 +128,10 @@ const VerifyPasswordResetOTP = () => {
     // Only allow numbers
     if (value && !/^\d$/.test(value)) return;
 
+    // Clear any previous messages
+    setErrorMessage('');
+    setSuccessMessage('');
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -137,7 +143,10 @@ const VerifyPasswordResetOTP = () => {
 
     // Auto-verify when all 6 digits are entered
     if (value && index === 5 && newOtp.every(digit => digit !== '')) {
-      setTimeout(() => handleVerify(), 100);
+      setTimeout(() => {
+        const otpCode = newOtp.join('');
+        handleVerify(otpCode);
+      }, 300);
     }
   };
 
@@ -161,19 +170,23 @@ const VerifyPasswordResetOTP = () => {
     inputRefs.current[lastIndex]?.focus();
   };
 
-  const handleVerify = async () => {
-    const otpCode = otp.join('');
+  const handleVerify = async (code?: string) => {
+    const otpCode = code || otp.join('');
     
     if (otpCode.length !== 6) {
+      const msg = "Please enter the complete 6-digit code";
+      setErrorMessage(msg);
       toast({
         title: "Invalid OTP",
-        description: "Please enter the complete 6-digit code",
+        description: msg,
         variant: "destructive",
       });
       return;
     }
 
     setIsVerifying(true);
+    setErrorMessage('');
+    setSuccessMessage('');
 
     try {
       // Verify the OTP for password recovery
@@ -189,25 +202,33 @@ const VerifyPasswordResetOTP = () => {
       }
 
       // OTP verified successfully - navigate to reset password page
+      const msg = "Verification successful! Redirecting...";
+      setSuccessMessage(msg);
       toast({
         title: "Verification successful!",
         description: "Please enter your new password",
       });
 
-      navigate('/auth?mode=reset');
+      setTimeout(() => {
+        navigate('/auth?mode=reset');
+      }, 1000);
     } catch (error: any) {
       console.error('Verification error:', error);
       
-      let errorMessage = "Invalid OTP code. Please check and try again.";
+      let errorMsg = "Invalid OTP code. Please try again.";
       
       if (error.message?.includes('expired') || error.message?.includes('token_expired')) {
-        errorMessage = "OTP has expired. Please request a new code.";
+        errorMsg = "OTP has expired. Please request a new code.";
         setCanResend(true);
       }
 
+      setErrorMessage(errorMsg);
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+      
       toast({
-        title: "Invalid code",
-        description: errorMessage,
+        title: "Verification failed",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -292,11 +313,25 @@ const VerifyPasswordResetOTP = () => {
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-xl font-bold"
+                  className={`w-12 h-14 text-center text-xl font-bold transition-colors ${
+                    errorMessage ? 'border-destructive' : ''
+                  } ${successMessage ? 'border-green-500' : ''}`}
                   disabled={isVerifying}
                 />
               ))}
             </div>
+            
+            {/* Error/Success Messages */}
+            {errorMessage && (
+              <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+              </div>
+            )}
+            {successMessage && (
+              <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <p className="text-sm text-green-600 dark:text-green-400 text-center font-medium">{successMessage}</p>
+              </div>
+            )}
             
             {/* Timer */}
             <div className="text-center">
@@ -304,7 +339,7 @@ const VerifyPasswordResetOTP = () => {
                 {timeLeft > 0 ? (
                   <>Code expires in <span className="font-semibold text-foreground">{formatTime(timeLeft)}</span></>
                 ) : (
-                  <span className="text-destructive">Code expired</span>
+                  <span className="text-destructive font-semibold">Code expired</span>
                 )}
               </p>
             </div>
@@ -312,11 +347,18 @@ const VerifyPasswordResetOTP = () => {
 
           {/* Verify Button */}
           <Button
-            onClick={handleVerify}
+            onClick={() => handleVerify()}
             disabled={otp.some(digit => !digit) || isVerifying}
             className="w-full h-11 mb-4"
           >
-            {isVerifying ? "Verifying..." : "Verify & Continue"}
+            {isVerifying ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Verify & Continue"
+            )}
           </Button>
 
           {/* Resend */}
