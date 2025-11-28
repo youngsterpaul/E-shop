@@ -9,6 +9,7 @@ import { CartProvider } from '@/contexts/CartContext';
 import { SelectiveCartProvider } from '@/contexts/SelectiveCartContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { FlashSaleProvider } from '@/contexts/FlashSaleContext';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 //import { CookieConsent } from '@/components/CookieConsent';
 //import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
@@ -74,9 +75,10 @@ createRoot(document.getElementById('root')!).render(
             <AuthProvider>
               <ABTestProvider>
                 <NotificationProvider>
-                  <CartProvider>
-                    <SelectiveCartProvider>
-                      <CheckoutProvider>
+                  <FlashSaleProvider>
+                    <CartProvider>
+                      <SelectiveCartProvider>
+                        <CheckoutProvider>
                         <AccessibilitySkipLink />
                         <AppWithAnalytics />
                       {/* <CookieConsent /> */}
@@ -85,9 +87,10 @@ createRoot(document.getElementById('root')!).render(
                       {/* <PWAInstallPrompt /> */}
                         <OfflineIndicator />
                         <OfflineCacheManager />
-                      </CheckoutProvider>
-                    </SelectiveCartProvider>
-                  </CartProvider>
+                        </CheckoutProvider>
+                      </SelectiveCartProvider>
+                    </CartProvider>
+                  </FlashSaleProvider>
                 </NotificationProvider>
               </ABTestProvider>
             </AuthProvider>
