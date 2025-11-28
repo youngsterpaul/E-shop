@@ -48,12 +48,13 @@ site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = ["https://127.0.0.1:3000"]
 jwt_expiry = 3600
 enable_signup = true
-enable_confirmations = false
+enable_confirmations = true
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = false
+enable_confirmations = true
+max_frequency = "1s"
 
 [auth.sms]
 enable_signup = false
@@ -68,9 +69,6 @@ verify_jwt = false
 
 [functions.order-fulfillment]
 verify_jwt = true
-
-[functions.send-otp-email]
-verify_jwt = false
 
 [analytics]
 enabled = false
