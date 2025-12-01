@@ -25,7 +25,7 @@ const VerifyPasswordResetOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -85,7 +85,7 @@ const VerifyPasswordResetOTP = () => {
     const storageKey = STORAGE_KEY + email;
     const stored = localStorage.getItem(storageKey);
     
-    let initialTime = 600;
+    let initialTime = 60;
     if (stored) {
       const { expiry } = JSON.parse(stored);
       const remaining = Math.max(0, Math.floor((expiry - Date.now()) / 1000));
@@ -215,13 +215,7 @@ const VerifyPasswordResetOTP = () => {
     } catch (error: any) {
       console.error('Verification error:', error);
       
-      let errorMsg = "Invalid OTP code. Please try again.";
-      
-      if (error.message?.includes('expired') || error.message?.includes('token_expired')) {
-        errorMsg = "OTP has expired. Please request a new code.";
-        setCanResend(true);
-      }
-
+      const errorMsg = "OTP is Invalid";
       setErrorMessage(errorMsg);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -263,12 +257,12 @@ const VerifyPasswordResetOTP = () => {
       });
 
       setOtp(['', '', '', '', '', '']);
-      setTimeLeft(600);
+      setTimeLeft(60);
       setCanResend(false);
       
       // Update localStorage
       const storageKey = STORAGE_KEY + email;
-      const expiry = Date.now() + (600 * 1000);
+      const expiry = Date.now() + (60 * 1000);
       localStorage.setItem(storageKey, JSON.stringify({ expiry, email }));
       
       inputRefs.current[0]?.focus();
