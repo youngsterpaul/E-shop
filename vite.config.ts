@@ -65,8 +65,10 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
         react: path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
+        "react-router": path.resolve(__dirname, "node_modules/react-router"),
       },
-      dedupe: ["react", "react-dom", "react-router-dom"]
+      dedupe: ["react", "react-dom", "react-router-dom", "react-router", "@tanstack/react-query"]
     },
 
     define: {
