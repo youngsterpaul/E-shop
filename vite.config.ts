@@ -4,7 +4,6 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { execSync } from "child_process";
 import fs from "fs";
-import compression from "vite-plugin-compression";
 
 export default defineConfig(({ mode }) => {
   // ✅ Get version info (from package.json or Git commit)
@@ -57,18 +56,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       versionPlugin(),
-      // Gzip compression for better transfer size
-      mode === "production" && compression({
-        algorithm: 'gzip',
-        ext: '.gz',
-        threshold: 1024, // Only compress files larger than 1kb
-      }),
-      // Brotli compression (better than gzip)
-      mode === "production" && compression({
-        algorithm: 'brotliCompress',
-        ext: '.br',
-        threshold: 1024,
-      }),
       // Only include tagger in dev mode
       mode === "development" && componentTagger(),
     ].filter(Boolean),
