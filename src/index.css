@@ -48,11 +48,11 @@
     --success-foreground: 355 100% 97%;
 
     --border: 240 4% 83%;
-    --input: 240 4% 83%;
+    --input: 0 0% 100%;
     /* Changed orange ring → green */
     --ring: 333 71% 50%;
 
-    --radius: 1.5rem;
+    --radius: 1.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5% 10%;
@@ -150,6 +150,7 @@
     --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --radius: 1.75rem;
   }
 }
 
