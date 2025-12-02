@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { execSync } from "child_process";
 import fs from "fs";
+import compression from "vite-plugin-compression";
 
 export default defineConfig(({ mode }) => {
   // ✅ Get version info (from package.json or Git commit)
@@ -56,6 +57,18 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       versionPlugin(),
+      // Gzip compression for better transfer size
+      mode === "production" && compression({
+        algorithm: 'gzip',
+        ext: '.gz',
+        threshold: 1024, // Only compress files larger than 1kb
+      }),
+      // Brotli compression (better than gzip)
+      mode === "production" && compression({
+        algorithm: 'brotliCompress',
+        ext: '.br',
+        threshold: 1024,
+      }),
       // Only include tagger in dev mode
       mode === "development" && componentTagger(),
     ].filter(Boolean),
@@ -112,9 +125,19 @@ export default defineConfig(({ mode }) => {
           // ✅ Advanced code splitting for fewer HTTP requests
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
-            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
-            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-ui': [
+              '@radix-ui/react-dialog', 
+              '@radix-ui/react-dropdown-menu', 
+              '@radix-ui/react-select', 
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-accordion',
+              '@radix-ui/react-checkbox',
+              '@radix-ui/react-label',
+              '@radix-ui/react-switch',
+              '@radix-ui/react-tooltip',
+            ],
+            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge', 'class-variance-authority'],
+            'vendor-data': ['@supabase/supabase-js', '@tanstack/react-query'],
             'vendor-forms': ['react-hook-form', 'zod'],
           },
         },
