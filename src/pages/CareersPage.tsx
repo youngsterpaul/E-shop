@@ -1,18 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin, Clock, DollarSign, Users, Target, Heart, Zap, Settings } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Search, Users, Target, Heart, Zap, Loader2 } from 'lucide-react';
 import JobCard from '@/components/careers/JobCard';
 import ApplicationModal from '@/components/careers/ApplicationModal';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useJobListings, JobListing } from '@/hooks/useJobListings';
 
+// Map JobListing to the format expected by JobCard
 interface Job {
   id: string;
   title: string;
@@ -27,7 +26,7 @@ interface Job {
 
 const CareersPage = () => {
   const isMobile = isMobileUserAgent();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const { jobs: jobListings, isLoading } = useJobListings(true);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -36,82 +35,21 @@ const CareersPage = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const jobsData: Job[] = [
-    {
-      id: '1',
-      title: 'Digital Marketing Manager',
-      location: 'Remote/Hybrid',
-      experience: '3-5 years',
-      department: 'Marketing',
-      type: 'Full-time',
-      responsibilities: [
-        'Develop and execute comprehensive SEO strategies',
-        'Create and manage content marketing campaigns',
-        'Oversee social media management and growth',
-        'Analyze campaign performance and optimize ROI',
-        'Lead cross-functional marketing initiatives'
-      ],
-      requirements: [
-        'Bachelor\'s degree in Marketing or related field',
-        'Google Analytics and AdWords certified',
-        '3-5 years of digital marketing experience',
-        'Proficiency in marketing automation tools',
-        'Strong analytical and project management skills'
-      ],
-      salaryRange: 'Ksh 60,000 - Ksh 80,000'
-    },
-    {
-      id: '2',
-      title: 'Sales Development Representative',
-      location: 'On-site',
-      experience: '1-3 years',
-      department: 'Sales',
-      type: 'Full-time',
-      responsibilities: [
-        'Generate and qualify leads through various channels',
-        'Conduct cold outreach via phone and email',
-        'Manage and maintain sales pipeline in CRM',
-        'Collaborate with sales team to close deals',
-        'Meet and exceed monthly lead generation targets'
-      ],
-      requirements: [
-        'Previous sales or customer service experience',
-        'Proficiency with CRM systems (Salesforce preferred)',
-        'Excellent verbal and written communication skills',
-        'Strong interpersonal and negotiation abilities',
-        'Goal-oriented with a competitive mindset'
-      ],
-      salaryRange: 'Ksh 45,000 - Ksh 65,000 + commission'
-    },
-    {
-      id: '3',
-      title: 'Marketing Coordinator',
-      location: 'Remote',
-      experience: 'Entry level - 2 years',
-      department: 'Marketing',
-      type: 'Full-time',
-      responsibilities: [
-        'Execute multi-channel marketing campaigns',
-        'Plan and coordinate marketing events and webinars',
-        'Create engaging content for various platforms',
-        'Assist with market research and competitive analysis',
-        'Support lead generation and nurturing activities'
-      ],
-      requirements: [
-        'Bachelor\'s degree in Marketing, Communications, or related field',
-        'Strong social media and content creation skills',
-        'Creative thinking with attention to detail',
-        'Basic knowledge of design tools (Canva, Adobe Creative Suite)',
-        'Excellent organizational and time management skills'
-      ],
-      salaryRange: 'Ksh 40,000 - Ksh 55,000'
-    }
-  ];
+  // Map database format to component format
+  const jobs: Job[] = jobListings.map(j => ({
+    id: j.id,
+    title: j.title,
+    location: j.location,
+    experience: j.experience,
+    department: j.department,
+    responsibilities: j.responsibilities,
+    requirements: j.requirements,
+    salaryRange: j.salary_range || '',
+    type: j.type,
+  }));
 
-  useEffect(() => {
-    setJobs(jobsData);
-    setFilteredJobs(jobsData);
-  }, []);
+  // Get unique departments for filter
+  const departments = [...new Set(jobs.map(j => j.department))];
 
   useEffect(() => {
     let filtered = jobs;
@@ -141,7 +79,7 @@ const CareersPage = () => {
     }
 
     setFilteredJobs(filtered);
-  }, [searchTerm, departmentFilter, locationFilter, experienceFilter, jobs]);
+  }, [searchTerm, departmentFilter, locationFilter, experienceFilter, jobListings]);
 
   const handleApplyClick = (job: Job) => {
     setSelectedJob(job);
@@ -150,7 +88,6 @@ const CareersPage = () => {
 
   return (
     <>
-      {/* Careers Page Schema */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
@@ -161,18 +98,8 @@ const CareersPage = () => {
           "breadcrumb": {
             "@type": "BreadcrumbList",
             "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://smartkenya.co.ke"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "About",
-                "item": "https://smartkenya.co.ke/careers"
-              }
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smartkenya.co.ke" },
+              { "@type": "ListItem", "position": 2, "name": "Careers", "item": "https://smartkenya.co.ke/careers" }
             ]
           }
         })}
@@ -184,18 +111,14 @@ const CareersPage = () => {
       </Helmet>
 
       <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
-         {/* Hero Section */}
+        {/* Hero Section */}
         <section className={`relative py-20 mb-8 px-4 text-center overflow-hidden ${!isMobile ? 'max-w-6xl container xl:px-24 px-4 bg-white' : ''}`}>
-          <div className="">
-            {/* Breadcrumb */}
+          <div>
             {!isMobile && (
               <SiteBreadcrumb 
-              items={[
-                { label: 'Home', href: '/' },
-                { label: 'Careers' }
-              ]}
-              className="mb-6 hidden"
-            />
+                items={[{ label: 'Home', href: '/' }, { label: 'Careers' }]}
+                className="mb-6 hidden"
+              />
             )}
 
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in">
@@ -216,7 +139,7 @@ const CareersPage = () => {
         </section>
 
         {/* Company Values Section */}
-        <section className="py-16 px-4 bg-white max-w-6xl mx-auto container xl:px-24 px-4">
+        <section className="py-16 px-4 bg-white max-w-6xl mx-auto container xl:px-24">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
@@ -291,8 +214,9 @@ const CareersPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Sales">Sales</SelectItem>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={locationFilter} onValueChange={setLocationFilter}>
@@ -321,7 +245,11 @@ const CareersPage = () => {
 
             {/* Job Cards */}
             <div className="space-y-6">
-              {filteredJobs.length > 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
                   <JobCard 
                     key={job.id} 

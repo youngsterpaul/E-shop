@@ -213,6 +213,13 @@ export function ModernAdminSidebar() {
       roles: ['superadmin', 'admin'],
       badge: null,
     },
+    {
+      name: 'Careers',
+      icon: Users2,
+      path: '/supersmartkenyaadmin123/careers',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
   ];
 
   const managementMenuItems = [

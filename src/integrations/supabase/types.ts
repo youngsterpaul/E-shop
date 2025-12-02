@@ -741,6 +741,54 @@ export type Database = {
         }
         Relationships: []
       }
+      job_listings: {
+        Row: {
+          created_at: string | null
+          department: string
+          display_order: number | null
+          experience: string
+          id: string
+          is_active: boolean | null
+          location: string
+          requirements: string[] | null
+          responsibilities: string[] | null
+          salary_range: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          display_order?: number | null
+          experience: string
+          id?: string
+          is_active?: boolean | null
+          location: string
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          salary_range?: string | null
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          display_order?: number | null
+          experience?: string
+          id?: string
+          is_active?: boolean | null
+          location?: string
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          salary_range?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       login_audit: {
         Row: {
           created_at: string | null
