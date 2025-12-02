@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -138,7 +138,9 @@ const ApplicationModal = ({ job, isOpen, onClose }: ApplicationModalProps) => {
           <DialogTitle className="text-2xl">
             Apply for {job.title}
           </DialogTitle>
-          <p className="text-gray-600">{job.department} • {job.location}</p>
+          <DialogDescription>
+            {job.department} • {job.location}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">

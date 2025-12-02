@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useJobListings, JobListing } from '@/hooks/useJobListings';
 import { useToast } from '@/hooks/use-toast';
@@ -191,6 +191,9 @@ const AdminCareersPage = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingJob ? 'Edit Job Listing' : 'Add Job Listing'}</DialogTitle>
+            <DialogDescription>
+              {editingJob ? 'Update job listing details' : 'Create a new job listing for your careers page'}
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
