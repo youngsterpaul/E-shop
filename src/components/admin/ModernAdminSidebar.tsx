@@ -38,6 +38,7 @@ import {
   FileText,
   DollarSign,
   Zap,
+  HelpCircle,
   Phone,
 } from 'lucide-react';
 import {
@@ -217,6 +218,13 @@ export function ModernAdminSidebar() {
       name: 'Careers',
       icon: Users2,
       path: '/supersmartkenyaadmin123/careers',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'FAQ',
+      icon: HelpCircle,
+      path: '/supersmartkenyaadmin123/faq',
       roles: ['superadmin', 'admin'],
       badge: null,
     },
