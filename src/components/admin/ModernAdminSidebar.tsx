@@ -228,6 +228,13 @@ export function ModernAdminSidebar() {
       roles: ['superadmin', 'admin'],
       badge: null,
     },
+    {
+      name: 'Site Content',
+      icon: FileText,
+      path: '/supersmartkenyaadmin123/site-content',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
   ];
 
   const managementMenuItems = [
