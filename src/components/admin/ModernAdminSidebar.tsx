@@ -38,6 +38,7 @@ import {
   FileText,
   DollarSign,
   Zap,
+  Phone,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -268,6 +269,13 @@ export function ModernAdminSidebar() {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
+      name: 'Contact Settings',
+      icon: Phone,
+      path: '/supersmartkenyaadmin123/contact',
       roles: ['superadmin'],
       badge: null,
     },
