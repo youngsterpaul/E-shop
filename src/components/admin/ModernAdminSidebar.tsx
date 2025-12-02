@@ -38,6 +38,8 @@ import {
   FileText,
   DollarSign,
   Zap,
+  HelpCircle,
+  Phone,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -212,6 +214,27 @@ export function ModernAdminSidebar() {
       roles: ['superadmin', 'admin'],
       badge: null,
     },
+    {
+      name: 'Careers',
+      icon: Users2,
+      path: '/supersmartkenyaadmin123/careers',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'FAQ',
+      icon: HelpCircle,
+      path: '/supersmartkenyaadmin123/faq',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
+    {
+      name: 'Site Content',
+      icon: FileText,
+      path: '/supersmartkenyaadmin123/site-content',
+      roles: ['superadmin', 'admin'],
+      badge: null,
+    },
   ];
 
   const managementMenuItems = [
@@ -268,6 +291,13 @@ export function ModernAdminSidebar() {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
+      name: 'Contact Settings',
+      icon: Phone,
+      path: '/supersmartkenyaadmin123/contact',
       roles: ['superadmin'],
       badge: null,
     },

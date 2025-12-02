@@ -65,8 +65,10 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
         react: path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
+        "react-router": path.resolve(__dirname, "node_modules/react-router"),
       },
-      dedupe: ["react", "react-dom", "react-router-dom"]
+      dedupe: ["react", "react-dom", "react-router-dom", "react-router", "@tanstack/react-query"]
     },
 
     define: {
@@ -112,9 +114,19 @@ export default defineConfig(({ mode }) => {
           // ✅ Advanced code splitting for fewer HTTP requests
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
-            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
-            'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-ui': [
+              '@radix-ui/react-dialog', 
+              '@radix-ui/react-dropdown-menu', 
+              '@radix-ui/react-select', 
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-accordion',
+              '@radix-ui/react-checkbox',
+              '@radix-ui/react-label',
+              '@radix-ui/react-switch',
+              '@radix-ui/react-tooltip',
+            ],
+            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge', 'class-variance-authority'],
+            'vendor-data': ['@supabase/supabase-js', '@tanstack/react-query'],
             'vendor-forms': ['react-hook-form', 'zod'],
           },
         },

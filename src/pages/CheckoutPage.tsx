@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -786,6 +786,7 @@ const CheckoutPage = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Payment</DialogTitle>
+            <DialogDescription>Complete your M-Pesa payment</DialogDescription>
           </DialogHeader>
           {renderPaymentContent()}
         </DialogContent>

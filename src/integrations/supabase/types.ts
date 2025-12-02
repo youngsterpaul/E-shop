@@ -337,6 +337,33 @@ export type Database = {
           },
         ]
       }
+      contact_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       counties: {
         Row: {
           created_at: string | null
@@ -603,6 +630,39 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          question: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer: string
+          category: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          question: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          question?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       flash_sale_products: {
         Row: {
           created_at: string | null
@@ -711,6 +771,54 @@ export type Database = {
           link?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      job_listings: {
+        Row: {
+          created_at: string | null
+          department: string
+          display_order: number | null
+          experience: string
+          id: string
+          is_active: boolean | null
+          location: string
+          requirements: string[] | null
+          responsibilities: string[] | null
+          salary_range: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          display_order?: number | null
+          experience: string
+          id?: string
+          is_active?: boolean | null
+          location: string
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          salary_range?: string | null
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          display_order?: number | null
+          experience?: string
+          id?: string
+          is_active?: boolean | null
+          location?: string
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          salary_range?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1686,6 +1794,36 @@ export type Database = {
           session_id?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          page_key: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          page_key: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          page_key?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
