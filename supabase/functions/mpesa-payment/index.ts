@@ -322,26 +322,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check for duplicate pending payments
-    const { data: existingPayment } = await supabase
+    // Cancel any existing pending payments for this order before creating new one
+    const { error: cancelError } = await supabase
       .from('mpesa_payments')
-      .select('id, status')
+      .update({ 
+        status: 'cancelled',
+        result_desc: 'Cancelled - new payment initiated',
+        updated_at: new Date().toISOString()
+      })
       .eq('order_id', orderId)
-      .eq('status', 'pending')
-      .maybeSingle();
+      .eq('status', 'pending');
     
-    if (existingPayment) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Duplicate payment',
-          message: 'A payment is already in progress for this order'
-        }),
-        { 
-          status: 409, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    if (cancelError) {
+      console.error('Error cancelling existing pending payments:', cancelError);
     }
 
     // Initiate STK Push
