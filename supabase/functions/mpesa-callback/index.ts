@@ -328,11 +328,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If payment was successful, update order status and send confirmation email
     if (ResultCode === 0 && payment?.order_id) {
-      // Update order status to 'paid' (will be validated by database trigger)
+      // Update order status to 'processing' (valid transition from pending)
       const { error: orderUpdateError } = await supabase
         .from('orders')
         .update({ 
-          status: 'paid',
+          status: 'processing',
           updated_at: new Date().toISOString()
         })
         .eq('order_id', payment.order_id);
