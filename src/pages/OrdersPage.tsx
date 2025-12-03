@@ -10,6 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ReviewButton from '@/components/ReviewButton';
+import { useMpesaPayment } from '@/hooks/useMpesaPayment';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import {
   Package,
   Search,
@@ -22,6 +25,9 @@ import {
   AlertCircle,
   ChevronDown,
   PackageX,
+  CreditCard,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -63,14 +69,23 @@ const LOAD_MORE_COUNT = 8;
 const OrdersPage = memo(() => {
   const isMobile = isMobileUserAgent();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { initiatePayment, checkPaymentStatus } = useMpesaPayment();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatus, setActiveStatus] = useState('all');
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<{
+    status: string;
+    message: string;
+  }>({ status: 'idle', message: '' });
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -118,6 +133,68 @@ const OrdersPage = memo(() => {
 
   const displayedOrders = filteredOrders.slice(0, displayCount);
   const hasMore = displayedOrders.length < filteredOrders.length;
+
+  // Handle Pay Now for pending orders
+  const handlePayNow = async (order: Order) => {
+    if (!profile?.phone) {
+      toast({
+        title: 'Phone number required',
+        description: 'Please update your profile with a phone number to pay.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setPayingOrderId(order.order_id);
+    setShowPaymentModal(true);
+    setPaymentStatus({ status: 'processing', message: 'Initiating payment...' });
+
+    try {
+      const result = await initiatePayment({
+        phone: profile.phone,
+        amount: order.amount || 0,
+        orderId: order.order_id,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Payment initiation failed');
+      }
+
+      setPaymentStatus({ status: 'waiting', message: 'Check your phone and enter your M-Pesa PIN' });
+
+      // Poll for payment status
+      const pollPayment = setInterval(async () => {
+        if (result.checkoutRequestId) {
+          const status = await checkPaymentStatus(result.checkoutRequestId);
+          if (status?.status === 'success') {
+            setPaymentStatus({ status: 'success', message: 'Payment successful!' });
+            clearInterval(pollPayment);
+            setTimeout(() => {
+              setShowPaymentModal(false);
+              setPayingOrderId(null);
+              fetchOrders(); // Refresh orders
+            }, 2000);
+          } else if (status?.status === 'failed') {
+            setPaymentStatus({ status: 'failed', message: status.result_desc || 'Payment failed' });
+            clearInterval(pollPayment);
+          }
+        }
+      }, 1000);
+
+      // Timeout after 60 seconds
+      setTimeout(() => {
+        clearInterval(pollPayment);
+        if (paymentStatus.status === 'waiting') {
+          setPaymentStatus({ status: 'timeout', message: 'Payment request timed out' });
+        }
+      }, 60000);
+    } catch (error) {
+      setPaymentStatus({
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Payment failed. Please try again.',
+      });
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -260,6 +337,18 @@ const OrdersPage = memo(() => {
                           Ksh {(order.amount || 0).toLocaleString()}
                         </span>
                       </div>
+                      
+                      {/* Pay Now button for pending orders */}
+                      {order.status === 'pending' && (
+                        <Button
+                          className="w-full mt-3"
+                          onClick={() => handlePayNow(order)}
+                          disabled={payingOrderId === order.order_id}
+                        >
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Pay Now
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -288,6 +377,74 @@ const OrdersPage = memo(() => {
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={(open) => {
+        if (!open && paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
+          setShowPaymentModal(false);
+          setPayingOrderId(null);
+          setPaymentStatus({ status: 'idle', message: '' });
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              M-Pesa Payment
+            </DialogTitle>
+            <DialogDescription>
+              {payingOrderId && `Order #${payingOrderId.slice(-8).toUpperCase()}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 text-center">
+            {paymentStatus.status === 'processing' && (
+              <div className="space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <p className="text-sm text-muted-foreground">Initiating payment...</p>
+              </div>
+            )}
+            
+            {paymentStatus.status === 'waiting' && (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Progress value={50} className="h-2" />
+                </div>
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <p className="font-medium">Check your phone</p>
+                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+              </div>
+            )}
+            
+            {paymentStatus.status === 'success' && (
+              <div className="space-y-4">
+                <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+                <p className="font-medium text-green-600">Payment Successful!</p>
+              </div>
+            )}
+            
+            {(paymentStatus.status === 'failed' || paymentStatus.status === 'timeout') && (
+              <div className="space-y-4">
+                <XCircle className="h-12 w-12 mx-auto text-red-500" />
+                <p className="font-medium text-red-600">
+                  {paymentStatus.status === 'timeout' ? 'Payment Timed Out' : 'Payment Failed'}
+                </p>
+                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPayingOrderId(null);
+                    setPaymentStatus({ status: 'idle', message: '' });
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
