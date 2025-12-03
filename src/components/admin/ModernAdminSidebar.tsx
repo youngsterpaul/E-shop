@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useUserRoutePermissions } from '@/hooks/useUserRoutePermissions';
 import { useSecurityAlertsCount } from '@/hooks/useSecurityAlertsCount';
 import { usePendingOrdersCount } from '@/hooks/usePendingOrdersCount';
 import { usePendingReturnsCount } from '@/hooks/usePendingReturnsCount';
@@ -11,27 +11,20 @@ import {
   ShoppingCart,
   Users,
   Settings,
-  LogOut,
   Plus,
   Tags,
   Tag,
   PackageX,
-  Bell,
   Store,
   Image,
   MapPin,
   Shield,
   Activity,
   TrendingUp,
-  ChevronRight,
   Star,
-  Factory,
-  Building2,
-  FolderTree,
-  PackageSearch,
+  Users2,
   Warehouse,
   Truck,
-  Users2,
   BarChart3,
   Home,
   Mail,
@@ -51,7 +44,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
@@ -64,7 +56,6 @@ interface MenuItem {
   name: string;
   icon: any;
   path: string;
-  roles: string[];
   badge?: string | null;
   badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
 }
@@ -72,8 +63,9 @@ interface MenuItem {
 export function ModernAdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const { isSuperAdmin, isAdmin, isModerator, loading } = useUserRole(user?.id);
+  const { user } = useAuth();
+  const { isSuperAdmin, isAdmin, isModerator, loading: rolesLoading } = useUserRole(user?.id);
+  const { canAccessRoute, isLoading: permissionsLoading } = useUserRoutePermissions(user?.id);
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   
@@ -82,45 +74,25 @@ export function ModernAdminSidebar() {
   const pendingOrdersCount = usePendingOrdersCount();
   const pendingReturnsCount = usePendingReturnsCount();
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
+  const loading = rolesLoading || permissionsLoading;
 
-  const mainMenuItems = [
+  const mainMenuItems: MenuItem[] = [
     {
       name: 'Home',
       icon: Home,
       path: '/',
-      roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
       path: '/supersmartkenyaadmin123',
-      roles: ['superadmin', 'admin', 'moderator'],
-      badge: null,
-    },
-    {
-      name: 'Analytics',
-      icon: BarChart3,
-      path: '/supersmartkenyaadmin123/analytics',
-      roles: ['superadmin'],
-      badge: null,
-    },
-    {
-      name: 'Daily Sales',
-      icon: TrendingUp,
-      path: '/supersmartkenyaadmin123/daily-sales',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Orders',
       icon: ShoppingCart,
       path: '/supersmartkenyaadmin123/orders',
-      roles: ['superadmin', 'admin', 'moderator'],
       badge: pendingOrdersCount > 0 ? String(pendingOrdersCount) : null,
       badgeVariant: 'default' as const,
     },
@@ -128,136 +100,118 @@ export function ModernAdminSidebar() {
       name: 'Discounts',
       icon: Tag,
       path: '/supersmartkenyaadmin123/discounts',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Flash Sales',
       icon: Zap,
       path: '/supersmartkenyaadmin123/flash-sales',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Returns',
       icon: PackageX,
       path: '/supersmartkenyaadmin123/returns',
-      roles: ['superadmin', 'admin'],
       badge: pendingReturnsCount > 0 ? String(pendingReturnsCount) : null,
       badgeVariant: 'destructive' as const,
     },
   ];
 
-  const catalogMenuItems = [
+  const catalogMenuItems: MenuItem[] = [
     {
       name: 'Products',
       icon: Package,
       path: '/supersmartkenyaadmin123/products',
-      roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
     {
       name: 'Reviews',
       icon: Star,
       path: '/supersmartkenyaadmin123/reviews',
-      roles: ['superadmin', 'admin', 'moderator'],
       badge: null,
     },
     {
       name: 'Inventory',
       icon: Warehouse,
       path: '/supersmartkenyaadmin123/inventory',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Purchase Orders',
       icon: Truck,
       path: '/supersmartkenyaadmin123/purchase-orders',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Suppliers',
       icon: Users2,
       path: '/supersmartkenyaadmin123/suppliers',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Categories',
       icon: Tags,
       path: '/supersmartkenyaadmin123/categories',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Category Icons',
       icon: Image,
       path: '/supersmartkenyaadmin123/category-icons',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Stores',
       icon: Store,
       path: '/supersmartkenyaadmin123/stores',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
   ];
 
-  const contentMenuItems = [
+  const contentMenuItems: MenuItem[] = [
     {
       name: 'Hero Slides',
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Careers',
       icon: Users2,
       path: '/supersmartkenyaadmin123/careers',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'FAQ',
       icon: HelpCircle,
       path: '/supersmartkenyaadmin123/faq',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Site Content',
       icon: FileText,
       path: '/supersmartkenyaadmin123/site-content',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
   ];
 
-  const managementMenuItems = [
+  const managementMenuItems: MenuItem[] = [
     {
       name: 'Users',
       icon: Users,
       path: '/supersmartkenyaadmin123/users',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Customers',
       icon: Users2,
       path: '/supersmartkenyaadmin123/customers',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Locations',
       icon: MapPin,
       path: '/supersmartkenyaadmin123/locations',
-      roles: ['superadmin'],
       badge: null,
     },
   ];
@@ -267,7 +221,6 @@ export function ModernAdminSidebar() {
       name: 'Security Alerts',
       icon: Shield,
       path: '/supersmartkenyaadmin123/security-alerts',
-      roles: ['superadmin'],
       badge: securityAlertsCount > 0 ? String(securityAlertsCount) : null,
       badgeVariant: 'destructive',
     },
@@ -275,45 +228,39 @@ export function ModernAdminSidebar() {
       name: 'Login Audit',
       icon: Activity,
       path: '/supersmartkenyaadmin123/login-audit',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Activity Log',
       icon: Activity,
       path: '/supersmartkenyaadmin123/activity-log',
-      roles: ['superadmin'],
       badge: null,
     },
   ];
 
-  const settingsMenuItems = [
+  const settingsMenuItems: MenuItem[] = [
     {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Route Permissions',
       icon: Lock,
       path: '/supersmartkenyaadmin123/route-permissions',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Contact Settings',
       icon: Phone,
       path: '/supersmartkenyaadmin123/contact',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Email Templates',
       icon: Mail,
       path: '/supersmartkenyaadmin123/email-templates',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
   ];
@@ -321,40 +268,37 @@ export function ModernAdminSidebar() {
   const analyticsMenuItems: MenuItem[] = [
     {
       name: 'Analytics',
-      icon: TrendingUp,
+      icon: BarChart3,
       path: '/supersmartkenyaadmin123/analytics',
-      roles: ['superadmin'],
       badge: null,
     },
     {
       name: 'Revenue Dashboard',
       icon: DollarSign,
       path: '/supersmartkenyaadmin123/revenue-dashboard',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Reports',
       icon: FileText,
       path: '/supersmartkenyaadmin123/reports',
-      roles: ['superadmin', 'admin'],
       badge: null,
     },
     {
       name: 'Daily Sales',
-      icon: Activity,
+      icon: TrendingUp,
       path: '/supersmartkenyaadmin123/daily-sales',
-      roles: ['superadmin'],
       badge: null,
     },
   ];
 
+  // Filter menu items based on DB permissions
   const filterMenuItems = (items: MenuItem[]) => {
     return items.filter(item => {
-      if (isSuperAdmin) return true;
-      if (isAdmin) return item.roles.includes('admin');
-      if (isModerator) return item.roles.includes('moderator');
-      return false;
+      // Home link is always visible
+      if (item.path === '/') return true;
+      // Use DB-based permission check
+      return canAccessRoute(item.path);
     });
   };
 
@@ -406,7 +350,7 @@ export function ModernAdminSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            {showQuickAction && !collapsed && (
+            {showQuickAction && !collapsed && canAccessRoute('/supersmartkenyaadmin123/products/add') && (
               <SidebarMenuItem>
                 <Button
                   variant="outline"
