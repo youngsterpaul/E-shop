@@ -291,8 +291,6 @@ const CheckoutPage = () => {
 
   // Payment handling
   const handleMpesaPayment = async () => {
-    const newOrderId = `ORD-${Date.now()}`;
-    setOrderId(newOrderId);
     setPaymentStatus({
       status: 'processing',
       message: '',
@@ -316,33 +314,76 @@ const CheckoutPage = () => {
       const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
       const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
 
-      // Create order in database
-      const {
-        data: order,
-        error: orderError
-      } = await supabase.from('orders').insert({
-        order_id: newOrderId,
-        user_id: customerData.user_id || null,
-        email: customerData.email,
-        phone_number: customerData.phone,
-        status: 'pending',
-        amount: finalTotal,
-        items: orderItems,
-        shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
-        username: `${customerData.firstName} ${customerData.lastName}`.trim(),
-        discount_amount: calculations.discount,
-        delivery_fee: calculations.shipping,
-        tracking_number: newOrderId.slice(-5).toUpperCase()
-      }).select('order_id').single();
-      if (orderError) {
-        throw new Error('Failed to create order. Please try again.');
+      // Check for existing pending order for this user
+      let existingOrderId: string | null = null;
+      if (customerData.user_id) {
+        const { data: existingOrder } = await supabase
+          .from('orders')
+          .select('order_id')
+          .eq('user_id', customerData.user_id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (existingOrder) {
+          existingOrderId = existingOrder.order_id;
+        }
       }
+
+      let currentOrderId: string;
+      
+      if (existingOrderId) {
+        // Update existing pending order with latest details
+        currentOrderId = existingOrderId;
+        const { error: updateError } = await supabase
+          .from('orders')
+          .update({
+            email: customerData.email,
+            phone_number: customerData.phone,
+            amount: finalTotal,
+            items: orderItems,
+            shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+            username: `${customerData.firstName} ${customerData.lastName}`.trim(),
+            discount_amount: calculations.discount,
+            delivery_fee: calculations.shipping,
+            updated_at: new Date().toISOString()
+          })
+          .eq('order_id', existingOrderId);
+        
+        if (updateError) {
+          throw new Error('Failed to update order. Please try again.');
+        }
+      } else {
+        // Create new order
+        currentOrderId = `ORD-${Date.now()}`;
+        const { error: orderError } = await supabase.from('orders').insert({
+          order_id: currentOrderId,
+          user_id: customerData.user_id || null,
+          email: customerData.email,
+          phone_number: customerData.phone,
+          status: 'pending',
+          amount: finalTotal,
+          items: orderItems,
+          shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+          username: `${customerData.firstName} ${customerData.lastName}`.trim(),
+          discount_amount: calculations.discount,
+          delivery_fee: calculations.shipping,
+          tracking_number: currentOrderId.slice(-5).toUpperCase()
+        }).select('order_id').single();
+        
+        if (orderError) {
+          throw new Error('Failed to create order. Please try again.');
+        }
+      }
+      
+      setOrderId(currentOrderId);
 
       // Initiate M-Pesa payment
       const result = await initiatePayment({
         phone: customerData.phone,
         amount: finalTotal,
-        orderId: newOrderId
+        orderId: currentOrderId
       });
       if (!result.success) {
         throw new Error(result.error || 'Payment initiation failed');
