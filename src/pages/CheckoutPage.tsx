@@ -314,20 +314,34 @@ const CheckoutPage = () => {
       const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
       const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
 
-      // Check for existing pending order for this user
+      // Check for existing pending order with same items
       let existingOrderId: string | null = null;
       if (customerData.user_id) {
-        const { data: existingOrder } = await supabase
+        const { data: pendingOrders } = await supabase
           .from('orders')
-          .select('order_id')
+          .select('order_id, items')
           .eq('user_id', customerData.user_id)
           .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .order('created_at', { ascending: false });
         
-        if (existingOrder) {
-          existingOrderId = existingOrder.order_id;
+        if (pendingOrders && pendingOrders.length > 0) {
+          // Check if any pending order has matching items
+          for (const pendingOrder of pendingOrders) {
+            const existingItems = pendingOrder.items as any[];
+            if (existingItems && existingItems.length === orderItems.length) {
+              const itemsMatch = orderItems.every(newItem => 
+                existingItems.some(existingItem => 
+                  existingItem.product?.id === newItem.product.id && 
+                  existingItem.quantity === newItem.quantity &&
+                  JSON.stringify(existingItem.variant_selections || {}) === JSON.stringify(newItem.variant_selections || {})
+                )
+              );
+              if (itemsMatch) {
+                existingOrderId = pendingOrder.order_id;
+                break;
+              }
+            }
+          }
         }
       }
 
