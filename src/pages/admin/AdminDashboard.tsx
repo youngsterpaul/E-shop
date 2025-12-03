@@ -38,9 +38,9 @@ const AdminDashboard = () => {
     useSalesByCategory
   } = useAdminDashboard();
 
-  const { data: summaryMetrics, isLoading: metricsLoading } = useSummaryMetrics();
-  const { data: recentOrders, isLoading: ordersLoading } = useRecentOrders();
-  const { data: dailySales, isLoading: salesLoading } = useDailySalesMetrics();
+  const { data: summaryMetrics, isLoading: metricsLoading, refetch: refetchMetrics } = useSummaryMetrics();
+  const { data: recentOrders, isLoading: ordersLoading, refetch: refetchOrders } = useRecentOrders();
+  const { data: dailySales, isLoading: salesLoading, refetch: refetchSales } = useDailySalesMetrics();
   const { data: productsByCategory, isLoading: categoryLoading } = useProductsByCategory();
   const { data: lowStockProducts, isLoading: stockLoading } = useLowStockProducts();
   const { data: topSellingProducts, isLoading: topProductsLoading } = useTopSellingProducts();
@@ -55,9 +55,9 @@ const AdminDashboard = () => {
       <QuickActionsBar
         title="Dashboard"
         onRefresh={() => {
-          useSummaryMetrics().refetch();
-          useRecentOrders().refetch();
-          useDailySalesMetrics().refetch();
+          refetchMetrics();
+          refetchOrders();
+          refetchSales();
         }}
       />
 

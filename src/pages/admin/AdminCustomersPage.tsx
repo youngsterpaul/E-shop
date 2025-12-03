@@ -11,6 +11,7 @@ import { Search, Eye, UserCircle, TrendingUp, ShoppingBag, ChevronDown } from 'l
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 
 export default function AdminCustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,14 +84,19 @@ export default function AdminCustomersPage() {
       : 0,
   };
 
+  const { refetch } = useQuery({
+    queryKey: ['admin-customers', searchTerm],
+    queryFn: async () => null,
+    enabled: false
+  });
+
   return (
     <AdminLayout>
+      <QuickActionsBar
+        title="Customer Management"
+        onRefresh={() => refetch()}
+      />
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Customer Management</h1>
-          <p className="text-muted-foreground mt-1">Manage customers and view detailed analytics</p>
-        </div>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

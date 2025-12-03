@@ -12,6 +12,7 @@ import { FileDown, FileText, TrendingUp, Package, Users, ShoppingCart } from 'lu
 import { toast } from 'sonner';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 
 export default function AdminReportsPage() {
   const [dateRange, setDateRange] = useState({
@@ -224,11 +225,10 @@ export default function AdminReportsPage() {
 
   return (
     <AdminLayout>
+      <QuickActionsBar
+        title="Reports & Analytics"
+      />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Reports & Analytics</h1>
-          <p className="text-muted-foreground mt-1">Generate and export comprehensive business reports</p>
-        </div>
 
         {/* Date Range Filter */}
         <Card>

@@ -8,6 +8,7 @@ import { TrendingUp, Users, DollarSign, BarChart3 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 
 interface RFMSegment {
   segment: string;
@@ -17,7 +18,7 @@ interface RFMSegment {
 }
 
 export default function AdminAnalyticsPage() {
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading, refetch } = useQuery({
     queryKey: ['admin-analytics'],
     queryFn: async () => {
       // Fetch all customers and their orders
@@ -210,11 +211,11 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminLayout>
+      <QuickActionsBar
+        title="Customer Analytics"
+        onRefresh={() => refetch()}
+      />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Customer Analytics</h1>
-          <p className="text-muted-foreground mt-1">Advanced insights into customer behavior and value</p>
-        </div>
 
         {/* Summary Stats */}
         <div className="grid gap-4 md:grid-cols-4">
