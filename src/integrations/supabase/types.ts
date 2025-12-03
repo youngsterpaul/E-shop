@@ -62,6 +62,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_route_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_allowed: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          route_group: string
+          route_name: string
+          route_path: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          route_group?: string
+          route_name: string
+          route_path: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          route_group?: string
+          route_name?: string
+          route_path?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string | null
@@ -2014,6 +2047,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_route_permission: {
+        Args: { _route_path: string; _user_id: string }
         Returns: boolean
       }
       is_any_admin: { Args: { _user_id: string }; Returns: boolean }

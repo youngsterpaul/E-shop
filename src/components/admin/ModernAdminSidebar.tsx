@@ -40,6 +40,7 @@ import {
   Zap,
   HelpCircle,
   Phone,
+  Lock,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -291,6 +292,13 @@ export function ModernAdminSidebar() {
       name: 'Settings',
       icon: Settings,
       path: '/supersmartkenyaadmin123/settings',
+      roles: ['superadmin'],
+      badge: null,
+    },
+    {
+      name: 'Route Permissions',
+      icon: Lock,
+      path: '/supersmartkenyaadmin123/route-permissions',
       roles: ['superadmin'],
       badge: null,
     },
