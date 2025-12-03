@@ -1,4 +1,4 @@
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -134,6 +134,12 @@ const OrdersPage = memo(() => {
   const displayedOrders = filteredOrders.slice(0, displayCount);
   const hasMore = displayedOrders.length < filteredOrders.length;
 
+  // Track payment status with ref to avoid stale closure
+  const paymentStatusRef = useRef(paymentStatus);
+  useEffect(() => {
+    paymentStatusRef.current = paymentStatus;
+  }, [paymentStatus]);
+
   // Handle Pay Now for pending orders
   const handlePayNow = async (order: Order) => {
     if (!profile?.phone) {
@@ -147,7 +153,9 @@ const OrdersPage = memo(() => {
 
     setPayingOrderId(order.order_id);
     setShowPaymentModal(true);
-    setPaymentStatus({ status: 'processing', message: 'Initiating payment...' });
+    const processingStatus = { status: 'processing', message: 'Initiating payment...' };
+    setPaymentStatus(processingStatus);
+    paymentStatusRef.current = processingStatus;
 
     try {
       const result = await initiatePayment({
@@ -160,22 +168,29 @@ const OrdersPage = memo(() => {
         throw new Error(result.error || 'Payment initiation failed');
       }
 
-      setPaymentStatus({ status: 'waiting', message: 'Check your phone and enter your M-Pesa PIN' });
+      const waitingStatus = { status: 'waiting', message: 'Check your phone and enter your M-Pesa PIN' };
+      setPaymentStatus(waitingStatus);
+      paymentStatusRef.current = waitingStatus;
 
       // Poll for payment status
       const pollPayment = setInterval(async () => {
         if (result.checkoutRequestId) {
           const status = await checkPaymentStatus(result.checkoutRequestId);
           if (status?.status === 'success') {
-            setPaymentStatus({ status: 'success', message: 'Payment successful!' });
+            const successStatus = { status: 'success', message: 'Payment successful!' };
+            setPaymentStatus(successStatus);
+            paymentStatusRef.current = successStatus;
             clearInterval(pollPayment);
             setTimeout(() => {
               setShowPaymentModal(false);
               setPayingOrderId(null);
+              setPaymentStatus({ status: 'idle', message: '' });
               fetchOrders(); // Refresh orders
             }, 2000);
           } else if (status?.status === 'failed') {
-            setPaymentStatus({ status: 'failed', message: status.result_desc || 'Payment failed' });
+            const failedStatus = { status: 'failed', message: status.result_desc || 'Payment failed' };
+            setPaymentStatus(failedStatus);
+            paymentStatusRef.current = failedStatus;
             clearInterval(pollPayment);
           }
         }
@@ -184,7 +199,7 @@ const OrdersPage = memo(() => {
       // Timeout after 60 seconds
       setTimeout(() => {
         clearInterval(pollPayment);
-        if (paymentStatus.status === 'waiting') {
+        if (paymentStatusRef.current.status === 'waiting') {
           setPaymentStatus({ status: 'timeout', message: 'Payment request timed out' });
         }
       }, 60000);
