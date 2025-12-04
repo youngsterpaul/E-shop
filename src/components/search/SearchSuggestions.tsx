@@ -35,17 +35,16 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'history':
-        return <Clock className={cn("text-muted-foreground", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
+        return <Clock className={cn("text-muted-foreground", isMobile ? "w-4 h-4" : "w-3.5 h-3.5")} />;
       case 'popular':
-        return <TrendingUp className={cn("text-primary", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
+        return <TrendingUp className={cn("text-primary", isMobile ? "w-4 h-4" : "w-3.5 h-3.5")} />;
       case 'product':
-        return <Package className={cn("text-blue-500", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
+        return <Package className={cn("text-blue-500", isMobile ? "w-4 h-4" : "w-3.5 h-3.5")} />;
       default:
-        return <Search className={cn("text-muted-foreground", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
+        return <Search className={cn("text-muted-foreground", isMobile ? "w-4 h-4" : "w-3.5 h-3.5")} />;
     }
   };
 
-  // Truncate text to 3 words
   const truncateToThreeWords = (text: string) => {
     const words = text.split(' ');
     if (words.length <= 3) return text;
@@ -73,38 +72,39 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   if (!suggestions.length && !isLoading && !hasHistory) {
     return null;
   }
+
   return (
     <div
       className={cn(
-        "z-50 overflow-y-auto overscroll-contain",
+        "z-50 overscroll-contain",
         isMobile
-          ? "fixed inset-x-0 top-[56px] bottom-0 bg-background"
+          ? "fixed inset-x-0 top-[56px] bottom-0 bg-background overflow-y-auto"
           : [
-            "absolute top-full left-0 right-0 mt-1",
-            "max-h-[480px]",
-            "bg-card rounded-xl border border-border/50",
-            "shadow-lg",
-            "animate-fade-in"
-          ]
+              "absolute top-full left-0 right-0 mt-2",
+              "max-h-[400px] overflow-y-auto overflow-x-hidden",
+              "bg-popover rounded-lg border border-border",
+              "shadow-lg shadow-black/5",
+              "animate-in fade-in-0 slide-in-from-top-2 duration-200"
+            ]
       )}
     >
       {isLoading && (
         <div className={cn(
           "text-center text-muted-foreground",
-          isMobile ? "p-8" : "p-4"
+          isMobile ? "p-6" : "p-4"
         )}>
-          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-          <span className="text-sm mt-2 block">Loading suggestions...</span>
+          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
+          <span className="text-xs mt-2 block">Loading...</span>
         </div>
       )}
 
       {!isLoading && suggestions.length === 0 && query.length >= 2 && (
         <div className={cn(
           "text-center text-muted-foreground",
-          isMobile ? "p-8" : "p-4"
+          isMobile ? "p-6" : "p-4"
         )}>
-          <Search className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-          <p className="text-sm">No suggestions found</p>
+          <Search className="w-6 h-6 mx-auto mb-2 text-muted-foreground/50" />
+          <p className="text-xs">No suggestions found</p>
         </div>
       )}
 
@@ -112,54 +112,49 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
         <>
           {!query.trim() && hasHistory && (
             <div className={cn(
-              "border-b border-border/50 flex items-center justify-between",
-              isMobile ? "px-4 py-3 bg-muted/30" : "px-4 py-3"
+              "flex items-center justify-between border-b border-border",
+              isMobile ? "px-4 py-2.5 bg-muted/50" : "px-3 py-2"
             )}>
-              <span className="text-sm font-medium text-foreground">
-                Recent Searches
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Recent
               </span>
               <button
                 onClick={onClearHistory}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                Clear All
+                Clear
               </button>
             </div>
           )}
 
-          <div className={cn(isMobile && "divide-y divide-border/30")}>
+          <div className="py-1">
             {suggestions.map((suggestion, index) => (
               <div
                 key={`${suggestion.category}-${suggestion.text}`}
                 className={cn(
                   "flex items-center justify-between cursor-pointer transition-colors group",
                   isMobile ? [
-                    "px-4 py-3.5 active:bg-muted/50",
-                    selectedIndex === index && "bg-primary/5 border-l-2 border-primary"
+                    "px-4 py-3 active:bg-accent",
+                    selectedIndex === index && "bg-accent"
                   ] : [
-                    "px-4 py-3 hover:bg-muted/50",
-                    selectedIndex === index && "bg-primary/5 border-l-2 border-primary"
+                    "px-3 py-2 mx-1 rounded-md hover:bg-accent",
+                    selectedIndex === index && "bg-accent"
                   ]
                 )}
                 onClick={() => onSuggestionClick(suggestion.text)}
               >
-                <div className="flex items-center flex-1 min-w-0 gap-3">
-                  <div className="flex-shrink-0">
+                <div className="flex items-center flex-1 min-w-0 gap-2.5">
+                  <div className="flex-shrink-0 opacity-60">
                     {getCategoryIcon(suggestion.category)}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={cn(
-                      "text-foreground truncate block",
-                      isMobile ? "text-base" : "text-sm"
-                    )}>
-                      {highlightMatch(suggestion.text, query)}
-                    </span>
-                    {isMobile && suggestion.category === 'popular' && (
-                      <span className="text-xs text-muted-foreground">Trending</span>
-                    )}
-                  </div>
-                  {!isMobile && suggestion.category === 'popular' && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  <span className={cn(
+                    "text-foreground truncate",
+                    isMobile ? "text-sm" : "text-sm"
+                  )}>
+                    {highlightMatch(suggestion.text, query)}
+                  </span>
+                  {suggestion.category === 'popular' && (
+                    <span className="text-[10px] text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded font-medium">
                       Popular
                     </span>
                   )}
@@ -174,14 +169,11 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                     className={cn(
                       "hover:bg-muted rounded-full transition-colors",
                       isMobile 
-                        ? "p-2 ml-2" 
-                        : "p-1.5 opacity-0 group-hover:opacity-100"
+                        ? "p-1.5 ml-2" 
+                        : "p-1 opacity-0 group-hover:opacity-100"
                     )}
                   >
-                    <X className={cn(
-                      "text-muted-foreground",
-                      isMobile ? "w-4 h-4" : "w-3.5 h-3.5"
-                    )} />
+                    <X className="w-3 h-3 text-muted-foreground" />
                   </button>
                 )}
               </div>
@@ -190,13 +182,10 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
         </>
       )}
 
-      {!query.trim() && suggestions.length > 0 && (
-        <div className={cn(
-          "border-t border-border/50 text-center",
-          isMobile ? "p-3 bg-muted/30" : "p-3"
-        )}>
-          <p className="text-xs text-muted-foreground">
-            Start typing to see more suggestions
+      {!query.trim() && suggestions.length > 0 && !isMobile && (
+        <div className="border-t border-border px-3 py-2">
+          <p className="text-[10px] text-muted-foreground text-center">
+            Type to search products
           </p>
         </div>
       )}
