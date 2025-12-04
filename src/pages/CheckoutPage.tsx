@@ -848,9 +848,9 @@ const CheckoutPage = () => {
       </Dialog>;
   };
   const progressValue = currentStep / 2 * 100;
-  return <div>
+return <div>
     {locationsLoading || addressesLoading ? <CheckoutSkeleton /> : <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        <div className={`container mx-auto py-6 ${!isMobile ? 'px-4 xl:px-24' : 'pb-32 px-0'}`}>
+        <div className={`py-6 ${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : 'pb-32 px-0'}`}>
           {!isMobile && <div className="mb-6">
             <Button variant="ghost" onClick={handleBack} className="mb-4 p-0 h-auto text-gray-600 hover:text-gray-900">
               <ArrowLeft className="h-4 w-4 mr-2" />

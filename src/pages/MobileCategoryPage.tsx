@@ -19,7 +19,7 @@ const MobileCategoryPage = () => {
         <main className="flex-grow pb-20">
           {/* Breadcrumb - Desktop Only */}
           {!isMobile && (
-            <div className="container mx-auto px-4 lg:px-8 pt-6">
+            <div className="max-w-[1400px] mx-auto px-4 lg:px-6 pt-6">
               <SiteBreadcrumb 
                 items={[
                   { label: 'Home', href: '/' },
@@ -32,14 +32,14 @@ const MobileCategoryPage = () => {
 
           {/* Page Header - Desktop Only */}
           {!isMobile && (
-            <div className="container mx-auto px-4 lg:px-8 mb-6">
+            <div className="max-w-[1400px] mx-auto px-4 lg:px-6 mb-6">
               <h1 className="text-2xl font-bold text-foreground">All Categories</h1>
               <p className="text-muted-foreground mt-1">Browse products by category</p>
             </div>
           )}
 
           {/* Category Icons Grid */}
-          <div className={isMobile ? '' : 'container mx-auto px-4 lg:px-8'}>
+          <div className={isMobile ? '' : 'max-w-[1400px] mx-auto px-4 lg:px-6'}>
             <CategoryIcons showAll={true} />
           </div>
         </main>
