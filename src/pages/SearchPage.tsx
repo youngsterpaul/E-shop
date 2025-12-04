@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProductSearch, useProducts } from '@/hooks/useProducts';
@@ -8,6 +7,7 @@ import { FilterState } from '@/components/search/SearchFilters';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ProductList } from '@/components/products/ProductList';
 import { useUrlSync } from '@/hooks/useUrlSync';
+import SiteBreadcrumb from '@/components/Breadcrumb';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -116,6 +116,11 @@ const SearchPage = () => {
     });
   }, [searchQuery]);
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: searchQuery ? `Search: "${searchQuery}"` : 'Search' }
+  ];
+
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
       <PageHeader
@@ -127,6 +132,7 @@ const SearchPage = () => {
       />
 
       <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
+        {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
         <ProductList
           products={allProducts}
           isLoading={isLoading}
