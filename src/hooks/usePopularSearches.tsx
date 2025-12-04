@@ -16,9 +16,22 @@ export const usePopularSearches = () => {
         return [];
       }
 
-      // Parse the JSON array from setting_value
-      const searches = data?.setting_value as string[] | null;
-      return searches || [];
+      // Parse the JSON value - it can be stored as JSON object with searches array or direct array
+      const settingValue = data?.setting_value;
+      
+      if (!settingValue) return [];
+      
+      // If it's already an array, return it
+      if (Array.isArray(settingValue)) {
+        return settingValue as string[];
+      }
+      
+      // If it's an object with searches property
+      if (typeof settingValue === 'object' && 'searches' in settingValue) {
+        return (settingValue as { searches: string[] }).searches || [];
+      }
+      
+      return [];
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes

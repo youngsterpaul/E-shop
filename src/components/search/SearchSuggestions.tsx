@@ -45,11 +45,19 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
     }
   };
 
+  // Truncate text to 3 words
+  const truncateToThreeWords = (text: string) => {
+    const words = text.split(' ');
+    if (words.length <= 3) return text;
+    return words.slice(0, 3).join(' ') + '...';
+  };
+
   const highlightMatch = (text: string, query: string) => {
-    if (!query.trim()) return text;
+    const truncatedText = truncateToThreeWords(text);
+    if (!query.trim()) return truncatedText;
     
     const regex = new RegExp(`(${query})`, 'gi');
-    const parts = text.split(regex);
+    const parts = truncatedText.split(regex);
     
     return parts.map((part, index) => 
       regex.test(part) ? (

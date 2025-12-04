@@ -301,7 +301,7 @@ const productForTabs = useMemo(() => {
     { label: 'Home', href: '/' },
     { 
       label: product.categories || 'Products', 
-      href: `/category/${product.categories || 'all'}?form=category&source=category|allCategory|${encodeURIComponent(product.categories || 'Products')}` 
+      href: `/category/${encodeURIComponent(product.categories || 'all')}` 
     },
     { label: truncateToTwoWords(product.name) }
   ];
