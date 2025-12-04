@@ -1,32 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useActiveFlashSales, useFlashSaleProductsWithDetails } from '@/hooks/useFlashSales';
+import { useActiveFlashSales, useAllActiveFlashSaleProducts } from '@/hooks/useFlashSales';
 import { Clock, Zap, TrendingUp, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const FlashSalePage = () => {
   const isMobile = isMobileUserAgent();
   const { data: flashSales, isLoading: salesLoading } = useActiveFlashSales();
-  const [selectedSaleId, setSelectedSaleId] = useState<string | undefined>();
-  
-  // Use the first active sale as default
-  const activeSale = flashSales?.[0];
-  const saleId = selectedSaleId || activeSale?.id;
 
-  // Grid layout configuration - match EnhancedFeaturedProducts
+  // Grid layout configuration
   const pageSize = isMobile ? 20 : 24;
   const gridConfig = isMobile
     ? { cols: "grid-cols-2", gap: "gap-2", padding: "p-2" }
     : { cols: "grid-cols-6", gap: "gap-y-1", padding: "p-8" };
 
-  const { data: productsData, isLoading: productsLoading } = useFlashSaleProductsWithDetails(
-    saleId,
-    pageSize
-  );
+  // Fetch ALL products from ALL active flash sales
+  const { data: productsData, isLoading: productsLoading } = useAllActiveFlashSaleProducts(pageSize);
 
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
@@ -34,13 +26,13 @@ const FlashSalePage = () => {
     seconds: number;
   } | null>(null);
 
-  // Calculate time left for selected sale
+  // Calculate time left using earliest end date from all sales
   useEffect(() => {
-    if (!activeSale) return;
+    if (!productsData?.earliestEndDate) return;
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
-      const end = new Date(activeSale.end_date).getTime();
+      const end = new Date(productsData.earliestEndDate).getTime();
       const difference = end - now;
 
       if (difference > 0) {
@@ -57,7 +49,7 @@ const FlashSalePage = () => {
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [activeSale]);
+  }, [productsData?.earliestEndDate]);
 
   const transformProductData = (product: any) => ({
     id: product.product_id,
@@ -114,7 +106,7 @@ const FlashSalePage = () => {
   return (
     <div className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gray-50'}`}>
       <SEOHelmet 
-        title={`${activeSale?.title || 'Flash Sales'} - SmartKenya`}
+        title="Flash Sales - SmartKenya"
         description="Don't miss out on our limited-time flash sale offers. Huge discounts on electronics, gadgets and more!"
       />
 
@@ -128,11 +120,11 @@ const FlashSalePage = () => {
               </div>
               <div>
                 <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'} font-bold mb-2`}>
-                  {activeSale?.title || 'Flash Sales'}
+                  Flash Sales
                 </h1>
-                {activeSale?.description && (
-                  <p className={`text-white/90 ${isMobile ? 'text-sm' : 'text-lg'}`}>{activeSale.description}</p>
-                )}
+                <p className={`text-white/90 ${isMobile ? 'text-sm' : 'text-lg'}`}>
+                  {flashSales?.length || 0} active sales • {productsData?.totalCount || 0} products
+                </p>
               </div>
             </div>
 
@@ -152,11 +144,9 @@ const FlashSalePage = () => {
           </div>
 
           <div className={`${isMobile ? 'mt-4' : 'mt-6'} flex flex-wrap items-center gap-3`}>
-            {activeSale && (
+            {flashSales && flashSales.length > 0 && (
               <Badge className={`bg-white/20 hover:bg-white/30 text-white ${isMobile ? 'text-xs px-3 py-1' : 'text-base px-4 py-2'}`}>
-                {activeSale.discount_type === 'percentage'
-                  ? `${activeSale.discount_value}% OFF`
-                  : `KES ${activeSale.discount_value} OFF`}
+                {flashSales.length} Active Sale{flashSales.length > 1 ? 's' : ''}
               </Badge>
             )}
             {productsData?.totalCount && (
@@ -167,24 +157,6 @@ const FlashSalePage = () => {
           </div>
         </div>
       </div>
-
-      {/* Multiple Flash Sales Tabs */}
-      {flashSales.length > 1 && (
-        <div className="bg-white border-b">
-          <div className={`${isMobile ? 'px-4' : 'container mx-auto px-4'} py-4`}>
-            <Tabs value={saleId} onValueChange={setSelectedSaleId} className="w-full">
-              <TabsList className="w-full justify-start overflow-x-auto">
-                {flashSales.map((sale) => (
-                  <TabsTrigger key={sale.id} value={sale.id} className={`flex-shrink-0 ${isMobile ? 'text-xs' : ''}`}>
-                    <Zap className="h-4 w-4 mr-2" />
-                    {sale.title}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-      )}
 
       {/* Products Section */}
       <div className={`${isMobile ? '' : 'container mx-auto'} ${gridConfig.padding}`}>
