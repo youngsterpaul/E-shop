@@ -146,117 +146,128 @@ const Header = () => {
         )}
 
         <div className={`${isMobile ? 'py-3 px-4' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 lg:gap-6">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group">
               <img 
                 src={smartkenyaLogo} 
                 alt="SmartKenya Logo" 
-                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-10 w-auto' : 'h-8 w-auto'}`} 
+                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 
               />
             </Link>
 
-            {/* Desktop Search & Actions */}
+            {/* Desktop Search - Expanded */}
             {!isMobile && !hideMainHeader && (
-              <>
-                <div className="flex-1 max-w-2xl mx-8">
-                  <EnhancedSearchInput 
-                    value={searchQuery} 
-                    onChange={setSearchQuery} 
-                    onSearch={handleSearch} 
-                    placeholder="Search for products, brands, or categories..." 
-                    className="w-full"
-                  />
-                </div>
+              <div className="flex-1 min-w-0">
+                <EnhancedSearchInput 
+                  value={searchQuery} 
+                  onChange={setSearchQuery} 
+                  onSearch={handleSearch} 
+                  placeholder="Search for products, brands, or categories..." 
+                  className="w-full"
+                />
+              </div>
+            )}
 
-                <div className="flex items-center gap-2">
-                  {/* Cart */}
-                  <Link 
-                    to="/cart" 
-                    aria-label="View Cart" 
-                    className="relative p-2.5 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-sm">
-                        {totalItems > 99 ? '99+' : totalItems}
-                      </span>
-                    )}
-                  </Link>
+            {/* Desktop Actions */}
+            {!isMobile && !hideMainHeader && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {/* Wishlist */}
+                <Link 
+                  to="/wishlist" 
+                  aria-label="View Wishlist" 
+                  className="relative p-2.5 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
+                >
+                  <Heart className="h-5 w-5" />
+                </Link>
 
-                  {/* User Account */}
-                  {user ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className="gap-2 px-3 py-2 h-auto rounded-full hover:bg-muted/50"
-                        >
-                          <User className="h-5 w-5" />
-                          <span className="text-sm font-medium hidden lg:inline">Account</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg border-border/50">
-                        <div className="px-3 py-2.5 border-b border-border/50">
-                          <p className="text-sm font-semibold text-foreground">
-                            {profile?.first_name && profile?.last_name 
-                              ? `${profile.first_name} ${profile.last_name}` 
-                              : user.email}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
-                        </div>
-                        <div className="py-1.5">
-                          <DropdownMenuItem asChild>
-                            <Link to="/profile" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span>Profile</span>
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to="/orders" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
-                              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                              <span>My Orders</span>
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to="/wishlist" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
-                              <Heart className="h-4 w-4 text-muted-foreground" />
-                              <span>Wishlist</span>
-                            </Link>
-                          </DropdownMenuItem>
-                          {(isAdmin || isSuperAdmin || isModerator) && (
-                            <DropdownMenuItem asChild>
-                              <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
-                                <Settings className="h-4 w-4 text-muted-foreground" />
-                                <span>Admin Dashboard</span>
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                        </div>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <button 
-                            onClick={handleLogout} 
-                            className="cursor-pointer flex items-center gap-2.5 px-3 py-2 w-full text-destructive hover:text-destructive"
-                          >
-                            <LogOut className="h-4 w-4" />
-                            <span>Log Out</span>
-                          </button>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <Button 
-                      variant="ghost" 
-                      className="gap-2 px-3 py-2 h-auto rounded-full hover:bg-muted/50" 
-                      onClick={() => navigate('/auth')}
-                    >
-                      <User className="h-5 w-5" />
-                      <span className="text-sm font-medium hidden lg:inline">Sign In</span>
-                    </Button>
+                {/* Cart */}
+                <Link 
+                  to="/cart" 
+                  aria-label="View Cart" 
+                  className="relative p-2.5 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/50 transition-all duration-200"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-sm">
+                      {totalItems > 99 ? '99+' : totalItems}
+                    </span>
                   )}
-                </div>
-              </>
+                </Link>
+
+                {/* User Account */}
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        className="gap-2 px-3 py-2 h-auto rounded-full hover:bg-muted/50"
+                      >
+                        <User className="h-5 w-5" />
+                        <span className="text-sm font-medium hidden lg:inline">Account</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg border-border/50">
+                      <div className="px-3 py-2.5 border-b border-border/50">
+                        <p className="text-sm font-semibold text-foreground">
+                          {profile?.first_name && profile?.last_name 
+                            ? `${profile.first_name} ${profile.last_name}` 
+                            : user.email}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+                      </div>
+                      <div className="py-1.5">
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>Profile</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/orders" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                            <span>My Orders</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/wishlist" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
+                            <Heart className="h-4 w-4 text-muted-foreground" />
+                            <span>Wishlist</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        {(isAdmin || isSuperAdmin || isModerator) && (
+                          <DropdownMenuItem asChild>
+                            <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
+                              <Settings className="h-4 w-4 text-muted-foreground" />
+                              <span>Admin Dashboard</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <button 
+                          onClick={handleLogout} 
+                          className="cursor-pointer flex items-center gap-2.5 px-3 py-2 w-full text-destructive hover:text-destructive"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Log Out</span>
+                        </button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    className="gap-2 px-4 rounded-full" 
+                    onClick={() => navigate('/auth')}
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="text-sm font-medium">Sign In</span>
+                  </Button>
+                )}
+              </div>
             )}
 
             {/* Mobile Actions */}
