@@ -269,7 +269,8 @@ const productForTabs = useMemo(() => {
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  const calculatePrice = () => price;
+  // Calculate price including flash sale if active
+  const calculatePrice = () => flashSalePrice ?? price;
 
   // ------------------ LOADING ------------------
   if (loading) {
@@ -436,8 +437,8 @@ const productForTabs = useMemo(() => {
               product_id: product.product_id,
               name: product.name,
               image: product.image_urls?.[0] || '/placeholder.svg',
-              price: product.price,
-              originalPrice: undefined,
+              price: flashSalePrice ?? price,
+              originalPrice: flashSale ? price : undefined,
               description: product.description,
               rating: product.rating || 0,
               reviews: product.reviews || 0,
