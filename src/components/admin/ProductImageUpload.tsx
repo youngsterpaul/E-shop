@@ -4,12 +4,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { UploadCloud, X, CheckCircle, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X, CheckCircle, AlertCircle, Loader2, Image as ImageIcon, Video } from 'lucide-react';
 
 interface CompressedImage {
   file: File;
   originalSize: number;
   compressedSize: number;
+  preview: string;
+}
+
+interface VideoFile {
+  file: File;
+  size: number;
   preview: string;
 }
 
@@ -28,10 +34,12 @@ interface ExistingImage {
 
 interface ProductImageUploadProps {
   images: CompressedImage[];
+  videos?: VideoFile[];
   uploadProgress: ImageUploadProgress[];
   isUploading: boolean;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (index: number) => void;
+  onRemoveVideo?: (index: number) => void;
   existingImages?: ExistingImage[];
   onRemoveExistingImage?: (index: number) => void;
   isEditMode?: boolean;
@@ -39,10 +47,12 @@ interface ProductImageUploadProps {
 
 const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
   images,
+  videos = [],
   uploadProgress,
   isUploading,
   onImageUpload,
   onRemoveImage,
+  onRemoveVideo,
   existingImages = [],
   onRemoveExistingImage,
   isEditMode = false
@@ -72,14 +82,14 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     }
   };
 
-  const totalImages = existingImages.length + images.length;
+  const totalMedia = existingImages.length + images.length + videos.length;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Product Images</span>
-          {totalImages > 0 && (
+          <span>Product Media</span>
+          {totalMedia > 0 && (
             <div className="flex items-center space-x-2">
               {isEditMode && existingImages.length > 0 && (
                 <Badge variant="outline" className="bg-blue-50">
@@ -89,12 +99,16 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
               )}
               {images.length > 0 && (
                 <Badge variant="secondary">
-                  {images.length} new
+                  <ImageIcon className="h-3 w-3 mr-1" />
+                  {images.length} images
                 </Badge>
               )}
-              <Badge variant="default">
-                {totalImages} total
-              </Badge>
+              {videos.length > 0 && (
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                  <Video className="h-3 w-3 mr-1" />
+                  {videos.length} videos
+                </Badge>
+              )}
             </div>
           )}
         </CardTitle>
@@ -103,26 +117,26 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
         {/* Upload Area */}
         <div className="border-2 border-dashed rounded-lg p-6 text-center">
           <Input
-            id="images"
+            id="media"
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             className="hidden"
             onChange={onImageUpload}
             disabled={isUploading}
           />
           <Label
-            htmlFor="images"
+            htmlFor="media"
             className={`flex flex-col items-center justify-center cursor-pointer ${
               isUploading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             <UploadCloud className="h-12 w-12 text-muted-foreground mb-2" />
             <p className="text-lg font-medium">
-              {isUploading ? 'Uploading...' : isEditMode ? 'Add more images' : 'Click to upload images'}
+              {isUploading ? 'Uploading...' : isEditMode ? 'Add more media' : 'Click to upload images & videos'}
             </p>
             <p className="text-sm text-muted-foreground">
-              JPG, PNG or GIF up to 10MB (will be compressed)
+              Images: JPG, PNG, GIF up to 10MB | Videos: MP4, WebM up to 50MB
             </p>
           </Label>
         </div>
@@ -325,12 +339,12 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           </div>
         )}
 
-        {/* No Images Message */}
-        {totalImages === 0 && (
+        {/* No Media Message */}
+        {totalMedia === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No images selected</p>
-            <p className="text-sm">Click the upload area above to add product images</p>
+            <p>No media selected</p>
+            <p className="text-sm">Click the upload area above to add product images or videos</p>
           </div>
         )}
       </CardContent>

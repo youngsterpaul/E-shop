@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface ImageUploadProgress {
+interface MediaUploadProgress {
   index: number;
   progress: number;
   status: 'pending' | 'uploading' | 'success' | 'error';
@@ -16,12 +16,26 @@ interface CompressedImage {
   preview: string;
 }
 
+interface VideoFile {
+  file: File;
+  size: number;
+  preview: string;
+  duration?: number;
+}
+
+// Alias for backward compatibility
+export type ImageUploadProgress = MediaUploadProgress;
+
 export const useImageUpload = () => {
   const [images, setImages] = useState<CompressedImage[]>([]);
+  const [videos, setVideos] = useState<VideoFile[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<ImageUploadProgress[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<MediaUploadProgress[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+
+  const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB for videos
 
   // Image compression function
   const compressImage = useCallback((file: File, quality: number = 0.8, maxWidth: number = 1920, maxHeight: number = 1080): Promise<File> => {
@@ -74,84 +88,111 @@ export const useImageUpload = () => {
 
     const newFiles = Array.from(files);
     
-    // Validate file types and sizes
-    const validFiles = newFiles.filter(file => {
-      if (!file.type.startsWith('image/')) {
+    // Separate images and videos
+    const imageFiles: File[] = [];
+    const videoFiles: File[] = [];
+    
+    newFiles.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({
+            title: "Image too large",
+            description: `${file.name} is larger than 10MB`,
+            variant: "destructive"
+          });
+        } else {
+          imageFiles.push(file);
+        }
+      } else if (file.type.startsWith('video/')) {
+        if (file.size > MAX_VIDEO_SIZE) {
+          toast({
+            title: "Video too large",
+            description: `${file.name} exceeds 50MB limit`,
+            variant: "destructive"
+          });
+        } else {
+          videoFiles.push(file);
+        }
+      } else {
         toast({
           title: "Invalid file type",
-          description: `${file.name} is not an image file`,
+          description: `${file.name} is not an image or video`,
           variant: "destructive"
         });
-        return false;
       }
-      
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit before compression
+    });
+
+    // Process images
+    if (imageFiles.length > 0) {
+      toast({
+        title: "Compressing images...",
+        description: `Processing ${imageFiles.length} image(s)`,
+      });
+
+      try {
+        const compressedImages: CompressedImage[] = [];
+        
+        await Promise.all(
+          imageFiles.map(async (file) => {
+            const originalSize = file.size;
+            const compressedFile = await compressImage(file);
+            const compressedSize = compressedFile.size;
+            
+            const preview = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.readAsDataURL(compressedFile);
+            });
+
+            compressedImages.push({
+              file: compressedFile,
+              originalSize,
+              compressedSize,
+              preview
+            });
+          })
+        );
+
+        setImages(prev => [...prev, ...compressedImages]);
+        
+        const totalOriginal = compressedImages.reduce((sum, img) => sum + img.originalSize, 0);
+        const totalCompressed = compressedImages.reduce((sum, img) => sum + img.compressedSize, 0);
+        const savings = ((totalOriginal - totalCompressed) / totalOriginal * 100).toFixed(1);
+        
         toast({
-          title: "File too large",
-          description: `${file.name} is larger than 10MB`,
+          title: "Images compressed",
+          description: `Reduced by ${savings}%`,
+        });
+      } catch (error) {
+        console.error('Compression error:', error);
+        toast({
+          title: "Compression failed",
           variant: "destructive"
         });
-        return false;
       }
-      
-      return true;
-    });
+    }
 
-    if (validFiles.length === 0) return;
-
-    // Show compression progress
-    toast({
-      title: "Compressing images...",
-      description: `Processing ${validFiles.length} image(s)`,
-    });
-
-    try {
-      const compressedImages: CompressedImage[] = [];
-      
-      // Compress images concurrently
-      await Promise.all(
-        validFiles.map(async (file) => {
-          const originalSize = file.size;
-          const compressedFile = await compressImage(file);
-          const compressedSize = compressedFile.size;
-          
-          // Create preview
-          const preview = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target?.result as string);
-            reader.readAsDataURL(compressedFile);
-          });
-
-          compressedImages.push({
-            file: compressedFile,
-            originalSize,
-            compressedSize,
+    // Process videos
+    if (videoFiles.length > 0) {
+      const newVideos: VideoFile[] = await Promise.all(
+        videoFiles.map(async (file) => {
+          const preview = URL.createObjectURL(file);
+          return {
+            file,
+            size: file.size,
             preview
-          });
+          };
         })
       );
-
-      setImages(prev => [...prev, ...compressedImages]);
       
-      // Show compression results
-      const totalOriginal = compressedImages.reduce((sum, img) => sum + img.originalSize, 0);
-      const totalCompressed = compressedImages.reduce((sum, img) => sum + img.compressedSize, 0);
-      const savings = ((totalOriginal - totalCompressed) / totalOriginal * 100).toFixed(1);
+      setVideos(prev => [...prev, ...newVideos]);
       
       toast({
-        title: "Images compressed successfully",
-        description: `Reduced size by ${savings}% (${formatFileSize(totalOriginal)} → ${formatFileSize(totalCompressed)})`,
-      });
-
-    } catch (error) {
-      console.error('Compression error:', error);
-      toast({
-        title: "Compression failed",
-        description: "Some images could not be processed",
-        variant: "destructive"
+        title: "Videos added",
+        description: `${videoFiles.length} video(s) ready to upload`,
       });
     }
-  }, [compressImage, toast]);
+  }, [compressImage, toast, MAX_VIDEO_SIZE]);
 
   // Retry logic with exponential backoff
   const uploadWithRetry = async (file: File, filePath: string, maxRetries: number = 3): Promise<string> => {
@@ -195,42 +236,48 @@ export const useImageUpload = () => {
   };
 
   const uploadImagesToStorage = async (): Promise<string[]> => {
-    if (images.length === 0) return [];
+    const totalMedia = images.length + videos.length;
+    if (totalMedia === 0) return [];
     
     setIsUploading(true);
     
-    // Initialize progress tracking
-    const initialProgress = images.map((_, index) => ({
-      index,
-      progress: 0,
-      status: 'pending' as const
-    }));
+    // Initialize progress tracking for both images and videos
+    const initialProgress = [
+      ...images.map((_, index) => ({
+        index,
+        progress: 0,
+        status: 'pending' as const
+      })),
+      ...videos.map((_, index) => ({
+        index: images.length + index,
+        progress: 0,
+        status: 'pending' as const
+      }))
+    ];
     setUploadProgress(initialProgress);
 
     try {
-      // Upload images concurrently with controlled concurrency
-      const concurrencyLimit = 3; // Upload max 3 images at once
-      const results: string[] = [];
+      const concurrencyLimit = 3;
+      const imageResults: string[] = [];
+      const videoResults: string[] = [];
       
+      // Upload images
       for (let i = 0; i < images.length; i += concurrencyLimit) {
         const batch = images.slice(i, i + concurrencyLimit);
         const batchPromises = batch.map(async (image, batchIndex) => {
           const globalIndex = i + batchIndex;
           
           try {
-            // Update progress: uploading
             setUploadProgress(prev => prev.map(p => 
               p.index === globalIndex 
                 ? { ...p, status: 'uploading', progress: 0 }
                 : p
             ));
 
-            // Generate unique filename
             const fileExt = image.file.name.split('.').pop();
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `products/${fileName}`;
 
-            // Simulate progress updates (since Supabase doesn't provide real progress)
             const progressInterval = setInterval(() => {
               setUploadProgress(prev => prev.map(p => 
                 p.index === globalIndex 
@@ -243,7 +290,6 @@ export const useImageUpload = () => {
             
             clearInterval(progressInterval);
             
-            // Update progress: success
             setUploadProgress(prev => prev.map(p => 
               p.index === globalIndex 
                 ? { ...p, status: 'success', progress: 100 }
@@ -253,34 +299,87 @@ export const useImageUpload = () => {
             return publicUrl;
 
           } catch (error: any) {
-            // Update progress: error
             setUploadProgress(prev => prev.map(p => 
               p.index === globalIndex 
                 ? { ...p, status: 'error', progress: 0, error: error.message }
                 : p
             ));
-            
             throw error;
           }
         });
 
         const batchResults = await Promise.all(batchPromises);
-        results.push(...batchResults);
+        imageResults.push(...batchResults);
         
-        // Small delay between batches to avoid overwhelming the server
         if (i + concurrencyLimit < images.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
 
-      setImageUrls(results);
+      // Upload videos
+      for (let i = 0; i < videos.length; i += concurrencyLimit) {
+        const batch = videos.slice(i, i + concurrencyLimit);
+        const batchPromises = batch.map(async (video, batchIndex) => {
+          const globalIndex = images.length + i + batchIndex;
+          
+          try {
+            setUploadProgress(prev => prev.map(p => 
+              p.index === globalIndex 
+                ? { ...p, status: 'uploading', progress: 0 }
+                : p
+            ));
+
+            const fileExt = video.file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `products/videos/${fileName}`;
+
+            const progressInterval = setInterval(() => {
+              setUploadProgress(prev => prev.map(p => 
+                p.index === globalIndex 
+                  ? { ...p, progress: Math.min(p.progress + 5, 90) }
+                  : p
+              ));
+            }, 500);
+
+            const publicUrl = await uploadWithRetry(video.file, filePath);
+            
+            clearInterval(progressInterval);
+            
+            setUploadProgress(prev => prev.map(p => 
+              p.index === globalIndex 
+                ? { ...p, status: 'success', progress: 100 }
+                : p
+            ));
+
+            return publicUrl;
+
+          } catch (error: any) {
+            setUploadProgress(prev => prev.map(p => 
+              p.index === globalIndex 
+                ? { ...p, status: 'error', progress: 0, error: error.message }
+                : p
+            ));
+            throw error;
+          }
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        videoResults.push(...batchResults);
+        
+        if (i + concurrencyLimit < videos.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
+      setImageUrls(imageResults);
+      setVideoUrls(videoResults);
       
       toast({
         title: "Upload completed",
-        description: `Successfully uploaded ${results.length} image(s)`,
+        description: `Uploaded ${imageResults.length} image(s) and ${videoResults.length} video(s)`,
       });
       
-      return results;
+      return [...imageResults, ...videoResults];
       
     } catch (error: any) {
       toast({
@@ -291,7 +390,6 @@ export const useImageUpload = () => {
       throw error;
     } finally {
       setIsUploading(false);
-      // Clear progress after a delay
       setTimeout(() => setUploadProgress([]), 2000);
     }
   };
@@ -302,20 +400,37 @@ export const useImageUpload = () => {
     setUploadProgress(prev => prev.filter(p => p.index !== index).map((p, i) => ({ ...p, index: i })));
   }, []);
 
-  const clearImages = useCallback(() => {
-    setImages([]);
-    setImageUrls([]);
-    setUploadProgress([]);
+  const removeVideo = useCallback((index: number) => {
+    setVideos(prev => {
+      const video = prev[index];
+      if (video?.preview) {
+        URL.revokeObjectURL(video.preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+    setVideoUrls(prev => prev.filter((_, i) => i !== index));
   }, []);
+
+  const clearImages = useCallback(() => {
+    videos.forEach(v => URL.revokeObjectURL(v.preview));
+    setImages([]);
+    setVideos([]);
+    setImageUrls([]);
+    setVideoUrls([]);
+    setUploadProgress([]);
+  }, [videos]);
 
   return {
     images,
+    videos,
     imageUrls,
+    videoUrls,
     uploadProgress,
     isUploading,
     handleImageUpload,
     uploadImagesToStorage,
     removeImage,
+    removeVideo,
     clearImages
   };
 };
