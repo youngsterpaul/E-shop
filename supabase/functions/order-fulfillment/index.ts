@@ -16,6 +16,35 @@ interface OrderStatusUpdate {
   notes?: string;
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  type: string;
+  variables: string[];
+  is_active: boolean;
+}
+
+// Map order status to template type
+const statusToTemplateType: Record<string, string> = {
+  processing: 'order_processing',
+  packed: 'order_packed',
+  shipped: 'order_shipped',
+  delivered: 'order_delivered',
+  cancelled: 'order_cancelled',
+};
+
+// Replace template variables with actual values
+function replaceVariables(template: string, variables: Record<string, string>): string {
+  let result = template;
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'gi');
+    result = result.replace(regex, value || '');
+  }
+  return result;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -67,8 +96,53 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Send email notification to customer
-    const emailContent = generateEmailContent(order, status, trackingNumber, notes);
+    // Try to get template from database
+    const templateType = statusToTemplateType[status];
+    let emailContent;
+
+    if (templateType) {
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('type', templateType)
+        .eq('is_active', true)
+        .single();
+
+      if (template) {
+        console.log("Using database template:", template.name);
+        
+        // Prepare variables for replacement
+        const templateVariables: Record<string, string> = {
+          customer_name: order.username || 'Valued Customer',
+          order_number: order.order_id.toUpperCase(),
+          order_number_short: order.order_id.slice(0, 8).toUpperCase(),
+          order_amount: `KSH ${order.amount?.toLocaleString() || '0'}`,
+          status: status,
+          tracking_number: trackingNumber || '',
+          notes: notes || '',
+          email: order.email || '',
+          shipping_address: order.shipping_address || '',
+          year: new Date().getFullYear().toString(),
+        };
+
+        const subject = replaceVariables(template.subject, templateVariables);
+        const body = replaceVariables(template.body, templateVariables);
+
+        // Check if body is HTML or plain text
+        const isHtml = body.includes('<') && body.includes('>');
+        
+        emailContent = {
+          subject,
+          html: isHtml ? body : wrapInEmailTemplate(body, subject, templateVariables),
+        };
+      }
+    }
+
+    // Fallback to default template if no database template found
+    if (!emailContent) {
+      console.log("Using default hardcoded template");
+      emailContent = generateDefaultEmailContent(order, status, trackingNumber, notes);
+    }
     
     if (order.email) {
       const emailResponse = await resend.emails.send({
@@ -105,7 +179,59 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function generateEmailContent(
+// Wrap plain text body in a styled email template
+function wrapInEmailTemplate(body: string, title: string, variables: Record<string, string>): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">SmartKenya</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <div style="color: #666666; line-height: 1.8; font-size: 16px; white-space: pre-wrap;">
+${body}
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px;">
+                    <p style="color: #999999; margin: 0; font-size: 12px;">
+                      © ${variables.year} SmartKenya. All rights reserved.
+                    </p>
+                    <p style="color: #999999; margin: 10px 0 0 0; font-size: 12px;">
+                      This email was sent to ${variables.email}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+// Default hardcoded email content (fallback)
+function generateDefaultEmailContent(
   order: any,
   status: string,
   trackingNumber?: string,
