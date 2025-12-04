@@ -32,7 +32,15 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const zoomLevel = 2.5; // Magnification factor
   const mainImageSize = 400; // Fixed size of the main image container
 
-  /** Combine product media */
+  /** Check if URL is a video file */
+  const isVideo = useCallback((url: string) => {
+    if (!url) return false;
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
+    const lowerUrl = url.toLowerCase();
+    return videoExtensions.some(ext => lowerUrl.includes(ext)) || url === product.video;
+  }, [product.video]);
+
+  /** Combine product media - videos first */
   const allMedia = useMemo(() => {
     const imgs = [product.image];
     
@@ -50,8 +58,17 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
       });
     }
     
-    return product.video ? [...imgs, product.video] : imgs;
-  }, [product.image, product.images, product.video, variantImages]);
+    const finalMedia = product.video && !imgs.includes(product.video) ? [...imgs, product.video] : imgs;
+    
+    // Sort: videos first, then images
+    return finalMedia.sort((a, b) => {
+      const aIsVideo = isVideo(a);
+      const bIsVideo = isVideo(b);
+      if (aIsVideo && !bIsVideo) return -1;
+      if (!aIsVideo && bIsVideo) return 1;
+      return 0;
+    });
+  }, [product.image, product.images, product.video, variantImages, isVideo]);
 
   // If a selected image is provided (e.g., from color variant), switch to it
   useEffect(() => {
@@ -68,8 +85,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
       }, 100);
     }
   }, [selectedImageUrl, allMedia]);
-
-  const isVideo = useCallback((url: string) => url === product.video, [product.video]);
 
   /** Change image */
   const changeImage = useCallback(
