@@ -23,6 +23,7 @@ import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import SocialShare from '@/components/SocialShare';
 import TrustBadges from '@/components/TrustBadges';
 import { supabase } from '@/integrations/supabase/client';
+import { ProductStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
 
 // ✅ Properly typed interfaces
 interface ProductVariant {
@@ -378,6 +379,27 @@ const productForTabs = useMemo(() => {
   return (
     <>
       <ProductMetadata product={product} currentPrice={price} />
+      
+      {/* SEO Structured Data */}
+      <ProductStructuredData
+        product={{
+          name: product.name,
+          description: product.description || '',
+          image: product.image_urls || [],
+          sku: product.product_id,
+          price: flashSalePrice ?? price,
+          availability: product.stock && product.stock > 0 ? 'InStock' : 'OutOfStock',
+          rating: product.rating || undefined,
+          reviewCount: product.reviews || undefined,
+          url: `https://www.smartkenya.co.ke/product/${encodeURIComponent(product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${product.product_id}`,
+        }}
+      />
+      <BreadcrumbStructuredData
+        items={breadcrumbItems.map((item, index) => ({
+          name: item.label,
+          url: item.href ? `https://www.smartkenya.co.ke${item.href}` : `https://www.smartkenya.co.ke/product/${product.product_id}`,
+        }))}
+      />
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6'}`}>
