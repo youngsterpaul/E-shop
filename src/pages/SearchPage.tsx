@@ -126,7 +126,7 @@ const SearchPage = () => {
         placeholder="Search for products..."
       />
 
-      <main className={`container mx-auto ${!isMobile ? 'px-4 max-w-7xl pb-8 pt-6' : 'px-0 pb-24'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
         <ProductList
           products={allProducts}
           isLoading={isLoading}

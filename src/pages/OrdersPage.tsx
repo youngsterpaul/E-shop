@@ -223,7 +223,7 @@ const OrdersPage = memo(() => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`container mx-auto px-4 ${isMobile ? 'pb-24 pt-4' : 'py-8 max-w-4xl'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-4'}`}>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
           <div>
