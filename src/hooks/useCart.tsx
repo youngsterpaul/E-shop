@@ -11,6 +11,9 @@ interface CartItem {
     id: string;
     name: string;
     price: number;
+    originalPrice: number; // Base price without flash sale
+    flashSalePrice?: number; // Discounted price if flash sale active
+    hasFlashSale: boolean;
     image: string;
   };
   variant_selections: any;
@@ -110,11 +113,44 @@ export const useCart = () => {
       if (itemsResponse.error) throw itemsResponse.error;
 
       // Fetch variants for all products to calculate correct prices
-      const productIds = itemsResponse.data?.map(item => item.product_id).filter(Boolean) || [];
+      const productIds = (itemsResponse.data?.map(item => item.product_id).filter((id): id is string => id !== null) || []) as string[];
       const variantsResponse = productIds.length > 0 ? await supabase
         .from('product_variants')
         .select('product_id, variant_type, variant_value, price_modifier, image_url')
         .in('product_id', productIds) : { data: [] };
+
+      // Fetch active flash sales for all products in cart
+      const now = new Date().toISOString();
+      const flashSalesResponse = productIds.length > 0 ? await supabase
+        .from('flash_sale_products')
+        .select(`
+          product_id,
+          flash_sales:flash_sale_id (
+            discount_type,
+            discount_value,
+            end_date,
+            is_active,
+            start_date
+          )
+        `)
+        .in('product_id', productIds) : { data: [] };
+
+      // Build flash sale map (only active and within date range)
+      const flashSalesByProduct = new Map<string, { discount_type: string; discount_value: number }>();
+      flashSalesResponse.data?.forEach((item: any) => {
+        const sale = item.flash_sales;
+        if (
+          sale &&
+          sale.is_active &&
+          sale.start_date <= now &&
+          sale.end_date >= now
+        ) {
+          flashSalesByProduct.set(item.product_id, {
+            discount_type: sale.discount_type,
+            discount_value: sale.discount_value,
+          });
+        }
+      });
 
       const variantsByProduct = new Map();
       variantsResponse.data?.forEach(variant => {
@@ -129,7 +165,7 @@ export const useCart = () => {
         const variants = variantsByProduct.get(item.product_id) || [];
         
         // Calculate price with variant modifiers
-        let finalPrice = basePrice;
+        let priceWithVariants = basePrice;
         const variantSelections = item.variant_selections || {};
         
         Object.entries(variantSelections).forEach(([type, value]) => {
@@ -137,9 +173,26 @@ export const useCart = () => {
             v.variant_type === type && v.variant_value === value
           );
           if (variant?.price_modifier) {
-            finalPrice += variant.price_modifier;
+            priceWithVariants += variant.price_modifier;
           }
         });
+
+        // Calculate flash sale price if applicable
+        const flashSale = item.product_id ? flashSalesByProduct.get(item.product_id) : undefined;
+        let flashSalePrice: number | undefined;
+        let hasFlashSale = false;
+        
+        if (flashSale) {
+          hasFlashSale = true;
+          if (flashSale.discount_type === 'percentage') {
+            flashSalePrice = priceWithVariants - (priceWithVariants * flashSale.discount_value / 100);
+          } else {
+            // fixed_amount
+            flashSalePrice = priceWithVariants - flashSale.discount_value;
+          }
+          // Ensure flash sale price is not negative
+          flashSalePrice = Math.max(0, flashSalePrice);
+        }
 
         // Get variant image if available
         let variantImage = item.products?.image_urls?.[0] || '/placeholder.svg';
@@ -152,6 +205,9 @@ export const useCart = () => {
           }
         });
 
+        // Final price is flash sale price if active, otherwise regular price
+        const finalPrice = hasFlashSale && flashSalePrice !== undefined ? flashSalePrice : priceWithVariants;
+
         return {
           id: item.id,
           cart_id: item.cart_id || '',
@@ -159,7 +215,10 @@ export const useCart = () => {
           product: {
             id: item.products?.product_id || '',
             name: item.products?.name || '',
-            price: finalPrice, // Use calculated price with variant modifiers
+            price: finalPrice, // Use flash sale price if active, otherwise regular price
+            originalPrice: priceWithVariants, // Original price (with variants but without flash sale)
+            flashSalePrice: flashSalePrice, // Flash sale discounted price
+            hasFlashSale: hasFlashSale,
             image: variantImage
           },
           variant_selections: variantSelections,
