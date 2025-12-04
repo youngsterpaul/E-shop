@@ -3,13 +3,13 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { PhoneIcon, Mail, MapPin, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { PhoneIcon, Mail, MapPin, Loader2, Clock, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InteractiveMap from '@/components/InteractiveMap';
 import { useContactSettings } from '@/hooks/useContactSettings';
 import { z } from 'zod';
 
-// Validation schema
 const contactSchema = z.object({
   name: z.string()
     .trim()
@@ -100,154 +100,184 @@ const ContactPage = () => {
     }, 1500);
   };
 
-  // Format phone for tel: link
   const phoneLink = settings.phone.replace(/\s/g, '');
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
-        <h1 className="text-3xl font-bold mb-2">Contact Us</h1>
-        <p className="text-muted-foreground mb-8">
-          Have a question, suggestion, or concern? We're here to help!
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-card rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-            <div className="p-3 bg-muted rounded-full mb-4">
-              <PhoneIcon className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Call Us</h3>
-            <p className="text-muted-foreground mb-3">
-              {settingsLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : settings.business_hours}
-            </p>
-            <a href={`tel:${phoneLink}`} className="text-primary hover:text-primary/80">
-              {settings.phone}
-            </a>
-          </div>
-          
-          <div className="bg-card rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-            <div className="p-3 bg-muted rounded-full mb-4">
-              <Mail className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Email Us</h3>
-            <p className="text-muted-foreground mb-3">We'll respond within 24 hours</p>
-            <a href={`mailto:${settings.email}`} className="text-primary hover:text-primary/80">
-              {settings.email}
-            </a>
-          </div>
-          
-          <div className="bg-card rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-            <div className="p-3 bg-muted rounded-full mb-4">
-              <MapPin className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Visit Us</h3>
-            <p className="text-muted-foreground mb-3">Our headquarters</p>
-            <address className="not-italic text-primary">
-              {settings.address}
-            </address>
-          </div>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`container mx-auto px-4 py-8 ${!isMobile ? 'max-w-6xl' : 'pb-24'}`}>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Contact Us</h1>
+          <p className="text-muted-foreground">
+            Have a question, suggestion, or concern? We're here to help!
+          </p>
         </div>
         
-        <div className="bg-card rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-semibold mb-6">Send Us a Message</h2>
+        {/* Contact Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <PhoneIcon className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Call Us</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                {settingsLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : settings.business_hours}
+              </p>
+              <a href={`tel:${phoneLink}`} className="text-primary font-medium hover:underline">
+                {settings.phone}
+              </a>
+            </CardContent>
+          </Card>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-medium">
-                  Full Name *
-                </label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Your name"
-                  required
-                  className={errors.name ? 'border-destructive' : ''}
-                />
-                {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Email Us</h3>
+              <p className="text-sm text-muted-foreground mb-3">We'll respond within 24 hours</p>
+              <a href={`mailto:${settings.email}`} className="text-primary font-medium hover:underline">
+                {settings.email}
+              </a>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <MapPin className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">Visit Us</h3>
+              <p className="text-sm text-muted-foreground mb-3">Our headquarters</p>
+              <address className="not-italic text-primary font-medium text-sm">
+                {settings.address}
+              </address>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Contact Form */}
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <Send className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">Send Us a Message</h2>
+                <p className="text-sm text-muted-foreground">We'd love to hear from you</p>
+              </div>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium text-foreground">
+                    Full Name *
+                  </label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Your name"
+                    required
+                    className={`h-11 ${errors.name ? 'border-destructive' : ''}`}
+                  />
+                  {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-foreground">
+                    Email Address *
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="your.email@example.com"
+                    required
+                    className={`h-11 ${errors.email ? 'border-destructive' : ''}`}
+                  />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-sm font-medium text-foreground">
+                    Phone Number (Optional)
+                  </label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+254 7XX XXX XXX"
+                    className={`h-11 ${errors.phone ? 'border-destructive' : ''}`}
+                  />
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="subject" className="text-sm font-medium text-foreground">
+                    Subject *
+                  </label>
+                  <Input
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    placeholder="How can we help you?"
+                    required
+                    className={`h-11 ${errors.subject ? 'border-destructive' : ''}`}
+                  />
+                  {errors.subject && <p className="text-sm text-destructive">{errors.subject}</p>}
+                </div>
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium">
-                  Email Address *
+                <label htmlFor="message" className="text-sm font-medium text-foreground">
+                  Your Message *
                 </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
+                <Textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
                   onChange={handleChange}
-                  placeholder="your.email@example.com"
+                  placeholder="Please describe your inquiry in detail..."
+                  className={`min-h-32 resize-none ${errors.message ? 'border-destructive' : ''}`}
                   required
-                  className={errors.email ? 'border-destructive' : ''}
+                  maxLength={2000}
                 />
-                {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="phone" className="block text-sm font-medium">
-                  Phone Number (Optional)
-                </label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+254 7XX XXX XXX"
-                  className={errors.phone ? 'border-destructive' : ''}
-                />
-                {errors.phone && <p className="text-sm text-destructive mt-1">{errors.phone}</p>}
+                {errors.message && <p className="text-sm text-destructive">{errors.message}</p>}
+                <p className="text-xs text-muted-foreground">{formData.message.length}/2000 characters</p>
               </div>
               
-              <div className="space-y-2">
-                <label htmlFor="subject" className="block text-sm font-medium">
-                  Subject *
-                </label>
-                <Input
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help you?"
-                  required
-                  className={errors.subject ? 'border-destructive' : ''}
-                />
-                {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject}</p>}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="message" className="block text-sm font-medium">
-                Your Message
-              </label>
-              <Textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                placeholder="Please describe your inquiry in detail..."
-                className={`min-h-32 ${errors.message ? 'border-destructive' : ''}`}
-                required
-                maxLength={2000}
-              />
-              {errors.message && <p className="text-sm text-destructive mt-1">{errors.message}</p>}
-              <p className="text-sm text-muted-foreground mt-1">{formData.message.length}/2000 characters</p>
-            </div>
-            
-            <Button 
-              type="submit"
-              className="w-full md:w-auto"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </Button>
-          </form>
-        </div>
+              <Button 
+                type="submit"
+                className="w-full md:w-auto px-8 h-11"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Message
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
         
         <InteractiveMap />
       </main>

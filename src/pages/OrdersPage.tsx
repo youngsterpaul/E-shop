@@ -222,39 +222,40 @@ const OrdersPage = memo(() => {
   }
 
   return (
-    <div className={`container min-h-screen bg-gray-50 pb-24 flex-grow mx-auto py-8 ${!isMobile ? 'px-4 xl:px-24' : 'px-2'}`}>
-      <div className="bg-gray-50 border-b .px-4 .sm:px-8 py-3">
-        {!isMobile && ( 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
-          <div className="flex items-center gap-2">
-            <Package className="text-primary h-5 w-5" />
-            <h1 className="text-lg font-bold text-gray-800">My Orders</h1>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`container mx-auto px-4 ${isMobile ? 'pb-24 pt-4' : 'py-8 max-w-4xl'}`}>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">My Orders</h1>
+            <p className="text-sm text-muted-foreground">Track and manage your orders</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
-              <PackageX className="h-4 w-4 mr-1" /> Returns
-            </Button>
-            <Button variant="outline" onClick={fetchOrders} size="sm">
-              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-            </Button>
-          </div>
+          {!isMobile && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
+                <PackageX className="h-4 w-4 mr-1" /> Returns
+              </Button>
+              <Button variant="outline" onClick={fetchOrders} size="sm">
+                <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+              </Button>
+            </div>
+          )}
         </div>
-        )}
 
         {/* Search Bar */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search orders..."
-            className="pl-9 text-sm h-9"
+            className="pl-10 h-11"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Status Tabs */}
-        <div className="flex overflow-x-auto gap-2 pb-1">
+        <div className="flex overflow-x-auto gap-2 pb-1 mb-6 scrollbar-hide">
           {Object.entries(statusConfig).map(([key, cfg]) => {
             const active = activeStatus === key;
             const Icon = cfg.icon;
@@ -263,23 +264,23 @@ const OrdersPage = memo(() => {
                 key={key}
                 variant={active ? 'default' : 'outline'}
                 size="sm"
-                className={`flex-shrink-0 gap-1 px-3 py-1 text-xs ${active ? 'font-semibold' : ''}`}
+                className={`flex-shrink-0 gap-1.5 px-4 ${active ? 'font-medium' : ''}`}
                 onClick={() => setActiveStatus(key)}
               >
-                <Icon className={`h-3 w-3 ${cfg.color}`} />
+                <Icon className={`h-4 w-4 ${active ? '' : cfg.color}`} />
                 {cfg.label}
               </Button>
             );
           })}
         </div>
-      </div>
 
-      {/* ===== Orders List ===== */}
-      <div className=".p-4 .sm:p-8 .max-w-6xl mx-auto">
+        {/* Orders List */}
         {displayedOrders.length === 0 ? (
           <div className="text-center py-16">
-            <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-            <p className="text-gray-500 text-sm">No orders found</p>
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">No orders found</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -287,15 +288,15 @@ const OrdersPage = memo(() => {
               const cfg = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.all;
               const Icon = cfg.icon;
               return (
-                <Card key={order.order_id} className="border shadow-sm">
-                  <CardHeader>
+                <Card key={order.order_id} className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-base font-semibold">
+                      <CardTitle className="text-base font-semibold text-foreground">
                         #{order.order_id.slice(-8).toUpperCase()}
                       </CardTitle>
-                      <Badge className={`${cfg.bg} ${cfg.color}`}>{cfg.label}</Badge>
+                      <Badge className={`${cfg.bg} ${cfg.color} border-0`}>{cfg.label}</Badge>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
                     </p>
                   </CardHeader>
@@ -391,7 +392,7 @@ const OrdersPage = memo(() => {
             </Button>
           </div>
         )}
-      </div>
+      </main>
 
       {/* Payment Modal */}
       <Dialog open={showPaymentModal} onOpenChange={(open) => {

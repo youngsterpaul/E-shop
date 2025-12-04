@@ -243,11 +243,11 @@ const productForTabs = useMemo(() => {
   // ------------------ LOADING ------------------
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
           <Skeleton className="h-6 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-lg" />
+            <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-xl" />
             <div className="space-y-6">
               <Skeleton className="h-8 w-3/4" />
               <Skeleton className="h-6 w-24" />
@@ -262,15 +262,15 @@ const productForTabs = useMemo(() => {
   // ------------------ ERROR ------------------
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-          <p className="text-gray-600 mb-4">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center px-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Product not found</h2>
+          <p className="text-muted-foreground mb-6">
             {error ? 'There was an error loading the product.' : 'The product you\'re looking for doesn\'t exist.'}
           </p>
           <button
             onClick={() => navigate('/')}
-            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Return to homepage
           </button>
@@ -306,11 +306,11 @@ const productForTabs = useMemo(() => {
     <>
       <ProductMetadata product={product} currentPrice={price} />
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className={`${isMobile ? 'pb-16 px-0' : 'px-4 xl:px-24 py-6'} container mx-auto`}>
-          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden." />}
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+        <main className={`container mx-auto ${isMobile ? 'pb-20 px-0' : 'px-4 py-6 max-w-6xl'}`}>
+          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-8 ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
             <EnhancedProductImageGallery 
               product={productWithImages} 
               selectedImageUrl={selectedColorImageUrl}

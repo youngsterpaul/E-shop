@@ -117,7 +117,7 @@ const SearchPage = () => {
   }, [searchQuery]);
 
   return (
-    <div className={`${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
       <PageHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -126,7 +126,7 @@ const SearchPage = () => {
         placeholder="Search for products..."
       />
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'px-4 xl:px-24 pb-8 mt-8' : 'px-0'}`}>
+      <main className={`container mx-auto ${!isMobile ? 'px-4 max-w-7xl pb-8 pt-6' : 'px-0 pb-24'}`}>
         <ProductList
           products={allProducts}
           isLoading={isLoading}
@@ -146,16 +146,16 @@ const SearchPage = () => {
 
         {/* Mobile Loading Indicator */}
         {isMobile && mobileQuery.isFetchingNextPage && (
-          <div className="grid grid-cols-2 gap-2 mt-4 px-2">
+          <div className="grid grid-cols-2 gap-3 mt-4 px-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden"
               >
-                <div className="h-40 bg-gray-200 animate-pulse" />
-                <div className="p-2 space-y-2">
-                  <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+                <div className="h-40 bg-muted animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
                 </div>
               </div>
             ))}

@@ -4,14 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Users, Target, Heart, Zap, Loader2 } from 'lucide-react';
+import { Search, Users, Target, Heart, Zap, Loader2, Briefcase, ArrowRight } from 'lucide-react';
 import JobCard from '@/components/careers/JobCard';
 import ApplicationModal from '@/components/careers/ApplicationModal';
-import SiteBreadcrumb from '@/components/Breadcrumb';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useJobListings, JobListing } from '@/hooks/useJobListings';
 
-// Map JobListing to the format expected by JobCard
 interface Job {
   id: string;
   title: string;
@@ -35,7 +33,6 @@ const CareersPage = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Map database format to component format
   const jobs: Job[] = jobListings.map(j => ({
     id: j.id,
     title: j.title,
@@ -48,7 +45,6 @@ const CareersPage = () => {
     type: j.type,
   }));
 
-  // Get unique departments for filter
   const departments = [...new Set(jobs.map(j => j.department))];
 
   useEffect(() => {
@@ -86,165 +82,141 @@ const CareersPage = () => {
     setIsModalOpen(true);
   };
 
+  const values = [
+    { icon: Users, title: 'Collaboration', desc: 'Working together to achieve extraordinary results', color: 'from-blue-500 to-blue-600' },
+    { icon: Target, title: 'Excellence', desc: 'Striving for the highest standards in everything we do', color: 'from-purple-500 to-purple-600' },
+    { icon: Heart, title: 'Passion', desc: 'Bringing enthusiasm and dedication to our work', color: 'from-primary to-primary/80' },
+    { icon: Zap, title: 'Innovation', desc: 'Embracing new ideas and creative solutions', color: 'from-orange-500 to-orange-600' },
+  ];
+
   return (
     <>
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Get your dream job at SmartKenya - SmartKenya",
-          "description": "Know more about SmartKenya",
+          "name": "Careers at SmartKenya",
+          "description": "Join our growing team",
           "url": "https://smartkenya.co.ke/careers",
-          "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://smartkenya.co.ke" },
-              { "@type": "ListItem", "position": 2, "name": "Careers", "item": "https://smartkenya.co.ke/careers" }
-            ]
-          }
         })}
       </script>
 
       <Helmet>
         <title>Careers - Join Our Growing Team</title>
-        <meta name="description" content="Explore exciting career opportunities at our company. Join our team and help shape the future of digital commerce." />
+        <meta name="description" content="Explore exciting career opportunities at our company." />
       </Helmet>
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? '' : ''}`}>
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         {/* Hero Section */}
-        <section className={`relative py-20 mb-8 px-4 text-center overflow-hidden ${!isMobile ? 'max-w-6xl container xl:px-24 px-4 bg-white' : ''}`}>
-          <div>
-            {!isMobile && (
-              <SiteBreadcrumb 
-                items={[{ label: 'Home', href: '/' }, { label: 'Careers' }]}
-                className="mb-6 hidden"
-              />
-            )}
-
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in">
+        <section className="relative py-16 px-4 bg-gradient-to-br from-primary/5 to-primary/10">
+          <div className="container mx-auto max-w-4xl text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Briefcase className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Join Our Growing Team
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Be part of an innovative team that's transforming the digital landscape. 
               We're looking for passionate individuals who want to make a difference.
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+              className="px-8"
               onClick={() => document.getElementById('jobs')?.scrollIntoView({ behavior: 'smooth' })}
             >
               View Open Positions
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </section>
 
-        {/* Company Values Section */}
-        <section className="py-16 px-4 bg-white max-w-6xl mx-auto container xl:px-24">
-          <div className="max-w-6xl mx-auto">
+        {/* Values Section */}
+        <section className="py-16 px-4">
+          <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-foreground mb-3">Our Values</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 We believe in creating an environment where everyone can thrive and contribute to our shared success.
               </p>
             </div>
-            <div className={`grid gap-8 ${!isMobile ? 'grid-cols-4' : ''}`}>
-              <Card className="text-center group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Collaboration</h3>
-                  <p className="text-gray-600">Working together to achieve extraordinary results</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Target className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Excellence</h3>
-                  <p className="text-gray-600">Striving for the highest standards in everything we do</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Heart className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Passion</h3>
-                  <p className="text-gray-600">Bringing enthusiasm and dedication to our work</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Zap className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Innovation</h3>
-                  <p className="text-gray-600">Embracing new ideas and creative solutions</p>
-                </CardContent>
-              </Card>
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-4'}`}>
+              {values.map((value, index) => (
+                <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-all group">
+                  <CardContent className="p-6 text-center">
+                    <div className={`w-14 h-14 mx-auto mb-4 bg-gradient-to-br ${value.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <value.icon className="w-7 h-7 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">{value.title}</h3>
+                    <p className="text-sm text-muted-foreground">{value.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Job Listings Section */}
-        <section id="jobs" className="py-16 px-4 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Open Positions</h2>
-              <p className="text-lg text-gray-600">Find the perfect role to advance your career</p>
+        <section id="jobs" className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Open Positions</h2>
+              <p className="text-muted-foreground">Find the perfect role to advance your career</p>
             </div>
 
             {/* Filters */}
-            <div className={`mb-8 space-y-4 md:space-y-0 md:gap-4 items-center ${!isMobile ? 'flex' : ''}`}>
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search positions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map(dept => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  <SelectItem value="Remote">Remote</SelectItem>
-                  <SelectItem value="On-site">On-site</SelectItem>
-                  <SelectItem value="Hybrid">Hybrid</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="entry">Entry Level</SelectItem>
-                  <SelectItem value="mid">Mid Level</SelectItem>
-                  <SelectItem value="senior">Senior Level</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card className="border-0 shadow-sm mb-8">
+              <CardContent className="p-4">
+                <div className={`space-y-4 ${!isMobile ? 'md:space-y-0 md:flex md:gap-4' : ''}`}>
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      type="text"
+                      placeholder="Search positions..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-11"
+                    />
+                  </div>
+                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                    <SelectTrigger className="w-full md:w-40 h-11">
+                      <SelectValue placeholder="Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
+                      {departments.map(dept => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger className="w-full md:w-40 h-11">
+                      <SelectValue placeholder="Location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Locations</SelectItem>
+                      <SelectItem value="Remote">Remote</SelectItem>
+                      <SelectItem value="On-site">On-site</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+                    <SelectTrigger className="w-full md:w-40 h-11">
+                      <SelectValue placeholder="Experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="entry">Entry Level</SelectItem>
+                      <SelectItem value="mid">Mid Level</SelectItem>
+                      <SelectItem value="senior">Senior Level</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Job Cards */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {isLoading ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -259,14 +231,16 @@ const CareersPage = () => {
                 ))
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">No positions found matching your criteria.</p>
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Briefcase className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground">No positions found matching your criteria.</p>
                 </div>
               )}
             </div>
           </div>
         </section>
 
-        {/* Application Modal */}
         <ApplicationModal
           job={selectedJob}
           isOpen={isModalOpen}
