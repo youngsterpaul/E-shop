@@ -108,18 +108,46 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
     inputRef.current?.focus();
   };
   return <div ref={containerRef} className={`relative ${className}`}>
-      <div className="relative">
-        {!isMobile && <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground pointer-events-none item-center" />}
-        <Input ref={inputRef} type="search" placeholder={placeholder} className={`/pr-16 h-12 text-base border-2 border-gray-200 rounded-lg transition-all duration-200 ${isMobile ? 'pl-3' : 'pl-9'}`} value={value} onChange={e => onChange(e.target.value)} onFocus={() => {
-        setIsFocused(true);
-        setSelectedIndex(-1);
-      }} onKeyDown={handleKeyDown} />
+      <div className="relative flex items-center">
+        {!isMobile && <Search className="absolute left-4 h-5 w-5 text-muted-foreground pointer-events-none z-10" />}
+        <Input 
+          ref={inputRef} 
+          type="search" 
+          placeholder={placeholder} 
+          className={`h-12 text-base bg-muted/40 border-border/50 rounded-full transition-all duration-200 focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 ${isMobile ? 'pl-4 pr-4' : 'pl-12 pr-28'}`} 
+          value={value} 
+          onChange={e => onChange(e.target.value)} 
+          onFocus={() => {
+            setIsFocused(true);
+            setSelectedIndex(-1);
+          }} 
+          onKeyDown={handleKeyDown} 
+        />
         
-        <div className="absolute right-2 top-2 flex items-center space-x-1">
-          {!isMobile && <Button type="button" onClick={() => handleSubmit()} className="h-8 bg-gray-50 hover:bg-gray-100 px-3" aria-label="Search">
-              <SearchIcon className="text-gray-800 h-4 w-4" />
-            </Button>}
-        </div>
+        {!isMobile && (
+          <div className="absolute right-1.5 flex items-center gap-1">
+            {value && (
+              <Button 
+                type="button" 
+                variant="ghost"
+                size="sm"
+                onClick={handleClear} 
+                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground" 
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              type="button" 
+              onClick={() => handleSubmit()} 
+              className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+              aria-label="Search"
+            >
+              Search
+            </Button>
+          </div>
+        )}
       </div>
 
       {isFocused && <SearchSuggestions suggestions={suggestions} query={value} isLoading={isLoading} selectedIndex={selectedIndex} onSuggestionClick={handleSuggestionClick} onRemoveFromHistory={removeFromHistory} onClearHistory={clearHistory} hasHistory={searchHistory.length > 0} />}
