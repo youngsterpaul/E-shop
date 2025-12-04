@@ -54,12 +54,15 @@ const AdminProductEdit = () => {
   const { categories, subcategories, setSubcategories, fetchSubcategories } = useCategories();
   const { 
     images, 
+    videos,
     imageUrls, 
+    videoUrls,
     uploadProgress,
     isUploading,
     handleImageUpload, 
     uploadImagesToStorage,
-    removeImage, 
+    removeImage,
+    removeVideo,
     clearImages 
   } = useImageUpload();
   
@@ -216,11 +219,11 @@ const AdminProductEdit = () => {
     setExistingImages(prev => prev.filter(img => img.index !== index));
   };
 
-  const handleUploadImages = async () => {
-    if (images.length === 0) {
+  const handleUploadMedia = async () => {
+    if (images.length === 0 && videos.length === 0) {
       toast({
-        title: "No new images selected",
-        description: "Please select some images to upload.",
+        title: "No new media selected",
+        description: "Please select some images or videos to upload.",
         variant: "destructive"
       });
       return;
@@ -243,22 +246,23 @@ const AdminProductEdit = () => {
       return;
     }
 
-    // Check if we have new images but haven't uploaded them yet
-    if (images.length > 0 && imageUrls.length === 0) {
+    // Check if we have new media but haven't uploaded them yet
+    const hasUnuploadedMedia = (images.length > 0 || videos.length > 0) && (imageUrls.length === 0 && videoUrls.length === 0);
+    if (hasUnuploadedMedia) {
       toast({
-        title: "Images not uploaded",
-        description: "Please upload your new images first before saving the product.",
+        title: "Media not uploaded",
+        description: "Please upload your new media first before saving the product.",
         variant: "destructive"
       });
       return;
     }
 
-    // Must have at least one image (existing or new)
-    const totalImages = existingImages.length + imageUrls.length;
-    if (totalImages === 0) {
+    // Must have at least one media item (existing or new)
+    const totalMedia = existingImages.length + imageUrls.length + videoUrls.length;
+    if (totalMedia === 0) {
       toast({
-        title: "No images",
-        description: "Please add at least one image to the product.",
+        title: "No media",
+        description: "Please add at least one image or video to the product.",
         variant: "destructive"
       });
       return;
@@ -280,10 +284,11 @@ const AdminProductEdit = () => {
 
       const categoryToStore = subcategoryName ? `${categoryName} > ${subcategoryName}` : categoryName;
       
-      // Combine existing images that weren't removed with newly uploaded images
-      const finalImageUrls = [
+      // Combine existing images that weren't removed with newly uploaded media
+      const finalMediaUrls = [
         ...existingImages.map(img => img.url),
-        ...imageUrls
+        ...imageUrls,
+        ...videoUrls
       ];
       
       const { error } = await supabase
@@ -298,7 +303,7 @@ const AdminProductEdit = () => {
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
           specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: finalImageUrls,
+          image_urls: finalMediaUrls,
           updated_at: new Date().toISOString()
         })
         .eq('product_id', productId || '');
@@ -307,7 +312,7 @@ const AdminProductEdit = () => {
       
       toast({
         title: "Product updated successfully",
-        description: `"${data.name}" has been updated with ${finalImageUrls.length} image(s).`,
+        description: `"${data.name}" has been updated with ${finalMediaUrls.length} media file(s).`,
       });
       
       navigate('/supersmartkenyaadmin123/products');
@@ -324,9 +329,11 @@ const AdminProductEdit = () => {
     }
   };
 
-  const totalImages = existingImages.length + imageUrls.length;
-  const canSaveProduct = (images.length === 0 || imageUrls.length > 0) && totalImages > 0;
-  const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
+  const newMediaCount = images.length + videos.length;
+  const uploadedMediaCount = imageUrls.length + videoUrls.length;
+  const totalMediaCount = existingImages.length + uploadedMediaCount;
+  const canSaveProduct = (newMediaCount === 0 || uploadedMediaCount > 0) && totalMediaCount > 0;
+  const hasUnuploadedMedia = newMediaCount > 0 && uploadedMediaCount === 0;
 
   if (loading) {
     return (
@@ -375,33 +382,35 @@ const AdminProductEdit = () => {
             
             <ProductImageUpload
               images={images}
+              videos={videos}
               uploadProgress={uploadProgress}
               isUploading={isUploading}
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
+              onRemoveVideo={removeVideo}
               existingImages={existingImages}
               onRemoveExistingImage={handleRemoveExistingImage}
               isEditMode={true}
             />
 
-            {/* Upload New Images Button */}
-            {hasUnuploadedImages && (
+            {/* Upload New Media Button */}
+            {hasUnuploadedMedia && (
               <div className="flex justify-center">
                 <Button 
                   type="button"
-                  onClick={handleUploadImages}
+                  onClick={handleUploadMedia}
                   disabled={isUploading}
                   className="bg-blue-500 hover:bg-blue-600"
                 >
                   {isUploading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading New Images...
+                      Uploading Media...
                     </>
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload New Images ({images.length})
+                      Upload New Media ({newMediaCount})
                     </>
                   )}
                 </Button>
@@ -424,16 +433,16 @@ const AdminProductEdit = () => {
                   ) : (
                     <>
                       <CheckCircle className="mr-2 h-4 w-4" />
-                      Update Product ({totalImages} image{totalImages !== 1 ? 's' : ''})
+                      Update Product ({totalMediaCount} media)
                     </>
                   )}
                 </Button>
               </div>
             )}
 
-            {totalImages === 0 && (
+            {totalMediaCount === 0 && (
               <div className="text-center text-red-500 text-sm">
-                Please add at least one image to the product
+                Please add at least one image or video to the product
               </div>
             )}
           </form>
