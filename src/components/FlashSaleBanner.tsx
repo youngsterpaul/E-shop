@@ -1,4 +1,4 @@
-import { useActiveFlashSales, useFlashSaleProductsWithDetails } from '@/hooks/useFlashSales';
+import { useAllActiveFlashSaleProducts } from '@/hooks/useFlashSales';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Zap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,7 +6,6 @@ import ProductCard from '@/components/ProductCard';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const FlashSaleBanner = () => {
-  const { data: flashSales, isLoading } = useActiveFlashSales();
   const isMobile = isMobileUserAgent();
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
@@ -14,21 +13,16 @@ const FlashSaleBanner = () => {
     seconds: number;
   } | null>(null);
 
-  const activeSale = flashSales?.[0]; // Show first active flash sale
-  
-  // Fetch products for the active flash sale - match featured products count
+  // Fetch ALL products from ALL active flash sales
   const pageSize = isMobile ? 6 : 12;
-  const { data: productsData, isLoading: productsLoading } = useFlashSaleProductsWithDetails(
-    activeSale?.id,
-    pageSize
-  );
+  const { data: productsData, isLoading } = useAllActiveFlashSaleProducts(pageSize);
 
   useEffect(() => {
-    if (!activeSale) return;
+    if (!productsData?.earliestEndDate) return;
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
-      const end = new Date(activeSale.end_date).getTime();
+      const end = new Date(productsData.earliestEndDate).getTime();
       const difference = end - now;
 
       if (difference > 0) {
@@ -45,7 +39,7 @@ const FlashSaleBanner = () => {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [activeSale]);
+  }, [productsData?.earliestEndDate]);
 
   // Transform product data for ProductCard
   const transformProductData = useCallback((product: any) => ({
@@ -83,10 +77,7 @@ const FlashSaleBanner = () => {
     };
   }, [isMobile]);
 
-  if (isLoading || !activeSale || !timeLeft) return null;
-  
-  // Don't show if no products
-  if (!productsLoading && products.length === 0) return null;
+  if (isLoading || !timeLeft || products.length === 0) return null;
 
   return (
     <section className={`bg-white ${isMobile ? 'mb-4' : 'mb-8 border-t border-b'}`}>
@@ -120,28 +111,11 @@ const FlashSaleBanner = () => {
         </div>
 
         {/* Grid Layout Products */}
-        {productsLoading ? (
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
-            {Array.from({ length: pageSize }).map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
-              >
-                <div className="h-40 bg-gray-200 shimmer" />
-                <div className="p-2 space-y-2">
-                  <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
-            {transformedProducts.map((product, index) => (
-              <ProductCard key={`${product.id}-${index}`} product={product} />
-            ))}
-          </div>
-        )}
+        <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
+          {transformedProducts.map((product, index) => (
+            <ProductCard key={`${product.id}-${index}`} product={product} />
+          ))}
+        </div>
       </div>
     </section>
   );
