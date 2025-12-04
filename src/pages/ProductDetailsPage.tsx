@@ -59,10 +59,18 @@ const ProductDetailsPage: React.FC = () => {
   const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const { calculations } = useSelectiveCart();
   const { data: flashSale } = useProductFlashSale(id || '');
+  const { addToRecentlyViewed } = useRecentlyViewed();
 
   // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+
+  // Track recently viewed products
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed(product);
+    }
+  }, [product?.product_id]);
 
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
@@ -360,16 +368,39 @@ const productForTabs = useMemo(() => {
               )}
 
               {isMobile && (
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-muted-foreground space-y-1">
                   <p>✓ Free shipping on orders over KES {Math.max(0, amountNeededForFreeDelivery).toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
+                </div>
+              )}
+
+              {/* Social Share */}
+              {!isMobile && (
+                <div className="pt-4 border-t border-border/50">
+                  <SocialShare 
+                    title={product.name} 
+                    description={product.description || ''} 
+                    variant="compact"
+                  />
                 </div>
               )}
             </div>
           </div>
 
           {productForTabs && <ProductTabs product={productForTabs} />}
+
+          {/* Trust Badges */}
+          {!isMobile && (
+            <div className="my-8">
+              <TrustBadges variant="compact" />
+            </div>
+          )}
+
+          {/* Recently Viewed */}
+          <div className={isMobile ? 'px-4' : ''}>
+            <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
+          </div>
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}

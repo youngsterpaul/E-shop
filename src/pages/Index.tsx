@@ -10,6 +10,7 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import TrustBadges from '@/components/TrustBadges';
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
+import Testimonials from '@/components/Testimonials';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -72,6 +73,11 @@ const Index = () => {
           {/* Trust Badges */}
           <section className={`${isMobile ? 'mt-4' : 'mt-8'}`}>
             <TrustBadges />
+          </section>
+
+          {/* Testimonials */}
+          <section className={`${isMobile ? 'px-4' : ''}`}>
+            <Testimonials variant="carousel" />
           </section>
 
           {/* Newsletter */}
