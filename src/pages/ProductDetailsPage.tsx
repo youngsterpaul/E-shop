@@ -17,6 +17,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
+import SocialShare from '@/components/SocialShare';
+import TrustBadges from '@/components/TrustBadges';
 
 // ✅ Properly typed interfaces
 interface ProductVariant {

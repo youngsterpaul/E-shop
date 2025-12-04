@@ -7,6 +7,9 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import TrustBadges from '@/components/TrustBadges';
+import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
+import NewsletterSubscription from '@/components/NewsletterSubscription';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -57,8 +60,23 @@ const Index = () => {
           )}
           
           {/* Featured Products */}
-          <section className={`${isMobile ? 'mt-4 pb-20' : 'mt-6 mb-8'}`}>
+          <section className={`${isMobile ? 'mt-4' : 'mt-6'}`}>
             <EnhancedFeaturedProducts />
+          </section>
+
+          {/* Recently Viewed */}
+          <section className={`${isMobile ? 'px-4' : ''}`}>
+            <RecentlyViewedProducts maxItems={6} />
+          </section>
+
+          {/* Trust Badges */}
+          <section className={`${isMobile ? 'mt-4' : 'mt-8'}`}>
+            <TrustBadges />
+          </section>
+
+          {/* Newsletter */}
+          <section className={`${isMobile ? 'px-4 py-8 pb-24' : 'py-12'}`}>
+            <NewsletterSubscription />
           </section>
         </main>
       </div>
