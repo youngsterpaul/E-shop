@@ -84,7 +84,8 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
               "max-h-[400px] overflow-y-auto overflow-x-hidden",
               "bg-popover rounded-lg border border-border",
               "shadow-lg shadow-black/5",
-              "animate-in fade-in-0 slide-in-from-top-2 duration-200"
+              "animate-in fade-in-0 slide-in-from-top-2 duration-200",
+              "scrollbar-subtle"
             ]
       )}
     >
