@@ -11,13 +11,17 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, X, TrendingUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const AdminSettingsPage = () => {
   const { toast } = useToast();
   const { useAdminSettings } = useAdminDashboard();
   const { data: settings = [], refetch } = useAdminSettings();
   const [isLoading, setIsLoading] = useState(false);
+  const [popularSearches, setPopularSearches] = useState<string[]>([]);
+  const [newSearch, setNewSearch] = useState('');
+  const [isSavingSearches, setIsSavingSearches] = useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -40,6 +44,13 @@ const AdminSettingsPage = () => {
         freeShippingThreshold: settings.find(s => s.setting_key === 'free_shipping_threshold')?.setting_value || 5000,
         maintenanceMode: settings.find(s => s.setting_key === 'maintenance_mode')?.setting_value || false,
       });
+
+      // Load popular searches
+      const searchSetting = settings.find(s => s.setting_key === 'popular_searches');
+      if (searchSetting?.setting_value) {
+        const searches = searchSetting.setting_value as string[];
+        setPopularSearches(Array.isArray(searches) ? searches : []);
+      }
     }
   }, [settings, form]);
   
@@ -74,6 +85,38 @@ const AdminSettingsPage = () => {
     }
   };
 
+  const addPopularSearch = () => {
+    const trimmed = newSearch.trim().toLowerCase();
+    if (trimmed && !popularSearches.includes(trimmed)) {
+      setPopularSearches([...popularSearches, trimmed]);
+      setNewSearch('');
+    }
+  };
+
+  const removePopularSearch = (search: string) => {
+    setPopularSearches(popularSearches.filter(s => s !== search));
+  };
+
+  const savePopularSearches = async () => {
+    setIsSavingSearches(true);
+    try {
+      const { error } = await supabase.from('admin_settings').upsert({
+        setting_key: 'popular_searches',
+        setting_value: popularSearches,
+        description: 'Popular search suggestions shown to users when search input is focused',
+      }, { onConflict: 'setting_key' });
+
+      if (error) throw error;
+      
+      refetch();
+      toast({ title: "Success", description: "Popular searches saved successfully" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSavingSearches(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <QuickActionsBar title="Settings" onRefresh={() => refetch()} />
@@ -82,6 +125,7 @@ const AdminSettingsPage = () => {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
+          <TabsTrigger value="search">Search</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
@@ -156,6 +200,67 @@ const AdminSettingsPage = () => {
                       </FormItem>
                     )}
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="search">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Popular Searches
+                  </CardTitle>
+                  <CardDescription>
+                    Manage trending search suggestions shown to users when they focus on the search input
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a popular search term..."
+                      value={newSearch}
+                      onChange={(e) => setNewSearch(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPopularSearch())}
+                    />
+                    <Button type="button" onClick={addPopularSearch} variant="outline">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 min-h-[60px] p-3 border rounded-lg bg-muted/30">
+                    {popularSearches.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No popular searches added yet</p>
+                    ) : (
+                      popularSearches.map((search, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="flex items-center gap-1 pr-1"
+                        >
+                          {search}
+                          <button
+                            type="button"
+                            onClick={() => removePopularSearch(search)}
+                            className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button 
+                      type="button" 
+                      onClick={savePopularSearches}
+                      disabled={isSavingSearches}
+                    >
+                      {isSavingSearches && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isSavingSearches ? 'Saving...' : 'Save Popular Searches'}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

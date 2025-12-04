@@ -30,16 +30,18 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   onClearHistory,
   hasHistory
 }) => {
+  const isMobile = isMobileUserAgent();
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'history':
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className={cn("text-muted-foreground", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
       case 'popular':
-        return <TrendingUp className="w-4 h-4 text-orange-500" />;
+        return <TrendingUp className={cn("text-primary", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
       case 'product':
-        return <Package className="w-4 h-4 text-blue-500" />;
+        return <Package className={cn("text-blue-500", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
       default:
-        return <Search className="w-4 h-4 text-gray-400" />;
+        return <Search className={cn("text-muted-foreground", isMobile ? "w-5 h-5" : "w-4 h-4")} />;
     }
   };
 
@@ -51,7 +53,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} className="font-semibold text-orange-600">
+        <span key={index} className="font-semibold text-primary">
           {part}
         </span>
       ) : (
@@ -63,44 +65,37 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
   if (!suggestions.length && !isLoading && !hasHistory) {
     return null;
   }
-
-  const isMobile = isMobileUserAgent();
-    return (
-        <div
-          className={cn(
-            "bg-white border border-gray-200 shadow-lg z-50 overflow-y-auto overscroll-contain",
-            isMobile
-              ? [
-                  "fixed inset-0 top-16 bg-white z-50 max-h-none overflow-y-auto",
-                  "border-none shadow-none"
-                ]
-              : [
-                "absolute top-full left-0 right-0",
-                "max-h-[480px]",
-                "overflow-y-auto overscroll-contain",
-                "bg-white rounded-md border border-gray-200",
-                "shadow-[0_2px_8px_rgba(0,0,0,0.08)]",
-                "scrollbar-kilimall",        // <-- replace plugin scrollbar with this!
-                "animate-fade-in"
-              ]
-          )}
-        >
+  return (
+    <div
+      className={cn(
+        "z-50 overflow-y-auto overscroll-contain",
+        isMobile
+          ? "fixed inset-x-0 top-[56px] bottom-0 bg-background"
+          : [
+            "absolute top-full left-0 right-0 mt-1",
+            "max-h-[480px]",
+            "bg-card rounded-xl border border-border/50",
+            "shadow-lg",
+            "animate-fade-in"
+          ]
+      )}
+    >
       {isLoading && (
         <div className={cn(
-          "text-center text-gray-500",
-          isMobile ? "p-8 pt-16" : "p-4"
+          "text-center text-muted-foreground",
+          isMobile ? "p-8" : "p-4"
         )}>
-          <div className="animate-spin h-5 w-5 border-2 border-orange-500 border-t-transparent rounded-full mx-auto"></div>
+          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
           <span className="text-sm mt-2 block">Loading suggestions...</span>
         </div>
       )}
 
       {!isLoading && suggestions.length === 0 && query.length >= 2 && (
         <div className={cn(
-          "text-center text-gray-500",
-          isMobile ? "p-8 pt-16" : "p-4"
+          "text-center text-muted-foreground",
+          isMobile ? "p-8" : "p-4"
         )}>
-          <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+          <Search className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
           <p className="text-sm">No suggestions found</p>
         </div>
       )}
@@ -109,99 +104,90 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
         <>
           {!query.trim() && hasHistory && (
             <div className={cn(
-              "border-b border-gray-100 flex items-center justify-between",
-              isMobile ? "p-2 bg-gray-50" : "p-3"
+              "border-b border-border/50 flex items-center justify-between",
+              isMobile ? "px-4 py-3 bg-muted/30" : "px-4 py-3"
             )}>
-              <span className={cn(
-                "font-medium text-gray-600",
-                isMobile ? "text-sm" : "text-sm"
-              )}>
+              <span className="text-sm font-medium text-foreground">
                 Recent Searches
               </span>
               <button
                 onClick={onClearHistory}
-                className={cn(
-                  "text-gray-400 hover:text-gray-600 transition-colors",
-                  isMobile ? "text-sm px-2 py-1" : "text-xs"
-                )}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Clear All
               </button>
             </div>
           )}
 
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={`${suggestion.category}-${suggestion.text}`}
-              className={cn(
-                "flex items-center justify-between cursor-pointer transition-colors group",
-                isMobile ? [
-                  // Mobile: Kilimall-style larger touch targets
-                  "px-4 hover:bg-gray-50 border-b border-gray-100 min-h-[40px]",
-                  selectedIndex === index && "bg-orange-50 border-l-4 border-orange-500"
-                ] : [
-                  // Desktop: Original compact style
-                  "p-3 hover:bg-gray-50",
-                  selectedIndex === index && "bg-orange-50 border-l-2 border-orange-500"
-                ]
-              )}
-              onClick={() => onSuggestionClick(suggestion.text)}
-            >
-              <div className={cn(
-                "flex items-center flex-1 min-w-0",
-                isMobile ? "space-x-4" : "space-x-3"
-              )}>
-                <div className={cn(
-                  isMobile ? "w-5 h-5" : "w-4 h-4"
-                )}>
-                  {getCategoryIcon(suggestion.category)}
+          <div className={cn(isMobile && "divide-y divide-border/30")}>
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={`${suggestion.category}-${suggestion.text}`}
+                className={cn(
+                  "flex items-center justify-between cursor-pointer transition-colors group",
+                  isMobile ? [
+                    "px-4 py-3.5 active:bg-muted/50",
+                    selectedIndex === index && "bg-primary/5 border-l-2 border-primary"
+                  ] : [
+                    "px-4 py-3 hover:bg-muted/50",
+                    selectedIndex === index && "bg-primary/5 border-l-2 border-primary"
+                  ]
+                )}
+                onClick={() => onSuggestionClick(suggestion.text)}
+              >
+                <div className="flex items-center flex-1 min-w-0 gap-3">
+                  <div className="flex-shrink-0">
+                    {getCategoryIcon(suggestion.category)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={cn(
+                      "text-foreground truncate block",
+                      isMobile ? "text-base" : "text-sm"
+                    )}>
+                      {highlightMatch(suggestion.text, query)}
+                    </span>
+                    {isMobile && suggestion.category === 'popular' && (
+                      <span className="text-xs text-muted-foreground">Trending</span>
+                    )}
+                  </div>
+                  {!isMobile && suggestion.category === 'popular' && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      Popular
+                    </span>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className={cn(
-                    "text-gray-800 truncate block",
-                    isMobile ? "text-base leading-relaxed" : "text-sm"
-                  )}>
-                    {highlightMatch(suggestion.text.split(' ').slice(0, 3).join(' '), query)}
-                  </span>
-                </div>
-                {!isMobile && suggestion.category === 'popular' && (
-                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                    Popular
-                  </span>
+                
+                {suggestion.category === 'history' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveFromHistory(suggestion.text);
+                    }}
+                    className={cn(
+                      "hover:bg-muted rounded-full transition-colors",
+                      isMobile 
+                        ? "p-2 ml-2" 
+                        : "p-1.5 opacity-0 group-hover:opacity-100"
+                    )}
+                  >
+                    <X className={cn(
+                      "text-muted-foreground",
+                      isMobile ? "w-4 h-4" : "w-3.5 h-3.5"
+                    )} />
+                  </button>
                 )}
               </div>
-              
-              {suggestion.category === 'history' && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveFromHistory(suggestion.text);
-                  }}
-                  className={cn(
-                    "hover:bg-gray-200 rounded-full transition-colors opacity-0 group-hover:opacity-100",
-                    isMobile ? "p-2 ml-2" : "p-1"
-                  )}
-                >
-                  <X className={cn(
-                    "text-gray-400",
-                    isMobile ? "w-4 h-4" : "w-3 h-3"
-                  )} />
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </>
       )}
 
       {!query.trim() && suggestions.length > 0 && (
         <div className={cn(
-          "border-t border-gray-100 text-center",
-          isMobile ? "p-2 bg-gray-50" : "p-3"
+          "border-t border-border/50 text-center",
+          isMobile ? "p-3 bg-muted/30" : "p-3"
         )}>
-          <p className={cn(
-            "text-gray-400",
-            isMobile ? "text-sm" : "text-xs"
-          )}>
+          <p className="text-xs text-muted-foreground">
             Start typing to see more suggestions
           </p>
         </div>

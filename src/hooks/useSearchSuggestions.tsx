@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useProductSearch } from '@/hooks/useProducts';
+import { usePopularSearches } from '@/hooks/usePopularSearches';
 
 interface SearchSuggestion {
   text: string;
@@ -8,21 +9,13 @@ interface SearchSuggestion {
   count?: number;
 }
 
-const POPULAR_SEARCHES = [
-  'smart phones',
-  'laptops',
-  'headphones',
-  'cameras',
-  'tablets',
-  'smart watches',
-  'speakers',
-  'accessories'
-];
-
 export const useSearchSuggestions = (query: string, searchHistory: string[]) => {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Fetch admin-managed popular searches
+  const { data: popularSearches = [] } = usePopularSearches();
 
   // Debounce the query
   useEffect(() => {
@@ -42,7 +35,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
         .slice(0, 5)
         .map(item => ({ text: item, category: 'history' }));
       
-      const popularSuggestions: SearchSuggestion[] = POPULAR_SEARCHES
+      const popularSuggestions: SearchSuggestion[] = popularSearches
         .slice(0, 5)
         .map(item => ({ text: item, category: 'popular' }));
 
@@ -66,7 +59,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
       .map(item => ({ text: item, category: 'history' as const }));
 
     // Add matching popular searches
-    const matchingPopular = POPULAR_SEARCHES
+    const matchingPopular = popularSearches
       .filter(item => item.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 3)
       .map(item => ({ text: item, category: 'popular' as const }));
@@ -95,7 +88,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
 
     setSuggestions(uniqueSuggestions);
     setIsLoading(false);
-  }, [query, debouncedQuery, products, searchHistory]);
+  }, [query, debouncedQuery, products, searchHistory, popularSearches]);
 
   useEffect(() => {
     generateSuggestions();
