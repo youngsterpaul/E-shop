@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
@@ -30,50 +29,37 @@ const Index = () => {
             "name": "SmartKenya",
             "url": "https://www.smartkenya.co.ke",
             "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
-            "sameAs": [
-              "https://twitter.com/Smartkenya_Online_Shopping"
-            ]
           },
-          "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://www.smartkenya.co.ke"
-              }
-            ]
-          }
         }}
       />
       <CriticalCSS />
       
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         <PerformanceMonitor />
         {isMobile && <Header />}
 
-        <main className={`flex-grow pb-8 ${!isMobile ? 'container px-0 xl:px-24' : ''}`}>
-          <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'mb-8 relative /z-40'}> {/* Added relative z-40 for desktop */}
-              <EnhancedHeroSection />
-            </div>
+        <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : ''}`}>
+          {/* Hero Section */}
+          <section className={isMobile ? '' : 'py-4'}>
+            <EnhancedHeroSection />
+          </section>
 
-            {/* Flash Sale Banner */}
-            <div className={isMobile ? 'mb-4 px-4' : 'mb-8'}>
-              <FlashSaleBanner />
-            </div>
-            
-            {!isMobile && (
-              <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
-                <CategoryIcons showAll={false} />
-              </div>
-            )}
-            
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : 'relative z-10'}> {/* Added relative z-10 */}
-              <EnhancedFeaturedProducts />
-            </div>
-          </div>
+          {/* Flash Sale Section */}
+          <section className={isMobile ? 'mt-4' : 'mt-6'}>
+            <FlashSaleBanner />
+          </section>
+          
+          {/* Category Icons - Desktop Only */}
+          {!isMobile && (
+            <section className="mt-6 bg-card rounded-xl p-6 shadow-sm">
+              <CategoryIcons showAll={false} />
+            </section>
+          )}
+          
+          {/* Featured Products */}
+          <section className={`${isMobile ? 'mt-4 pb-20' : 'mt-6 mb-8'}`}>
+            <EnhancedFeaturedProducts />
+          </section>
         </main>
       </div>
     </>

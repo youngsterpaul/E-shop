@@ -1,6 +1,6 @@
 import { useAllActiveFlashSaleProducts } from '@/hooks/useFlashSales';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Zap, ChevronRight } from 'lucide-react';
+import { Zap, ChevronRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -13,7 +13,6 @@ const FlashSaleBanner = () => {
     seconds: number;
   } | null>(null);
 
-  // Fetch ALL products from ALL active flash sales
   const pageSize = isMobile ? 6 : 12;
   const { data: productsData, isLoading } = useAllActiveFlashSaleProducts(pageSize);
 
@@ -37,11 +36,9 @@ const FlashSaleBanner = () => {
 
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
-
     return () => clearInterval(timer);
   }, [productsData?.earliestEndDate]);
 
-  // Transform product data for ProductCard
   const transformProductData = useCallback((product: any) => ({
     id: product.product_id,
     name: product.name,
@@ -61,57 +58,46 @@ const FlashSaleBanner = () => {
     [products, transformProductData]
   );
 
-  // Grid layout configuration - match EnhancedFeaturedProducts
-  const gridConfig = useMemo(() => {
-    if (isMobile) {
-      return {
-        cols: "grid-cols-2",
-        gap: "gap-2",
-        padding: "p-2"
-      };
-    }
-    return {
-      cols: "grid-cols-6",
-      gap: "gap-y-1",
-      padding: "p-8"
-    };
-  }, [isMobile]);
-
   if (isLoading || !timeLeft || products.length === 0) return null;
 
   return (
-    <section className={`bg-white ${isMobile ? 'mb-4' : 'mb-8 border-t border-b'}`}>
-      <div className={`${isMobile ? '' : 'max-w-[1400px] mx-auto'} ${gridConfig.padding}`}>
-        {/* Flash Sale Header */}
-        <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-6'}`}>
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className={`bg-red-500 ${isMobile ? 'p-1.5' : 'p-2'} rounded-lg`}>
-              <Zap className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white fill-white`} />
-            </div>
-            <h2 className={`${isMobile ? 'text-base' : 'text-xl'} font-bold text-gray-900`}>
+    <section className={`bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-4'}`}>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+            <Zap className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white fill-white`} />
+          </div>
+          <div>
+            <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-white`}>
               Flash Sale
             </h2>
-            {!isMobile && <span className="text-gray-600 text-sm">Ends in</span>}
-            <div className="flex items-center gap-1">
-              <TimeBox value={timeLeft.hours} isMobile={isMobile} />
-              <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>:</span>
-              <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-              <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>:</span>
-              <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
+            <div className="flex items-center gap-2">
+              <Clock className="h-3 w-3 text-white/80" />
+              <span className="text-xs text-white/80">Ends in</span>
+              <div className="flex items-center gap-1">
+                <TimeBox value={timeLeft.hours} isMobile={isMobile} />
+                <span className="text-white/80 text-sm font-bold">:</span>
+                <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
+                <span className="text-white/80 text-sm font-bold">:</span>
+                <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
+              </div>
             </div>
           </div>
-          
-          <Link 
-            to="/flash-sale"
-            className={`flex items-center gap-1 ${isMobile ? 'text-xs' : 'text-sm'} text-red-600 hover:underline font-medium`}
-          >
-            {isMobile ? 'More' : 'View All'}
-            <ChevronRight className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-          </Link>
         </div>
+        
+        <Link 
+          to="/flash-sale"
+          className={`flex items-center gap-1 ${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1.5'} bg-white/20 hover:bg-white/30 text-white rounded-full font-medium transition-colors backdrop-blur-sm`}
+        >
+          {isMobile ? 'More' : 'View All'}
+          <ChevronRight className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+        </Link>
+      </div>
 
-        {/* Grid Layout Products */}
-        <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
+      {/* Products Grid */}
+      <div className={`bg-card ${isMobile ? 'p-2' : 'p-4'}`}>
+        <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3'}`}>
           {transformedProducts.map((product, index) => (
             <ProductCard key={`${product.id}-${index}`} product={product} />
           ))}
@@ -122,9 +108,9 @@ const FlashSaleBanner = () => {
 };
 
 const TimeBox = ({ value, isMobile }: { value: number; isMobile: boolean }) => (
-  <div className={`bg-red-500 text-white rounded ${isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'} font-bold ${isMobile ? 'min-w-[24px]' : 'min-w-[28px]'} text-center`}>
+  <span className={`bg-white/25 text-white backdrop-blur-sm rounded ${isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-0.5 text-sm'} font-bold ${isMobile ? 'min-w-[22px]' : 'min-w-[28px]'} text-center inline-block`}>
     {value.toString().padStart(2, '0')}
-  </div>
+  </span>
 );
 
 export default FlashSaleBanner;
