@@ -3,40 +3,29 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   User, 
   ShoppingBag, 
-  MapPin, 
-  Settings, 
-  LogOut,
   Heart,
-  Bell,
-  CreditCard,
   Shield,
   HelpCircle,
-  FileQuestion,
   Info,
   LucideMessageCircleQuestion,
   CarTaxiFront,
   GraduationCap,
-  Truck,
-  PackageX
+  PackageX,
+  Settings,
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { useUserRole } from '@/hooks/useUserRole';
 
 const AccountPage = () => {
   const { user, profile, signOut } = useAuth();
-  const { isAdmin, isSuperAdmin, isModerator, hasAnyAdminRole } = useUserRole(user?.id);
+  const { isAdmin, isSuperAdmin, isModerator } = useUserRole(user?.id);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
 
@@ -119,40 +108,40 @@ const AccountPage = () => {
   ];
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`container mx-auto py-2 ${isMobile ? 'pb-8 px-2' : 'px-4 xl:px-24'}`}>
+    <div className="min-h-screen bg-background">
+      <main className={`container mx-auto px-4 lg:px-8 py-6 ${isMobile ? 'pb-24' : ''}`}>
         {!isMobile && (
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Account</h1>
-            <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">My Account</h1>
+            <p className="text-muted-foreground mt-2">Manage your account settings and preferences</p>
           </div>
         )}
 
         {/* User Info Card */}
-        <Card className="mb-2">
-          <CardContent className="p-2">
+        <Card className="mb-6 border-border/50 shadow-sm">
+          <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
                 {profile?.avatar_url ? (
                   <img 
                     src={profile?.avatar_url} 
                     alt={profile?.first_name || ''} 
-                    className="h-12 w-12 object-cover rounded-full"
+                    className="h-14 w-14 object-cover rounded-full"
                   />
                 ) : (
-                  <User className="h-6 w-6" />
+                  <User className="h-7 w-7 text-primary" />
                 )}
               </div>
               <div className="flex-1">
-                <h2 className="text-sm font-semibold">
+                <h2 className="text-lg font-semibold text-foreground">
                   {profile?.first_name && profile?.last_name 
                     ? `${profile.first_name} ${profile.last_name}`
                     : 'Welcome!'
                   }
                 </h2>
-                <p className="text-gray-600 text-xs">{user.email}</p>
+                <p className="text-muted-foreground text-sm">{user.email}</p>
                 {profile?.phone && (
-                  <p className="text-xs text-gray-500">{profile.phone}</p>
+                  <p className="text-sm text-muted-foreground/80">{profile.phone}</p>
                 )}
               </div>
             </div>
@@ -160,19 +149,20 @@ const AccountPage = () => {
         </Card>
 
         {/* Account Menu */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           {accountMenuItems.map((item) => (
             <Link key={item.href} to={item.href}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <item.icon className="h-5 w-5 text-gray-600" />
+              <Card className="hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-sm">{item.title}</h3>
-                      <p className="text-xs text-gray-500">{item.description}</p>
+                      <h3 className="font-medium text-foreground">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
                   </div>
                 </CardContent>
               </Card>
@@ -182,21 +172,32 @@ const AccountPage = () => {
 
         {/* Admin Panel Link */}
         {(isAdmin || isSuperAdmin || isModerator) && (
-          <Card className="mb-6 border-orange-200 bg-orange-50">
-            <CardContent className="p-2">
-              <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-orange-600" />
+          <Card className="mb-6 border-primary/30 bg-primary/5">
+            <CardContent className="p-4">
+              <Link to="/supersmartkenyaadmin123" className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-primary/20 rounded-xl flex items-center justify-center">
+                  <Settings className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-sm text-orange-800">Admin Dashboard</h3>
-                  <p className="text-xs text-orange-600">Manage products, orders, and users</p>
+                  <h3 className="font-medium text-primary">Admin Dashboard</h3>
+                  <p className="text-sm text-primary/70">Manage products, orders, and users</p>
                 </div>
+                <ChevronRight className="h-5 w-5 text-primary/50" />
               </Link>
             </CardContent>
           </Card>
         )}
-      </div>
+
+        {/* Logout Button */}
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
+      </main>
     </div>
   );
 };
