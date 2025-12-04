@@ -34,6 +34,8 @@ import {
   HelpCircle,
   Phone,
   Lock,
+  MessageSquareQuote,
+  Newspaper,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -173,6 +175,18 @@ export function ModernAdminSidebar() {
       name: 'Hero Slides',
       icon: Image,
       path: '/supersmartkenyaadmin123/heroslides',
+      badge: null,
+    },
+    {
+      name: 'Testimonials',
+      icon: MessageSquareQuote,
+      path: '/supersmartkenyaadmin123/testimonials',
+      badge: null,
+    },
+    {
+      name: 'Newsletter',
+      icon: Newspaper,
+      path: '/supersmartkenyaadmin123/newsletter',
       badge: null,
     },
     {
