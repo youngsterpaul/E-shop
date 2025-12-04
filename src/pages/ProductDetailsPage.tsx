@@ -63,18 +63,37 @@ const ProductDetailsPage: React.FC = () => {
   const { data: flashSale } = useProductFlashSale(id || '');
   const { addToRecentlyViewed } = useRecentlyViewed();
 
-  // Fetch category data for breadcrumb link
+  // Fetch category data with parent for breadcrumb link
   const { data: categoryData } = useQuery({
-    queryKey: ['category-by-name', product?.categories],
+    queryKey: ['category-hierarchy-for-product', product?.categories],
     queryFn: async () => {
       if (!product?.categories) return null;
-      const { data, error } = await supabase
+      
+      // First get the subcategory
+      const { data: subcat, error } = await supabase
         .from('categories')
         .select('id, category, slug, parent_id')
         .eq('category', product.categories)
         .maybeSingle();
+      
       if (error) throw error;
-      return data;
+      if (!subcat) return null;
+      
+      // If it has a parent, fetch the parent category
+      if (subcat.parent_id) {
+        const { data: parent } = await supabase
+          .from('categories')
+          .select('id, category, slug')
+          .eq('id', subcat.parent_id)
+          .maybeSingle();
+        
+        return {
+          ...subcat,
+          parent: parent
+        };
+      }
+      
+      return subcat;
     },
     enabled: !!product?.categories,
     staleTime: 1000 * 60 * 10,
@@ -317,9 +336,27 @@ const productForTabs = useMemo(() => {
     return words.slice(0, 2).join(' ');
   };
 
-  const categoryHref = categoryData 
-    ? `/category/${categoryData.slug || encodeURIComponent(product.categories || 'all')}?id=${categoryData.id}&form=category&source=category|allCategory|${encodeURIComponent(product.categories || '')}`
-    : `/category/${encodeURIComponent(product.categories || 'all')}`;
+  // Build category URL with parent/child structure
+  const categoryHref = (() => {
+    if (!categoryData) {
+      // Fallback: generate slug from category name
+      const slug = (product.categories || 'all').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `/category/${slug}`;
+    }
+    
+    const subcatSlug = categoryData.slug || categoryData.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // Check if parent exists (categoryData has parent property when parent_id is set)
+    const parent = 'parent' in categoryData ? categoryData.parent : null;
+    
+    if (parent && categoryData.parent_id) {
+      const parentSlug = parent.slug || parent.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `/category/${parentSlug}/${subcatSlug}?id=${categoryData.id}&parent=${categoryData.parent_id}&source=category|${encodeURIComponent(parent.category)}|${encodeURIComponent(categoryData.category)}`;
+    }
+    
+    // No parent - it's a top-level category
+    return `/category/${subcatSlug}?id=${categoryData.id}&form=category&source=category|allCategory|${encodeURIComponent(categoryData.category)}`;
+  })();
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
