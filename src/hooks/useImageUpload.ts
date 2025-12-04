@@ -411,6 +411,24 @@ export const useImageUpload = () => {
     setVideoUrls(prev => prev.filter((_, i) => i !== index));
   }, []);
 
+  const reorderImages = useCallback((oldIndex: number, newIndex: number) => {
+    setImages(prev => {
+      const newItems = [...prev];
+      const [removed] = newItems.splice(oldIndex, 1);
+      newItems.splice(newIndex, 0, removed);
+      return newItems;
+    });
+  }, []);
+
+  const reorderVideos = useCallback((oldIndex: number, newIndex: number) => {
+    setVideos(prev => {
+      const newItems = [...prev];
+      const [removed] = newItems.splice(oldIndex, 1);
+      newItems.splice(newIndex, 0, removed);
+      return newItems;
+    });
+  }, []);
+
   const clearImages = useCallback(() => {
     videos.forEach(v => URL.revokeObjectURL(v.preview));
     setImages([]);
@@ -431,6 +449,8 @@ export const useImageUpload = () => {
     uploadImagesToStorage,
     removeImage,
     removeVideo,
+    reorderImages,
+    reorderVideos,
     clearImages
   };
 };

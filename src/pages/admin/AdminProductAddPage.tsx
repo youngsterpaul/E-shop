@@ -56,6 +56,8 @@ const AdminProductAdd = () => {
     uploadImagesToStorage,
     removeImage,
     removeVideo,
+    reorderImages,
+    reorderVideos,
     clearImages 
   } = useImageUpload();
   
@@ -235,6 +237,8 @@ const AdminProductAdd = () => {
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
               onRemoveVideo={removeVideo}
+              onReorderImages={reorderImages}
+              onReorderVideos={reorderVideos}
             />
 
             {/* Upload Media Button */}

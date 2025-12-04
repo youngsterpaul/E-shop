@@ -63,6 +63,8 @@ const AdminProductEdit = () => {
     uploadImagesToStorage,
     removeImage,
     removeVideo,
+    reorderImages,
+    reorderVideos,
     clearImages 
   } = useImageUpload();
   
@@ -388,6 +390,9 @@ const AdminProductEdit = () => {
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
               onRemoveVideo={removeVideo}
+              onReorderImages={reorderImages}
+              onReorderVideos={reorderVideos}
+              onReorderExistingImages={(newOrder) => setExistingImages(newOrder)}
               existingImages={existingImages}
               onRemoveExistingImage={handleRemoveExistingImage}
               isEditMode={true}
