@@ -11,6 +11,7 @@ import TrustBadges from '@/components/TrustBadges';
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import Testimonials from '@/components/Testimonials';
+import { WebsiteStructuredData, LocalBusinessStructuredData } from '@/components/seo/StructuredData';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -37,6 +38,27 @@ const Index = () => {
         }}
       />
       <CriticalCSS />
+      
+      {/* SEO Structured Data */}
+      <WebsiteStructuredData 
+        name="SmartKenya"
+        url="https://www.smartkenya.co.ke"
+        searchUrl="https://www.smartkenya.co.ke/search"
+      />
+      <LocalBusinessStructuredData
+        name="SmartKenya"
+        url="https://www.smartkenya.co.ke"
+        logo="https://www.smartkenya.co.ke/apple-touch-icon.png"
+        telephone="+254700000000"
+        email="info@smartkenya.co.ke"
+        address={{
+          street: "Nairobi",
+          city: "Nairobi",
+          region: "Nairobi",
+          country: "KE"
+        }}
+        openingHours={["Mo-Su 08:00-20:00"]}
+      />
       
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         <PerformanceMonitor />
