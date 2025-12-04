@@ -1,15 +1,8 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Breadcrumb,
-  BreadcrumbEllipsis,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { Home, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BreadcrumbItem {
   label: string;
@@ -57,32 +50,49 @@ const SiteBreadcrumb = ({ items, className }: SiteBreadcrumbProps) => {
   }
 
   return (
-    <nav aria-label="Breadcrumb" className={className}>
-      <Breadcrumb>
-        <BreadcrumbList itemScope itemType="https://schema.org/BreadcrumbList">
-          {breadcrumbItems.map((item, index) => (
-            <React.Fragment key={index}>
-              <BreadcrumbItem 
-                itemProp="itemListElement" 
-                itemScope 
-                itemType="https://schema.org/ListItem"
+    <nav 
+      aria-label="Breadcrumb" 
+      className={cn(
+        "flex items-center space-x-2 text-sm text-muted-foreground bg-card p-4 rounded-xl shadow-sm border border-border/50",
+        className
+      )}
+      itemScope 
+      itemType="https://schema.org/BreadcrumbList"
+    >
+      {breadcrumbItems.map((item, index) => (
+        <React.Fragment key={index}>
+          <span 
+            itemProp="itemListElement" 
+            itemScope 
+            itemType="https://schema.org/ListItem"
+            className="flex items-center"
+          >
+            {item.href ? (
+              <Link 
+                to={item.href} 
+                itemProp="item"
+                className="hover:text-primary transition-colors flex items-center gap-1"
               >
-                {item.href ? (
-                  <BreadcrumbLink asChild>
-                    <Link to={item.href} itemProp="item">
-                      <span itemProp="name">{item.label}</span>
-                    </Link>
-                  </BreadcrumbLink>
-                ) : (
-                  <BreadcrumbPage itemProp="name">{item.label}</BreadcrumbPage>
-                )}
-                <meta itemProp="position" content={String(index + 1)} />
-              </BreadcrumbItem>
-              {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
-            </React.Fragment>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
+                {index === 0 && <Home className="h-4 w-4" />}
+                <span itemProp="name" className={index === 0 ? 'sr-only' : ''}>
+                  {item.label}
+                </span>
+              </Link>
+            ) : (
+              <span 
+                itemProp="name" 
+                className="font-medium text-foreground"
+              >
+                {item.label}
+              </span>
+            )}
+            <meta itemProp="position" content={String(index + 1)} />
+          </span>
+          {index < breadcrumbItems.length - 1 && (
+            <ChevronRight className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+          )}
+        </React.Fragment>
+      ))}
     </nav>
   );
 };
