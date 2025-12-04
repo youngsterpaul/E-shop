@@ -208,7 +208,7 @@ const WriteReviewPage = () => {
   if (isLoading) {
     return (
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>     
-        <main className="flex-grow container mx-auto px-4 lg:px-8 py-8">
+        <main className="flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
           <div className="mb-6">
             <Skeleton className="h-10 w-40" />
           </div>
@@ -257,7 +257,7 @@ const WriteReviewPage = () => {
   if (!product) {
     return (
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className="flex-grow container mx-auto px-4 lg:px-8 py-8 text-center">
+        <main className="flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
           <Button 
             variant="ghost" 
@@ -274,7 +274,7 @@ const WriteReviewPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`flex-grow container mx-auto px-4 lg:px-8 py-8`}>
+      <main className={`flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8`}>
         <div className="mb-6">
           <Button 
             variant="ghost" 

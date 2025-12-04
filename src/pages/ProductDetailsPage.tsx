@@ -319,7 +319,7 @@ const productForTabs = useMemo(() => {
       <ProductMetadata product={product} currentPrice={price} />
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className={`container mx-auto ${isMobile ? 'pb-20 px-0' : 'px-4 py-6 max-w-6xl'}`}>
+        <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6'}`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-8 ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
