@@ -87,7 +87,7 @@ export default function ProfilePage() {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`container mx-auto px-4 py-8 ${!isMobile ? 'max-w-3xl' : 'pb-24'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">My Profile</h1>

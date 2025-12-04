@@ -108,8 +108,8 @@ const AccountPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className={`container mx-auto px-4 lg:px-8 py-6 ${isMobile ? 'pb-24' : ''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6' : 'px-4 py-6 pb-24'}`}>
         {!isMobile && (
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">My Account</h1>

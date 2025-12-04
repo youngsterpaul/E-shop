@@ -34,7 +34,7 @@ const FAQPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`container mx-auto px-4 py-8 ${!isMobile ? 'max-w-4xl' : 'pb-24'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Frequently Asked Questions</h1>

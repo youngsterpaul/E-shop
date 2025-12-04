@@ -109,7 +109,7 @@ const FlashSalePage = () => {
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
-        <div className={`container mx-auto px-4 lg:px-8 ${isMobile ? 'py-6' : 'py-12'}`}>
+        <div className={`max-w-[1400px] mx-auto px-4 lg:px-6 ${isMobile ? 'py-6' : 'py-12'}`}>
           <div className={`flex flex-col ${isMobile ? 'gap-4' : 'md:flex-row gap-6'} items-center justify-between`}>
             <div className="flex items-center gap-4">
               <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
@@ -156,7 +156,7 @@ const FlashSalePage = () => {
       </div>
 
       {/* Products Section */}
-      <div className={`container mx-auto ${gridConfig.padding}`}>
+      <div className={`max-w-[1400px] mx-auto ${gridConfig.padding}`}>
         {productsLoading ? (
           <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
             {Array.from({ length: pageSize }).map((_, i) => (

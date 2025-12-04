@@ -57,7 +57,7 @@ const RewardsPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="container mx-auto px-4 lg:px-8 py-8 max-w-6xl">
+        <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
           <Skeleton className="h-10 w-64 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
@@ -71,7 +71,7 @@ const RewardsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 lg:px-8 py-8 max-w-6xl">
+      <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Rewards Catalog</h1>

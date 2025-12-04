@@ -9,8 +9,8 @@ const ReturnsPage = () => {
   const isMobile = isMobileUserAgent();
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 lg:px-8 py-8">
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
         <SiteBreadcrumb 
           items={[
             { label: 'Home', href: '/' },

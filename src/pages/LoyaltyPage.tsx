@@ -37,7 +37,7 @@ const LoyaltyPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 lg:px-8 py-8 max-w-6xl">
+      <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground tracking-tight">Loyalty & Rewards</h1>
           <p className="text-muted-foreground mt-2">Earn points with every purchase and redeem for rewards</p>

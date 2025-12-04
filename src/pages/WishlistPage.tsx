@@ -48,8 +48,8 @@ const WishlistPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
-        <main className={`container mx-auto px-4 ${isMobile ? 'pb-24 pt-8' : 'py-8 max-w-6xl'}`}>
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+        <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-8'}`}>
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="h-10 w-10 text-muted-foreground" />
@@ -68,7 +68,7 @@ const WishlistPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`container mx-auto px-4 ${isMobile ? 'pb-24 pt-4' : 'py-8 max-w-6xl'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-4'}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

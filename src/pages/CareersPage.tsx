@@ -109,7 +109,7 @@ const CareersPage = () => {
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         {/* Hero Section */}
         <section className="relative py-16 px-4 bg-gradient-to-br from-primary/5 to-primary/10">
-          <div className="container mx-auto max-w-4xl text-center">
+          <div className="max-w-[1400px] mx-auto px-4 lg:px-6 text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Briefcase className="h-8 w-8 text-primary" />
             </div>
@@ -133,7 +133,7 @@ const CareersPage = () => {
 
         {/* Values Section */}
         <section className="py-16 px-4">
-          <div className="container mx-auto max-w-6xl">
+          <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
             <div className="text-center mb-12">
               <h2 className="text-2xl font-bold text-foreground mb-3">Our Values</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -158,7 +158,7 @@ const CareersPage = () => {
 
         {/* Job Listings Section */}
         <section id="jobs" className="py-16 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-4xl">
+          <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-2">Open Positions</h2>
               <p className="text-muted-foreground">Find the perfect role to advance your career</p>

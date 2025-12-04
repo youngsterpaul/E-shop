@@ -134,7 +134,7 @@ export default function CustomerReturnsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 lg:px-8 py-8 max-w-6xl">
+      <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <Button
