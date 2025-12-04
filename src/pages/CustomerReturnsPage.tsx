@@ -36,11 +36,11 @@ interface Return {
 }
 
 const statusColors = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-blue-100 text-blue-800',
-  rejected: 'bg-red-100 text-red-800',
-  processing: 'bg-purple-100 text-purple-800',
-  completed: 'bg-green-100 text-green-800'
+  pending: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+  approved: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
+  rejected: 'bg-red-500/10 text-red-700 border-red-500/20',
+  processing: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
+  completed: 'bg-green-500/10 text-green-700 border-green-500/20'
 };
 
 export default function CustomerReturnsPage() {
@@ -51,7 +51,6 @@ export default function CustomerReturnsPage() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch user's delivered orders
   const { data: orders = [] } = useQuery({
     queryKey: ['customer-orders-for-return', user?.id],
     queryFn: async () => {
@@ -70,7 +69,6 @@ export default function CustomerReturnsPage() {
     enabled: !!user?.id
   });
 
-  // Fetch user's returns
   const { data: returns = [], refetch: refetchReturns } = useQuery({
     queryKey: ['customer-returns', user?.id],
     queryFn: async () => {
@@ -96,7 +94,6 @@ export default function CustomerReturnsPage() {
 
     setIsSubmitting(true);
     try {
-      // Get the return number from database function
       const { data: returnNumber, error: fnError } = await supabase
         .rpc('generate_return_number');
 
@@ -137,34 +134,36 @@ export default function CustomerReturnsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-4 lg:px-8 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/orders')}
-            className="mb-4"
+            className="mb-4 -ml-2"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Button>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <PackageX className="h-8 w-8" />
-            Returns & Refunds
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your product returns and track refund status
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <PackageX className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">Returns & Refunds</h1>
+              <p className="text-muted-foreground mt-1">Manage your product returns and track refund status</p>
+            </div>
+          </div>
         </div>
 
         {/* Info Banner */}
-        <Card className="mb-6 border-blue-200 bg-blue-50">
+        <Card className="mb-6 border-blue-500/20 bg-blue-500/5">
           <CardContent className="p-4">
             <div className="flex gap-3">
               <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-900">
-                <p className="font-medium mb-1">Return Policy</p>
-                <p>You can return items within 7 days of delivery. Items must be in original condition with tags attached.</p>
+              <div className="text-sm">
+                <p className="font-medium mb-1 text-foreground">Return Policy</p>
+                <p className="text-muted-foreground">You can return items within 7 days of delivery. Items must be in original condition with tags attached.</p>
               </div>
             </div>
           </CardContent>
@@ -172,15 +171,15 @@ export default function CustomerReturnsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Request New Return */}
-          <Card>
+          <Card className="border-border/50">
             <CardHeader>
-              <CardTitle>Request a Return</CardTitle>
+              <CardTitle className="text-foreground">Request a Return</CardTitle>
             </CardHeader>
             <CardContent>
               {orders.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No delivered orders available for return</p>
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">No delivered orders available for return</p>
                 </div>
               ) : (
                 <Dialog>
@@ -235,7 +234,7 @@ export default function CustomerReturnsPage() {
                                     className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                                       selectedItems.includes(itemId)
                                         ? 'border-primary bg-primary/5'
-                                        : 'hover:border-gray-300'
+                                        : 'hover:border-muted-foreground/30'
                                     }`}
                                     onClick={() => {
                                       setSelectedItems(prev =>
@@ -257,7 +256,7 @@ export default function CustomerReturnsPage() {
                                       className="w-12 h-12 object-cover rounded"
                                     />
                                     <div className="flex-1">
-                                      <p className="font-medium text-sm">{item.product?.name}</p>
+                                      <p className="font-medium text-sm text-foreground">{item.product?.name}</p>
                                       <p className="text-xs text-muted-foreground">
                                         Qty: {item.quantity} × KES {item.product?.price?.toLocaleString()}
                                       </p>
@@ -295,26 +294,26 @@ export default function CustomerReturnsPage() {
           </Card>
 
           {/* Active Returns */}
-          <Card>
+          <Card className="border-border/50">
             <CardHeader>
-              <CardTitle>Your Returns</CardTitle>
+              <CardTitle className="text-foreground">Your Returns</CardTitle>
             </CardHeader>
             <CardContent>
               {returns.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <PackageX className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No return requests yet</p>
+                <div className="text-center py-12">
+                  <PackageX className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">No return requests yet</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {returns.map((returnItem) => (
                     <div
                       key={returnItem.id}
-                      className="p-4 border rounded-lg hover:shadow-sm transition-shadow"
+                      className="p-4 border border-border/50 rounded-xl hover:shadow-sm transition-shadow"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-medium">{returnItem.return_number}</p>
+                          <p className="font-medium text-foreground">{returnItem.return_number}</p>
                           <p className="text-xs text-muted-foreground">
                             Order: {returnItem.order_id.slice(0, 8)}...
                           </p>
@@ -345,7 +344,7 @@ export default function CustomerReturnsPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
