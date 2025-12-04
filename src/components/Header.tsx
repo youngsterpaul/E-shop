@@ -119,7 +119,7 @@ const Header = () => {
         })}
       </script>
 
-      <header className={`bg-background border-b border-border/40 top-0 z-50 ${!isMobile ? 'container xl:px-24 px-4 min-w-max' : 'sticky'}`}>
+      <header className={`bg-background border-b border-border/40 top-0 z-50 ${!isMobile ? '' : 'sticky'}`}>
         {/* Main navigation for desktop */}
         {!isMobile && (
           <nav 
@@ -127,7 +127,7 @@ const Header = () => {
             role="navigation" 
             aria-label="Main Navigation"
           >
-            <div className="container mx-auto xl:px-24">
+            <div className="container mx-auto px-4 lg:px-8">
               <ul className="flex items-center justify-center gap-8">
                 {mainNavItems.map(item => (
                   <li key={item.href}>
@@ -145,7 +145,7 @@ const Header = () => {
           </nav>
         )}
 
-        <div className={`${isMobile ? 'py-3 px-4' : 'py-4 transition-all duration-300'}`}>
+        <div className={`${isMobile ? 'py-3 px-4' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group">
