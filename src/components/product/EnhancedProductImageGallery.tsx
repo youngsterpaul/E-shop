@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Video } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -21,8 +21,10 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [showLens, setShowLens] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const isMobile = isMobileUserAgent();
   const minSwipe = 50;
@@ -175,17 +177,46 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
             {allMedia.map((media, i) => (
               <div 
                 key={i} 
-                className="flex-shrink-0 flex items-start"
+                className="flex-shrink-0 flex items-start relative"
                 style={{ width: `${100 / allMedia.length}%` }} 
               >
                 {isVideo(media) ? (
-                  <video
-                    src={media}
-                    controls
-                    className="w-full h-full object-cover object-top"
-                    poster={product.image}
-                    preload="metadata"
-                  />
+                  <>
+                    <video
+                      ref={i === currentIndex ? videoRef : null}
+                      src={media}
+                      className="w-full h-full object-cover object-top"
+                      poster={product.image}
+                      preload="metadata"
+                      playsInline
+                      onPlay={() => setIsVideoPlaying(true)}
+                      onPause={() => setIsVideoPlaying(false)}
+                      onEnded={() => setIsVideoPlaying(false)}
+                    />
+                    {/* Play/Pause button overlay for mobile */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (videoRef.current) {
+                          if (isVideoPlaying) {
+                            videoRef.current.pause();
+                          } else {
+                            videoRef.current.play();
+                          }
+                        }
+                      }}
+                      className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity"
+                      aria-label={isVideoPlaying ? "Pause video" : "Play video"}
+                    >
+                      <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
+                        {isVideoPlaying ? (
+                          <Pause className="w-8 h-8 text-white" />
+                        ) : (
+                          <Play className="w-8 h-8 text-white ml-1" />
+                        )}
+                      </div>
+                    </button>
+                  </>
                 ) : (
                   <OptimizedImage
                     src={media}
@@ -240,14 +271,19 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
             >
               {isVideo(media) ? (
                 <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                  <Video size={16} className="text-gray-600 z-10" />
                   <OptimizedImage
                     src={product.image}
                     alt="Video thumbnail"
                     width={80}
                     height={80}
-                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    className="w-full h-full object-cover"
                   />
+                  {/* Play icon overlay centered on thumbnail */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center">
+                      <Play className="w-4 h-4 text-white ml-0.5" />
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <OptimizedImage
