@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -22,9 +22,11 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(true);
   const mainRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const isMobile = isMobileUserAgent();
   const minSwipe = 50;
@@ -127,6 +129,29 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     setTouchStartX(null);
   };
 
+  // Autoplay video on scroll (mobile) using Intersection Observer
+  useEffect(() => {
+    if (!isMobile || !videoContainerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && videoRef.current) {
+            videoRef.current.play().catch(() => {
+              // Autoplay failed, show play button
+              setShowPlayButton(true);
+            });
+          } else if (!entry.isIntersecting && videoRef.current) {
+            videoRef.current.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(videoContainerRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, currentIndex, allMedia]);
 
   /** Kilimall-style Magnifier (desktop) */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -181,7 +206,10 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                 style={{ width: `${100 / allMedia.length}%` }} 
               >
                 {isVideo(media) ? (
-                  <>
+                  <div 
+                    ref={i === currentIndex ? videoContainerRef : null}
+                    className="relative w-full h-full"
+                  >
                     <video
                       ref={i === currentIndex ? videoRef : null}
                       src={media}
@@ -189,34 +217,39 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                       poster={product.image}
                       preload="metadata"
                       playsInline
-                      onPlay={() => setIsVideoPlaying(true)}
-                      onPause={() => setIsVideoPlaying(false)}
-                      onEnded={() => setIsVideoPlaying(false)}
+                      muted
+                      loop
+                      onPlay={() => {
+                        setIsVideoPlaying(true);
+                        setShowPlayButton(false);
+                      }}
+                      onPause={() => {
+                        setIsVideoPlaying(false);
+                        setShowPlayButton(true);
+                      }}
+                      onEnded={() => {
+                        setIsVideoPlaying(false);
+                        setShowPlayButton(true);
+                      }}
                     />
-                    {/* Play/Pause button overlay for mobile */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (videoRef.current) {
-                          if (isVideoPlaying) {
-                            videoRef.current.pause();
-                          } else {
+                    {/* Play button overlay - only shows when paused */}
+                    {showPlayButton && !isVideoPlaying && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (videoRef.current) {
                             videoRef.current.play();
                           }
-                        }
-                      }}
-                      className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity"
-                      aria-label={isVideoPlaying ? "Pause video" : "Play video"}
-                    >
-                      <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
-                        {isVideoPlaying ? (
-                          <Pause className="w-8 h-8 text-white" />
-                        ) : (
+                        }}
+                        className="absolute inset-0 flex items-center justify-center transition-opacity"
+                        aria-label="Play video"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
                           <Play className="w-8 h-8 text-white ml-1" />
-                        )}
-                      </div>
-                    </button>
-                  </>
+                        </div>
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <OptimizedImage
                     src={media}
