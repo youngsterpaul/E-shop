@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
@@ -183,24 +182,24 @@ const CategoryPage = () => {
 
   // Empty state with helpful actions
   const emptyStateAction = useMemo(() => (
-    <>
+    <div className="flex flex-wrap gap-2 justify-center mt-4">
       {searchQuery && (
         <Button
           onClick={() => setSearchQuery('')}
-          className="mt-4"
           variant="outline"
+          className="rounded-xl"
         >
           Clear Search
         </Button>
       )}
       <Button
         onClick={() => navigate('/')}
-        className="mt-4 ml-2"
         variant="outline"
+        className="rounded-xl"
       >
         Browse All Categories
       </Button>
-    </>
+    </div>
   ), [searchQuery, navigate]);
 
   const emptyStateMessage = searchQuery 
@@ -208,7 +207,7 @@ const CategoryPage = () => {
     : 'No products found in this category.';
 
   return (
-    <div className={`${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
       <PageHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -217,18 +216,20 @@ const CategoryPage = () => {
         placeholder={useGlobalSearch ? "Search all products..." : "Search in this category..."}
       />
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'px-4 xl:px-24 pb-8 mt-8' : 'px-0'}`}>
+      <main className={`flex-grow ${!isMobile ? 'container mx-auto px-4 lg:px-8 pb-8 mt-6' : 'px-0'}`}>
         <Breadcrumbs items={breadcrumbs} onItemClick={handleBreadcrumbClick} />
 
         {useGlobalSearch && !isMobile && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
-            <p className="text-blue-800 text-sm">
-              Searching across all products. <button 
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4 flex items-center justify-between">
+            <p className="text-foreground text-sm">
+              Searching across all products.{' '}
+              <button 
                 onClick={() => setSearchQuery('')}
-                className="underline font-medium hover:text-blue-900"
+                className="underline font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Clear search
-              </button> to view category products only.
+              </button>{' '}
+              to view category products only.
             </p>
           </div>
         )}

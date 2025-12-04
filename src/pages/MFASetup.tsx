@@ -26,7 +26,6 @@ const MFASetup = () => {
   
   // Mock data for demonstration
   const mockTOTPSecret = 'JBSWY3DPEHPK3PXP';
-  const mockQRCode = `otpauth://totp/SmartKenya?secret=${mockTOTPSecret}&issuer=SmartKenya`;
   const mockBackupCodes = [
     '1234-5678-9012',
     '3456-7890-1234',
@@ -59,7 +58,7 @@ const MFASetup = () => {
 
   const content = (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
-      <div className="max-w-4xl mx-auto py-8">
+      <div className="max-w-4xl mx-auto py-8 animate-fade-in">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
@@ -76,26 +75,32 @@ const MFASetup = () => {
         {step === 'choose' && (
           <div className="grid md:grid-cols-3 gap-4">
             {/* TOTP Method */}
-            <Card className="p-6 cursor-pointer hover:border-primary transition-all" onClick={() => handleMethodSelect('totp')}>
+            <Card 
+              className="p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-200 bg-card/80 backdrop-blur-sm border-border/50" 
+              onClick={() => handleMethodSelect('totp')}
+            >
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
                   <Smartphone className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Authenticator App</h3>
+                <h3 className="font-semibold text-foreground mb-2">Authenticator App</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Use apps like Google Authenticator or Authy
                 </p>
-                <Badge variant="outline">Recommended</Badge>
+                <Badge variant="outline" className="border-primary text-primary">Recommended</Badge>
               </div>
             </Card>
 
             {/* SMS Method */}
-            <Card className="p-6 cursor-pointer hover:border-primary transition-all" onClick={() => handleMethodSelect('sms')}>
+            <Card 
+              className="p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-200 bg-card/80 backdrop-blur-sm border-border/50" 
+              onClick={() => handleMethodSelect('sms')}
+            >
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
                   <Mail className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">SMS</h3>
+                <h3 className="font-semibold text-foreground mb-2">SMS</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Receive codes via text message
                 </p>
@@ -104,12 +109,15 @@ const MFASetup = () => {
             </Card>
 
             {/* Email Method */}
-            <Card className="p-6 cursor-pointer hover:border-primary transition-all" onClick={() => handleMethodSelect('email')}>
+            <Card 
+              className="p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-200 bg-card/80 backdrop-blur-sm border-border/50" 
+              onClick={() => handleMethodSelect('email')}
+            >
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
                   <Mail className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Email</h3>
+                <h3 className="font-semibold text-foreground mb-2">Email</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Receive codes via email
                 </p>
@@ -120,21 +128,21 @@ const MFASetup = () => {
         )}
 
         {step === 'setup' && (
-          <Card className="p-8">
+          <Card className="p-8 bg-card/80 backdrop-blur-sm border-border/50">
             <Tabs value={selectedMethod} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="totp">Authenticator</TabsTrigger>
                 <TabsTrigger value="sms">SMS</TabsTrigger>
                 <TabsTrigger value="email">Email</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="totp" className="space-y-6 mt-6">
+              <TabsContent value="totp" className="space-y-6">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold mb-4">Setup Authenticator App</h3>
+                  <h3 className="text-xl font-semibold text-foreground mb-4">Setup Authenticator App</h3>
                   
                   {/* QR Code Placeholder */}
-                  <div className="inline-block p-6 bg-background border-2 border-dashed rounded-lg mb-4">
-                    <div className="w-48 h-48 bg-muted rounded flex items-center justify-center">
+                  <div className="inline-block p-6 bg-muted/50 border-2 border-dashed border-border rounded-xl mb-4">
+                    <div className="w-48 h-48 bg-background rounded-lg flex items-center justify-center">
                       <div className="text-center">
                         <Key className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">QR Code</p>
@@ -143,10 +151,10 @@ const MFASetup = () => {
                   </div>
 
                   {/* Manual Entry */}
-                  <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                  <div className="bg-muted/30 rounded-xl p-4 mb-4">
                     <p className="text-sm text-muted-foreground mb-2">Can't scan? Enter this key manually:</p>
                     <div className="flex items-center justify-center gap-2">
-                      <code className="text-sm font-mono bg-background px-3 py-2 rounded">{mockTOTPSecret}</code>
+                      <code className="text-sm font-mono bg-background px-3 py-2 rounded-lg border border-border">{mockTOTPSecret}</code>
                       <Button size="sm" variant="ghost" onClick={() => handleCopyBackupCode(mockTOTPSecret)}>
                         <Copy className="w-4 h-4" />
                       </Button>
@@ -154,8 +162,8 @@ const MFASetup = () => {
                   </div>
 
                   {/* Instructions */}
-                  <div className="text-left bg-muted/30 rounded-lg p-4 mb-6">
-                    <p className="font-semibold mb-2">Steps:</p>
+                  <div className="text-left bg-muted/20 rounded-xl p-4 mb-6 border border-border/50">
+                    <p className="font-semibold text-foreground mb-2">Steps:</p>
                     <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
                       <li>Download an authenticator app (Google Authenticator, Authy, etc.)</li>
                       <li>Scan the QR code or enter the key manually</li>
@@ -165,7 +173,7 @@ const MFASetup = () => {
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="verification-code">Verification Code</Label>
+                      <Label htmlFor="verification-code" className="text-foreground">Verification Code</Label>
                       <Input
                         id="verification-code"
                         type="text"
@@ -173,47 +181,48 @@ const MFASetup = () => {
                         maxLength={6}
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                        className="text-center text-lg tracking-widest"
+                        className="text-center text-lg tracking-widest mt-2 h-12 rounded-xl"
                       />
                     </div>
-                    <Button onClick={handleVerify} className="w-full" disabled={verificationCode.length !== 6}>
+                    <Button onClick={handleVerify} className="w-full h-12 rounded-xl font-semibold" disabled={verificationCode.length !== 6}>
                       Verify & Continue
                     </Button>
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="sms" className="space-y-6 mt-6">
+              <TabsContent value="sms" className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4">Setup SMS Authentication</h3>
+                  <h3 className="text-xl font-semibold text-foreground mb-4">Setup SMS Authentication</h3>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
                       <Input
                         id="phone"
                         type="tel"
                         placeholder="+254 712 345 678"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="mt-2 h-12 rounded-xl"
                       />
                     </div>
-                    <Button onClick={handleVerify} className="w-full">
+                    <Button onClick={handleVerify} className="w-full h-12 rounded-xl font-semibold">
                       Send Verification Code
                     </Button>
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="email" className="space-y-6 mt-6">
+              <TabsContent value="email" className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4">Setup Email Authentication</h3>
-                  <div className="bg-muted/50 rounded-lg p-6 text-center mb-4">
+                  <h3 className="text-xl font-semibold text-foreground mb-4">Setup Email Authentication</h3>
+                  <div className="bg-muted/30 rounded-xl p-6 text-center mb-4 border border-border/50">
                     <Mail className="w-12 h-12 mx-auto mb-3 text-primary" />
                     <p className="text-sm text-muted-foreground">
                       We'll send a verification code to your registered email whenever you sign in
                     </p>
                   </div>
-                  <Button onClick={handleVerify} className="w-full">
+                  <Button onClick={handleVerify} className="w-full h-12 rounded-xl font-semibold">
                     Enable Email MFA
                   </Button>
                 </div>
@@ -227,14 +236,14 @@ const MFASetup = () => {
         )}
 
         {step === 'backup' && (
-          <Card className="p-8">
+          <Card className="p-8 bg-card/80 backdrop-blur-sm border-border/50">
             <div className="text-center mb-6">
-              <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-success" />
-              <h3 className="text-2xl font-semibold mb-2">MFA Enabled Successfully!</h3>
+              <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-primary" />
+              <h3 className="text-2xl font-semibold text-foreground mb-2">MFA Enabled Successfully!</h3>
               <p className="text-muted-foreground">Save your backup codes in a safe place</p>
             </div>
 
-            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 mb-6">
+            <div className="bg-warning/10 border border-warning/20 rounded-xl p-4 mb-6">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
@@ -248,8 +257,8 @@ const MFASetup = () => {
 
             <div className="space-y-2 mb-6">
               {mockBackupCodes.map((code, index) => (
-                <div key={index} className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-                  <code className="font-mono text-sm">{code}</code>
+                <div key={index} className="flex items-center justify-between bg-muted/30 rounded-xl p-3 border border-border/50">
+                  <code className="font-mono text-sm text-foreground">{code}</code>
                   <Button size="sm" variant="ghost" onClick={() => handleCopyBackupCode(code)}>
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -258,10 +267,10 @@ const MFASetup = () => {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={() => navigate('/account')} className="flex-1">
+              <Button onClick={() => navigate('/account')} className="flex-1 h-12 rounded-xl font-semibold">
                 Done
               </Button>
-              <Button variant="outline" onClick={() => {
+              <Button variant="outline" className="h-12 rounded-xl" onClick={() => {
                 const codes = mockBackupCodes.join('\n');
                 const blob = new Blob([codes], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);

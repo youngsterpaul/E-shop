@@ -50,7 +50,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
     console.error('Category icons error:', error);
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-red-500">Failed to load categories</div>
+        <div className="text-destructive">Failed to load categories</div>
       </div>
     );
   }
@@ -83,16 +83,16 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
 
   if (isMobile) {
     return (
-      <div className="grid grid-cols-4 gap-y-2 px-2 my-2 rounded-lg">
+      <div className="grid grid-cols-4 gap-y-3 px-3 py-4 bg-background">
         {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center justify-center p-1 bg-white hover:bg-gray-50 transition-all duration-200 cursor-pointer group max-w-[800px]"
+              className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-muted/50 transition-all duration-200 cursor-pointer group"
             >
-              <div className="relative mb-4 rounded-sm overflow-hidden bg-transparent .shadow-lg .hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <div className="relative w-16 h-16 mb-2 rounded-xl overflow-hidden bg-muted/30 shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
                 {category.productImage ? (
                   (() => {
                     const normalizedSrc = category.productImage.replace(/^http:\/\//, 'https://');
@@ -105,17 +105,17 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                           aspectRatio="square"
                           priority={false}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </>
                     );
                   })()
                 ) : (
                   <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
-                    <IconComponent size={32} className="text-white" />
+                    <IconComponent size={28} className="text-white" />
                   </div>
                 )}
               </div>
-              <span className="text-sm text-gray-700 text-center leading-tight">
+              <span className="text-xs text-foreground text-center leading-tight font-medium line-clamp-2">
                 {category.name}
               </span>
             </div>
@@ -126,20 +126,20 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   }
 
   return (
-    <section className="container shadow-sm mx-auto px-8 block bottom-0 left-0 right-0 bg-white border-t border-gray-200/50">
-      <h2 className="border-b my-4 items-center text-gray-600 mx-auto py-2 text-xl font-bold bg-white">
-        SHOP BY CATEGORY
+    <section className="bg-card rounded-xl border border-border/50 shadow-sm">
+      <h2 className="px-6 py-4 text-lg font-semibold text-foreground border-b border-border/50">
+        Shop by Category
       </h2>
-      <div className={`grid ${gridCols} gap-y-2 bg-white p-4`}>
+      <div className={`grid ${gridCols} gap-4 p-6`}>
         {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center justify-center cursor-pointer group hover:shadow-lg hover:rounded-lg py-1"
+              className="flex flex-col items-center justify-center cursor-pointer group p-3 rounded-xl hover:bg-muted/50 transition-all duration-200"
             >
-              <div className="relative w-24 h-24 mb-4 overflow-hidden bg-transparent transition-all duration-300 group-hover:scale-105 transition-opacity duration-300">
+              <div className="relative w-20 h-20 mb-3 rounded-xl overflow-hidden bg-muted/30 shadow-sm group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
                 {category.productImage ? (
                   <>
                     <OptimizedImage
@@ -149,7 +149,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                       aspectRatio="square"
                       priority={false}
                     />
-                    <div className="absolute inset-0" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </>
                 ) : (
                   <div className={`w-full h-full flex items-center justify-center ${category.color}`}>
@@ -157,7 +157,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
                   </div>
                 )}
               </div>
-              <span className="text-sm text-gray-800 text-center group-hover:text-gray-900 transition-colors">
+              <span className="text-sm text-foreground text-center font-medium group-hover:text-primary transition-colors line-clamp-2">
                 {category.name}
               </span>
             </div>
