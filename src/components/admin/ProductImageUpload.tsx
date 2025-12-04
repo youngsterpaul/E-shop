@@ -296,6 +296,64 @@ const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
           </div>
         )}
 
+        {/* Videos Preview */}
+        {videos.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Video className="h-4 w-4 text-purple-600" />
+              <h4 className="text-sm font-medium text-purple-600">
+                {isEditMode ? 'Videos' : 'Videos to Upload'}
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {videos.map((video, index) => (
+                <div key={`video-${index}`} className="relative border rounded-lg overflow-hidden">
+                  {/* Video Preview */}
+                  <div className="relative">
+                    <video
+                      src={video.preview}
+                      className="w-full h-48 object-cover bg-black"
+                      controls
+                      preload="metadata"
+                    />
+                    
+                    {/* Video Badge */}
+                    <div className="absolute top-2 left-2 pointer-events-none">
+                      <Badge variant="default" className="bg-purple-600 text-white text-xs">
+                        <Video className="h-3 w-3 mr-1" />
+                        Video
+                      </Badge>
+                    </div>
+                    
+                    {/* Remove Button */}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveVideo?.(index)}
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 transition-all z-10"
+                      title="Remove video"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Video Info */}
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="truncate">{video.file.name}</span>
+                    </div>
+                    <div className="text-xs">
+                      <div className="flex justify-between">
+                        <span>Size:</span>
+                        <span>{formatFileSize(video.size)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Overall Progress */}
         {isUploading && uploadProgress.length > 0 && (
           <div className="mt-4 p-4 bg-muted rounded-lg">
