@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
 import ProductTabs from '@/components/product/ProductTabs';
 import RelatedProductsCarousel from '@/components/product/RelatedProductsCarousel';
@@ -21,6 +22,7 @@ import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import SocialShare from '@/components/SocialShare';
 import TrustBadges from '@/components/TrustBadges';
+import { supabase } from '@/integrations/supabase/client';
 
 // ✅ Properly typed interfaces
 interface ProductVariant {
@@ -60,6 +62,23 @@ const ProductDetailsPage: React.FC = () => {
   const { calculations } = useSelectiveCart();
   const { data: flashSale } = useProductFlashSale(id || '');
   const { addToRecentlyViewed } = useRecentlyViewed();
+
+  // Fetch category data for breadcrumb link
+  const { data: categoryData } = useQuery({
+    queryKey: ['category-by-name', product?.categories],
+    queryFn: async () => {
+      if (!product?.categories) return null;
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, category, slug, parent_id')
+        .eq('category', product.categories)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!product?.categories,
+    staleTime: 1000 * 60 * 10,
+  });
 
   // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -297,11 +316,15 @@ const productForTabs = useMemo(() => {
     return words.slice(0, 2).join(' ');
   };
 
+  const categoryHref = categoryData 
+    ? `/category/${categoryData.slug || encodeURIComponent(product.categories || 'all')}?id=${categoryData.id}&form=category&source=category|allCategory|${encodeURIComponent(product.categories || '')}`
+    : `/category/${encodeURIComponent(product.categories || 'all')}`;
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { 
       label: product.categories || 'Products', 
-      href: `/category/${encodeURIComponent(product.categories || 'all')}` 
+      href: categoryHref
     },
     { label: truncateToTwoWords(product.name) }
   ];
