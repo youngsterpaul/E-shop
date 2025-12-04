@@ -23,6 +23,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
+  const [videoProgress, setVideoProgress] = useState(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -230,8 +231,24 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                       onEnded={() => {
                         setIsVideoPlaying(false);
                         setShowPlayButton(true);
+                        setVideoProgress(0);
+                      }}
+                      onTimeUpdate={(e) => {
+                        const video = e.currentTarget;
+                        if (video.duration) {
+                          setVideoProgress((video.currentTime / video.duration) * 100);
+                        }
                       }}
                     />
+                    {/* Video progress bar */}
+                    {isVideoPlaying && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+                        <div 
+                          className="h-full bg-primary transition-all duration-100 ease-linear"
+                          style={{ width: `${videoProgress}%` }}
+                        />
+                      </div>
+                    )}
                     {/* Play button overlay - only shows when paused */}
                     {showPlayButton && !isVideoPlaying && (
                       <button
