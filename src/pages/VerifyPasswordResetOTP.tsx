@@ -3,9 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Shield, ArrowLeft, RefreshCw } from 'lucide-react';
+import { KeyRound, ArrowLeft, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { MobileHeader } from '@/components/ui/mobile-header';
 
@@ -279,13 +278,13 @@ const VerifyPasswordResetOTP = () => {
   };
 
   const content = (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <div className="w-full max-w-md animate-fade-in">
         <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-border/50 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Shield className="w-10 h-10 text-primary" />
+              <KeyRound className="w-10 h-10 text-primary" />
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">Verify Reset Code</h1>
             <p className="text-sm text-muted-foreground">
@@ -307,9 +306,9 @@ const VerifyPasswordResetOTP = () => {
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className={`w-12 h-14 text-center text-xl font-bold transition-colors ${
-                    errorMessage ? 'border-destructive' : ''
-                  } ${successMessage ? 'border-green-500' : ''}`}
+                  className={`w-12 h-14 text-center text-xl font-bold transition-all duration-200 border-2 rounded-xl focus:ring-4 focus:ring-primary/20 ${
+                    errorMessage ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
+                  } ${successMessage ? 'border-primary bg-primary/5' : ''}`}
                   disabled={isVerifying}
                 />
               ))}
@@ -317,13 +316,13 @@ const VerifyPasswordResetOTP = () => {
             
             {/* Error/Success Messages */}
             {errorMessage && (
-              <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
                 <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
               </div>
             )}
             {successMessage && (
-              <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <p className="text-sm text-green-600 dark:text-green-400 text-center font-medium">{successMessage}</p>
+              <div className="mb-3 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                <p className="text-sm text-primary text-center font-medium">{successMessage}</p>
               </div>
             )}
             
@@ -343,7 +342,7 @@ const VerifyPasswordResetOTP = () => {
           <Button
             onClick={() => handleVerify()}
             disabled={otp.some(digit => !digit) || isVerifying}
-            className="w-full h-11 mb-4"
+            className="w-full h-12 mb-4 rounded-xl font-semibold"
           >
             {isVerifying ? (
               <>
@@ -361,7 +360,7 @@ const VerifyPasswordResetOTP = () => {
               variant="ghost"
               onClick={handleResend}
               disabled={!canResend || isResending}
-              className="text-sm"
+              className="text-sm hover:bg-muted"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isResending ? 'animate-spin' : ''}`} />
               {isResending ? "Sending..." : "Resend Code"}
@@ -373,7 +372,7 @@ const VerifyPasswordResetOTP = () => {
             <Button
               variant="link"
               onClick={() => navigate('/auth?mode=forgot')}
-              className="text-sm"
+              className="text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Forgot Password
