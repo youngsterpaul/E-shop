@@ -144,7 +144,7 @@ const CategorySidebar = memo(() => {
         </div>
       </div>
       
-      <div className="h-[calc(100%-56px)]">
+      <div className="h-[calc(100%-56px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
         {categories.map((category, index) => {
           const IconComponent = category.icon || ShoppingBag;
           return (
