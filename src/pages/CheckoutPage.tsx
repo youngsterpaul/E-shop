@@ -35,7 +35,8 @@ const CheckoutPage = () => {
   } = useAuth();
   const {
     calculations,
-    getSelectedItems
+    getSelectedItems,
+    appliedCoupons
   } = useSelectiveCart();
   const {
     clearCart
@@ -423,7 +424,34 @@ const CheckoutPage = () => {
               };
               setPaymentStatus(successStatus);
               paymentStatusRef.current = successStatus;
-              paymentStatusRef.current = successStatus;
+              
+              // Record discount usage for applied coupons
+              if (appliedCoupons.length > 0) {
+                for (const coupon of appliedCoupons) {
+                  // Insert into discount_usage table
+                  await supabase.from('discount_usage').insert({
+                    discount_id: coupon.id,
+                    user_id: customerData.user_id || null,
+                    order_id: currentOrderId,
+                    discount_amount: coupon.discount
+                  });
+                  
+                  // Get current usage_count and increment it
+                  const { data: discountData } = await supabase
+                    .from('discounts')
+                    .select('usage_count')
+                    .eq('id', coupon.id)
+                    .single();
+                  
+                  if (discountData) {
+                    await supabase
+                      .from('discounts')
+                      .update({ usage_count: (discountData.usage_count || 0) + 1 })
+                      .eq('id', coupon.id);
+                  }
+                }
+              }
+              
               clearCart();
               clearInterval(pollPayment);
               setTimeout(() => {
