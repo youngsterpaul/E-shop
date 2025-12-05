@@ -345,7 +345,7 @@ const EnhancedHeroSection = memo(() => {
     return (
       <section className={cn(
         "relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse",
-        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[4/1] max-h-[480px]"
+        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]"
       )}>
         {!isMobile && <CategorySidebar />}
       </section>
@@ -356,7 +356,7 @@ const EnhancedHeroSection = memo(() => {
     return (
       <section className={cn(
         "relative bg-gradient-to-br from-background via-muted to-background",
-        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[4/1] max-h-[480px]"
+        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]"
       )}>
         {!isMobile && <CategorySidebar />}
         <div className={cn(
@@ -372,7 +372,7 @@ const EnhancedHeroSection = memo(() => {
   return (
     <section className={cn(
       "relative overflow-hidden",
-      isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[4/1] max-h-[480px]"
+      isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]"
     )}>
       {!isMobile && <CategorySidebar />}
       
@@ -398,7 +398,7 @@ const EnhancedHeroSection = memo(() => {
                     : "opacity-0 translate-x-full"
               )}
             >
-              <div className="w-full h-full overflow-hidden bg-muted/30">
+              <div className="w-full h-full overflow-hidden">
                 <LazyImage
                   src={slide.image_url}
                   alt={slide.title}
@@ -406,7 +406,7 @@ const EnhancedHeroSection = memo(() => {
                   width={1920}
                   height={1080}
                   className={cn(
-                    "object-contain w-full h-full transition-transform duration-[5000ms] ease-out",
+                    "object-cover w-full h-full transition-transform duration-[5000ms] ease-out",
                     index === currentSlide ? "scale-110" : "scale-100"
                   )}
                 />
