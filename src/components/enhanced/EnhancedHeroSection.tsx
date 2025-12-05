@@ -385,14 +385,16 @@ const EnhancedHeroSection = memo(() => {
                     : "opacity-0 translate-x-full"
               )}
             >
-              <LazyImage
-                src={slide.image_url}
-                alt={slide.title}
-                priority={index === 0}
-                width={1920}
-                height={1080}
-                className="object-cover w-full h-full"
-              />
+              <div className="w-full h-full bg-muted/30">
+                <LazyImage
+                  src={slide.image_url}
+                  alt={slide.title}
+                  priority={index === 0}
+                  width={1920}
+                  height={1080}
+                  className="object-contain w-full h-full"
+                />
+              </div>
               
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
