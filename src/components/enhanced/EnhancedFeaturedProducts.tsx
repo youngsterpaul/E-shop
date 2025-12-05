@@ -100,7 +100,7 @@ const EnhancedFeaturedProducts = memo(() => {
   // Loading skeleton with modern design
   const loadingSkeleton = (
     <div className={`${isMobile ? 'px-2' : ''}`}>
-      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-4'}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'}`}>
         {Array.from({ length: isMobile ? 6 : 12 }).map((_, i) => (
           <div key={i} className="bg-card rounded-lg overflow-hidden shadow-sm animate-pulse">
             <div className="aspect-square bg-muted" />
@@ -174,7 +174,7 @@ const EnhancedFeaturedProducts = memo(() => {
         
         {/* Products Grid */}
         <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>
-          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-4'}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'}`}>
             {transformedProducts.map((product, index) => (
               <ProductCard key={`${product.id}-${index}`} product={product} />
             ))}

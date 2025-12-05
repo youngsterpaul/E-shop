@@ -64,7 +64,7 @@ const Index = () => {
         <PerformanceMonitor />
         {isMobile && <Header />}
 
-        <main className={`${!isMobile ? 'max-w-[1600px] mx-auto px-4 lg:px-8' : ''}`}>
+        <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : ''}`}>
           {/* Hero Section */}
           <section className={isMobile ? '' : 'py-4'}>
             <EnhancedHeroSection />
