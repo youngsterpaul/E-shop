@@ -218,7 +218,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                       poster={product.image}
                       preload="metadata"
                       playsInline
-                      muted
                       loop
                       onPlay={() => {
                         setIsVideoPlaying(true);
