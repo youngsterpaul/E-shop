@@ -30,6 +30,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const isMobile = isMobileUserAgent();
   const { data: flashSale } = useProductFlashSaleFromContext(product.id);
+  
+  // Mobile-specific compact sizes
+  const badgeClass = isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs';
+  const wishlistBtnClass = isMobile ? 'p-1.5' : 'p-2';
+  const heartSize = isMobile ? 14 : 16;
 
   const productSlug = product.name
     .toLowerCase()
@@ -85,15 +90,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
         />
         
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className={`absolute ${isMobile ? 'top-1.5 left-1.5' : 'top-2 left-2'} flex flex-col gap-1`}>
           {flashSale && (
-            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-md">
-              <Zap size={12} className="fill-current" />
+            <span className={`inline-flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`}>
+              <Zap size={isMobile ? 10 : 12} className="fill-current" />
               Flash
             </span>
           )}
           {!flashSale && product.discount && product.discount > 0 && (
-            <span className="bg-red-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-md">
+            <span className={`bg-red-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`}>
               -{product.discount}%
             </span>
           )}
@@ -102,7 +107,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
-          className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 shadow-md ${
+          className={`absolute ${isMobile ? 'top-1.5 right-1.5' : 'top-2 right-2'} ${wishlistBtnClass} rounded-full transition-all duration-200 shadow-md ${
             isInWishlist(product.id) 
               ? 'bg-red-50 text-red-500' 
               : 'bg-white/90 text-muted-foreground hover:bg-white hover:text-red-500'
@@ -110,7 +115,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart
-            size={16}
+            size={heartSize}
             className={`transition-all ${isInWishlist(product.id) ? 'fill-current' : ''}`}
           />
         </button>
@@ -126,9 +131,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
 
       {/* Product Info */}
-      <div className="p-3 space-y-2">
+      <div className={`${isMobile ? 'p-2 space-y-1' : 'p-3 space-y-2'}`}>
         {/* Product Name */}
-        <h3 className="text-sm font-medium text-foreground line-clamp-2 leading-snug min-h-[2.5rem] group-hover:text-primary transition-colors">
+        <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-foreground line-clamp-2 leading-snug ${isMobile ? 'min-h-[2rem]' : 'min-h-[2.5rem]'} group-hover:text-primary transition-colors`}>
           {product.name}
         </h3>
 
@@ -138,7 +143,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                size={12}
+                size={isMobile ? 10 : 12}
                 className={`${
                   i < Math.floor(averageRating) 
                     ? 'text-amber-400 fill-amber-400' 
@@ -147,18 +152,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
               />
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
             ({displayReviewCount > 999 ? '999+' : displayReviewCount})
           </span>
         </div>
 
         {/* Price */}
-        <div className="flex items-baseline gap-2 pt-1">
-          <span className={`text-base font-bold ${flashPrice ? 'text-red-600' : 'text-foreground'}`}>
+        <div className={`flex items-baseline gap-1.5 ${isMobile ? 'pt-0.5' : 'pt-1'}`}>
+          <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold ${flashPrice ? 'text-red-600' : 'text-foreground'}`}>
             {formatPrice(displayPrice)}
           </span>
           {flashPrice && (
-            <span className="text-xs text-muted-foreground line-through">
+            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground line-through`}>
               {formatPrice(product.price)}
             </span>
           )}

@@ -63,18 +63,18 @@ const FlashSaleBanner = () => {
   return (
     <section className={`bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
       {/* Header */}
-      <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-4'}`}>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-            <Zap className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white fill-white`} />
+      <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-2.5' : 'px-6 py-4'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`${isMobile ? 'p-1.5' : 'p-2'} bg-white/20 rounded-lg backdrop-blur-sm`}>
+            <Zap className={`${isMobile ? 'h-3.5 w-3.5' : 'h-5 w-5'} text-white fill-white`} />
           </div>
           <div>
-            <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-white`}>
+            <h2 className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white`}>
               Flash Sale
             </h2>
-            <div className="flex items-center gap-2">
-              <Clock className="h-3 w-3 text-white/80" />
-              <span className="text-xs text-white/80">Ends in</span>
+            <div className="flex items-center gap-1.5">
+              <Clock className={`${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'} text-white/80`} />
+              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-white/80`}>Ends in</span>
               <div className="flex items-center gap-1">
                 <TimeBox value={timeLeft.hours} isMobile={isMobile} />
                 <span className="text-white/80 text-sm font-bold">:</span>
