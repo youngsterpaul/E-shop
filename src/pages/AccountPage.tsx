@@ -109,7 +109,7 @@ const AccountPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6' : 'px-4 py-6 pb-24'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6' : 'px-3 py-4 pb-24'}`}>
         {!isMobile && (
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">My Account</h1>
@@ -118,30 +118,30 @@ const AccountPage = () => {
         )}
 
         {/* User Info Card */}
-        <Card className="mb-6 border-border/50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+        <Card className={`${isMobile ? 'mb-4' : 'mb-6'} border-border/50 shadow-sm`}>
+          <CardContent className={isMobile ? 'p-3' : 'p-4'}>
+            <div className="flex items-center gap-3">
+              <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20`}>
                 {profile?.avatar_url ? (
                   <img 
                     src={profile?.avatar_url} 
                     alt={profile?.first_name || ''} 
-                    className="h-14 w-14 object-cover rounded-full"
+                    className={`${isMobile ? 'h-12 w-12' : 'h-14 w-14'} object-cover rounded-full`}
                   />
                 ) : (
-                  <User className="h-7 w-7 text-primary" />
+                  <User className={`${isMobile ? 'h-6 w-6' : 'h-7 w-7'} text-primary`} />
                 )}
               </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">
+              <div className="flex-1 min-w-0">
+                <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-foreground truncate`}>
                   {profile?.first_name && profile?.last_name 
                     ? `${profile.first_name} ${profile.last_name}`
                     : 'Welcome!'
                   }
                 </h2>
-                <p className="text-muted-foreground text-sm">{user.email}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground truncate`}>{user.email}</p>
                 {profile?.phone && (
-                  <p className="text-sm text-muted-foreground/80">{profile.phone}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground/80`}>{profile.phone}</p>
                 )}
               </div>
             </div>
@@ -149,20 +149,20 @@ const AccountPage = () => {
         </Card>
 
         {/* Account Menu */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${isMobile ? 'gap-2 mb-4' : 'gap-3 mb-6'}`}>
           {accountMenuItems.map((item) => (
             <Link key={item.href} to={item.href}>
               <Card className="hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <CardContent className={isMobile ? 'p-3' : 'p-4'}>
+                  <div className="flex items-center gap-3">
+                    <div className={`${isMobile ? 'w-9 h-9' : 'w-11 h-11'} bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-colors`}>
+                      <item.icon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-muted-foreground group-hover:text-primary transition-colors`} />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`${isMobile ? 'text-sm' : ''} font-medium text-foreground truncate`}>{item.title}</h3>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground truncate`}>{item.description}</p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                    <ChevronRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-muted-foreground/50 group-hover:text-primary transition-colors flex-shrink-0`} />
                   </div>
                 </CardContent>
               </Card>
@@ -172,17 +172,17 @@ const AccountPage = () => {
 
         {/* Admin Panel Link */}
         {(isAdmin || isSuperAdmin || isModerator) && (
-          <Card className="mb-6 border-primary/30 bg-primary/5">
-            <CardContent className="p-4">
-              <Link to="/supersmartkenyaadmin123" className="flex items-center gap-4">
-                <div className="w-11 h-11 bg-primary/20 rounded-xl flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-primary" />
+          <Card className={`${isMobile ? 'mb-4' : 'mb-6'} border-primary/30 bg-primary/5`}>
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
+              <Link to="/supersmartkenyaadmin123" className="flex items-center gap-3">
+                <div className={`${isMobile ? 'w-9 h-9' : 'w-11 h-11'} bg-primary/20 rounded-xl flex items-center justify-center`}>
+                  <Settings className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium text-primary">Admin Dashboard</h3>
-                  <p className="text-sm text-primary/70">Manage products, orders, and users</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`${isMobile ? 'text-sm' : ''} font-medium text-primary`}>Admin Dashboard</h3>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-primary/70`}>Manage products, orders, and users</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-primary/50" />
+                <ChevronRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary/50 flex-shrink-0`} />
               </Link>
             </CardContent>
           </Card>
@@ -192,9 +192,9 @@ const AccountPage = () => {
         <Button 
           variant="outline" 
           onClick={handleLogout}
-          className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive"
+          className={`w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive ${isMobile ? 'h-10 text-sm' : ''}`}
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
           Sign Out
         </Button>
       </main>
