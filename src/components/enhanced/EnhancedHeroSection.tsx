@@ -121,10 +121,10 @@ const CategorySidebar = memo(() => {
       })}
       </div>
 
-      {/* Mega Menu - Aligned with hero image width */}
-      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 w-[calc(100vw-260px-4rem)] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
+      {/* Mega Menu - Fixed width aligned with sidebar */}
+      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 min-w-[600px] w-[600px] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 rounded-tr-xl">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 {hoveredCategoryData.icon && <hoveredCategoryData.icon size={16} className="text-primary" />}
               </div>
@@ -134,11 +134,11 @@ const CategorySidebar = memo(() => {
             </div>
           </div>
           
-          <div className="p-4 flex-1 overflow-y-auto scrollbar-subtle">
-            <div className="grid grid-cols-6 gap-3">
+          <div className="p-4 flex-1 overflow-y-auto">
+            <div className="grid grid-cols-5 gap-3">
               {hoveredCategoryData.subcategories.map(subcategory => {
             const SubIcon = ShoppingBag;
-            return <div key={subcategory.id} onClick={e => handleSubcategoryClick(hoveredCategoryData, subcategory, e)} className="flex flex-col items-center p-2 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20">
+            return <div key={subcategory.id} onClick={e => handleSubcategoryClick(hoveredCategoryData, subcategory, e)} className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20">
                     <div className="relative w-14 h-14 mb-1.5 rounded-xl overflow-hidden bg-muted/50 group-hover:scale-105 transition-transform duration-300 shadow-sm">
                       {subcategory.productImage ? <>
                           <OptimizedImage src={subcategory.productImage} alt={subcategory.name} className="w-full h-full object-cover" priority={false} />
@@ -147,7 +147,7 @@ const CategorySidebar = memo(() => {
                           <SubIcon size={18} className="text-muted-foreground/60" />
                         </div>}
                     </div>
-                    <span className="text-xs text-foreground/70 text-center leading-tight font-medium group-hover:text-primary transition-colors line-clamp-2 px-1">
+                    <span className="text-xs text-foreground/70 text-center leading-tight font-medium group-hover:text-primary transition-colors line-clamp-2 px-1 w-full">
                       {subcategory.name}
                     </span>
                   </div>;
