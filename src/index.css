@@ -348,24 +348,7 @@
   display: none;
 }
 
-/* Webkit scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
-}
+/* Default browser scrollbars for pages - no custom styling */
 
 /* Subtle scrollbar for dropdowns and popups */
 .scrollbar-subtle::-webkit-scrollbar {
