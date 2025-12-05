@@ -145,14 +145,14 @@ const Header = () => {
           </nav>
         )}
 
-        <div className={`${isMobile ? 'py-3 px-4' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
-          <div className="flex items-center gap-4 lg:gap-6">
+        <div className={`${isMobile ? 'py-2 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
+          <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group">
               <img 
                 src={smartkenyaLogo} 
                 alt="SmartKenya Logo" 
-                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 
+                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-7 w-auto'}`} 
               />
             </Link>
 
@@ -168,6 +168,9 @@ const Header = () => {
                 />
               </div>
             )}
+
+            {/* Spacer for mobile */}
+            {isMobile && <div className="flex-1" />}
 
             {/* Desktop Actions */}
             {!isMobile && !hideMainHeader && (
@@ -272,13 +275,9 @@ const Header = () => {
 
             {/* Mobile Actions */}
             {isMobile && (
-              <div className="flex items-center gap-1">
-                <Link to="/search">
-                  <Button variant="ghost" size="sm" className="p-2.5 rounded-full" aria-label="Search">
-                    <Search className="h-5 w-5 text-muted-foreground" />
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/search" aria-label="Search">
+                <Search className="h-4.5 w-4.5 text-muted-foreground" />
+              </Link>
             )}
           </div>
         </div>

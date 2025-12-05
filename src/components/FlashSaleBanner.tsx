@@ -63,35 +63,39 @@ const FlashSaleBanner = () => {
   return (
     <section className={`bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
       {/* Header */}
-      <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-2.5' : 'px-6 py-4'}`}>
-        <div className="flex items-center gap-2">
-          <div className={`${isMobile ? 'p-1.5' : 'p-2'} bg-white/20 rounded-lg backdrop-blur-sm`}>
-            <Zap className={`${isMobile ? 'h-3.5 w-3.5' : 'h-5 w-5'} text-white fill-white`} />
+      <div className={`flex items-center justify-between ${isMobile ? 'px-2.5 py-2' : 'px-6 py-4'}`}>
+        {/* Left: Flash Sale title */}
+        <div className="flex items-center gap-1.5">
+          <div className={`${isMobile ? 'p-1' : 'p-2'} bg-white/20 rounded-md backdrop-blur-sm`}>
+            <Zap className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'} text-white fill-white`} />
           </div>
-          <div>
-            <h2 className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white`}>
-              Flash Sale
-            </h2>
-            <div className="flex items-center gap-1.5">
-              <Clock className={`${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'} text-white/80`} />
-              <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-white/80`}>Ends in</span>
-              <div className="flex items-center gap-1">
-                <TimeBox value={timeLeft.hours} isMobile={isMobile} />
-                <span className="text-white/80 text-sm font-bold">:</span>
-                <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-                <span className="text-white/80 text-sm font-bold">:</span>
-                <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
-              </div>
-            </div>
-          </div>
+          <h2 className={`${isMobile ? 'text-xs' : 'text-lg'} font-bold text-white`}>
+            Flash Sale
+          </h2>
         </div>
         
+        {/* Center: Countdown Timer */}
+        <div className="flex items-center gap-0.5">
+          {!isMobile && (
+            <>
+              <Clock className="h-3 w-3 text-white/80 mr-1" />
+              <span className="text-xs text-white/80 mr-2">Ends in</span>
+            </>
+          )}
+          <TimeBox value={timeLeft.hours} isMobile={isMobile} />
+          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
+          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
+        </div>
+        
+        {/* Right: More button */}
         <Link 
           to="/flash-sale"
-          className={`flex items-center gap-1 ${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1.5'} bg-white/20 hover:bg-white/30 text-white rounded-full font-medium transition-colors backdrop-blur-sm`}
+          className={`flex items-center gap-0.5 ${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-sm px-3 py-1.5'} bg-white/20 hover:bg-white/30 text-white rounded-full font-medium transition-colors backdrop-blur-sm`}
         >
-          {isMobile ? 'More' : 'View All'}
-          <ChevronRight className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+          More
+          <ChevronRight className={`${isMobile ? 'h-2.5 w-2.5' : 'h-4 w-4'}`} />
         </Link>
       </div>
 
@@ -108,7 +112,7 @@ const FlashSaleBanner = () => {
 };
 
 const TimeBox = ({ value, isMobile }: { value: number; isMobile: boolean }) => (
-  <span className={`bg-white/25 text-white backdrop-blur-sm rounded ${isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-0.5 text-sm'} font-bold ${isMobile ? 'min-w-[22px]' : 'min-w-[28px]'} text-center inline-block`}>
+  <span className={`bg-white/25 text-white backdrop-blur-sm rounded ${isMobile ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-0.5 text-sm'} font-bold ${isMobile ? 'min-w-[18px]' : 'min-w-[28px]'} text-center inline-block`}>
     {value.toString().padStart(2, '0')}
   </span>
 );
