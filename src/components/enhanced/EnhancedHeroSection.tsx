@@ -372,18 +372,18 @@ const EnhancedHeroSection = memo(() => {
         onClick={handleSlideClick}
       >
         {/* Slides Container */}
-        <div 
-          className="flex h-full transition-transform duration-700 ease-out"
-          style={{ 
-            width: `${heroSlides.length * 100}%`,
-            transform: `translateX(-${currentSlide * (100 / heroSlides.length)}%)`
-          }}
-        >
+        <div className="relative w-full h-full">
           {heroSlides.map((slide, index) => (
             <div 
               key={slide.id} 
-              className="relative h-full flex-shrink-0"
-              style={{ width: `${100 / heroSlides.length}%` }}
+              className={cn(
+                "absolute inset-0 transition-all duration-700 ease-out",
+                index === currentSlide 
+                  ? "opacity-100 translate-x-0" 
+                  : index < currentSlide 
+                    ? "opacity-0 -translate-x-full" 
+                    : "opacity-0 translate-x-full"
+              )}
             >
               <LazyImage
                 src={slide.image_url}
