@@ -70,27 +70,27 @@ const CategorySidebar = memo(() => {
   };
   if (isMobile) return null;
   if (isLoading) {
-    return <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
-        <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
-          <div className="flex items-center gap-2">
-            <Grid3X3 size={18} />
+    return <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-2xl z-40 rounded-l-xl border border-border/30 flex flex-col">
+        <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-tl-xl">
+          <div className="flex items-center gap-2.5">
+            <Grid3X3 size={18} className="opacity-90" />
             <span className="font-semibold text-sm tracking-wide">ALL CATEGORIES</span>
           </div>
         </div>
-        <div className="p-3 space-y-2">
-          {[...Array(8)].map((_, i) => <div key={i} className="h-9 bg-muted/50 animate-pulse rounded-lg" />)}
+        <div className="flex-1 p-1">
+          {[...Array(9)].map((_, i) => <div key={i} className="h-10 mx-2 my-1 bg-muted/40 animate-pulse rounded-lg" />)}
         </div>
       </div>;
   }
   if (error || !categories || categories.length === 0) {
-    return <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
-        <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
-          <div className="flex items-center gap-2">
-            <Grid3X3 size={18} />
+    return <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-2xl z-40 rounded-l-xl border border-border/30 flex flex-col">
+        <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-tl-xl">
+          <div className="flex items-center gap-2.5">
+            <Grid3X3 size={18} className="opacity-90" />
             <span className="font-semibold text-sm tracking-wide">ALL CATEGORIES</span>
           </div>
         </div>
-        <div className="p-4 text-sm text-muted-foreground">
+        <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
           {error ? 'Unable to load categories' : 'No categories available'}
         </div>
       </div>;
