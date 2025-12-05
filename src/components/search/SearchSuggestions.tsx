@@ -107,7 +107,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
               "bg-popover rounded-xl border border-border",
               "shadow-xl shadow-black/10",
               "animate-in fade-in-0 slide-in-from-top-2 duration-200",
-              "scrollbar-thin"
+              "scrollbar-modern"
             ]
       )}
     >
