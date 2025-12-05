@@ -98,7 +98,7 @@ const CategorySidebar = memo(() => {
 
   if (isLoading) {
     return (
-      <div className="absolute left-0 top-0 w-[260px] h-[480px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+      <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -116,7 +116,7 @@ const CategorySidebar = memo(() => {
 
   if (error || !categories || categories.length === 0) {
     return (
-      <div className="absolute left-0 top-0 w-[260px] h-[480px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+      <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -135,7 +135,7 @@ const CategorySidebar = memo(() => {
   return (
     <div 
       ref={sidebarRef} 
-      className="absolute left-0 top-0 w-[260px] h-[480px] bg-card shadow-2xl z-40 rounded-xl border border-border/30"
+      className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30"
     >
       <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-t-xl">
         <div className="flex items-center gap-2.5">
@@ -328,11 +328,24 @@ const EnhancedHeroSection = memo(() => {
     }
   };
 
+  /*
+   * Hero Image Guidelines:
+   * -----------------------
+   * Desktop: Recommended size 1920x480px (4:1 aspect ratio)
+   * Mobile: Recommended size 750x280px (2.68:1 aspect ratio)
+   * 
+   * For best results:
+   * - Keep important content centered (safe zone: middle 60% of image)
+   * - Use high-quality images (min 72 DPI, prefer 150 DPI)
+   * - Avoid text in images when possible (use overlay text instead)
+   * - File format: WebP preferred, JPEG fallback (max 200KB)
+   */
+
   if (loading) {
     return (
       <section className={cn(
         "relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse",
-        isMobile ? "h-[140px] mx-2 my-2 rounded-xl overflow-hidden" : "h-[480px]"
+        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[4/1] max-h-[480px]"
       )}>
         {!isMobile && <CategorySidebar />}
       </section>
@@ -343,7 +356,7 @@ const EnhancedHeroSection = memo(() => {
     return (
       <section className={cn(
         "relative bg-gradient-to-br from-background via-muted to-background",
-        isMobile ? "h-[140px] mx-2 my-2 rounded-xl overflow-hidden" : "h-[480px]"
+        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[4/1] max-h-[480px]"
       )}>
         {!isMobile && <CategorySidebar />}
         <div className={cn(
@@ -359,7 +372,7 @@ const EnhancedHeroSection = memo(() => {
   return (
     <section className={cn(
       "relative overflow-hidden",
-      isMobile ? "h-[140px] mx-2 my-2 rounded-xl" : "h-[480px]"
+      isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[4/1] max-h-[480px]"
     )}>
       {!isMobile && <CategorySidebar />}
       
