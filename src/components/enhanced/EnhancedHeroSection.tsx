@@ -170,7 +170,7 @@ const CategorySidebar = memo(() => {
                   )}>
                     <IconComponent size={18} />
                   </span>
-                  <span className="font-medium truncate">{category.name}</span>
+                  <span className="font-medium">{category.name}</span>
                 </div>
                 {category.subcategories.length > 0 && (
                   <ChevronRight size={14} className={cn(
@@ -398,7 +398,7 @@ const EnhancedHeroSection = memo(() => {
                     : "opacity-0 translate-x-full"
               )}
             >
-              <div className="w-full h-full overflow-hidden">
+              <div className="w-full h-full overflow-hidden bg-muted/30">
                 <LazyImage
                   src={slide.image_url}
                   alt={slide.title}
@@ -406,7 +406,7 @@ const EnhancedHeroSection = memo(() => {
                   width={1920}
                   height={1080}
                   className={cn(
-                    "object-cover w-full h-full transition-transform duration-[5000ms] ease-out",
+                    "object-contain w-full h-full transition-transform duration-[5000ms] ease-out",
                     index === currentSlide ? "scale-110" : "scale-100"
                   )}
                 />
