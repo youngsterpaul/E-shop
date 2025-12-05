@@ -73,10 +73,15 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
     }).format(price);
   };
 
+  const generateSlug = (name: string): string => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  };
+
   const handleProductClick = (suggestion: SearchSuggestion, e: React.MouseEvent) => {
     if (suggestion.productId) {
       e.stopPropagation();
-      navigate(`/product/${suggestion.productId}`);
+      const slug = generateSlug(suggestion.text);
+      navigate(`/product/${slug}/${suggestion.productId}`);
     } else {
       onSuggestionClick(suggestion.text);
     }
