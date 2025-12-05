@@ -7,7 +7,6 @@ import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { cn } from '@/lib/utils';
-
 interface HeroSlide {
   id: string;
   title: string;
@@ -18,41 +17,28 @@ interface HeroSlide {
   created_at: string;
   updated_at: string;
 }
-
 const generateSlug = (name: string): string => {
-  return name
-    .toLowerCase()
-    .replace(/&/g, '-')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
+  return name.toLowerCase().replace(/&/g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 };
-
-const generateCategoryUrl = (
-  categoryName: string, 
-  categoryId: number,
-  categorySlug?: string | null,
-  subcategoryName?: string, 
-  subcategoryId?: number,
-  subcategorySlug?: string | null
-): string => {
+const generateCategoryUrl = (categoryName: string, categoryId: number, categorySlug?: string | null, subcategoryName?: string, subcategoryId?: number, subcategorySlug?: string | null): string => {
   const catSlug = categorySlug || generateSlug(categoryName);
-  
   if (subcategoryName && subcategoryId) {
     const subSlug = subcategorySlug || generateSlug(subcategoryName);
     return `/category/${catSlug}/${subSlug}?id=${subcategoryId}&parent=${categoryId}&source=category|${encodeURIComponent(categoryName)}|${encodeURIComponent(subcategoryName)}`;
   }
-  
   return `/category/${catSlug}?id=${categoryId}&form=category&source=category|allCategory|${encodeURIComponent(categoryName)}`;
 };
-
 const CategorySidebar = memo(() => {
   const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null); 
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-  const { data: categories, isLoading, error } = useCategoryHierarchy();
+  const {
+    data: categories,
+    isLoading,
+    error
+  } = useCategoryHierarchy();
   const [menuTopOffset, setMenuTopOffset] = useState<number>(0);
-
   useEffect(() => {
     const calculateOffset = () => {
       if (sidebarRef.current) {
@@ -60,17 +46,14 @@ const CategorySidebar = memo(() => {
         setMenuTopOffset(sidebarRect.top);
       }
     };
-
     calculateOffset();
     window.addEventListener('scroll', calculateOffset);
     window.addEventListener('resize', calculateOffset);
-
     return () => {
       window.removeEventListener('scroll', calculateOffset);
       window.removeEventListener('resize', calculateOffset);
     };
-  }, [categories]); 
-
+  }, [categories]);
   const handleCategoryClick = (category: any, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -79,26 +62,15 @@ const CategorySidebar = memo(() => {
     const url = generateCategoryUrl(category.name, category.id, category.slug);
     navigate(url);
   };
-
   const handleSubcategoryClick = (category: any, subcategory: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = generateCategoryUrl(
-      category.name, 
-      category.id, 
-      category.slug,
-      subcategory.name, 
-      subcategory.id,
-      subcategory.slug
-    );
+    const url = generateCategoryUrl(category.name, category.id, category.slug, subcategory.name, subcategory.id, subcategory.slug);
     navigate(url);
   };
-
   if (isMobile) return null;
-
   if (isLoading) {
-    return (
-      <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+    return <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -106,17 +78,12 @@ const CategorySidebar = memo(() => {
           </div>
         </div>
         <div className="p-3 space-y-2">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-9 bg-muted/50 animate-pulse rounded-lg" />
-          ))}
+          {[...Array(8)].map((_, i) => <div key={i} className="h-9 bg-muted/50 animate-pulse rounded-lg" />)}
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error || !categories || categories.length === 0) {
-    return (
-      <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+    return <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -126,17 +93,10 @@ const CategorySidebar = memo(() => {
         <div className="p-4 text-sm text-muted-foreground">
           {error ? 'Unable to load categories' : 'No categories available'}
         </div>
-      </div>
-    );
+      </div>;
   }
-
   const hoveredCategoryData = categories.find(c => c.id === hoveredCategory);
-
-  return (
-    <div 
-      ref={sidebarRef} 
-      className="absolute left-0 top-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30"
-    >
+  return <div ref={sidebarRef} className="absolute left-0 top-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30">
       <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-t-xl">
         <div className="flex items-center gap-2.5">
           <Grid3X3 size={18} className="opacity-90" />
@@ -146,52 +106,25 @@ const CategorySidebar = memo(() => {
       
       <div>
         {categories.map((category, index) => {
-          const IconComponent = category.icon || ShoppingBag;
-          return (
-            <div
-              key={category.id}
-              className="relative"
-              onMouseEnter={() => setHoveredCategory(category.id)} 
-              onMouseLeave={() => setHoveredCategory(null)}
-            >
-              <div
-                onClick={(e) => handleCategoryClick(category, e)}
-                className={cn(
-                  "flex items-center justify-between px-4 py-2.5 text-sm transition-all duration-200 cursor-pointer group",
-                  "text-foreground/80 hover:text-primary hover:bg-primary/5",
-                  hoveredCategory === category.id && "text-primary bg-primary/5",
-                  index !== categories.length - 1 && "border-b border-border/30"
-                )}
-              >
+        const IconComponent = category.icon || ShoppingBag;
+        return <div key={category.id} className="relative" onMouseEnter={() => setHoveredCategory(category.id)} onMouseLeave={() => setHoveredCategory(null)}>
+              <div onClick={e => handleCategoryClick(category, e)} className={cn("flex items-center justify-between px-4 py-2.5 text-sm transition-all duration-200 cursor-pointer group", "text-foreground/80 hover:text-primary hover:bg-primary/5", hoveredCategory === category.id && "text-primary bg-primary/5", index !== categories.length - 1 && "border-b border-border/30")}>
                 <div className="flex items-center gap-3">
-                  <span className={cn(
-                    "text-muted-foreground group-hover:text-primary transition-colors",
-                    hoveredCategory === category.id && "text-primary"
-                  )}>
+                  <span className={cn("text-muted-foreground group-hover:text-primary transition-colors", hoveredCategory === category.id && "text-primary")}>
                     <IconComponent size={18} />
                   </span>
                   <span className="font-medium">{category.name}</span>
                 </div>
-                {category.subcategories.length > 0 && (
-                  <ChevronRight size={14} className={cn(
-                    "text-muted-foreground/60 group-hover:text-primary transition-all",
-                    hoveredCategory === category.id && "text-primary translate-x-0.5"
-                  )} />
-                )}
+                {category.subcategories.length > 0 && <ChevronRight size={14} className={cn("text-muted-foreground/60 group-hover:text-primary transition-all", hoveredCategory === category.id && "text-primary translate-x-0.5")} />}
               </div>
-            </div>
-          );
-        })}
+            </div>;
+      })}
       </div>
 
       {/* Mega Menu - Aligned with hero image area */}
-      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && (
-        <div 
-          className="absolute left-full top-0 w-[calc(100vw-260px-2rem)] max-w-[900px] bg-card shadow-2xl border border-border/30 z-[100] rounded-xl"
-          style={{ maxHeight: 'calc(100% + 56px)' }}
-          onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)}
-          onMouseLeave={() => setHoveredCategory(null)}
-        >
+      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 w-[calc(100vw-260px-2rem)] max-w-[900px] bg-card shadow-2xl border border-border/30 z-[100] rounded-xl" style={{
+      maxHeight: 'calc(100% + 56px)'
+    }} onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
           <div className="sticky top-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 z-10 rounded-t-xl">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -205,60 +138,35 @@ const CategorySidebar = memo(() => {
           
           <div className="p-4 max-h-[350px] overflow-y-auto scrollbar-subtle">
             <div className="grid grid-cols-6 gap-3">
-              {hoveredCategoryData.subcategories.map((subcategory) => {
-                const SubIcon = ShoppingBag;
-                return (
-                  <div
-                    key={subcategory.id}
-                    onClick={(e) => handleSubcategoryClick(hoveredCategoryData, subcategory, e)}
-                    className="flex flex-col items-center p-2 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20"
-                  >
+              {hoveredCategoryData.subcategories.map(subcategory => {
+            const SubIcon = ShoppingBag;
+            return <div key={subcategory.id} onClick={e => handleSubcategoryClick(hoveredCategoryData, subcategory, e)} className="flex flex-col items-center p-2 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20">
                     <div className="relative w-14 h-14 mb-1.5 rounded-xl overflow-hidden bg-muted/50 group-hover:scale-105 transition-transform duration-300 shadow-sm">
-                      {subcategory.productImage ? (
-                        <>
-                          <OptimizedImage
-                            src={subcategory.productImage}
-                            alt={subcategory.name}
-                            className="w-full h-full object-cover"
-                            priority={false}
-                          />
+                      {subcategory.productImage ? <>
+                          <OptimizedImage src={subcategory.productImage} alt={subcategory.name} className="w-full h-full object-cover" priority={false} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        </>
-                      ) : (
-                        <div className={cn(
-                          "w-full h-full flex items-center justify-center",
-                          subcategory.color || 'bg-gradient-to-br from-muted to-muted/80'
-                        )}>
+                        </> : <div className={cn("w-full h-full flex items-center justify-center", subcategory.color || 'bg-gradient-to-br from-muted to-muted/80')}>
                           <SubIcon size={18} className="text-muted-foreground/60" />
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <span className="text-xs text-foreground/70 text-center leading-tight font-medium group-hover:text-primary transition-colors line-clamp-2 px-1">
                       {subcategory.name}
                     </span>
-                  </div>
-                );
-              })}
+                  </div>;
+          })}
             </div>
           </div>
           
           <div className="bg-gradient-to-r from-muted/50 to-card border-t border-border/30 px-5 py-2.5 rounded-b-xl">
-            <div
-              onClick={(e) => handleCategoryClick(hoveredCategoryData, e)}
-              className="text-sm text-primary hover:text-primary/80 font-semibold cursor-pointer text-center py-1 hover:underline transition-all flex items-center justify-center gap-2"
-            >
+            <div onClick={e => handleCategoryClick(hoveredCategoryData, e)} className="text-sm text-primary hover:text-primary/80 font-semibold cursor-pointer text-center py-1 hover:underline transition-all flex items-center justify-center gap-2">
               View All {hoveredCategoryData.name}
               <ChevronRight size={16} />
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 });
-
 CategorySidebar.displayName = 'CategorySidebar';
-
 const EnhancedHeroSection = memo(() => {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -266,16 +174,15 @@ const EnhancedHeroSection = memo(() => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-
   useEffect(() => {
     const fetchHeroSlides = async () => {
       try {
-        const { data, error } = await supabase
-          .from('hero_slides')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
-
+        const {
+          data,
+          error
+        } = await supabase.from('hero_slides').select('*').eq('is_active', true).order('display_order', {
+          ascending: true
+        });
         if (error) throw error;
         setHeroSlides(data || []);
         setLoading(false);
@@ -284,39 +191,31 @@ const EnhancedHeroSection = memo(() => {
         setLoading(false);
       }
     };
-
     fetchHeroSlides();
   }, []);
-
   useEffect(() => {
     if (!isAutoPlaying || heroSlides.length <= 1) return;
-    
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
     }, 5000);
-
     return () => clearInterval(timer);
   }, [isAutoPlaying, heroSlides.length]);
-
   const goToSlide = useCallback((index: number) => {
     if (index === currentSlide) return;
     setCurrentSlide(index);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   }, [currentSlide]);
-
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    setCurrentSlide(prev => (prev + 1) % heroSlides.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   }, [heroSlides.length]);
-
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+    setCurrentSlide(prev => (prev - 1 + heroSlides.length) % heroSlides.length);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   }, [heroSlides.length]);
-
   const handleSlideClick = () => {
     const currentSlideData = heroSlides[currentSlide];
     if (currentSlideData?.link) {
@@ -342,144 +241,65 @@ const EnhancedHeroSection = memo(() => {
    */
 
   if (loading) {
-    return (
-      <section className={cn(
-        "relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse",
-        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]"
-      )}>
+    return <section className={cn("relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}>
         {!isMobile && <CategorySidebar />}
-      </section>
-    );
+      </section>;
   }
-
   if (heroSlides.length === 0) {
-    return (
-      <section className={cn(
-        "relative bg-gradient-to-br from-background via-muted to-background",
-        isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]"
-      )}>
+    return <section className={cn("relative bg-gradient-to-br from-background via-muted to-background", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}>
         {!isMobile && <CategorySidebar />}
-        <div className={cn(
-          "absolute inset-0 flex items-center justify-center",
-          !isMobile && "ml-[260px]"
-        )}>
+        <div className={cn("absolute inset-0 flex items-center justify-center", !isMobile && "ml-[260px]")}>
           <p className="text-muted-foreground text-lg">No banner images available</p>
         </div>
-      </section>
-    );
+      </section>;
   }
-
-  return (
-    <section className={cn(
-      "relative overflow-hidden",
-      isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]"
-    )}>
-      {!isMobile && <CategorySidebar />}
+  return <section className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}>
+      {!isMobile && <CategorySidebar className="mx-0 my-0 mb-0 pb-[20px]" />}
       
       {/* Hero Carousel with Slide Animation */}
-      <div 
-        className={cn(
-          "absolute inset-0 cursor-pointer",
-          !isMobile && "ml-[260px] rounded-r-xl overflow-hidden"
-        )}
-        onClick={handleSlideClick}
-      >
+      <div className={cn("absolute inset-0 cursor-pointer", !isMobile && "ml-[260px] rounded-r-xl overflow-hidden")} onClick={handleSlideClick}>
         {/* Slides Container */}
         <div className="relative w-full h-full">
-          {heroSlides.map((slide, index) => (
-            <div 
-              key={slide.id} 
-              className={cn(
-                "absolute inset-0 transition-all duration-700 ease-out",
-                index === currentSlide 
-                  ? "opacity-100 translate-x-0" 
-                  : index < currentSlide 
-                    ? "opacity-0 -translate-x-full" 
-                    : "opacity-0 translate-x-full"
-              )}
-            >
+          {heroSlides.map((slide, index) => <div key={slide.id} className={cn("absolute inset-0 transition-all duration-700 ease-out", index === currentSlide ? "opacity-100 translate-x-0" : index < currentSlide ? "opacity-0 -translate-x-full" : "opacity-0 translate-x-full")}>
               <div className="w-full h-full overflow-hidden">
-                <LazyImage
-                  src={slide.image_url}
-                  alt={slide.title}
-                  priority={index === 0}
-                  width={1920}
-                  height={1080}
-                  className={cn(
-                    "object-cover w-full h-full transition-transform duration-[5000ms] ease-out",
-                    index === currentSlide ? "scale-110" : "scale-100"
-                  )}
-                />
+                <LazyImage src={slide.image_url} alt={slide.title} priority={index === 0} width={1920} height={1080} className={cn("object-cover w-full h-full transition-transform duration-[5000ms] ease-out", index === currentSlide ? "scale-110" : "scale-100")} />
               </div>
               
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
-            </div>
-          ))}
+            </div>)}
         </div>
 
         {/* Navigation Arrows - Desktop Only */}
-        {!isMobile && heroSlides.length > 1 && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                prevSlide();
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50"
-              aria-label="Previous slide"
-            >
+        {!isMobile && heroSlides.length > 1 && <>
+            <button onClick={e => {
+          e.stopPropagation();
+          prevSlide();
+        }} className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50" aria-label="Previous slide">
               <ChevronLeft size={22} />
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                nextSlide();
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50"
-              aria-label="Next slide"
-            >
+            <button onClick={e => {
+          e.stopPropagation();
+          nextSlide();
+        }} className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50" aria-label="Next slide">
               <ChevronRight size={22} />
             </button>
-          </>
-        )}
+          </>}
       </div>
 
       {/* Slide Indicators */}
-      {heroSlides.length > 1 && (
-        <div className={cn(
-          "absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20",
-          !isMobile ? "bottom-6" : "bottom-3"
-        )}>
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              className={cn(
-                "rounded-full transition-all duration-500 shadow-sm",
-                index === currentSlide 
-                  ? "w-8 h-2.5 bg-primary" 
-                  : "w-2.5 h-2.5 bg-background/70 hover:bg-background/90 hover:scale-110"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                goToSlide(index);
-              }}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {heroSlides.length > 1 && <div className={cn("absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20", !isMobile ? "bottom-6" : "bottom-3")}>
+          {heroSlides.map((_, index) => <button key={index} className={cn("rounded-full transition-all duration-500 shadow-sm", index === currentSlide ? "w-8 h-2.5 bg-primary" : "w-2.5 h-2.5 bg-background/70 hover:bg-background/90 hover:scale-110")} onClick={e => {
+        e.stopPropagation();
+        goToSlide(index);
+      }} aria-label={`Go to slide ${index + 1}`} />)}
+        </div>}
 
       {/* Slide Counter - Desktop */}
-      {!isMobile && heroSlides.length > 1 && (
-        <div className="absolute bottom-6 right-6 bg-background/90 rounded-full px-3 py-1.5 text-sm font-medium text-foreground z-20 border border-border/50">
+      {!isMobile && heroSlides.length > 1 && <div className="absolute bottom-6 right-6 bg-background/90 rounded-full px-3 py-1.5 text-sm font-medium text-foreground z-20 border border-border/50">
           {currentSlide + 1} / {heroSlides.length}
-        </div>
-      )}
-    </section>
-  );
+        </div>}
+    </section>;
 });
-
 EnhancedHeroSection.displayName = 'EnhancedHeroSection';
-
 export default EnhancedHeroSection;
