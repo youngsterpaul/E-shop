@@ -109,7 +109,7 @@ const Footer = ({ className }: FooterProps) => {
         {/* About Section */}
         {!shouldHideFooter && (
           <div className="bg-muted/30 py-12">
-            <div className="container max-w-6xl lg:max-w-7xl">
+            <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-foreground">SmartKenya Online Shopping - Kenya</h3>
                 <div className="prose prose-sm max-w-none text-muted-foreground space-y-3" style={{ textAlign: 'justify' }}>
@@ -144,7 +144,7 @@ const Footer = ({ className }: FooterProps) => {
 
         {/* Main Footer */}
         <div className="py-12 bg-background">
-          <div className="container max-w-6xl lg:max-w-7xl">
+          <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
               {/* Footer Links */}
               {footerSections.map((section) => (
@@ -202,7 +202,7 @@ const Footer = ({ className }: FooterProps) => {
 
         {/* Copyright */}
         <div className="border-t border-border/40 py-6 bg-muted/20">
-          <div className="container max-w-6xl lg:max-w-7xl">
+          <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} SmartKenya. All rights reserved.
