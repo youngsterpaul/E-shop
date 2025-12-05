@@ -348,6 +348,29 @@
   display: none;
 }
 
+/* Modern thin scrollbar */
+.scrollbar-modern {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+.scrollbar-modern::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollbar-modern::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
 /* Default browser scrollbars for pages - no custom styling */
 
 /* Subtle scrollbar for dropdowns and popups */
