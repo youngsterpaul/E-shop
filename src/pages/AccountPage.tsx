@@ -188,15 +188,6 @@ const AccountPage = () => {
           </Card>
         )}
 
-        {/* Logout Button */}
-        <Button 
-          variant="outline" 
-          onClick={handleLogout}
-          className={`w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive ${isMobile ? 'h-10 text-sm' : ''}`}
-        >
-          <LogOut className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} mr-2`} />
-          Sign Out
-        </Button>
       </main>
     </div>
   );
