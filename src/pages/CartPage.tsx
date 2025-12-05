@@ -7,9 +7,8 @@ import CartSummary from '@/components/cart/CartSummary';
 import EmptyCart from '@/components/cart/EmptyCart';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import CartSkeleton from '@/components/cart/CartSkeleton';
-import MobileNav from '@/components/MobileNav';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, ShoppingBag, Shield, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -20,7 +19,6 @@ const CartPage = () => {
   const { 
     selectedItems, 
     isAllSelected, 
-    isIndeterminate,
     toggleSelectAll,
     calculations 
   } = useSelectiveCart();
@@ -31,17 +29,15 @@ const CartPage = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const { freeShippingThreshold } = useShippingSettings();
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
+  const amountToFreeShipping = Math.max(0, (freeShippingThreshold || 0) - calculations.subtotal);
 
-  // Refetch cart data when component mounts - but only once
   useEffect(() => {
-    // Only refetch if cart is actually empty or stale
     if (cartItems.length === 0) {
       refetch();
     }
-  }, []); // Empty deps - only on mount
+  }, []);
 
-  // Memoized handlers
-  const handleSelectAll = useCallback((selectAll: boolean) => {
+  const handleSelectAll = useCallback(() => {
     toggleSelectAll();
   }, [toggleSelectAll]);
 
@@ -49,11 +45,7 @@ const CartPage = () => {
     try {
       setIsNavigating(true);
       await new Promise(resolve => setTimeout(resolve, 300));
-      if (user) {
-        navigate('/checkout');
-      } else {
-        navigate('/auth');
-      }
+      navigate(user ? '/checkout' : '/auth');
     } catch (err) {
       console.error('Checkout navigation error:', err);
     } finally {
@@ -61,47 +53,39 @@ const CartPage = () => {
     }
   };
 
-  // Memoized cart summary data
-  const cartSummaryData = useMemo(() => ({
-    totalItems: cartItems.length,
-    selectedCount: selectedItems.length,
-    calculations
-  }), [cartItems.length, selectedItems.length, calculations]);
-
-  if (loading) {
-    return <CartSkeleton />;
-  }
-
-  if (isCartEmpty) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <EmptyCart />
-      </div>
-    );
-  }
+  if (loading) return <CartSkeleton />;
+  if (isCartEmpty) return <EmptyCart />;
 
   return (
-    <div className={`mb-10 w-full bg-white ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`${!isMobile ? 'container mx-auto px-4 xl:px-24 py-8' : 'px-2 pt-2 pb-20'}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-0 pt-0 pb-40'}`}>
+        
+        {/* Page Header - Desktop */}
         {!isMobile && (
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-gray-900">
-              Shopping Cart
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm">
-              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
-              {selectedItems.length > 0 && (
-                <span className="ml-2 text-primary font-medium">
-                  ({selectedItems.length} selected)
-                </span>
-              )}
-            </p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <ShoppingBag className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Shopping Cart</h1>
+                <p className="text-muted-foreground">
+                  {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
+                  {selectedItems.length > 0 && (
+                    <span className="ml-2 text-primary font-medium">
+                      • {selectedItems.length} selected
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} gap-1`}>
-          <div className={`${!isMobile ? 'w-3/4':''}`}>
-            <div className="bg-white shadow-sm">
+        <div className={`flex ${isMobile ? 'flex-col' : 'gap-6'}`}>
+          {/* Cart Items */}
+          <div className={`${!isMobile ? 'flex-1' : ''}`}>
+            <div className="bg-card rounded-xl shadow-sm overflow-hidden">
               <CartHeader
                 totalItems={cartItems.length}
                 selectedCount={selectedItems.length}
@@ -109,76 +93,104 @@ const CartPage = () => {
                 allSelected={isAllSelected}
               />
               
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-border">
                 {cartItems.map((item) => (
-                  <SelectableCartItem
-                    key={item.id}
-                    item={item}
-                  />
+                  <SelectableCartItem key={item.id} item={item} />
                 ))}
               </div>
             </div>
+
+            {/* Trust Badges - Desktop */}
+            {!isMobile && (
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Secure Checkout</p>
+                    <p className="text-xs text-muted-foreground">SSL Encrypted</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
+                  <Truck className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Fast Delivery</p>
+                    <p className="text-xs text-muted-foreground">Nationwide shipping</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
+                  <ArrowRight className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Easy Returns</p>
+                    <p className="text-xs text-muted-foreground">7-day return policy</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Cart Summary - Desktop */}
           {!isMobile && (
-            <div className="w-1/3">
-              <CartSummary />
+            <div className="w-[380px] flex-shrink-0">
+              <div className="sticky top-4">
+                <CartSummary />
+              </div>
             </div>
           )}
-      </div>
-    </div>
-
-      {/* Mobile Fixed Bottom Bar */}
-      {isMobile && calculations.selectedItemsCount > 0 && (
-        <>
-        <div className="fixed bottom-20 left-0 right-0 bg-white px-2 border-t border-gray-200 shadow-lg justify-between">
-          <div className="flex justify-between">
-            <div>
-              <span className="text-gray-600 text-xs">Subtotal: </span>
-              <span className="text-xs text-red-500">KES {calculations.subtotal.toLocaleString()}</span>
-            </div>
-            <div className=''>
-              <span className="text-xs">Delivery: </span>
-              <span className={`text-xs text-red-500 ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
-                {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : 
-                  isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
-              </span>
-            </div>
-            </div>
-          </div>
-
-        <div className="fixed bottom-8 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-          <div className="container mx-auto px-2 py-1">    
-            {/* Totals Row */}
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <p className="text-sm text-red-500">
-                  <span className='text-gray-900'>Total: </span>
-                  KES {calculations.total.toLocaleString()}
-                </p>
-              </div>
-              <Button
-                onClick={handleCheckout}
-                disabled={isNavigating}
-                className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm px-2 h-8"
-              >
-                {isNavigating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Checkout
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-          
         </div>
-        </>
+      </div>
+
+      {/* Mobile Bottom Bar */}
+      {isMobile && calculations.selectedItemsCount > 0 && (
+        <div className="fixed bottom-14 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
+          {/* Free Shipping Progress */}
+          {!isEligibleForFreeDelivery && amountToFreeShipping > 0 && (
+            <div className="px-3 py-1.5 bg-primary/5 border-b border-border">
+              <p className="text-[11px] text-muted-foreground text-center">
+                Add <span className="font-semibold text-primary">KES {amountToFreeShipping.toLocaleString()}</span> more for free delivery
+              </p>
+            </div>
+          )}
+          
+          <div className="px-3 py-2.5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-muted-foreground">Subtotal:</span>
+                  <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">Total</span>
+                  <span className="text-sm font-bold text-foreground">
+                    KES {calculations.total.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className={`text-[10px] font-medium ${isEligibleForFreeDelivery ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Delivery: {isEligibleForFreeDelivery ? 'FREE' : `KES ${calculations.shipping.toLocaleString()}`}
+                </span>
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isNavigating}
+                  size="sm"
+                  className="h-9 px-5 text-sm"
+                >
+                  {isNavigating ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      <span className="text-xs">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      Checkout
+                      <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

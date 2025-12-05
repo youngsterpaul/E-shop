@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProductSearch, useProducts } from '@/hooks/useProducts';
@@ -8,6 +7,7 @@ import { FilterState } from '@/components/search/SearchFilters';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ProductList } from '@/components/products/ProductList';
 import { useUrlSync } from '@/hooks/useUrlSync';
+import SiteBreadcrumb from '@/components/Breadcrumb';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -116,8 +116,13 @@ const SearchPage = () => {
     });
   }, [searchQuery]);
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: searchQuery ? `Search: "${searchQuery}"` : 'Search' }
+  ];
+
   return (
-    <div className={`${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
       <PageHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -126,7 +131,8 @@ const SearchPage = () => {
         placeholder="Search for products..."
       />
 
-      <main className={`flex-grow mx-auto container ${!isMobile ? 'px-4 xl:px-24 pb-8 mt-8' : 'px-0'}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
+        {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
         <ProductList
           products={allProducts}
           isLoading={isLoading}
@@ -146,16 +152,16 @@ const SearchPage = () => {
 
         {/* Mobile Loading Indicator */}
         {isMobile && mobileQuery.isFetchingNextPage && (
-          <div className="grid grid-cols-2 gap-2 mt-4 px-2">
+          <div className="grid grid-cols-2 gap-3 mt-4 px-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+                className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden"
               >
-                <div className="h-40 bg-gray-200 animate-pulse" />
-                <div className="p-2 space-y-2">
-                  <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+                <div className="h-40 bg-muted animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
                 </div>
               </div>
             ))}

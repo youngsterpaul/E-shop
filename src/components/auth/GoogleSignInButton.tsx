@@ -27,10 +27,13 @@ const GoogleSignInButton = () => {
 
       // OAuth redirect will handle the rest
     } catch (error: any) {
-      console.error('Google sign in error:', error);
+      // Don't log sensitive auth errors in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Google sign in error:', error);
+      }
       toast({
         title: "Sign in failed",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description: "Failed to sign in with Google. Please try again.",
         variant: "destructive",
       });
     } finally {

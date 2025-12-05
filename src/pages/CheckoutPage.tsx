@@ -35,7 +35,8 @@ const CheckoutPage = () => {
   } = useAuth();
   const {
     calculations,
-    getSelectedItems
+    getSelectedItems,
+    appliedCoupons
   } = useSelectiveCart();
   const {
     clearCart
@@ -291,8 +292,6 @@ const CheckoutPage = () => {
 
   // Payment handling
   const handleMpesaPayment = async () => {
-    const newOrderId = `ORD-${Date.now()}`;
-    setOrderId(newOrderId);
     setPaymentStatus({
       status: 'processing',
       message: '',
@@ -316,33 +315,90 @@ const CheckoutPage = () => {
       const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
       const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
 
-      // Create order in database
-      const {
-        data: order,
-        error: orderError
-      } = await supabase.from('orders').insert({
-        order_id: newOrderId,
-        user_id: customerData.user_id || null,
-        email: customerData.email,
-        phone_number: customerData.phone,
-        status: 'pending',
-        amount: finalTotal,
-        items: orderItems,
-        shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
-        username: `${customerData.firstName} ${customerData.lastName}`.trim(),
-        discount_amount: calculations.discount,
-        delivery_fee: calculations.shipping,
-        tracking_number: newOrderId.slice(-5).toUpperCase()
-      }).select('order_id').single();
-      if (orderError) {
-        throw new Error('Failed to create order. Please try again.');
+      // Check for existing pending order with same items
+      let existingOrderId: string | null = null;
+      if (customerData.user_id) {
+        const { data: pendingOrders } = await supabase
+          .from('orders')
+          .select('order_id, items')
+          .eq('user_id', customerData.user_id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false });
+        
+        if (pendingOrders && pendingOrders.length > 0) {
+          // Check if any pending order has matching items
+          for (const pendingOrder of pendingOrders) {
+            const existingItems = pendingOrder.items as any[];
+            if (existingItems && existingItems.length === orderItems.length) {
+              const itemsMatch = orderItems.every(newItem => 
+                existingItems.some(existingItem => 
+                  existingItem.product?.id === newItem.product.id && 
+                  existingItem.quantity === newItem.quantity &&
+                  JSON.stringify(existingItem.variant_selections || {}) === JSON.stringify(newItem.variant_selections || {})
+                )
+              );
+              if (itemsMatch) {
+                existingOrderId = pendingOrder.order_id;
+                break;
+              }
+            }
+          }
+        }
       }
+
+      let currentOrderId: string;
+      
+      if (existingOrderId) {
+        // Update existing pending order with latest details
+        currentOrderId = existingOrderId;
+        const { error: updateError } = await supabase
+          .from('orders')
+          .update({
+            email: customerData.email,
+            phone_number: customerData.phone,
+            amount: finalTotal,
+            items: orderItems,
+            shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+            username: `${customerData.firstName} ${customerData.lastName}`.trim(),
+            discount_amount: calculations.discount,
+            delivery_fee: calculations.shipping,
+            updated_at: new Date().toISOString()
+          })
+          .eq('order_id', existingOrderId);
+        
+        if (updateError) {
+          throw new Error('Failed to update order. Please try again.');
+        }
+      } else {
+        // Create new order
+        currentOrderId = `ORD-${Date.now()}`;
+        const { error: orderError } = await supabase.from('orders').insert({
+          order_id: currentOrderId,
+          user_id: customerData.user_id || null,
+          email: customerData.email,
+          phone_number: customerData.phone,
+          status: 'pending',
+          amount: finalTotal,
+          items: orderItems,
+          shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
+          username: `${customerData.firstName} ${customerData.lastName}`.trim(),
+          discount_amount: calculations.discount,
+          delivery_fee: calculations.shipping,
+          tracking_number: currentOrderId.slice(-5).toUpperCase()
+        }).select('order_id').single();
+        
+        if (orderError) {
+          throw new Error('Failed to create order. Please try again.');
+        }
+      }
+      
+      setOrderId(currentOrderId);
 
       // Initiate M-Pesa payment
       const result = await initiatePayment({
         phone: customerData.phone,
         amount: finalTotal,
-        orderId: newOrderId
+        orderId: currentOrderId
       });
       if (!result.success) {
         throw new Error(result.error || 'Payment initiation failed');
@@ -368,7 +424,34 @@ const CheckoutPage = () => {
               };
               setPaymentStatus(successStatus);
               paymentStatusRef.current = successStatus;
-              paymentStatusRef.current = successStatus;
+              
+              // Record discount usage for applied coupons
+              if (appliedCoupons.length > 0) {
+                for (const coupon of appliedCoupons) {
+                  // Insert into discount_usage table
+                  await supabase.from('discount_usage').insert({
+                    discount_id: coupon.id,
+                    user_id: customerData.user_id || null,
+                    order_id: currentOrderId,
+                    discount_amount: coupon.discount
+                  });
+                  
+                  // Get current usage_count and increment it
+                  const { data: discountData } = await supabase
+                    .from('discounts')
+                    .select('usage_count')
+                    .eq('id', coupon.id)
+                    .single();
+                  
+                  if (discountData) {
+                    await supabase
+                      .from('discounts')
+                      .update({ usage_count: (discountData.usage_count || 0) + 1 })
+                      .eq('id', coupon.id);
+                  }
+                }
+              }
+              
               clearCart();
               clearInterval(pollPayment);
               setTimeout(() => {
@@ -793,9 +876,9 @@ const CheckoutPage = () => {
       </Dialog>;
   };
   const progressValue = currentStep / 2 * 100;
-  return <div>
+return <div>
     {locationsLoading || addressesLoading ? <CheckoutSkeleton /> : <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        <div className={`container mx-auto py-6 ${!isMobile ? 'px-4 xl:px-24' : 'pb-32 px-0'}`}>
+        <div className={`py-6 ${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : 'pb-32 px-0'}`}>
           {!isMobile && <div className="mb-6">
             <Button variant="ghost" onClick={handleBack} className="mb-4 p-0 h-auto text-gray-600 hover:text-gray-900">
               <ArrowLeft className="h-4 w-4 mr-2" />

@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, HelpCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, HelpCircle, MessageCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const FAQPage = () => {
@@ -17,7 +18,6 @@ const FAQPage = () => {
   const { faqByCategory, isLoading } = useFAQ();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter FAQs based on search query
   const filteredCategories = Object.entries(faqByCategory).reduce((acc, [category, faqs]) => {
     const filteredFaqs = faqs.filter(
       (faq) =>
@@ -33,39 +33,47 @@ const FAQPage = () => {
   const hasResults = Object.keys(filteredCategories).length > 0;
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'xl:px-24' : ''}`}>
-        <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
-        <p className="text-muted-foreground mb-8">
-          Find answers to commonly asked questions about our products, ordering, shipping, and more.
-        </p>
-        
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
+        {/* Header */}
         <div className="mb-8">
-          <div className="relative">
-            <Input 
-              type="search"
-              placeholder="Search for answers..." 
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Frequently Asked Questions</h1>
+          <p className="text-muted-foreground">
+            Find answers to commonly asked questions about our products, ordering, shipping, and more.
+          </p>
         </div>
+        
+        {/* Search */}
+        <Card className="border-0 shadow-sm mb-8">
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+              <Input 
+                type="search"
+                placeholder="Search for answers..." 
+                className="pl-10 h-12 text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="space-y-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-2">
+              <div key={i} className="space-y-3">
                 <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-48 w-full rounded-xl" />
               </div>
             ))}
           </div>
         ) : !hasResults ? (
-          <div className="text-center py-12">
-            <HelpCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <HelpCircle className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               {searchQuery ? 'No results found' : 'No FAQs available'}
             </h3>
             <p className="text-muted-foreground">
@@ -76,38 +84,48 @@ const FAQPage = () => {
             </p>
           </div>
         ) : (
-          Object.entries(filteredCategories).map(([category, faqs], index) => (
-            <div key={category} className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">{category}</h2>
-              
-              <Accordion type="single" collapsible className="bg-card rounded-lg shadow-md border">
-                {faqs.map((faq, faqIndex) => (
-                  <AccordionItem key={faq.id} value={`item-${index}-${faqIndex}`}>
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4 pt-1 text-muted-foreground">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          ))
+          <div className="space-y-8">
+            {Object.entries(filteredCategories).map(([category, faqs], index) => (
+              <div key={category}>
+                <h2 className="text-lg font-semibold text-foreground mb-4">{category}</h2>
+                
+                <Card className="border-0 shadow-sm">
+                  <Accordion type="single" collapsible>
+                    {faqs.map((faq, faqIndex) => (
+                      <AccordionItem key={faq.id} value={`item-${index}-${faqIndex}`} className="border-b last:border-0">
+                        <AccordionTrigger className="px-4 py-4 text-left hover:no-underline hover:bg-muted/50 text-foreground">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4 pb-4 text-muted-foreground leading-relaxed">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </Card>
+              </div>
+            ))}
+          </div>
         )}
         
-        <div className="bg-primary/10 rounded-lg shadow-sm p-6 text-center mt-8">
-          <h3 className="text-xl font-semibold mb-3">Couldn't find what you're looking for?</h3>
-          <p className="text-muted-foreground mb-6">
-            Our customer support team is always ready to help with any questions or concerns.
-          </p>
-          <Button 
-            onClick={() => window.location.href = "/contact"}
-            className="bg-primary hover:bg-primary/90"
-          >
-            Contact Support
-          </Button>
-        </div>
+        {/* CTA Section */}
+        <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5 mt-12">
+          <CardContent className="p-8 text-center">
+            <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="h-7 w-7 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">Couldn't find what you're looking for?</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Our customer support team is always ready to help with any questions or concerns.
+            </p>
+            <Button 
+              onClick={() => window.location.href = "/contact"}
+              className="px-8"
+            >
+              Contact Support
+            </Button>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

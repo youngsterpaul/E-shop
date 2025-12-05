@@ -2,23 +2,35 @@ import { Link } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
+import { useRealtimeSalesAnalytics } from '@/hooks/useRealtimeSalesAnalytics';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { LiveMetricsPanel } from '@/components/admin/LiveMetricsPanel';
+import { ConversionFunnel } from '@/components/admin/ConversionFunnel';
 import { 
   ShoppingCart, 
-  Users, 
   Package, 
-  DollarSign, 
   TrendingUp, 
   AlertTriangle,
-  ExternalLink
+  BarChart3
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+  AreaChart, 
+  Area,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell,
+  BarChart,
+  Bar
+} from 'recharts';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -28,25 +40,33 @@ const AdminDashboard = () => {
   useAdminNotifications(isAdmin);
   
   const {
-    useSummaryMetrics,
     useRecentOrders,
     useDailySalesMetrics,
-    useProductsByCategory,
     useLowStockProducts,
     useTopSellingProducts,
-    useCustomerDemographics,
     useSalesByCategory
   } = useAdminDashboard();
 
-  const { data: summaryMetrics, isLoading: metricsLoading } = useSummaryMetrics();
-  const { data: recentOrders, isLoading: ordersLoading } = useRecentOrders();
-  const { data: dailySales, isLoading: salesLoading } = useDailySalesMetrics();
-  const { data: productsByCategory, isLoading: categoryLoading } = useProductsByCategory();
+  const {
+    useLiveMetrics,
+    useHourlySales,
+    useConversionFunnel,
+    useWeeklyComparison,
+    isLive,
+    setIsLive
+  } = useRealtimeSalesAnalytics();
+
+  const { data: recentOrders, refetch: refetchOrders } = useRecentOrders();
+  const { data: dailySales, isLoading: salesLoading, refetch: refetchSales } = useDailySalesMetrics();
   const { data: lowStockProducts, isLoading: stockLoading } = useLowStockProducts();
   const { data: topSellingProducts, isLoading: topProductsLoading } = useTopSellingProducts();
-  const { data: customerDemographics, isLoading: demographicsLoading } = useCustomerDemographics();
   const { data: salesByCategory, isLoading: salesCategoryLoading } = useSalesByCategory();
 
+  // Real-time analytics
+  const { data: liveMetrics, isLoading: liveLoading, refetch: refetchLive } = useLiveMetrics();
+  const { data: hourlySales, isLoading: hourlyLoading } = useHourlySales();
+  const { data: conversionFunnel, isLoading: funnelLoading } = useConversionFunnel();
+  const { data: weeklyComparison, isLoading: weeklyLoading } = useWeeklyComparison();
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -55,117 +75,152 @@ const AdminDashboard = () => {
       <QuickActionsBar
         title="Dashboard"
         onRefresh={() => {
-          useSummaryMetrics().refetch();
-          useRecentOrders().refetch();
-          useDailySalesMetrics().refetch();
+          refetchOrders();
+          refetchSales();
+          refetchLive();
         }}
       />
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="space-y-6">
+        {/* Live Metrics Panel */}
+        <LiveMetricsPanel 
+          liveMetrics={liveMetrics}
+          weeklyComparison={weeklyComparison}
+          isLoading={liveLoading || weeklyLoading}
+          isLive={isLive}
+          onToggleLive={() => setIsLive(!isLive)}
+        />
+
+        {/* Today's Hourly Sales & Conversion Funnel */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Today's Hourly Sales */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Today's Sales by Hour
+              </CardTitle>
+              <CardDescription>Real-time hourly revenue breakdown</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                KSH {metricsLoading ? '...' : summaryMetrics?.totalRevenue?.toLocaleString() || '0'}
-              </div>
+              {hourlyLoading ? (
+                <div className="h-64 flex items-center justify-center">Loading...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={hourlySales?.filter(h => {
+                    const currentHour = new Date().getHours();
+                    const hour = parseInt(h.hour.split(':')[0]);
+                    return hour <= currentHour;
+                  }) || []}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis 
+                      dataKey="hour" 
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      interval={2}
+                    />
+                    <YAxis 
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => [`KSH ${value.toLocaleString()}`, 'Revenue']}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="revenue" 
+                      fill="hsl(var(--primary))" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : summaryMetrics?.totalOrders || '0'}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : summaryMetrics?.totalProducts || '0'}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : summaryMetrics?.totalUsers || '0'}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Conversion Funnel */}
+          <ConversionFunnel data={conversionFunnel} isLoading={funnelLoading} />
         </div>
 
         {/* Revenue Trend Chart */}
-        <Card className="mb-6">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Revenue Trend Analysis
             </CardTitle>
-            <CardDescription>Daily revenue and order metrics</CardDescription>
+            <CardDescription>Daily revenue and order metrics (historical)</CardDescription>
           </CardHeader>
           <CardContent>
             {salesLoading ? (
               <div className="h-80 flex items-center justify-center">Loading...</div>
             ) : (
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={dailySales}>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={dailySales}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis 
                     dataKey="date" 
-                    className="text-xs"
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                   />
                   <YAxis 
-                    className="text-xs"
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    yAxisId="left"
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis 
+                    yAxisId="right"
+                    orientation="right"
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                   />
                   <Tooltip 
+                    formatter={(value: number, name: string) => [
+                      name === 'Revenue' ? `KSH ${value.toLocaleString()}` : value,
+                      name
+                    ]}
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--background))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
                   />
-                  <Legend />
-                  <Line 
+                  <Area 
+                    yAxisId="left"
                     type="monotone" 
                     dataKey="total_revenue" 
                     stroke="hsl(var(--primary))" 
+                    fill="url(#revenueGradient)"
                     strokeWidth={2}
-                    name="Revenue (KSH)"
+                    name="Revenue"
                   />
-                  <Line 
+                  <Area 
+                    yAxisId="right"
                     type="monotone" 
                     dataKey="total_orders" 
                     stroke="hsl(var(--chart-2))" 
+                    fill="url(#ordersGradient)"
                     strokeWidth={2}
                     name="Orders"
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Selling Products */}
           <Card>
             <CardHeader>
@@ -185,13 +240,13 @@ const AdminDashboard = () => {
               ) : topSellingProducts && topSellingProducts.length > 0 ? (
                 <div className="space-y-3">
                   {topSellingProducts.map((product, index) => (
-                    <div key={product.product_id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                    <div key={product.product_id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
                           {index + 1}
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">{product.product_name}</p>
+                          <p className="font-medium text-foreground line-clamp-1">{product.product_name}</p>
                           <p className="text-sm text-muted-foreground">{product.total_quantity} units sold</p>
                         </div>
                       </div>
@@ -217,7 +272,7 @@ const AdminDashboard = () => {
               {salesCategoryLoading ? (
                 <div className="h-80 flex items-center justify-center">Loading...</div>
               ) : (
-                <ResponsiveContainer width="100%" height={320}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={salesByCategory}
@@ -248,83 +303,40 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Customer Demographics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Customer Demographics
-              </CardTitle>
-              <CardDescription>Customers by county</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {demographicsLoading ? (
-                <div className="h-80 flex items-center justify-center">Loading...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height={320}>
-                  <PieChart>
-                    <Pie
-                      data={customerDemographics}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ county, customer_count }) => `${county}: ${customer_count}`}
-                      outerRadius={100}
-                      fill="hsl(var(--chart-2))"
-                      dataKey="customer_count"
-                    >
-                      {customerDemographics?.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Low Stock Products */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                Low Stock Alert
-              </CardTitle>
-              <CardDescription>Products requiring restock</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {stockLoading ? (
-                <div className="space-y-2">
-                  {Array(5).fill(0).map((_, i) => (
-                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : lowStockProducts && lowStockProducts.length > 0 ? (
-                <div className="space-y-3">
-                  {lowStockProducts.map((product) => (
-                    <div key={product.product_id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors">
-                      <div>
-                        <p className="font-medium text-foreground">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">Stock: {product.stock} units</p>
-                      </div>
-                      <Badge variant="destructive">Low Stock</Badge>
+        {/* Low Stock Products */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Low Stock Alert
+            </CardTitle>
+            <CardDescription>Products requiring restock</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stockLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
+            ) : lowStockProducts && lowStockProducts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {lowStockProducts.map((product) => (
+                  <div key={product.product_id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div>
+                      <p className="font-medium text-foreground line-clamp-1">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">Stock: {product.stock} units</p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">No low stock products</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    <Badge variant="destructive">Low Stock</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No low stock products</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </AdminLayout>
   );
 };

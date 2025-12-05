@@ -1,14 +1,11 @@
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
-import { isMobileUserAgent } from "@/hooks/use-mobile";
+import { AlertTriangle, Home, ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = isMobileUserAgent();
 
   useEffect(() => {
     console.error(
@@ -18,23 +15,26 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <main className="max-w-md w-full text-center">
-        <div className="text-center max-w-md mx-auto p-6">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-8">
           <div className="flex justify-center mb-6">
-            <AlertTriangle className="h-24 w-24 text-orange-500" />
+            <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
+              <AlertTriangle className="h-12 w-12 text-primary" />
+            </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2">404</h1>
-          <h2 className="text-2xl font-semibold mb-4">Page Not Found</h2>
+          <h1 className="text-6xl font-bold text-foreground mb-2">404</h1>
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Page Not Found</h2>
           <p className="text-muted-foreground mb-8">
             We couldn't find the page you're looking for. The page may have been moved, deleted, 
             or may have never existed.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Button
-              className="w-full bg-orange-500 hover:bg-orange-600"
+              className="w-full"
               onClick={() => navigate("/")}
             >
+              <Home className="h-4 w-4 mr-2" />
               Go to Homepage
             </Button>
             <Button
@@ -42,12 +42,12 @@ const NotFound = () => {
               className="w-full"
               onClick={() => navigate(-1)}
             >
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Go Back
             </Button>
           </div>
         </div>
       </main>
-      
     </div>
   );
 };

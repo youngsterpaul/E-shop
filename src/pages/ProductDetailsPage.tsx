@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import EnhancedProductImageGallery from '@/components/product/EnhancedProductImageGallery';
 import ProductTabs from '@/components/product/ProductTabs';
 import RelatedProductsCarousel from '@/components/product/RelatedProductsCarousel';
@@ -17,6 +18,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
+import SocialShare from '@/components/SocialShare';
+import TrustBadges from '@/components/TrustBadges';
+import { supabase } from '@/integrations/supabase/client';
+import { ProductStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
 
 // ✅ Properly typed interfaces
 interface ProductVariant {
@@ -55,10 +62,54 @@ const ProductDetailsPage: React.FC = () => {
   const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const { calculations } = useSelectiveCart();
   const { data: flashSale } = useProductFlashSale(id || '');
+  const { addToRecentlyViewed } = useRecentlyViewed();
+
+  // Fetch category data with parent for breadcrumb link
+  const { data: categoryData } = useQuery({
+    queryKey: ['category-hierarchy-for-product', product?.categories],
+    queryFn: async () => {
+      if (!product?.categories) return null;
+      
+      // First get the subcategory
+      const { data: subcat, error } = await supabase
+        .from('categories')
+        .select('id, category, slug, parent_id')
+        .eq('category', product.categories)
+        .maybeSingle();
+      
+      if (error) throw error;
+      if (!subcat) return null;
+      
+      // If it has a parent, fetch the parent category
+      if (subcat.parent_id) {
+        const { data: parent } = await supabase
+          .from('categories')
+          .select('id, category, slug')
+          .eq('id', subcat.parent_id)
+          .maybeSingle();
+        
+        return {
+          ...subcat,
+          parent: parent
+        };
+      }
+      
+      return subcat;
+    },
+    enabled: !!product?.categories,
+    staleTime: 1000 * 60 * 10,
+  });
 
   // ✅ STATE HOOKS (always called in same order)
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+
+  // Track recently viewed products
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed(product);
+    }
+  }, [product?.product_id]);
 
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
@@ -238,16 +289,17 @@ const productForTabs = useMemo(() => {
   const handleVariantChange = (variantTypeId: string, variantValueId: string) =>
     setSelectedVariants((prev) => ({ ...prev, [variantTypeId]: variantValueId }));
 
-  const calculatePrice = () => price;
+  // Calculate price including flash sale if active
+  const calculatePrice = () => flashSalePrice ?? price;
 
   // ------------------ LOADING ------------------
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
           <Skeleton className="h-6 w-64 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-lg" />
+            <Skeleton className="aspect-square w-full max-w-[500px] mx-auto rounded-xl" />
             <div className="space-y-6">
               <Skeleton className="h-8 w-3/4" />
               <Skeleton className="h-6 w-24" />
@@ -262,15 +314,15 @@ const productForTabs = useMemo(() => {
   // ------------------ ERROR ------------------
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-          <p className="text-gray-600 mb-4">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center px-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Product not found</h2>
+          <p className="text-muted-foreground mb-6">
             {error ? 'There was an error loading the product.' : 'The product you\'re looking for doesn\'t exist.'}
           </p>
           <button
             onClick={() => navigate('/')}
-            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Return to homepage
           </button>
@@ -285,11 +337,33 @@ const productForTabs = useMemo(() => {
     return words.slice(0, 2).join(' ');
   };
 
+  // Build category URL with parent/child structure
+  const categoryHref = (() => {
+    if (!categoryData) {
+      // Fallback: generate slug from category name
+      const slug = (product.categories || 'all').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `/category/${slug}`;
+    }
+    
+    const subcatSlug = categoryData.slug || categoryData.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // Check if parent exists (categoryData has parent property when parent_id is set)
+    const parent = 'parent' in categoryData ? categoryData.parent : null;
+    
+    if (parent && categoryData.parent_id) {
+      const parentSlug = parent.slug || parent.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `/category/${parentSlug}/${subcatSlug}?id=${categoryData.id}&parent=${categoryData.parent_id}&source=category|${encodeURIComponent(parent.category)}|${encodeURIComponent(categoryData.category)}`;
+    }
+    
+    // No parent - it's a top-level category
+    return `/category/${subcatSlug}?id=${categoryData.id}&form=category&source=category|allCategory|${encodeURIComponent(categoryData.category)}`;
+  })();
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { 
       label: product.categories || 'Products', 
-      href: `/category/${product.categories || 'all'}?form=category&source=category|allCategory|${encodeURIComponent(product.categories || 'Products')}` 
+      href: categoryHref
     },
     { label: truncateToTwoWords(product.name) }
   ];
@@ -305,12 +379,33 @@ const productForTabs = useMemo(() => {
   return (
     <>
       <ProductMetadata product={product} currentPrice={price} />
+      
+      {/* SEO Structured Data */}
+      <ProductStructuredData
+        product={{
+          name: product.name,
+          description: product.description || '',
+          image: product.image_urls || [],
+          sku: product.product_id,
+          price: flashSalePrice ?? price,
+          availability: product.stock && product.stock > 0 ? 'InStock' : 'OutOfStock',
+          rating: product.rating || undefined,
+          reviewCount: product.reviews || undefined,
+          url: `https://www.smartkenya.co.ke/product/${encodeURIComponent(product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}/${product.product_id}`,
+        }}
+      />
+      <BreadcrumbStructuredData
+        items={breadcrumbItems.map((item, index) => ({
+          name: item.label,
+          url: item.href ? `https://www.smartkenya.co.ke${item.href}` : `https://www.smartkenya.co.ke/product/${product.product_id}`,
+        }))}
+      />
 
-      <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className={`${isMobile ? 'pb-16 px-0' : 'px-4 xl:px-24 py-6'} container mx-auto`}>
-          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6 hidden." />}
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+        <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6'}`}>
+          {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 max-w-7xl mx-auto bg-white ${!isMobile ? 'p-4 px-0' : ''}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-8 ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
             <EnhancedProductImageGallery 
               product={productWithImages} 
               selectedImageUrl={selectedColorImageUrl}
@@ -356,16 +451,39 @@ const productForTabs = useMemo(() => {
               )}
 
               {isMobile && (
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-muted-foreground space-y-1">
                   <p>✓ Free shipping on orders over KES {Math.max(0, amountNeededForFreeDelivery).toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
+                </div>
+              )}
+
+              {/* Social Share */}
+              {!isMobile && (
+                <div className="pt-4 border-t border-border/50">
+                  <SocialShare 
+                    title={product.name} 
+                    description={product.description || ''} 
+                    variant="compact"
+                  />
                 </div>
               )}
             </div>
           </div>
 
           {productForTabs && <ProductTabs product={productForTabs} />}
+
+          {/* Trust Badges */}
+          {!isMobile && (
+            <div className="my-8">
+              <TrustBadges variant="compact" />
+            </div>
+          )}
+
+          {/* Recently Viewed */}
+          <div className={isMobile ? 'px-4' : ''}>
+            <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
+          </div>
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
@@ -378,8 +496,8 @@ const productForTabs = useMemo(() => {
               product_id: product.product_id,
               name: product.name,
               image: product.image_urls?.[0] || '/placeholder.svg',
-              price: product.price,
-              originalPrice: undefined,
+              price: flashSalePrice ?? price,
+              originalPrice: flashSale ? price : undefined,
               description: product.description,
               rating: product.rating || 0,
               reviews: product.reviews || 0,

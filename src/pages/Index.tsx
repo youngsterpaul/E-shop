@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
@@ -8,6 +7,11 @@ import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import TrustBadges from '@/components/TrustBadges';
+import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
+import NewsletterSubscription from '@/components/NewsletterSubscription';
+import Testimonials from '@/components/Testimonials';
+import { WebsiteStructuredData, LocalBusinessStructuredData } from '@/components/seo/StructuredData';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -30,50 +34,78 @@ const Index = () => {
             "name": "SmartKenya",
             "url": "https://www.smartkenya.co.ke",
             "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
-            "sameAs": [
-              "https://twitter.com/Smartkenya_Online_Shopping"
-            ]
           },
-          "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://www.smartkenya.co.ke"
-              }
-            ]
-          }
         }}
       />
       <CriticalCSS />
       
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-violet-50' : ''}`}>
+      {/* SEO Structured Data */}
+      <WebsiteStructuredData 
+        name="SmartKenya"
+        url="https://www.smartkenya.co.ke"
+        searchUrl="https://www.smartkenya.co.ke/search"
+      />
+      <LocalBusinessStructuredData
+        name="SmartKenya"
+        url="https://www.smartkenya.co.ke"
+        logo="https://www.smartkenya.co.ke/apple-touch-icon.png"
+        telephone="+254700000000"
+        email="info@smartkenya.co.ke"
+        address={{
+          street: "Nairobi",
+          city: "Nairobi",
+          region: "Nairobi",
+          country: "KE"
+        }}
+        openingHours={["Mo-Su 08:00-20:00"]}
+      />
+      
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         <PerformanceMonitor />
         {isMobile && <Header />}
 
-        <main className={`flex-grow pb-8 ${!isMobile ? 'container px-0 xl:px-24' : ''}`}>
-          <div className="relative"> {/* Changed from "absolut" to "relative" - this was likely a typo */}
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /mb-6' : 'mb-8 relative /z-40'}> {/* Added relative z-40 for desktop */}
-              <EnhancedHeroSection />
-            </div>
+        <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : ''}`}>
+          {/* Hero Section */}
+          <section className={isMobile ? '' : 'py-4'}>
+            <EnhancedHeroSection />
+          </section>
 
-            {/* Flash Sale Banner */}
-            <div className={isMobile ? 'mb-4 px-4' : 'mb-8'}>
-              <FlashSaleBanner />
-            </div>
-            
-            {!isMobile && (
-              <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
-                <CategoryIcons showAll={false} />
-              </div>
-            )}
-            
-            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : 'relative z-10'}> {/* Added relative z-10 */}
-              <EnhancedFeaturedProducts />
-            </div>
-          </div>
+          {/* Flash Sale Section */}
+          <section className={isMobile ? 'mt-4' : 'mt-6'}>
+            <FlashSaleBanner />
+          </section>
+          
+          {/* Category Icons - Desktop Only */}
+          {!isMobile && (
+            <section className="mt-6 bg-card rounded-xl p-6 shadow-sm">
+              <CategoryIcons showAll={false} />
+            </section>
+          )}
+          
+          {/* Featured Products */}
+          <section className={`${isMobile ? 'mt-4' : 'mt-6'}`}>
+            <EnhancedFeaturedProducts />
+          </section>
+
+          {/* Recently Viewed */}
+          <section className={`${isMobile ? 'px-4' : ''}`}>
+            <RecentlyViewedProducts maxItems={6} />
+          </section>
+
+          {/* Trust Badges */}
+          <section className={`${isMobile ? 'mt-4' : 'mt-8'}`}>
+            <TrustBadges />
+          </section>
+
+          {/* Testimonials */}
+          <section className={`${isMobile ? 'px-4' : ''}`}>
+            <Testimonials variant="carousel" />
+          </section>
+
+          {/* Newsletter */}
+          <section className={`${isMobile ? 'px-4 py-8 pb-24' : 'py-12'}`}>
+            <NewsletterSubscription />
+          </section>
         </main>
       </div>
     </>

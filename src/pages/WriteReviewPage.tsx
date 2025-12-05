@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Star, Upload, X, ArrowLeft, Settings, CheckCircle, AlertCircle } from 'lucide-react';
-import Header from '@/components/Header';
+import { Star, Upload, X, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -208,18 +207,18 @@ const WriteReviewPage = () => {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>     
-        <main className="flex-grow container py-8">
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>     
+        <main className="flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
           <div className="mb-6">
             <Skeleton className="h-10 w-40" />
           </div>
 
           <div className="max-w-2xl mx-auto">
-            <Card>
+            <Card className="border-border/50">
               <CardHeader>
                 <Skeleton className="h-8 w-48 mb-4" />
                 <div className="flex items-center gap-4">
-                  <Skeleton className="w-16 h-16 rounded-md" />
+                  <Skeleton className="w-16 h-16 rounded-xl" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-5 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
@@ -237,15 +236,15 @@ const WriteReviewPage = () => {
                 </div>
                 <div>
                   <Skeleton className="h-5 w-24 mb-2" />
-                  <Skeleton className="h-32 w-full rounded-md" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
                 </div>
                 <div>
                   <Skeleton className="h-5 w-48 mb-2" />
-                  <Skeleton className="h-40 w-full rounded-lg" />
+                  <Skeleton className="h-40 w-full rounded-xl" />
                 </div>
                 <div className="flex gap-3">
-                  <Skeleton className="h-10 flex-1" />
-                  <Skeleton className="h-10 flex-1" />
+                  <Skeleton className="h-12 flex-1 rounded-xl" />
+                  <Skeleton className="h-12 flex-1 rounded-xl" />
                 </div>
               </CardContent>
             </Card>
@@ -257,9 +256,9 @@ const WriteReviewPage = () => {
 
   if (!product) {
     return (
-      <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className="flex-grow container py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+        <main className="flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
           <Button 
             variant="ghost" 
             onClick={() => navigate('/')}
@@ -274,8 +273,8 @@ const WriteReviewPage = () => {
   }
 
   return (
-    <div className={`min-h-screen ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`flex-grow mx-auto px-4 container py-8 ${!isMobile ? 'container px-4 xl:px-24':''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8`}>
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -289,7 +288,7 @@ const WriteReviewPage = () => {
               const productSlug = generateSlug(product.name || '');
               navigate(`/product/${productSlug}/${productId}`);
             }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Product
@@ -297,27 +296,27 @@ const WriteReviewPage = () => {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>{isEditing ? 'Edit Your Review' : 'Write a Review'}</CardTitle>
-              <div className="flex items-center gap-4">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="border-b border-border/50">
+              <CardTitle className="text-xl text-foreground">{isEditing ? 'Edit Your Review' : 'Write a Review'}</CardTitle>
+              <div className="flex items-center gap-4 mt-4">
                 <img 
                   src={product.image_urls?.[0] || ''} 
                   alt={product.name}
-                  className="w-16 h-16 object-cover rounded-md"
+                  className="w-16 h-16 object-cover rounded-xl border border-border/50"
                 />
                 <div>
-                  <h3 className="font-medium">{product.name}</h3>
+                  <h3 className="font-medium text-foreground">{product.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     Ksh {product.price?.toLocaleString()}
                   </p>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               {/* Rating */}
               <div>
-                <label className="block text-sm font-medium mb-2">Rating *</label>
+                <label className="block text-sm font-medium text-foreground mb-3">Rating *</label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -329,7 +328,7 @@ const WriteReviewPage = () => {
                     >
                       <Star 
                         className={`h-8 w-8 transition-colors ${
-                          star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                          star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'
                         }`}
                       />
                     </button>
@@ -339,28 +338,28 @@ const WriteReviewPage = () => {
 
               {/* Comment */}
               <div>
-                <label className="block text-sm font-medium mb-2">Your Review *</label>
+                <label className="block text-sm font-medium text-foreground mb-3">Your Review *</label>
                 <Textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Share your experience with this product... (minimum 10 characters)"
                   rows={5}
-                  className="resize-none"
+                  className="resize-none rounded-xl border-border focus:border-primary"
                   disabled={isSubmitting}
                   maxLength={500}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-2">
                   {comment.length}/500 characters {comment.trim().length < 10 && comment.length > 0 && '(minimum 10)'}
                 </p>
               </div>
 
               {/* Media Upload */}
               <div>
-                <label className="block text-sm font-medium mb-2">Add Photos or Videos (Optional)</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <label className="block text-sm font-medium text-foreground mb-3">Add Photos or Videos (Optional)</label>
+                <div className="border-2 border-dashed border-border rounded-xl p-6 bg-muted/20 hover:bg-muted/30 transition-colors">
                   <div className="text-center">
-                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-2">
+                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-3">
                       Upload images (max 10MB) or videos (max 50MB)
                     </p>
                     <Button
@@ -368,10 +367,11 @@ const WriteReviewPage = () => {
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={mediaFiles.length >= 5 || isSubmitting}
+                      className="rounded-xl"
                     >
                       Choose Files
                     </Button>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-2">
                       {mediaFiles.length}/5 files selected
                     </p>
                   </div>
@@ -389,23 +389,23 @@ const WriteReviewPage = () => {
                 {/* Upload Progress */}
                 {uploadProgress.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="text-sm font-medium">Upload Progress</h4>
+                    <h4 className="text-sm font-medium text-foreground">Upload Progress</h4>
                     {uploadProgress.map((progress, index) => (
                       <div key={index} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="truncate flex-1 mr-2">{progress.fileName}</span>
+                          <span className="truncate flex-1 mr-2 text-muted-foreground">{progress.fileName}</span>
                           {progress.status === 'completed' && (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <CheckCircle className="h-4 w-4 text-primary" />
                           )}
                           {progress.status === 'error' && (
-                            <AlertCircle className="h-4 w-4 text-red-500" />
+                            <AlertCircle className="h-4 w-4 text-destructive" />
                           )}
                         </div>
                         {progress.status === 'uploading' && (
                           <Progress value={progress.progress} className="h-2" />
                         )}
                         {progress.status === 'error' && (
-                          <p className="text-xs text-red-500">{progress.error}</p>
+                          <p className="text-xs text-destructive">{progress.error}</p>
                         )}
                       </div>
                     ))}
@@ -415,11 +415,11 @@ const WriteReviewPage = () => {
                 {/* Preview existing media */}
                 {existingMediaUrls.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-2">Existing Media</h4>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Existing Media</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {existingMediaUrls.map((url, index) => (
                         <div key={index} className="relative">
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                          <div className="aspect-square bg-muted rounded-xl overflow-hidden border border-border/50">
                             {url.includes('.mp4') || url.includes('video') ? (
                               <video
                                 src={url}
@@ -439,7 +439,7 @@ const WriteReviewPage = () => {
                             type="button"
                             onClick={() => removeExistingMedia(index)}
                             disabled={isSubmitting}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
+                            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 disabled:opacity-50 shadow-md"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -454,7 +454,7 @@ const WriteReviewPage = () => {
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {mediaFiles.map((file, index) => (
                       <div key={index} className="relative">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="aspect-square bg-muted rounded-xl overflow-hidden border border-border/50">
                           {file.type.startsWith('image/') ? (
                             <img
                               src={previewUrls[index]}
@@ -474,21 +474,19 @@ const WriteReviewPage = () => {
                           type="button"
                           onClick={() => removeFile(index)}
                           disabled={isSubmitting}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50"
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 disabled:opacity-50 shadow-md"
                         >
                           <X className="h-3 w-3" />
                         </button>
-                        <p className="text-xs text-gray-500 mt-1 truncate">
-                          {file.name}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">{file.name}</p>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Submit Button */}
-              <div className="flex gap-3">
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -502,20 +500,16 @@ const WriteReviewPage = () => {
                     navigate(`/product/${productSlug}/${productId}`);
                   }}
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 h-12 rounded-xl"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || rating === 0 || !comment.trim()}
-                  className="flex-1 bg-primary hover:bg-primary/90"
+                  disabled={isSubmitting || rating === 0 || comment.trim().length < 10}
+                  className="flex-1 h-12 rounded-xl font-semibold"
                 >
-                  {isSubmitting ? (
-                    uploadProgress.length > 0 ? "Uploading..." : isEditing ? "Updating..." : "Submitting..."
-                  ) : (
-                    isEditing ? "Update Review" : "Submit Review"
-                  )}
+                  {isSubmitting ? 'Submitting...' : isEditing ? 'Update Review' : 'Submit Review'}
                 </Button>
               </div>
             </CardContent>

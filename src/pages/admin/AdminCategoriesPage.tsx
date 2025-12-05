@@ -23,8 +23,8 @@ const AdminCategoriesPage = () => {
     handleReorderCategories
   } = useAdminCategories();
 
-  const [itemsPerPage, setItemsPerPage] = useState(1);
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
 
   const displayedCategories = mainCategories.slice(0, displayedItemsCount);
   const hasMoreCategories = mainCategories.length > displayedItemsCount;

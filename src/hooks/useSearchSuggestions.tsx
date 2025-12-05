@@ -1,28 +1,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useProductSearch } from '@/hooks/useProducts';
+import { usePopularSearches } from '@/hooks/usePopularSearches';
 
-interface SearchSuggestion {
+export interface SearchSuggestion {
   text: string;
   category: 'product' | 'popular' | 'history';
   count?: number;
+  image?: string;
+  price?: number;
+  productId?: string;
 }
-
-const POPULAR_SEARCHES = [
-  'smart phones',
-  'laptops',
-  'headphones',
-  'cameras',
-  'tablets',
-  'smart watches',
-  'speakers',
-  'accessories'
-];
 
 export const useSearchSuggestions = (query: string, searchHistory: string[]) => {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Fetch admin-managed popular searches
+  const { data: popularSearches = [] } = usePopularSearches();
 
   // Debounce the query
   useEffect(() => {
@@ -42,7 +38,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
         .slice(0, 5)
         .map(item => ({ text: item, category: 'history' }));
       
-      const popularSuggestions: SearchSuggestion[] = POPULAR_SEARCHES
+      const popularSuggestions: SearchSuggestion[] = popularSearches
         .slice(0, 5)
         .map(item => ({ text: item, category: 'popular' }));
 
@@ -66,19 +62,22 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
       .map(item => ({ text: item, category: 'history' as const }));
 
     // Add matching popular searches
-    const matchingPopular = POPULAR_SEARCHES
+    const matchingPopular = popularSearches
       .filter(item => item.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 3)
       .map(item => ({ text: item, category: 'popular' as const }));
 
-    // Add product-based suggestions
+    // Add product-based suggestions with images and prices
     const productSuggestions: SearchSuggestion[] = products
       ? (
           // Flatten products from paginated response
           Array.isArray(products.pages)
-            ? products.pages.flatMap(page => page.products).slice(0, 4).map(product => ({
+            ? products.pages.flatMap(page => page.products).slice(0, 5).map(product => ({
                 text: product.name,
-                category: 'product' as const
+                category: 'product' as const,
+                image: product.image_urls?.[0] || undefined,
+                price: product.price || undefined,
+                productId: product.product_id
               }))
             : []
         )
@@ -95,7 +94,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
 
     setSuggestions(uniqueSuggestions);
     setIsLoading(false);
-  }, [query, debouncedQuery, products, searchHistory]);
+  }, [query, debouncedQuery, products, searchHistory, popularSearches]);
 
   useEffect(() => {
     generateSuggestions();

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Video } from "lucide-react";
+import { Play } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -21,8 +21,15 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [showLens, setShowLens] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0); // Real-time drag offset in pixels
+  const [isDragging, setIsDragging] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(true);
+  const [videoProgress, setVideoProgress] = useState(0);
   const mainRef = useRef<HTMLDivElement>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const isMobile = isMobileUserAgent();
   const minSwipe = 50;
@@ -32,7 +39,15 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const zoomLevel = 2.5; // Magnification factor
   const mainImageSize = 400; // Fixed size of the main image container
 
-  /** Combine product media */
+  /** Check if URL is a video file */
+  const isVideo = useCallback((url: string) => {
+    if (!url) return false;
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
+    const lowerUrl = url.toLowerCase();
+    return videoExtensions.some(ext => lowerUrl.includes(ext)) || url === product.video;
+  }, [product.video]);
+
+  /** Combine product media - videos first */
   const allMedia = useMemo(() => {
     const imgs = [product.image];
     
@@ -50,8 +65,17 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
       });
     }
     
-    return product.video ? [...imgs, product.video] : imgs;
-  }, [product.image, product.images, product.video, variantImages]);
+    const finalMedia = product.video && !imgs.includes(product.video) ? [...imgs, product.video] : imgs;
+    
+    // Sort: videos first, then images
+    return finalMedia.sort((a, b) => {
+      const aIsVideo = isVideo(a);
+      const bIsVideo = isVideo(b);
+      if (aIsVideo && !bIsVideo) return -1;
+      if (!aIsVideo && bIsVideo) return 1;
+      return 0;
+    });
+  }, [product.image, product.images, product.video, variantImages, isVideo]);
 
   // If a selected image is provided (e.g., from color variant), switch to it
   useEffect(() => {
@@ -68,8 +92,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
       }, 100);
     }
   }, [selectedImageUrl, allMedia]);
-
-  const isVideo = useCallback((url: string) => url === product.video, [product.video]);
 
   /** Change image */
   const changeImage = useCallback(
@@ -100,16 +122,56 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev]);
 
-  /** Touch swipe (mobile) */
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.targetTouches[0].clientX);
+  /** Touch swipe (mobile) - Kilimall style with real-time drag */
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null || !mainRef.current) return;
+    const currentX = e.targetTouches[0].clientX;
+    const diff = currentX - touchStartX;
+    setDragOffset(diff);
+  };
+  
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null) return;
     const dist = touchStartX - e.changedTouches[0].clientX;
+    
+    setIsDragging(false);
+    setDragOffset(0);
+    
     if (dist > minSwipe) next();
-    if (dist < -minSwipe) prev();
+    else if (dist < -minSwipe) prev();
+    
     setTouchStartX(null);
   };
 
+  // Autoplay video on scroll (mobile) using Intersection Observer
+  useEffect(() => {
+    if (!isMobile || !videoContainerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && videoRef.current) {
+            videoRef.current.play().catch(() => {
+              // Autoplay failed, show play button
+              setShowPlayButton(true);
+            });
+          } else if (!entry.isIntersecting && videoRef.current) {
+            videoRef.current.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(videoContainerRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, currentIndex, allMedia]);
 
   /** Kilimall-style Magnifier (desktop) */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -142,35 +204,92 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
 
   /* =================== MOBILE VIEW =================== */
   if (isMobile) {
+    // Calculate the container width for drag offset percentage
+    const containerWidth = mainRef.current?.offsetWidth || 1;
+    const dragPercentage = (dragOffset / containerWidth) * (100 / allMedia.length);
+    
     return (
       <div className="space-y-3 w-full">
         <div
           ref={mainRef}
           className="relative aspect-square w-full bg-white overflow-hidden"
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           <div
-            className="flex h-full transition-transform duration-300 ease-in-out items-start"
+            className={`flex h-full items-start ${isDragging ? '' : 'transition-transform duration-300 ease-out'}`}
             style={{
               width: `${allMedia.length * 100}%`,
-              transform: `translateX(-${currentIndex * (100 / allMedia.length)}%)`
+              transform: `translateX(calc(-${currentIndex * (100 / allMedia.length)}% + ${dragOffset}px))`
             }}
           >
             {allMedia.map((media, i) => (
               <div 
                 key={i} 
-                className="flex-shrink-0 flex items-start"
+                className="flex-shrink-0 flex items-start relative"
                 style={{ width: `${100 / allMedia.length}%` }} 
               >
                 {isVideo(media) ? (
-                  <video
-                    src={media}
-                    controls
-                    className="w-full h-full object-cover object-top"
-                    poster={product.image}
-                    preload="metadata"
-                  />
+                  <div 
+                    ref={i === currentIndex ? videoContainerRef : null}
+                    className="relative w-full h-full"
+                  >
+                    <video
+                      ref={i === currentIndex ? videoRef : null}
+                      src={media}
+                      className="w-full h-full object-cover object-top"
+                      poster={product.image}
+                      preload="metadata"
+                      playsInline
+                      loop
+                      onPlay={() => {
+                        setIsVideoPlaying(true);
+                        setShowPlayButton(false);
+                      }}
+                      onPause={() => {
+                        setIsVideoPlaying(false);
+                        setShowPlayButton(true);
+                      }}
+                      onEnded={() => {
+                        setIsVideoPlaying(false);
+                        setShowPlayButton(true);
+                        setVideoProgress(0);
+                      }}
+                      onTimeUpdate={(e) => {
+                        const video = e.currentTarget;
+                        if (video.duration) {
+                          setVideoProgress((video.currentTime / video.duration) * 100);
+                        }
+                      }}
+                    />
+                    {/* Video progress bar */}
+                    {isVideoPlaying && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+                        <div 
+                          className="h-full bg-primary transition-all duration-100 ease-linear"
+                          style={{ width: `${videoProgress}%` }}
+                        />
+                      </div>
+                    )}
+                    {/* Play button overlay - only shows when paused */}
+                    {showPlayButton && !isVideoPlaying && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (videoRef.current) {
+                            videoRef.current.play();
+                          }
+                        }}
+                        className="absolute inset-0 flex items-center justify-center transition-opacity"
+                        aria-label="Play video"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
+                          <Play className="w-8 h-8 text-white ml-1" />
+                        </div>
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <OptimizedImage
                     src={media}
@@ -225,14 +344,19 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
             >
               {isVideo(media) ? (
                 <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                  <Video size={16} className="text-gray-600 z-10" />
                   <OptimizedImage
                     src={product.image}
                     alt="Video thumbnail"
                     width={80}
                     height={80}
-                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    className="w-full h-full object-cover"
                   />
+                  {/* Play icon overlay centered on thumbnail */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center">
+                      <Play className="w-4 h-4 text-white ml-0.5" />
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <OptimizedImage

@@ -1,6 +1,6 @@
-import { memo, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { memo, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Flame, Loader2, AlertCircle } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
 import { useFeaturedProducts, PAGINATION_CONFIG } from '@/hooks/useProducts';
@@ -20,37 +20,17 @@ const EnhancedFeaturedProducts = memo(() => {
     isFetchingNextPage,
   } = useFeaturedProducts(pageSize);
   
-  // Use ref to track loading state to prevent multiple fetches
   const isLoadingMore = useRef(false);
   const lastScrollY = useRef(0);
   
-  // Memoized values
   const products = useMemo(() => data?.products || [], [data?.products]);
   const totalCount = useMemo(() => data?.totalCount || 0, [data?.totalCount]);
   
-  // Grid layout configuration
-  const gridConfig = useMemo(() => {
-    if (isMobile) {
-      return {
-        cols: "grid-cols-2",
-        gap: "gap-2",
-        padding: "p-2"
-      };
-    }
-    return {
-      cols: "grid-cols-6",
-      gap: "gap-y-1",
-      padding: "p-8"
-    };
-  }, [isMobile]);
-  
-  // Optimized scroll handler with better throttling and debouncing
+  // Optimized scroll handler
   const handleScroll = useCallback(() => {
     if (!isMobile || !hasNextPage || isFetchingNextPage || isLoadingMore.current) return;
     
     const currentScrollY = window.scrollY;
-    
-    // Only check if scrolling down
     if (currentScrollY <= lastScrollY.current) {
       lastScrollY.current = currentScrollY;
       return;
@@ -59,7 +39,7 @@ const EnhancedFeaturedProducts = memo(() => {
     
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = window.innerHeight;
-    const threshold = 400; // Increased threshold for earlier loading
+    const threshold = 400;
     
     const nearBottom = currentScrollY + clientHeight >= scrollHeight - threshold;
     
@@ -71,10 +51,8 @@ const EnhancedFeaturedProducts = memo(() => {
     }
   }, [isMobile, hasNextPage, isFetchingNextPage, fetchNextPage]);
   
-  // More efficient throttle implementation
   const throttledScrollHandler = useMemo(() => {
     let ticking = false;
-    
     return () => {
       if (!ticking) {
         requestAnimationFrame(() => {
@@ -86,15 +64,12 @@ const EnhancedFeaturedProducts = memo(() => {
     };
   }, [handleScroll]);
   
-  // Attach scroll listener for mobile infinite scroll
   useEffect(() => {
     if (!isMobile) return;
-    
     window.addEventListener('scroll', throttledScrollHandler, { passive: true });
     return () => window.removeEventListener('scroll', throttledScrollHandler);
   }, [isMobile, throttledScrollHandler]);
   
-  // Load more handler for desktop
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isLoadingMore.current) {
       isLoadingMore.current = true;
@@ -104,7 +79,6 @@ const EnhancedFeaturedProducts = memo(() => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   
-  // Memoized transform function to prevent recreating on every render
   const transformProductData = useCallback((product) => ({
     id: product.product_id,
     name: product.name,
@@ -118,122 +92,97 @@ const EnhancedFeaturedProducts = memo(() => {
     inStock: (product.stock || 0) > 0,
   }), []);
   
-  // Memoize transformed products to prevent recalculation
   const transformedProducts = useMemo(() => 
     products.map(transformProductData), 
     [products, transformProductData]
   );
   
-  // Loading skeleton
-  const loadingSkeleton = useMemo(() => (
-    <div className={`${gridConfig.padding} bg-white`}>
-      {!isMobile && (
-          <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
-          <TrendingUp size={16} className="mr-2" />
-          HOT DEALS
-        </div>
-      )}
-      <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-white shadow-sm`}>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
-          >
-            {/* Image skeleton */}
-            <div className="h-40 bg-gray-200 shimmer" />
-
-            {/* Text skeleton */}
-            <div className="p-2 space-y-2">
-              <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
-               <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
-             </div>
-           </div>
+  // Loading skeleton with modern design
+  const loadingSkeleton = (
+    <div className={`${isMobile ? 'px-2' : ''}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'}`}>
+        {Array.from({ length: isMobile ? 6 : 12 }).map((_, i) => (
+          <div key={i} className="bg-card rounded-lg overflow-hidden shadow-sm animate-pulse">
+            <div className="aspect-square bg-muted" />
+            <div className="p-3 space-y-2">
+              <div className="h-4 bg-muted rounded w-full" />
+              <div className="h-4 bg-muted rounded w-2/3" />
+              <div className="h-3 bg-muted rounded w-1/3" />
+              <div className="h-5 bg-muted rounded w-1/2" />
+            </div>
+          </div>
         ))}
       </div>
     </div>
-  ), [gridConfig, 12, isMobile]);
+  );
   
-  // Error state
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Failed to load products
-        </h3>
-        <p className="text-gray-600 text-center mb-4">
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">Failed to load products</h3>
+        <p className="text-muted-foreground text-center mb-4">
           {error?.message || 'Something went wrong while fetching products.'}
         </p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          variant="outline"
-          className="flex items-center"
-        >
+        <Button onClick={() => window.location.reload()} variant="outline">
           Try Again
         </Button>
       </div>
     );
   }
   
-  // Initial loading state
   if (isLoading) {
-    return (
-      <LazySection fallback={loadingSkeleton}>
-        {loadingSkeleton}
-      </LazySection>
-    );
+    return <LazySection fallback={loadingSkeleton}>{loadingSkeleton}</LazySection>;
   }
   
-  // No products state
   if (!products || products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No featured products found
-          </h3>
-          <p className="text-gray-600">
-            Check back later for exciting deals and offers.
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <h3 className="text-lg font-semibold text-foreground mb-2">No products found</h3>
+        <p className="text-muted-foreground">Check back later for exciting deals and offers.</p>
       </div>
     );
   }
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <section className={`${gridConfig.padding} ${!isMobile ? 'pt-4 pb-4 shadow-sm bg-white' : 'mb-12'}`}>
-        {/* Section Header - Desktop only */}
-        {!isMobile && (
-          <div className="my-4 border-b flex items-center text-gray-600 /mx-auto /px-4 py-2 text-xl font-bold bg-white">
-            <TrendingUp size={16} className="mr-2" />
-            HOT DEALS
-            {totalCount > 0 && (
-              <span className="ml-auto text-xs text-gray-500">
-                Showing {products.length} of {totalCount} products
-              </span>
-            )}
+      <div className={`bg-card rounded-xl ${isMobile ? 'rounded-none' : 'shadow-sm'}`}>
+        {/* Section Header */}
+        <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-5 border-b border-border'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`${isMobile ? 'p-1' : 'p-1.5'} bg-primary/10 rounded-lg`}>
+              <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
+            </div>
+            <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
+              Hot Deals
+            </h2>
           </div>
-        )}
+          {!isMobile && hasNextPage && (
+            <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
+              View All
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
+        </div>
         
         {/* Products Grid */}
-        <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
-          {transformedProducts.map((product, index) => (
-            <ProductCard 
-              key={`${product.id}-${index}`}
-              product={product}
-            />
-          ))}
+        <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'}`}>
+            {transformedProducts.map((product, index) => (
+              <ProductCard key={`${product.id}-${index}`} product={product} />
+            ))}
+          </div>
         </div>
 
-        {/* Desktop Load More Button */}
+        {/* Desktop Load More */}
         {!isMobile && hasNextPage && (
-          <div className="flex justify-center py-6">
+          <div className="flex justify-center pb-6">
             <Button 
               onClick={handleLoadMore}
               disabled={isFetchingNextPage}
               variant="outline"
-              className="flex items-center px-6 py-3 text-sm font-semibold transition-all duration-200 hover:shadow-md"
+              size="lg"
+              className="min-w-[200px]"
             >
               {isFetchingNextPage ? (
                 <>
@@ -242,7 +191,7 @@ const EnhancedFeaturedProducts = memo(() => {
                 </>
               ) : (
                 <>
-                  Load More Products
+                  Load More
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -250,27 +199,21 @@ const EnhancedFeaturedProducts = memo(() => {
           </div>
         )}
         
-        {/* Mobile Loading Indicator */}
+        {/* Mobile Loading */}
         {isMobile && isFetchingNextPage && (
-          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} mt-4 px-2`}>
+          <div className="grid grid-cols-2 gap-3 px-2 pb-4">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
-              >
-                {/* Image skeleton */}
-                <div className="h-40 bg-gray-200 shimmer" />
-
-                {/* Text skeleton */}
-                <div className="p-2 space-y-2">
-                  <div className="h-4 w-3/4 bg-gray-200 rounded shimmer" />
-                  <div className="h-4 w-1/2 bg-gray-200 rounded shimmer" />
+              <div key={i} className="bg-card rounded-lg overflow-hidden shadow-sm animate-pulse">
+                <div className="aspect-square bg-muted" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-muted rounded w-full" />
+                  <div className="h-4 bg-muted rounded w-2/3" />
                 </div>
               </div>
             ))}
           </div>
         )}
-      </section>
+      </div>
     </LazySection>
   );
 });

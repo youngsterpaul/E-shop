@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_results: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          test_id: string | null
+          user_id: string | null
+          variant: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          test_id?: string | null
+          user_id?: string | null
+          variant: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          test_id?: string | null
+          user_id?: string | null
+          variant?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ab_tests: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          test_type: string
+          traffic_split: number
+          updated_at: string | null
+          variant_a: Json
+          variant_b: Json
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          test_type?: string
+          traffic_split?: number
+          updated_at?: string | null
+          variant_a?: Json
+          variant_b?: Json
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          test_type?: string
+          traffic_split?: number
+          updated_at?: string | null
+          variant_a?: Json
+          variant_b?: Json
+        }
+        Relationships: []
+      }
       admin_activity_logs: {
         Row: {
           action_type: string
@@ -59,6 +148,39 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      admin_route_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_allowed: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          route_group: string
+          route_name: string
+          route_path: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          route_group?: string
+          route_name: string
+          route_path: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_allowed?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          route_group?: string
+          route_name?: string
+          route_path?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -983,6 +1105,33 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          email: string
+          id: string
+          is_active: boolean
+          source: string | null
+          subscribed_at: string
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          is_active?: boolean
+          source?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          is_active?: boolean
+          source?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
       order_status_history: {
         Row: {
           change_reason: string | null
@@ -1896,6 +2045,48 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          content: string
+          created_at: string
+          customer_image: string | null
+          customer_name: string
+          customer_title: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          customer_image?: string | null
+          customer_name: string
+          customer_title?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          rating?: number
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          customer_image?: string | null
+          customer_name?: string
+          customer_title?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_mfa_settings: {
         Row: {
           backup_codes: string[] | null
@@ -2014,6 +2205,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_route_permission: {
+        Args: { _route_path: string; _user_id: string }
         Returns: boolean
       }
       is_any_admin: { Args: { _user_id: string }; Returns: boolean }

@@ -305,3 +305,73 @@ export const useFlashSaleProductsWithDetails = (flashSaleId?: string, pageSize: 
     staleTime: 60 * 1000,
   });
 };
+
+// Fetch ALL products from ALL active flash sales
+export const useAllActiveFlashSaleProducts = (pageSize: number = 12) => {
+  return useQuery({
+    queryKey: ['all-active-flash-sale-products', pageSize],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      
+      // Get all active flash sale IDs
+      const { data: activeSales, error: salesError } = await supabase
+        .from('flash_sales')
+        .select('id, end_date')
+        .eq('is_active', true)
+        .lte('start_date', now)
+        .gte('end_date', now);
+
+      if (salesError) throw salesError;
+      if (!activeSales || activeSales.length === 0) {
+        return { products: [], totalCount: 0, earliestEndDate: null };
+      }
+
+      const saleIds = activeSales.map(s => s.id);
+      // Get the earliest end date for countdown
+      const earliestEndDate = activeSales.reduce((earliest, sale) => {
+        return !earliest || new Date(sale.end_date) < new Date(earliest) 
+          ? sale.end_date 
+          : earliest;
+      }, activeSales[0].end_date);
+
+      // Get ALL product IDs from all active flash sales
+      const { data: flashSaleProducts, error: flashSaleError } = await supabase
+        .from('flash_sale_products')
+        .select('product_id')
+        .in('flash_sale_id', saleIds);
+
+      if (flashSaleError) throw flashSaleError;
+      if (!flashSaleProducts || flashSaleProducts.length === 0) {
+        return { products: [], totalCount: 0, earliestEndDate };
+      }
+
+      // Get unique product IDs
+      const productIds = [...new Set(flashSaleProducts.map(p => p.product_id))];
+
+      // Fetch product details
+      const { data: products, error: productsError, count } = await supabase
+        .from('products')
+        .select(`
+          product_id,
+          name,
+          price,
+          image_urls,
+          categories,
+          stock,
+          rating,
+          reviews_count
+        `, { count: 'exact' })
+        .in('product_id', productIds)
+        .limit(pageSize);
+
+      if (productsError) throw productsError;
+
+      return {
+        products: products || [],
+        totalCount: count || 0,
+        earliestEndDate
+      };
+    },
+    staleTime: 60 * 1000,
+  });
+};

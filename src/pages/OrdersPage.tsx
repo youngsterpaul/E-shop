@@ -1,4 +1,4 @@
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ReviewButton from '@/components/ReviewButton';
+import { useMpesaPayment } from '@/hooks/useMpesaPayment';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import {
   Package,
   Search,
@@ -22,6 +25,9 @@ import {
   AlertCircle,
   ChevronDown,
   PackageX,
+  CreditCard,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -50,8 +56,8 @@ interface Order {
 const statusConfig = {
   all: { label: 'All', icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' },
   pending: { label: 'Pending', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-  paid: { label: 'Paid', icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-100' },
   processing: { label: 'Processing', icon: Settings, color: 'text-purple-600', bg: 'bg-purple-100' },
+  packed: { label: 'Packed', icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
   shipped: { label: 'Shipped', icon: Truck, color: 'text-indigo-600', bg: 'bg-indigo-100' },
   delivered: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100' },
   cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100' },
@@ -63,14 +69,23 @@ const LOAD_MORE_COUNT = 8;
 const OrdersPage = memo(() => {
   const isMobile = isMobileUserAgent();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { initiatePayment, checkPaymentStatus } = useMpesaPayment();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatus, setActiveStatus] = useState('all');
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<{
+    status: string;
+    message: string;
+  }>({ status: 'idle', message: '' });
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -119,6 +134,83 @@ const OrdersPage = memo(() => {
   const displayedOrders = filteredOrders.slice(0, displayCount);
   const hasMore = displayedOrders.length < filteredOrders.length;
 
+  // Track payment status with ref to avoid stale closure
+  const paymentStatusRef = useRef(paymentStatus);
+  useEffect(() => {
+    paymentStatusRef.current = paymentStatus;
+  }, [paymentStatus]);
+
+  // Handle Pay Now for pending orders
+  const handlePayNow = async (order: Order) => {
+    if (!profile?.phone) {
+      toast({
+        title: 'Phone number required',
+        description: 'Please update your profile with a phone number to pay.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setPayingOrderId(order.order_id);
+    setShowPaymentModal(true);
+    const processingStatus = { status: 'processing', message: 'Initiating payment...' };
+    setPaymentStatus(processingStatus);
+    paymentStatusRef.current = processingStatus;
+
+    try {
+      const result = await initiatePayment({
+        phone: profile.phone,
+        amount: order.amount || 0,
+        orderId: order.order_id,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Payment initiation failed');
+      }
+
+      const waitingStatus = { status: 'waiting', message: 'Check your phone and enter your M-Pesa PIN' };
+      setPaymentStatus(waitingStatus);
+      paymentStatusRef.current = waitingStatus;
+
+      // Poll for payment status
+      const pollPayment = setInterval(async () => {
+        if (result.checkoutRequestId) {
+          const status = await checkPaymentStatus(result.checkoutRequestId);
+          if (status?.status === 'success') {
+            const successStatus = { status: 'success', message: 'Payment successful!' };
+            setPaymentStatus(successStatus);
+            paymentStatusRef.current = successStatus;
+            clearInterval(pollPayment);
+            setTimeout(() => {
+              setShowPaymentModal(false);
+              setPayingOrderId(null);
+              setPaymentStatus({ status: 'idle', message: '' });
+              fetchOrders(); // Refresh orders
+            }, 2000);
+          } else if (status?.status === 'failed') {
+            const failedStatus = { status: 'failed', message: status.result_desc || 'Payment failed' };
+            setPaymentStatus(failedStatus);
+            paymentStatusRef.current = failedStatus;
+            clearInterval(pollPayment);
+          }
+        }
+      }, 1000);
+
+      // Timeout after 60 seconds
+      setTimeout(() => {
+        clearInterval(pollPayment);
+        if (paymentStatusRef.current.status === 'waiting') {
+          setPaymentStatus({ status: 'timeout', message: 'Payment request timed out' });
+        }
+      }, 60000);
+    } catch (error) {
+      setPaymentStatus({
+        status: 'failed',
+        message: error instanceof Error ? error.message : 'Payment failed. Please try again.',
+      });
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center space-y-6">
@@ -130,39 +222,40 @@ const OrdersPage = memo(() => {
   }
 
   return (
-    <div className={`container min-h-screen bg-gray-50 pb-24 flex-grow mx-auto py-8 ${!isMobile ? 'px-4 xl:px-24' : 'px-2'}`}>
-      <div className="bg-gray-50 border-b .px-4 .sm:px-8 py-3">
-        {!isMobile && ( 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
-          <div className="flex items-center gap-2">
-            <Package className="text-primary h-5 w-5" />
-            <h1 className="text-lg font-bold text-gray-800">My Orders</h1>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-4'}`}>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">My Orders</h1>
+            <p className="text-sm text-muted-foreground">Track and manage your orders</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
-              <PackageX className="h-4 w-4 mr-1" /> Returns
-            </Button>
-            <Button variant="outline" onClick={fetchOrders} size="sm">
-              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-            </Button>
-          </div>
+          {!isMobile && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
+                <PackageX className="h-4 w-4 mr-1" /> Returns
+              </Button>
+              <Button variant="outline" onClick={fetchOrders} size="sm">
+                <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+              </Button>
+            </div>
+          )}
         </div>
-        )}
 
         {/* Search Bar */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search orders..."
-            className="pl-9 text-sm h-9"
+            className="pl-10 h-11"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Status Tabs */}
-        <div className="flex overflow-x-auto gap-2 pb-1">
+        <div className="flex overflow-x-auto gap-2 pb-1 mb-6 scrollbar-hide">
           {Object.entries(statusConfig).map(([key, cfg]) => {
             const active = activeStatus === key;
             const Icon = cfg.icon;
@@ -171,23 +264,23 @@ const OrdersPage = memo(() => {
                 key={key}
                 variant={active ? 'default' : 'outline'}
                 size="sm"
-                className={`flex-shrink-0 gap-1 px-3 py-1 text-xs ${active ? 'font-semibold' : ''}`}
+                className={`flex-shrink-0 gap-1.5 px-4 ${active ? 'font-medium' : ''}`}
                 onClick={() => setActiveStatus(key)}
               >
-                <Icon className={`h-3 w-3 ${cfg.color}`} />
+                <Icon className={`h-4 w-4 ${active ? '' : cfg.color}`} />
                 {cfg.label}
               </Button>
             );
           })}
         </div>
-      </div>
 
-      {/* ===== Orders List ===== */}
-      <div className=".p-4 .sm:p-8 .max-w-6xl mx-auto">
+        {/* Orders List */}
         {displayedOrders.length === 0 ? (
           <div className="text-center py-16">
-            <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-            <p className="text-gray-500 text-sm">No orders found</p>
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">No orders found</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -195,15 +288,15 @@ const OrdersPage = memo(() => {
               const cfg = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.all;
               const Icon = cfg.icon;
               return (
-                <Card key={order.order_id} className="border shadow-sm">
-                  <CardHeader>
+                <Card key={order.order_id} className="border-0 shadow-sm">
+                  <CardHeader className="pb-3">
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-base font-semibold">
+                      <CardTitle className="text-base font-semibold text-foreground">
                         #{order.order_id.slice(-8).toUpperCase()}
                       </CardTitle>
-                      <Badge className={`${cfg.bg} ${cfg.color}`}>{cfg.label}</Badge>
+                      <Badge className={`${cfg.bg} ${cfg.color} border-0`}>{cfg.label}</Badge>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
                     </p>
                   </CardHeader>
@@ -260,6 +353,18 @@ const OrdersPage = memo(() => {
                           Ksh {(order.amount || 0).toLocaleString()}
                         </span>
                       </div>
+                      
+                      {/* Pay Now button for pending orders */}
+                      {order.status === 'pending' && (
+                        <Button
+                          className="w-full mt-3"
+                          onClick={() => handlePayNow(order)}
+                          disabled={payingOrderId === order.order_id}
+                        >
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Pay Now
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -287,7 +392,75 @@ const OrdersPage = memo(() => {
             </Button>
           </div>
         )}
-      </div>
+      </main>
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={(open) => {
+        if (!open && paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
+          setShowPaymentModal(false);
+          setPayingOrderId(null);
+          setPaymentStatus({ status: 'idle', message: '' });
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              M-Pesa Payment
+            </DialogTitle>
+            <DialogDescription>
+              {payingOrderId && `Order #${payingOrderId.slice(-8).toUpperCase()}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 text-center">
+            {paymentStatus.status === 'processing' && (
+              <div className="space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <p className="text-sm text-muted-foreground">Initiating payment...</p>
+              </div>
+            )}
+            
+            {paymentStatus.status === 'waiting' && (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Progress value={50} className="h-2" />
+                </div>
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+                <p className="font-medium">Check your phone</p>
+                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+              </div>
+            )}
+            
+            {paymentStatus.status === 'success' && (
+              <div className="space-y-4">
+                <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+                <p className="font-medium text-green-600">Payment Successful!</p>
+              </div>
+            )}
+            
+            {(paymentStatus.status === 'failed' || paymentStatus.status === 'timeout') && (
+              <div className="space-y-4">
+                <XCircle className="h-12 w-12 mx-auto text-red-500" />
+                <p className="font-medium text-red-600">
+                  {paymentStatus.status === 'timeout' ? 'Payment Timed Out' : 'Payment Failed'}
+                </p>
+                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPayingOrderId(null);
+                    setPaymentStatus({ status: 'idle', message: '' });
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

@@ -322,47 +322,68 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check for duplicate pending payments
-    const { data: existingPayment } = await supabase
-      .from('mpesa_payments')
-      .select('id, status')
-      .eq('order_id', orderId)
-      .eq('status', 'pending')
-      .maybeSingle();
-    
-    if (existingPayment) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Duplicate payment',
-          message: 'A payment is already in progress for this order'
-        }),
-        { 
-          status: 409, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
     // Initiate STK Push
     const stkResponse = await initiateSTKPush(phone, amount, orderId);
     
     if (stkResponse.ResponseCode === "0") {
-      // Store payment record in database
-      const { error: dbError } = await supabase
+      // Check if there's an existing payment record for this order that can be reused
+      const { data: existingPayment, error: fetchError } = await supabase
         .from('mpesa_payments')
-        .insert({
-          checkout_request_id: stkResponse.CheckoutRequestID,
-          merchant_request_id: stkResponse.MerchantRequestID,
-          order_id: orderId,
-          phone_number: phone,
-          amount: amount,
-          status: 'pending'
-        });
+        .select('id')
+        .eq('order_id', orderId)
+        .in('status', ['pending', 'failed', 'cancelled'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (dbError) {
-        console.error('Database error when creating M-Pesa payment record:', dbError);
-        throw new Error('Failed to record payment request in database');
+      if (fetchError) {
+        console.error('Error fetching existing payment:', fetchError);
+      }
+
+      if (existingPayment) {
+        // Update the existing payment record with new checkout request details
+        const { error: updateError } = await supabase
+          .from('mpesa_payments')
+          .update({
+            checkout_request_id: stkResponse.CheckoutRequestID,
+            merchant_request_id: stkResponse.MerchantRequestID,
+            phone_number: phone,
+            amount: amount,
+            status: 'pending',
+            mpesa_receipt_number: null,
+            result_code: null,
+            result_desc: null,
+            transaction_date: null,
+            callback_data: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingPayment.id);
+
+        if (updateError) {
+          console.error('Database error when updating M-Pesa payment record:', updateError);
+          throw new Error('Failed to update payment request in database');
+        }
+        
+        console.log('Updated existing payment record:', existingPayment.id);
+      } else {
+        // Create new payment record if none exists
+        const { error: dbError } = await supabase
+          .from('mpesa_payments')
+          .insert({
+            checkout_request_id: stkResponse.CheckoutRequestID,
+            merchant_request_id: stkResponse.MerchantRequestID,
+            order_id: orderId,
+            phone_number: phone,
+            amount: amount,
+            status: 'pending'
+          });
+
+        if (dbError) {
+          console.error('Database error when creating M-Pesa payment record:', dbError);
+          throw new Error('Failed to record payment request in database');
+        }
+        
+        console.log('Created new payment record for order:', orderId);
       }
 
       return new Response(

@@ -1,23 +1,43 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole, AppRole } from '@/hooks/useUserRole';
+import { useCheckRouteAccess } from '@/hooks/useRoutePermissions';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AdminRouteProps {
   children: React.ReactNode;
-  requiredRole?: AppRole;
+  requiredRole?: AppRole; // Kept for backwards compatibility, but now uses DB permissions
 }
 
 const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { roles, loading: rolesLoading, hasRole, isSuperAdmin, isAdmin, isModerator } = useUserRole(user?.id);
+  const { loading: rolesLoading, isSuperAdmin, hasAnyAdminRole } = useUserRole(user?.id);
+  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
 
-  const loading = authLoading || rolesLoading;
+  // Get the base route path (without dynamic segments)
+  const getBaseRoutePath = (path: string) => {
+    // Handle edit routes by removing the dynamic ID part
+    const editMatch = path.match(/^(\/supersmartkenyaadmin123\/[^/]+\/edit)/);
+    if (editMatch) return editMatch[1].replace(/\/edit$/, '');
+    
+    // Handle view routes like /customers/:id
+    const viewMatch = path.match(/^(\/supersmartkenyaadmin123\/[^/]+)\/[^/]+$/);
+    if (viewMatch && !path.includes('/add') && !path.includes('/create')) {
+      return viewMatch[1];
+    }
+    
+    return path;
+  };
+
+  const routePath = getBaseRoutePath(location.pathname);
+  const { hasAccess: hasRouteAccess, loading: permissionLoading } = useCheckRouteAccess(user?.id, routePath);
+
+  const loading = authLoading || rolesLoading || permissionLoading;
 
   useEffect(() => {
     if (loading) return;
@@ -33,35 +53,35 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
       return;
     }
 
-    // Role validation
-    let hasAccess = false;
-    if (requiredRole === 'superadmin') {
-      hasAccess = isSuperAdmin;
-    } else if (requiredRole === 'admin') {
-      hasAccess = isAdmin || isSuperAdmin;
-    } else if (requiredRole === 'moderator') {
-      hasAccess = isModerator || isAdmin || isSuperAdmin;
-    } else {
-      hasAccess = hasRole(requiredRole);
-    }
-
-    if (!hasAccess) {
-      setError(`You lack ${requiredRole} privileges`);
-
+    // Must have at least one admin role
+    if (!hasAnyAdminRole) {
+      setError('You do not have admin privileges');
       toast({
         title: "Access Denied",
-        description: `You need ${requiredRole} privileges to access this area`,
+        description: "You need admin privileges to access this area",
         variant: "destructive",
       });
-
-      // Redirect to homepage for unauthorized access
       navigate('/', { replace: true });
+      return;
     }
 
-    // Only run once when user or role state changes from loading
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user?.id, requiredRole, isAdmin, isSuperAdmin]);
+    // Superadmins always have access
+    if (isSuperAdmin) {
+      return;
+    }
 
+    // Check route-specific permissions from database
+    if (hasRouteAccess === false) {
+      setError('You do not have permission to access this page');
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page. Contact a superadmin for access.",
+        variant: "destructive",
+      });
+      navigate('/supersmartkenyaadmin123', { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user?.id, isSuperAdmin, hasAnyAdminRole, hasRouteAccess, routePath]);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -96,17 +116,8 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
     );
   }
 
-  // Double check access for final render
-  const hasAccess =
-    requiredRole === 'superadmin'
-      ? isSuperAdmin
-      : requiredRole === 'admin'
-      ? isAdmin || isSuperAdmin
-      : requiredRole === 'moderator'
-      ? isModerator || isAdmin || isSuperAdmin
-      : hasRole(requiredRole);
-
-  if (!hasAccess) return null;
+  // Double check access for final render - superadmins always have access, others need route permission
+  if (!isSuperAdmin && hasRouteAccess === false) return null;
 
   return <>{children}</>;
 };

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Plus, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AppRole } from '@/hooks/useUserRole';
+import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,23 +97,13 @@ export default function AdminUsersPage() {
 
   return (
     <AdminLayout>
+      <QuickActionsBar
+        title="User Management"
+        onRefresh={() => refetch()}
+        addNewPath="/supersmartkenyaadmin123/users/add"
+        addNewLabel="Add User"
+      />
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">User Management</h1>
-            <p className="text-muted-foreground mt-1">Manage system users and their roles</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => refetch()}>
-              <Search className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <Button onClick={() => navigate('/supersmartkenyaadmin123/users/add')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
-          </div>
-        </div>
 
         <Card>
           <CardHeader>

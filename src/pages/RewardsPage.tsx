@@ -57,7 +57,7 @@ const RewardsPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
           <Skeleton className="h-10 w-64 mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
@@ -71,9 +71,12 @@ const RewardsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Rewards Catalog</h1>
+      <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Rewards Catalog</h1>
+            <p className="text-muted-foreground mt-1">Redeem your points for exclusive rewards</p>
+          </div>
           <Card className="bg-primary/10 border-primary/20">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Your Points</p>
@@ -83,7 +86,7 @@ const RewardsPage = () => {
         </div>
 
         <Tabs defaultValue="available" className="space-y-6">
-          <TabsList>
+          <TabsList className="bg-muted/50">
             <TabsTrigger value="available">Available Rewards</TabsTrigger>
             <TabsTrigger value="redeemed">My Redemptions</TabsTrigger>
           </TabsList>
@@ -96,7 +99,7 @@ const RewardsPage = () => {
                   const canAfford = (points?.points || 0) >= reward.points_required;
                   
                   return (
-                    <Card key={reward.id} className={!canAfford ? 'opacity-60' : ''}>
+                    <Card key={reward.id} className={`border-border/50 ${!canAfford ? 'opacity-60' : 'hover:border-primary/30 hover:shadow-md'} transition-all`}>
                       <CardHeader>
                         <div className="flex items-center justify-between mb-2">
                           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -106,7 +109,7 @@ const RewardsPage = () => {
                             {reward.points_required} pts
                           </Badge>
                         </div>
-                        <CardTitle className="text-lg">{reward.name}</CardTitle>
+                        <CardTitle className="text-lg text-foreground">{reward.name}</CardTitle>
                         <CardDescription>{getRewardDescription(reward)}</CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -126,9 +129,9 @@ const RewardsPage = () => {
                   );
                 })
               ) : (
-                <div className="col-span-full text-center py-12">
-                  <Gift className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No rewards available</p>
+                <div className="col-span-full text-center py-16">
+                  <Gift className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+                  <p className="text-lg font-medium text-foreground">No rewards available</p>
                   <p className="text-muted-foreground">Check back later for new rewards</p>
                 </div>
               )}
@@ -140,12 +143,12 @@ const RewardsPage = () => {
             {redemptions && redemptions.length > 0 ? (
               <div className="space-y-4">
                 {redemptions.map((redemption: any) => (
-                  <Card key={redemption.id}>
+                  <Card key={redemption.id} className="border-border/50">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-semibold text-lg">{redemption.reward?.name}</h3>
+                            <h3 className="font-semibold text-lg text-foreground">{redemption.reward?.name}</h3>
                             <Badge variant={redemption.status === 'active' ? 'default' : 'secondary'}>
                               {redemption.status}
                             </Badge>
@@ -154,9 +157,9 @@ const RewardsPage = () => {
                             {getRewardDescription(redemption.reward)}
                           </p>
                           {redemption.voucher_code && (
-                            <div className="bg-muted p-3 rounded-md mt-3">
+                            <div className="bg-muted/50 p-4 rounded-lg mt-3">
                               <p className="text-xs text-muted-foreground mb-1">Voucher Code</p>
-                              <p className="font-mono font-bold text-lg">{redemption.voucher_code}</p>
+                              <p className="font-mono font-bold text-lg text-foreground">{redemption.voucher_code}</p>
                             </div>
                           )}
                           <p className="text-xs text-muted-foreground mt-2">
@@ -173,10 +176,10 @@ const RewardsPage = () => {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Ticket className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No redemptions yet</p>
+              <Card className="border-border/50">
+                <CardContent className="text-center py-16">
+                  <Ticket className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+                  <p className="text-lg font-medium text-foreground">No redemptions yet</p>
                   <p className="text-muted-foreground mb-4">Start redeeming rewards to see them here</p>
                   <Button onClick={() => navigate('/loyalty')}>Earn More Points</Button>
                 </CardContent>

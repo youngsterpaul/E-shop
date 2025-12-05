@@ -37,43 +37,52 @@ const LoyaltyPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6">Loyalty & Rewards</h1>
+      <main className="max-w-[1400px] mx-auto px-4 lg:px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Loyalty & Rewards</h1>
+          <p className="text-muted-foreground mt-2">Earn points with every purchase and redeem for rewards</p>
+        </div>
 
         {/* Points Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Available Points</CardTitle>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Available Points</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <span className="text-4xl font-bold text-primary">{points?.points || 0}</span>
-                <Award className="h-10 w-10 text-primary/40" />
+                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Award className="h-6 w-6 text-primary" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
+          <Card className="border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Earned</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <span className="text-3xl font-bold">{points?.total_earned || 0}</span>
-                <TrendingUp className="h-8 w-8 text-green-600/40" />
+                <span className="text-3xl font-bold text-foreground">{points?.total_earned || 0}</span>
+                <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Referrals</CardTitle>
+          <Card className="border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Referrals</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <span className="text-3xl font-bold">{referralStats?.completed || 0}</span>
-                <Users className="h-8 w-8 text-blue-600/40" />
+                <span className="text-3xl font-bold text-foreground">{referralStats?.completed || 0}</span>
+                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -81,7 +90,7 @@ const LoyaltyPage = () => {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="earn" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50">
             <TabsTrigger value="earn">Earn Points</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="referral">Referral Program</TabsTrigger>
@@ -89,49 +98,49 @@ const LoyaltyPage = () => {
 
           {/* Earn Points */}
           <TabsContent value="earn" className="space-y-4">
-            <Card>
+            <Card className="border-border/50">
               <CardHeader>
                 <CardTitle>Ways to Earn Points</CardTitle>
                 <CardDescription>Complete these actions to earn loyalty points</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-border/50 rounded-xl hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
                       <Gift className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-medium">Make a Purchase</p>
+                      <p className="font-medium text-foreground">Make a Purchase</p>
                       <p className="text-sm text-muted-foreground">Earn 1 point per KES 100 spent</p>
                     </div>
                   </div>
                   <Button onClick={() => navigate('/')}>Shop Now</Button>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-border/50 rounded-xl hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
                       <Award className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium">Write a Review</p>
+                      <p className="font-medium text-foreground">Write a Review</p>
                       <p className="text-sm text-muted-foreground">Earn 10 points for each product review</p>
                     </div>
                   </div>
-                  <Button onClick={() => navigate('/orders')}>My Orders</Button>
+                  <Button variant="outline" onClick={() => navigate('/orders')}>My Orders</Button>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-border/50 rounded-xl hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full bg-purple-500/10 flex items-center justify-center">
                       <Users className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-medium">Refer a Friend</p>
+                      <p className="font-medium text-foreground">Refer a Friend</p>
                       <p className="text-sm text-muted-foreground">Earn 50 points when they make their first purchase</p>
                     </div>
                   </div>
-                  <Button onClick={() => { const tab = 'referral'; navigate(`/loyalty?tab=${tab}`); }}>Share Link</Button>
+                  <Button variant="outline" onClick={() => { const tab = 'referral'; navigate(`/loyalty?tab=${tab}`); }}>Share Link</Button>
                 </div>
               </CardContent>
             </Card>
@@ -139,7 +148,7 @@ const LoyaltyPage = () => {
 
           {/* Transaction History */}
           <TabsContent value="history" className="space-y-4">
-            <Card>
+            <Card className="border-border/50">
               <CardHeader>
                 <CardTitle>Points History</CardTitle>
                 <CardDescription>Your recent points transactions</CardDescription>
@@ -148,9 +157,9 @@ const LoyaltyPage = () => {
                 {transactions && transactions.length > 0 ? (
                   <div className="space-y-3">
                     {transactions.map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={transaction.id} className="flex items-center justify-between p-4 border border-border/50 rounded-xl">
                         <div className="flex-1">
-                          <p className="font-medium">{transaction.description}</p>
+                          <p className="font-medium text-foreground">{transaction.description}</p>
                           <p className="text-sm text-muted-foreground">
                             {transaction.created_at && formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true })}
                           </p>
@@ -167,7 +176,10 @@ const LoyaltyPage = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No transactions yet</p>
+                  <div className="text-center py-12">
+                    <Award className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                    <p className="text-muted-foreground">No transactions yet</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -175,34 +187,34 @@ const LoyaltyPage = () => {
 
           {/* Referral Program */}
           <TabsContent value="referral" className="space-y-4">
-            <Card>
+            <Card className="border-border/50">
               <CardHeader>
                 <CardTitle>Referral Program</CardTitle>
                 <CardDescription>Invite friends and earn rewards together</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="bg-muted/50 p-6 rounded-lg space-y-4">
+                <div className="bg-muted/50 p-6 rounded-xl space-y-4">
                   <div>
-                    <p className="text-sm font-medium mb-2">Your Referral Link</p>
+                    <p className="text-sm font-medium mb-2 text-foreground">Your Referral Link</p>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         value={`${window.location.origin}/auth/signup?ref=${referralCode || ''}`}
                         readOnly
-                        className="flex-1 px-3 py-2 border rounded-md bg-background"
+                        className="flex-1 px-4 py-2.5 border border-border rounded-lg bg-background text-sm"
                       />
-                      <Button onClick={handleCopyReferralCode} size="icon">
+                      <Button onClick={handleCopyReferralCode} size="icon" className="shrink-0">
                         {copiedCode ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4">
-                    <div className="text-center">
+                    <div className="text-center p-4 bg-background rounded-lg">
                       <p className="text-2xl font-bold text-primary">{referralStats?.pending || 0}</p>
                       <p className="text-sm text-muted-foreground">Pending</p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center p-4 bg-background rounded-lg">
                       <p className="text-2xl font-bold text-green-600">{referralStats?.completed || 0}</p>
                       <p className="text-sm text-muted-foreground">Completed</p>
                     </div>
@@ -210,18 +222,18 @@ const LoyaltyPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="font-medium">How it works</h4>
+                  <h4 className="font-medium text-foreground">How it works</h4>
                   <ol className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex gap-2">
-                      <span className="font-medium text-primary">1.</span>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-primary">1.</span>
                       Share your unique referral link with friends
                     </li>
-                    <li className="flex gap-2">
-                      <span className="font-medium text-primary">2.</span>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-primary">2.</span>
                       They sign up and make their first purchase
                     </li>
-                    <li className="flex gap-2">
-                      <span className="font-medium text-primary">3.</span>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-primary">3.</span>
                       You both earn 50 loyalty points!
                     </li>
                   </ol>
@@ -233,9 +245,9 @@ const LoyaltyPage = () => {
 
         {/* CTA to rewards page */}
         <Card className="mt-8 bg-gradient-to-r from-primary/10 to-purple-600/10 border-primary/20">
-          <CardContent className="flex items-center justify-between p-6">
+          <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6">
             <div>
-              <h3 className="text-xl font-bold mb-1">Ready to Redeem?</h3>
+              <h3 className="text-xl font-bold text-foreground mb-1">Ready to Redeem?</h3>
               <p className="text-muted-foreground">Browse available rewards and redeem your points</p>
             </div>
             <Button onClick={() => navigate('/rewards')} size="lg">

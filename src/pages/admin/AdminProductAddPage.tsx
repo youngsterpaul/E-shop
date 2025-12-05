@@ -47,12 +47,17 @@ const AdminProductAdd = () => {
   const { categories, subcategories, setSubcategories, fetchSubcategories } = useCategories();
   const { 
     images, 
+    videos,
     imageUrls, 
+    videoUrls,
     uploadProgress,
     isUploading,
     handleImageUpload, 
     uploadImagesToStorage,
-    removeImage, 
+    removeImage,
+    removeVideo,
+    reorderImages,
+    reorderVideos,
     clearImages 
   } = useImageUpload();
   
@@ -91,11 +96,11 @@ const AdminProductAdd = () => {
     }
   };
 
-  const handleUploadImages = async () => {
-    if (images.length === 0) {
+  const handleUploadMedia = async () => {
+    if (images.length === 0 && videos.length === 0) {
       toast({
-        title: "No images selected",
-        description: "Please select some images to upload.",
+        title: "No media selected",
+        description: "Please select some images or videos to upload.",
         variant: "destructive"
       });
       return;
@@ -118,11 +123,12 @@ const AdminProductAdd = () => {
       return;
     }
 
-    // Check if we have images but haven't uploaded them yet
-    if (images.length > 0 && imageUrls.length === 0) {
+    // Check if we have media but haven't uploaded them yet
+    const hasUnuploadedMedia = (images.length > 0 || videos.length > 0) && (imageUrls.length === 0 && videoUrls.length === 0);
+    if (hasUnuploadedMedia) {
       toast({
-        title: "Images not uploaded",
-        description: "Please upload your images first before saving the product.",
+        title: "Media not uploaded",
+        description: "Please upload your images/videos first before saving the product.",
         variant: "destructive"
       });
       return;
@@ -144,6 +150,9 @@ const AdminProductAdd = () => {
 
       const categoryToStore = subcategoryName ? `${categoryName} > ${subcategoryName}` : categoryName;
       
+      // Combine image and video URLs
+      const allMediaUrls = [...imageUrls, ...videoUrls];
+      
       const { error } = await supabase
         .from('products')
         .insert({
@@ -156,14 +165,14 @@ const AdminProductAdd = () => {
           featured: data.featured,
           features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
           specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: imageUrls // CDN-optimized URLs
+          image_urls: allMediaUrls
         });
         
       if (error) throw error;
       
       toast({
         title: "Product added successfully",
-        description: `"${data.name}" has been added to your inventory with ${imageUrls.length} optimized image(s).`,
+        description: `"${data.name}" has been added with ${imageUrls.length} image(s) and ${videoUrls.length} video(s).`,
       });
       
       form.reset();
@@ -183,8 +192,10 @@ const AdminProductAdd = () => {
     }
   };
 
-  const canSaveProduct = imageUrls.length > 0 || images.length === 0;
-  const hasUnuploadedImages = images.length > 0 && imageUrls.length === 0;
+  const totalMedia = images.length + videos.length;
+  const totalUploadedMedia = imageUrls.length + videoUrls.length;
+  const canSaveProduct = totalUploadedMedia > 0 || totalMedia === 0;
+  const hasUnuploadedMedia = totalMedia > 0 && totalUploadedMedia === 0;
 
   return (
     <AdminLayout>
@@ -220,30 +231,34 @@ const AdminProductAdd = () => {
             
             <ProductImageUpload
               images={images}
+              videos={videos}
               uploadProgress={uploadProgress}
               isUploading={isUploading}
               onImageUpload={handleImageUpload}
               onRemoveImage={removeImage}
+              onRemoveVideo={removeVideo}
+              onReorderImages={reorderImages}
+              onReorderVideos={reorderVideos}
             />
 
-            {/* Upload Images Button */}
-            {images.length > 0 && imageUrls.length === 0 && (
+            {/* Upload Media Button */}
+            {hasUnuploadedMedia && (
               <div className="flex justify-center">
                 <Button 
                   type="button"
-                  onClick={handleUploadImages}
+                  onClick={handleUploadMedia}
                   disabled={isUploading}
                   className="bg-blue-500 hover:bg-blue-600"
                 >
                   {isUploading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading Images...
+                      Uploading Media...
                     </>
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload Images
+                      Upload Media ({totalMedia})
                     </>
                   )}
                 </Button>

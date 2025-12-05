@@ -136,13 +136,28 @@ export default function AdminEmailTemplatesPage() {
   };
 
   const templateTypes = [
-    { value: 'order_confirmation', label: 'Order Confirmation' },
+    { value: 'order_processing', label: 'Order Processing' },
+    { value: 'order_packed', label: 'Order Packed' },
     { value: 'order_shipped', label: 'Order Shipped' },
     { value: 'order_delivered', label: 'Order Delivered' },
+    { value: 'order_cancelled', label: 'Order Cancelled' },
     { value: 'return_approved', label: 'Return Approved' },
     { value: 'return_rejected', label: 'Return Rejected' },
     { value: 'password_reset', label: 'Password Reset' },
     { value: 'welcome', label: 'Welcome Email' },
+  ];
+
+  const availableVariables = [
+    { name: 'customer_name', description: 'Customer name' },
+    { name: 'order_number', description: 'Full order ID' },
+    { name: 'order_number_short', description: 'Short order ID (8 chars)' },
+    { name: 'order_amount', description: 'Order total amount' },
+    { name: 'status', description: 'Current order status' },
+    { name: 'tracking_number', description: 'Shipping tracking number' },
+    { name: 'notes', description: 'Order notes' },
+    { name: 'email', description: 'Customer email' },
+    { name: 'shipping_address', description: 'Delivery address' },
+    { name: 'year', description: 'Current year' },
   ];
 
   return (
@@ -216,9 +231,29 @@ export default function AdminEmailTemplatesPage() {
                   <Input
                     value={formData.variables}
                     onChange={(e) => setFormData({ ...formData, variables: e.target.value })}
-                    placeholder="customer_name, order_number, total_amount"
+                    placeholder="customer_name, order_number, order_amount"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Use these in body with {`{{variable_name}}`}</p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-muted-foreground">Available variables (use as {`{{variable_name}}`}):</p>
+                    <div className="flex flex-wrap gap-1">
+                      {availableVariables.map((v) => (
+                        <Badge 
+                          key={v.name} 
+                          variant="outline" 
+                          className="cursor-pointer text-xs"
+                          onClick={() => {
+                            const current = formData.variables ? formData.variables.split(',').map(s => s.trim()) : [];
+                            if (!current.includes(v.name)) {
+                              setFormData({ ...formData, variables: [...current, v.name].filter(Boolean).join(', ') });
+                            }
+                          }}
+                          title={v.description}
+                        >
+                          {v.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
