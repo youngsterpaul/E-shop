@@ -141,55 +141,53 @@ const CartPage = () => {
 
       {/* Mobile Bottom Bar */}
       {isMobile && calculations.selectedItemsCount > 0 && (
-        <div className="fixed bottom-14 left-0 right-0 bg-card border-t border-border shadow-xl z-40">
+        <div className="fixed bottom-14 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
           {/* Free Shipping Progress */}
           {!isEligibleForFreeDelivery && amountToFreeShipping > 0 && (
-            <div className="px-4 py-2 bg-primary/5 border-b border-border">
-              <p className="text-xs text-muted-foreground text-center">
+            <div className="px-3 py-1.5 bg-primary/5 border-b border-border">
+              <p className="text-[11px] text-muted-foreground text-center">
                 Add <span className="font-semibold text-primary">KES {amountToFreeShipping.toLocaleString()}</span> more for free delivery
               </p>
             </div>
           )}
           
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Subtotal:</span>
-                <span className="text-sm font-medium">KES {calculations.subtotal.toLocaleString()}</span>
+          <div className="px-3 py-2.5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-muted-foreground">Subtotal:</span>
+                  <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">Total</span>
+                  <span className="text-sm font-bold text-foreground">
+                    KES {calculations.total.toLocaleString()}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Delivery:</span>
-                <span className={`text-sm font-medium ${isEligibleForFreeDelivery ? 'text-primary' : ''}`}>
-                  {isEligibleForFreeDelivery ? 'FREE' : `KES ${calculations.shipping.toLocaleString()}`}
+              <div className="flex flex-col items-end gap-0.5">
+                <span className={`text-[10px] font-medium ${isEligibleForFreeDelivery ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Delivery: {isEligibleForFreeDelivery ? 'FREE' : `KES ${calculations.shipping.toLocaleString()}`}
                 </span>
+                <Button
+                  onClick={handleCheckout}
+                  disabled={isNavigating}
+                  size="sm"
+                  className="h-9 px-5 text-sm"
+                >
+                  {isNavigating ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      <span className="text-xs">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      Checkout
+                      <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                    </>
+                  )}
+                </Button>
               </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs text-muted-foreground">Total</span>
-                <p className="text-lg font-bold text-foreground">
-                  KES {calculations.total.toLocaleString()}
-                </p>
-              </div>
-              <Button
-                onClick={handleCheckout}
-                disabled={isNavigating}
-                size="lg"
-                className="px-8"
-              >
-                {isNavigating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    Checkout
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </>
-                )}
-              </Button>
             </div>
           </div>
         </div>
