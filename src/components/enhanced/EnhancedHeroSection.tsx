@@ -239,19 +239,19 @@ const EnhancedHeroSection = memo(() => {
    */
 
   if (loading) {
-    return <section className={cn("relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px] max-w-[1600px] mx-auto px-4 lg:px-8")}>
+    return <section className={cn("relative bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}>
         {!isMobile && <CategorySidebar />}
       </section>;
   }
   if (heroSlides.length === 0) {
-    return <section className={cn("relative bg-gradient-to-br from-background via-muted to-background", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px] max-w-[1600px] mx-auto px-4 lg:px-8")}>
+    return <section className={cn("relative bg-gradient-to-br from-background via-muted to-background", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}>
         {!isMobile && <CategorySidebar />}
         <div className={cn("absolute inset-0 flex items-center justify-center", !isMobile && "ml-[260px]")}>
           <p className="text-muted-foreground text-lg">No banner images available</p>
         </div>
       </section>;
   }
-  return <section className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px] max-w-[1600px] mx-auto px-4 lg:px-8")}>
+  return <section className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}>
       {!isMobile && <CategorySidebar />}
       
       {/* Hero Carousel with Slide Animation */}
