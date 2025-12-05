@@ -82,19 +82,18 @@ export const TrustBadges = ({ variant = 'default', className = '' }: TrustBadges
 
   // Default variant
   return (
-    <div className={`bg-muted/30 border-y border-border/50 py-6 ${className}`}>
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 lg:gap-6">
-          {badges.map((badge, index) => (
+    <div className={`bg-muted/30 border-y border-border/50 py-4 md:py-6 ${className}`}>
+      <div className="container mx-auto px-3 md:px-4">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 lg:gap-6">
+          {badges.slice(0, 6).map((badge, index) => (
             <div 
               key={index} 
               className="flex flex-col items-center text-center group"
             >
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
-                <badge.icon className="w-5 h-5 text-primary" />
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg md:rounded-xl flex items-center justify-center mb-1 md:mb-2 group-hover:bg-primary/20 transition-colors">
+                <badge.icon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <h4 className="text-xs font-semibold text-foreground mb-0.5">{badge.title}</h4>
-              <p className="text-[10px] text-muted-foreground hidden md:block">{badge.description}</p>
+              <h4 className="text-[10px] md:text-xs font-medium md:font-semibold text-foreground leading-tight">{badge.shortTitle}</h4>
             </div>
           ))}
         </div>

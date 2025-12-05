@@ -148,21 +148,14 @@ const EnhancedFeaturedProducts = memo(() => {
     <LazySection fallback={loadingSkeleton}>
       <div className={`bg-card rounded-xl ${isMobile ? 'rounded-none' : 'shadow-sm'}`}>
         {/* Section Header */}
-        <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-4' : 'px-6 py-5 border-b border-border'}`}>
+        <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-5 border-b border-border'}`}>
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/10 rounded-lg">
-              <Flame className="h-5 w-5 text-primary" />
+            <div className={`${isMobile ? 'p-1' : 'p-1.5'} bg-primary/10 rounded-lg`}>
+              <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
             </div>
-            <div>
-              <h2 className={`font-semibold text-foreground ${isMobile ? 'text-base' : 'text-lg'}`}>
-                Hot Deals
-              </h2>
-              {!isMobile && totalCount > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Showing {products.length} of {totalCount} products
-                </p>
-              )}
-            </div>
+            <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
+              Hot Deals
+            </h2>
           </div>
           {!isMobile && hasNextPage && (
             <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
