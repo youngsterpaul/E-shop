@@ -56,8 +56,8 @@ interface Order {
 const statusConfig = {
   all: { label: 'All', icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' },
   pending: { label: 'Pending', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-  paid: { label: 'Paid', icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-100' },
   processing: { label: 'Processing', icon: Settings, color: 'text-purple-600', bg: 'bg-purple-100' },
+  packed: { label: 'Packed', icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
   shipped: { label: 'Shipped', icon: Truck, color: 'text-indigo-600', bg: 'bg-indigo-100' },
   delivered: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100' },
   cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100' },
