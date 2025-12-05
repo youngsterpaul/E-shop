@@ -3,10 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useProductSearch } from '@/hooks/useProducts';
 import { usePopularSearches } from '@/hooks/usePopularSearches';
 
-interface SearchSuggestion {
+export interface SearchSuggestion {
   text: string;
   category: 'product' | 'popular' | 'history';
   count?: number;
+  image?: string;
+  price?: number;
+  productId?: string;
 }
 
 export const useSearchSuggestions = (query: string, searchHistory: string[]) => {
@@ -64,14 +67,17 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
       .slice(0, 3)
       .map(item => ({ text: item, category: 'popular' as const }));
 
-    // Add product-based suggestions
+    // Add product-based suggestions with images and prices
     const productSuggestions: SearchSuggestion[] = products
       ? (
           // Flatten products from paginated response
           Array.isArray(products.pages)
-            ? products.pages.flatMap(page => page.products).slice(0, 4).map(product => ({
+            ? products.pages.flatMap(page => page.products).slice(0, 5).map(product => ({
                 text: product.name,
-                category: 'product' as const
+                category: 'product' as const,
+                image: product.image_urls?.[0] || undefined,
+                price: product.price || undefined,
+                productId: product.product_id
               }))
             : []
         )
