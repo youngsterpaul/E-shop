@@ -304,6 +304,12 @@ export function ModernAdminSidebar() {
       path: '/supersmartkenyaadmin123/daily-sales',
       badge: null,
     },
+    {
+      name: 'A/B Testing',
+      icon: BarChart3,
+      path: '/supersmartkenyaadmin123/ab-testing',
+      badge: null,
+    },
   ];
 
   // Filter menu items based on DB permissions
