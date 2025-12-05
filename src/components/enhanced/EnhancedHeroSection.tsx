@@ -121,8 +121,8 @@ const CategorySidebar = memo(() => {
       })}
       </div>
 
-      {/* Mega Menu - Fixed width aligned with sidebar */}
-      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 min-w-[600px] w-[600px] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
+      {/* Mega Menu - Matches hero section width with min-width to prevent compression */}
+      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 min-w-[600px] w-[calc(100vw-260px-4rem)] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 rounded-tr-xl">
             <div className="flex items-center justify-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
