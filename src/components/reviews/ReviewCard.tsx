@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, ThumbsUp, ThumbsDown, ShoppingBag, Reply } from 'lucide-react';
+import { Star, ThumbsUp, ThumbsDown, BadgeCheck, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -120,8 +120,8 @@ export const ReviewCard = ({ review }: { review: Review }) => {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{review.username}</span>
             {review.verified_purchase && (
-              <Badge variant="secondary" className="text-xs gap-1">
-                <ShoppingBag className="h-3 w-3" />
+              <Badge className="text-xs gap-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
+                <BadgeCheck className="h-3.5 w-3.5" />
                 Verified Purchase
               </Badge>
             )}
