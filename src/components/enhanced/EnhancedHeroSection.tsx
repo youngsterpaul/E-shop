@@ -98,7 +98,7 @@ const CategorySidebar = memo(() => {
 
   if (isLoading) {
     return (
-      <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+      <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -106,8 +106,8 @@ const CategorySidebar = memo(() => {
           </div>
         </div>
         <div className="p-3 space-y-2">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className="h-10 bg-muted/50 animate-pulse rounded-lg" />
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-9 bg-muted/50 animate-pulse rounded-lg" />
           ))}
         </div>
       </div>
@@ -116,7 +116,7 @@ const CategorySidebar = memo(() => {
 
   if (error || !categories || categories.length === 0) {
     return (
-      <div className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
+      <div className="absolute left-0 top-0 w-[260px] bg-card shadow-xl z-40 rounded-xl border border-border/50">
         <div className="p-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-t-xl">
           <div className="flex items-center gap-2">
             <Grid3X3 size={18} />
@@ -135,7 +135,7 @@ const CategorySidebar = memo(() => {
   return (
     <div 
       ref={sidebarRef} 
-      className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30"
+      className="absolute left-0 top-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30"
     >
       <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-t-xl">
         <div className="flex items-center gap-2.5">
@@ -144,7 +144,7 @@ const CategorySidebar = memo(() => {
         </div>
       </div>
       
-      <div className="h-[calc(100%-56px)] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+      <div>
         {categories.map((category, index) => {
           const IconComponent = category.icon || ShoppingBag;
           return (
@@ -157,7 +157,7 @@ const CategorySidebar = memo(() => {
               <div
                 onClick={(e) => handleCategoryClick(category, e)}
                 className={cn(
-                  "flex items-center justify-between px-4 py-3 text-sm transition-all duration-200 cursor-pointer group",
+                  "flex items-center justify-between px-4 py-2.5 text-sm transition-all duration-200 cursor-pointer group",
                   "text-foreground/80 hover:text-primary hover:bg-primary/5",
                   hoveredCategory === category.id && "text-primary bg-primary/5",
                   index !== categories.length - 1 && "border-b border-border/30"
@@ -184,15 +184,15 @@ const CategorySidebar = memo(() => {
         })}
       </div>
 
-      {/* Mega Menu - Rendered outside category loop for better z-index handling */}
+      {/* Mega Menu - Aligned with hero image area */}
       {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && (
         <div 
-          className="fixed ml-[260px] w-[900px] bg-card shadow-2xl border border-border/30 z-[100] h-[480px] rounded-xl"
-          style={{ top: `${menuTopOffset}px` }}
+          className="absolute left-full top-0 w-[calc(100vw-260px-2rem)] max-w-[900px] bg-card shadow-2xl border border-border/30 z-[100] rounded-xl"
+          style={{ maxHeight: 'calc(100% + 56px)' }}
           onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)}
           onMouseLeave={() => setHoveredCategory(null)}
         >
-          <div className="sticky top-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-4 z-10 rounded-t-xl">
+          <div className="sticky top-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 z-10 rounded-t-xl">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 {hoveredCategoryData.icon && <hoveredCategoryData.icon size={16} className="text-primary" />}
@@ -203,17 +203,17 @@ const CategorySidebar = memo(() => {
             </div>
           </div>
           
-          <div className="p-5 h-[calc(100%-120px)] overflow-y-auto scrollbar-subtle">
-            <div className="grid grid-cols-6 gap-4">
+          <div className="p-4 max-h-[350px] overflow-y-auto scrollbar-subtle">
+            <div className="grid grid-cols-6 gap-3">
               {hoveredCategoryData.subcategories.map((subcategory) => {
                 const SubIcon = ShoppingBag;
                 return (
                   <div
                     key={subcategory.id}
                     onClick={(e) => handleSubcategoryClick(hoveredCategoryData, subcategory, e)}
-                    className="flex flex-col items-center p-3 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20"
+                    className="flex flex-col items-center p-2 rounded-xl hover:bg-primary/5 hover:shadow-lg transition-all duration-300 cursor-pointer group border border-transparent hover:border-primary/20"
                   >
-                    <div className="relative w-16 h-16 mb-2 rounded-xl overflow-hidden bg-muted/50 group-hover:scale-105 transition-transform duration-300 shadow-sm">
+                    <div className="relative w-14 h-14 mb-1.5 rounded-xl overflow-hidden bg-muted/50 group-hover:scale-105 transition-transform duration-300 shadow-sm">
                       {subcategory.productImage ? (
                         <>
                           <OptimizedImage
@@ -229,7 +229,7 @@ const CategorySidebar = memo(() => {
                           "w-full h-full flex items-center justify-center",
                           subcategory.color || 'bg-gradient-to-br from-muted to-muted/80'
                         )}>
-                          <SubIcon size={20} className="text-muted-foreground/60" />
+                          <SubIcon size={18} className="text-muted-foreground/60" />
                         </div>
                       )}
                     </div>
@@ -242,10 +242,10 @@ const CategorySidebar = memo(() => {
             </div>
           </div>
           
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-muted/50 to-card border-t border-border/30 px-5 py-3 rounded-b-xl">
+          <div className="bg-gradient-to-r from-muted/50 to-card border-t border-border/30 px-5 py-2.5 rounded-b-xl">
             <div
               onClick={(e) => handleCategoryClick(hoveredCategoryData, e)}
-              className="text-sm text-primary hover:text-primary/80 font-semibold cursor-pointer text-center py-1.5 hover:underline transition-all flex items-center justify-center gap-2"
+              className="text-sm text-primary hover:text-primary/80 font-semibold cursor-pointer text-center py-1 hover:underline transition-all flex items-center justify-center gap-2"
             >
               View All {hoveredCategoryData.name}
               <ChevronRight size={16} />
