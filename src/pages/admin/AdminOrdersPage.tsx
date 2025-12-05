@@ -165,6 +165,24 @@ const AdminOrdersPage = () => {
     }
   };
 
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .in('order_id', selectedOrders);
+
+      if (error) throw error;
+
+      toast({ title: "Success", description: `${selectedOrders.length} orders updated to ${newStatus}` });
+      setSelectedOrders([]);
+      setIsAllSelected(false);
+      fetchOrders();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update orders", variant: "destructive" });
+    }
+  };
+
   const handleDownloadReceipt = (order: Order) => {
     try {
       downloadReceipt(order);
@@ -226,6 +244,20 @@ const AdminOrdersPage = () => {
             setIsAllSelected(false);
           }}
           onDelete={() => setIsDeleteDialogOpen(true)}
+          customActions={
+            <Select onValueChange={(status) => handleBulkStatusUpdate(status)}>
+              <SelectTrigger className="w-[140px] h-8">
+                <SelectValue placeholder="Update Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="packed">Packed</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          }
         />
       )}
 
