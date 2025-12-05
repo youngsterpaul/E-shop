@@ -127,7 +127,7 @@ const Header = () => {
             role="navigation" 
             aria-label="Main Navigation"
           >
-            <div className="w-full px-4 lg:px-8">
+            <div className="max-w-[1600px] mx-auto px-4 lg:px-8">
               <ul className="flex items-center justify-center gap-8">
                 {mainNavItems.map(item => (
                   <li key={item.href}>
@@ -145,7 +145,7 @@ const Header = () => {
           </nav>
         )}
 
-        <div className={`${isMobile ? 'py-3 px-4' : 'w-full px-4 lg:px-8 py-4 transition-all duration-300'}`}>
+        <div className={`${isMobile ? 'py-3 px-4' : 'max-w-[1600px] mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
           <div className="flex items-center gap-4 lg:gap-6">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group">
