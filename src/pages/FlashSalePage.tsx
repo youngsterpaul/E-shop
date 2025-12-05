@@ -109,49 +109,77 @@ const FlashSalePage = () => {
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
-        <div className={`max-w-[1400px] mx-auto px-4 lg:px-6 ${isMobile ? 'py-6' : 'py-12'}`}>
-          <div className={`flex flex-col ${isMobile ? 'gap-4' : 'md:flex-row gap-6'} items-center justify-between`}>
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
-                <Zap className={`${isMobile ? 'h-6 w-6' : 'h-10 w-10'}`} />
+        <div className={`max-w-[1400px] mx-auto px-4 lg:px-6 ${isMobile ? 'py-4' : 'py-12'}`}>
+          {isMobile ? (
+            // Mobile: Compact single-row layout
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                  <Zap className="h-4 w-4 fill-white" />
+                </div>
+                <div>
+                  <h1 className="text-base font-bold">Flash Sales</h1>
+                  <p className="text-[10px] text-white/80">
+                    {flashSales?.length || 0} sales • {productsData?.totalCount || 0} items
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'} font-bold mb-2`}>
-                  Flash Sales
-                </h1>
-                <p className={`text-white/90 ${isMobile ? 'text-sm' : 'text-lg'}`}>
-                  {flashSales?.length || 0} active sales • {productsData?.totalCount || 0} products
-                </p>
-              </div>
+
+              {timeLeft && (
+                <div className="flex items-center gap-1">
+                  <TimeBox value={timeLeft.hours} label="h" isMobile={isMobile} />
+                  <span className="text-white/60 text-xs font-bold">:</span>
+                  <TimeBox value={timeLeft.minutes} label="m" isMobile={isMobile} />
+                  <span className="text-white/60 text-xs font-bold">:</span>
+                  <TimeBox value={timeLeft.seconds} label="s" isMobile={isMobile} />
+                </div>
+              )}
             </div>
+          ) : (
+            // Desktop: Original layout
+            <>
+              <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+                    <Zap className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">Flash Sales</h1>
+                    <p className="text-white/90 text-lg">
+                      {flashSales?.length || 0} active sales • {productsData?.totalCount || 0} products
+                    </p>
+                  </div>
+                </div>
 
-            {timeLeft && (
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Clock className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'}`} />
-                  <span className={`${isMobile ? 'text-sm' : 'text-lg'} font-medium`}>Ends in:</span>
-                </div>
-                <div className="flex gap-2">
-                  <TimeBox value={timeLeft.hours} label="Hours" isMobile={isMobile} />
-                  <TimeBox value={timeLeft.minutes} label="Mins" isMobile={isMobile} />
-                  <TimeBox value={timeLeft.seconds} label="Secs" isMobile={isMobile} />
-                </div>
+                {timeLeft && (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-6 w-6" />
+                      <span className="text-lg font-medium">Ends in:</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <TimeBox value={timeLeft.hours} label="Hours" isMobile={isMobile} />
+                      <TimeBox value={timeLeft.minutes} label="Mins" isMobile={isMobile} />
+                      <TimeBox value={timeLeft.seconds} label="Secs" isMobile={isMobile} />
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <div className={`${isMobile ? 'mt-4' : 'mt-6'} flex flex-wrap items-center gap-3`}>
-            {flashSales && flashSales.length > 0 && (
-              <Badge className={`bg-white/20 hover:bg-white/30 text-white border-white/30 ${isMobile ? 'text-xs px-3 py-1' : 'text-base px-4 py-2'}`}>
-                {flashSales.length} Active Sale{flashSales.length > 1 ? 's' : ''}
-              </Badge>
-            )}
-            {productsData?.totalCount && (
-              <Badge className={`bg-white/20 hover:bg-white/30 text-white border-white/30 ${isMobile ? 'text-xs px-3 py-1' : 'text-base px-4 py-2'}`}>
-                {productsData.totalCount} Products on Sale
-              </Badge>
-            )}
-          </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {flashSales && flashSales.length > 0 && (
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-base px-4 py-2">
+                    {flashSales.length} Active Sale{flashSales.length > 1 ? 's' : ''}
+                  </Badge>
+                )}
+                {productsData?.totalCount && (
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-base px-4 py-2">
+                    {productsData.totalCount} Products on Sale
+                  </Badge>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -207,11 +235,11 @@ const FlashSalePage = () => {
 };
 
 const TimeBox = ({ value, label, isMobile }: { value: number; label: string; isMobile: boolean }) => (
-  <div className={`flex flex-col items-center bg-white/20 backdrop-blur-sm rounded-lg ${isMobile ? 'px-3 py-2 min-w-[50px]' : 'px-4 py-3 min-w-[70px]'}`}>
-    <span className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold text-white`}>
+  <div className={`flex flex-col items-center bg-white/25 backdrop-blur-sm ${isMobile ? 'px-1.5 py-1 rounded min-w-[28px]' : 'px-4 py-3 rounded-lg min-w-[70px]'}`}>
+    <span className={`${isMobile ? 'text-sm' : 'text-3xl'} font-bold text-white leading-tight`}>
       {value.toString().padStart(2, '0')}
     </span>
-    <span className={`${isMobile ? 'text-[10px]' : 'text-sm'} text-white/80`}>{label}</span>
+    {!isMobile && <span className="text-sm text-white/80">{label}</span>}
   </div>
 );
 
