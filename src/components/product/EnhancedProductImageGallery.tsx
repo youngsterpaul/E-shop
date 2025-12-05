@@ -21,6 +21,8 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [showLens, setShowLens] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0); // Real-time drag offset in pixels
+  const [isDragging, setIsDragging] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
   const [videoProgress, setVideoProgress] = useState(0);
@@ -120,13 +122,30 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev]);
 
-  /** Touch swipe (mobile) */
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.targetTouches[0].clientX);
+  /** Touch swipe (mobile) - Kilimall style with real-time drag */
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null || !mainRef.current) return;
+    const currentX = e.targetTouches[0].clientX;
+    const diff = currentX - touchStartX;
+    setDragOffset(diff);
+  };
+  
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null) return;
     const dist = touchStartX - e.changedTouches[0].clientX;
+    
+    setIsDragging(false);
+    setDragOffset(0);
+    
     if (dist > minSwipe) next();
-    if (dist < -minSwipe) prev();
+    else if (dist < -minSwipe) prev();
+    
     setTouchStartX(null);
   };
 
@@ -185,19 +204,24 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
 
   /* =================== MOBILE VIEW =================== */
   if (isMobile) {
+    // Calculate the container width for drag offset percentage
+    const containerWidth = mainRef.current?.offsetWidth || 1;
+    const dragPercentage = (dragOffset / containerWidth) * (100 / allMedia.length);
+    
     return (
       <div className="space-y-3 w-full">
         <div
           ref={mainRef}
           className="relative aspect-square w-full bg-white overflow-hidden"
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           <div
-            className="flex h-full transition-transform duration-300 ease-in-out items-start"
+            className={`flex h-full items-start ${isDragging ? '' : 'transition-transform duration-300 ease-out'}`}
             style={{
               width: `${allMedia.length * 100}%`,
-              transform: `translateX(-${currentIndex * (100 / allMedia.length)}%)`
+              transform: `translateX(calc(-${currentIndex * (100 / allMedia.length)}% + ${dragOffset}px))`
             }}
           >
             {allMedia.map((media, i) => (
