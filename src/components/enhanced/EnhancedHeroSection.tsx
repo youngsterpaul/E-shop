@@ -96,15 +96,15 @@ const CategorySidebar = memo(() => {
       </div>;
   }
   const hoveredCategoryData = categories.find(c => c.id === hoveredCategory);
-  return <div ref={sidebarRef} className="absolute left-0 top-0 w-[260px] bg-card shadow-2xl z-40 rounded-xl border border-border/30">
-      <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-t-xl">
+  return <div ref={sidebarRef} className="absolute left-0 top-0 bottom-0 w-[260px] bg-card shadow-2xl z-40 rounded-l-xl border border-border/30 flex flex-col">
+      <div className="p-4 bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground rounded-tl-xl">
         <div className="flex items-center gap-2.5">
           <Grid3X3 size={18} className="opacity-90" />
           <span className="font-semibold text-sm tracking-wide">ALL CATEGORIES</span>
         </div>
       </div>
       
-      <div>
+      <div className="flex-1">
         {categories.map((category, index) => {
         const IconComponent = category.icon || ShoppingBag;
         return <div key={category.id} className="relative" onMouseEnter={() => setHoveredCategory(category.id)} onMouseLeave={() => setHoveredCategory(null)}>
@@ -121,11 +121,9 @@ const CategorySidebar = memo(() => {
       })}
       </div>
 
-      {/* Mega Menu - Aligned with hero image area */}
-      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 w-[calc(100vw-260px-2rem)] max-w-[900px] bg-card shadow-2xl border border-border/30 z-[100] rounded-xl" style={{
-      maxHeight: 'calc(100% + 56px)'
-    }} onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
-          <div className="sticky top-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 z-10 rounded-t-xl">
+      {/* Mega Menu - Aligned with hero image width */}
+      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 w-[calc(100vw-260px-4rem)] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 rounded-tr-xl">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 {hoveredCategoryData.icon && <hoveredCategoryData.icon size={16} className="text-primary" />}
@@ -136,7 +134,7 @@ const CategorySidebar = memo(() => {
             </div>
           </div>
           
-          <div className="p-4 max-h-[350px] overflow-y-auto scrollbar-subtle">
+          <div className="p-4 flex-1 overflow-y-auto scrollbar-subtle">
             <div className="grid grid-cols-6 gap-3">
               {hoveredCategoryData.subcategories.map(subcategory => {
             const SubIcon = ShoppingBag;
@@ -157,7 +155,7 @@ const CategorySidebar = memo(() => {
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-muted/50 to-card border-t border-border/30 px-5 py-2.5 rounded-b-xl">
+          <div className="bg-gradient-to-r from-muted/50 to-card border-t border-border/30 px-5 py-2.5 rounded-br-xl">
             <div onClick={e => handleCategoryClick(hoveredCategoryData, e)} className="text-sm text-primary hover:text-primary/80 font-semibold cursor-pointer text-center py-1 hover:underline transition-all flex items-center justify-center gap-2">
               View All {hoveredCategoryData.name}
               <ChevronRight size={16} />
@@ -254,7 +252,7 @@ const EnhancedHeroSection = memo(() => {
       </section>;
   }
   return <section className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}>
-      {!isMobile && <CategorySidebar className="mx-0 my-0 mb-0 pb-[20px]" />}
+      {!isMobile && <CategorySidebar />}
       
       {/* Hero Carousel with Slide Animation */}
       <div className={cn("absolute inset-0 cursor-pointer", !isMobile && "ml-[260px] rounded-r-xl overflow-hidden")} onClick={handleSlideClick}>
