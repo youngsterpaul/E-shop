@@ -70,50 +70,21 @@ const Index = () => {
             <EnhancedHeroSection />
           </section>
 
-          {/* Flash Sale Section */}
-          <section className={isMobile ? 'mt-4' : 'mt-6'}>
-            <FlashSaleBanner />
-          </section>
-          
-          {/* Category Icons - Desktop Only */}
-          {!isMobile && (
-            <section className="mt-6 bg-card rounded-xl p-6 shadow-sm">
-              <CategoryIcons showAll={false} />
-            </section>
-          )}
-          
-          {/* Featured Products */}
-          <section className={`${isMobile ? '' : 'mt-6'}`}>
-            <EnhancedFeaturedProducts />
-          </section>
-
-          {/* Recently Viewed - Desktop Only */}
-          {!isMobile && (
-            <section>
-              <RecentlyViewedProducts maxItems={6} />
-            </section>
-          )}
-
-          {/* Trust Badges - Desktop Only */}
-          {!isMobile && (
-            <section className="mt-8">
-              <TrustBadges />
-            </section>
-          )}
-
-          {/* Testimonials - Desktop Only */}
-          {!isMobile && (
-            <section>
-              <Testimonials variant="carousel" />
-            </section>
-          )}
-
-          {/* Newsletter - Desktop Only */}
-          {!isMobile && (
-            <section className="py-12">
-              <NewsletterSubscription />
-            </section>
-          )}
+            {/* Flash Sale Banner */}
+            <div className={isMobile ? 'mb-4 px-4' : 'mb-8'}>
+              <FlashSaleBanner />
+            </div>
+            
+            {!isMobile && (
+              <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4 /mb-6' : 'mb-8 relative /z-10'}> {/* Added relative z-10 */}
+                <CategoryIcons showAll={false} />
+              </div>
+            )}
+            
+            <div className={isMobile ? '/bg-white /rounded-lg /shadow-md /p-4' : 'relative z-10'}> {/* Added relative z-10 */}
+              <EnhancedFeaturedProducts />
+            </div>
+          </div>
         </main>
       </div>
     </>
