@@ -18,9 +18,8 @@ const MobileNav = () => {
     const cartData = useCartContext();
     items = cartData.cartItems || [];
     totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  } catch (error) {
-    console.error('Cart context not available:', error);
-    // Fallback to empty cart if context is not available
+  } catch {
+    // Cart context not available, use defaults
     items = [];
     totalItems = 0;
   }
@@ -42,37 +41,47 @@ const MobileNav = () => {
 
   return (
     <>
-    {showMobileNav && (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 w-full z-50">
-        <div className="flex justify-around items-center py-1">
-          {navItems.map(({ icon: Icon, label, path, count }) => (
-            <Link
-              key={path}
-              to={path}
-              className={`flex flex-col items-center px-[2] relative ${
-                location.pathname === path
-                  ? 'text-gray-900'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              <div className="relative">
-                <Icon className="w-4 h-4" />
-                {(count ?? 0) > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-3 w-3 flex items-center justify-center p-0 text-xs"
-                  >
-                    {count}
-                  </Badge>
-                )}
-              </div>
-              <span className="text-xs">{label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    )}
-  </>
+      {showMobileNav && (
+        <nav 
+          className="fixed bottom-0 left-0 right-0 bg-background border-t border-border w-full z-50 safe-area-inset-bottom"
+          role="navigation"
+          aria-label="Mobile navigation"
+        >
+          <div className="flex justify-around items-center py-2">
+            {navItems.map(({ icon: Icon, label, path, count }) => {
+              const isActive = location.pathname === path;
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  aria-label={`${label}${count && count > 0 ? ` (${count} items)` : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex flex-col items-center min-w-[48px] min-h-[48px] justify-center relative transition-colors touch-target ${
+                    isActive
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <div className="relative">
+                    <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} aria-hidden="true" />
+                    {(count ?? 0) > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 text-[10px] font-semibold"
+                        aria-hidden="true"
+                      >
+                        {count}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className={`text-[10px] mt-1 ${isActive ? 'font-medium' : ''}`} aria-hidden="true">{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+    </>
   );
 };
 

@@ -240,59 +240,121 @@ const EnhancedHeroSection = memo(() => {
 
   if (loading) {
     return (
-      <section className={`relative ${heroHeight} bg-gray-200 animate-pulse ${!isMobile ? 'shadow-sm' : 'm-2 rounded-lg overflow-hidden'}`}>
-        <CategorySidebar />
+      <section 
+        className={cn("relative bg-gradient-to-br from-muted via-muted/80 to-muted", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}
+        aria-label="Loading hero section"
+        role="region"
+      >
+        {!isMobile && <CategorySidebar />}
+        <div className="absolute inset-0 skeleton-loading" aria-hidden="true" />
       </section>
     );
   }
   if (heroSlides.length === 0) {
-    console.warn('No hero slides available');
     return (
-      <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
-        <CategorySidebar />
-        <div className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} flex items-center justify-center`}>
-          <p className="text-white text-lg">No banner images available</p>
-        </div>
-      </section>;
-  }
-
-  const currentSlideData = heroSlides[currentSlide] ?? heroSlides[0];
-
-  return (
-    <section className={`relative ${heroHeight} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 ${!isMobile ? 'shadow-sm' : 'm-1 overflow-hidden rounded-sm'}`}>
-      <CategorySidebar />
-      <div 
-        className={`absolute inset-0 ${!isMobile ? 'ml-64' : ''} cursor-pointer`}
-        onClick={handleSlideClick}
+      <section 
+        className={cn("relative bg-gradient-to-br from-background via-muted to-background", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden" : "aspect-[2.8/1] max-h-[520px]")}
+        aria-label="Hero section"
+        role="region"
       >
-        <LazyImage
-          src={currentSlideData.image_url}
-          alt={currentSlideData.title}
-          priority
-          width={1920}
-          height={1080}
-          className={`object-cover w-full h-full ${!isMobile ? 'max-h-[500px]' : 'max-h-[180px]'}`}
-        />
-        <div className={`absolute inset-0 bg-black/30 ${isMobile ? 'overflow-hidden' : ''}`} />
+        {!isMobile && <CategorySidebar />}
+        <div className={cn("absolute inset-0 flex items-center justify-center", !isMobile && "ml-[260px]")}>
+          <p className="text-muted-foreground text-lg">No banner images available</p>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section 
+      className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}
+      aria-label="Featured promotions"
+      role="region"
+    >
+      {!isMobile && <CategorySidebar />}
+      
+      {/* Hero Carousel with Slide Animation */}
+      <div 
+        className={cn("absolute inset-0 cursor-pointer", !isMobile && "ml-[260px] rounded-r-xl overflow-hidden")} 
+        onClick={handleSlideClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSlideClick(); }}
+        aria-label={heroSlides[currentSlide]?.title || 'View promotion'}
+      >
+        {/* Slides Container */}
+        <div className="relative w-full h-full">
+          {heroSlides.map((slide, index) => (
+            <div 
+              key={slide.id} 
+              className={cn("absolute inset-0 transition-all duration-700 ease-out", index === currentSlide ? "opacity-100 translate-x-0" : index < currentSlide ? "opacity-0 -translate-x-full" : "opacity-0 translate-x-full")}
+              aria-hidden={index !== currentSlide}
+            >
+              <div className="w-full h-full overflow-hidden relative">
+                <LazyImage 
+                  src={slide.image_url} 
+                  alt={slide.title || `Promotional banner ${index + 1}`} 
+                  priority={index === 0} 
+                  width={1920} 
+                  height={480}
+                  aspectRatio="fill"
+                  className={cn("object-cover w-full h-full transition-transform duration-[5000ms] ease-out", index === currentSlide ? "scale-110" : "scale-100")} 
+                />
+              </div>
+              
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" aria-hidden="true" />
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation Arrows - Desktop Only */}
+        {!isMobile && heroSlides.length > 1 && (
+          <>
+            <button 
+              onClick={(e) => { e.stopPropagation(); prevSlide(); }} 
+              type="button"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px]" 
+              aria-label="Previous slide"
+            >
+              <ChevronLeft size={22} aria-hidden="true" />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); nextSlide(); }} 
+              type="button"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px]" 
+              aria-label="Next slide"
+            >
+              <ChevronRight size={22} aria-hidden="true" />
+            </button>
+          </>
+        )}
       </div>
 
+      {/* Slide Indicators */}
       {heroSlides.length > 1 && (
-        <div className={`absolute left-1/2 transform -translate-x-1/2 flex space-x-3 z-20 ${!isMobile ? 'bottom-8' : 'bottom-4'}`}>
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide 
-                  ? 'w-12 bg-orange-500' 
-                  : 'w-2 bg-white/60 hover:bg-white/80'
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                goToSlide(index);
-              }}
-              aria-label={`Go to slide ${index + 1}`}
+        <div 
+          className={cn("absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20", !isMobile ? "bottom-6" : "bottom-3")}
+          role="tablist"
+          aria-label="Slide navigation"
+        >
+          {heroSlides.map((slide, index) => (
+            <button 
+              key={index} 
+              type="button"
+              role="tab"
+              aria-selected={index === currentSlide}
+              aria-label={`Go to slide ${index + 1}: ${slide.title || `Promotion ${index + 1}`}`}
+              className={cn("rounded-full transition-all duration-500 shadow-sm min-w-[24px] min-h-[24px] flex items-center justify-center", index === currentSlide ? "w-8 h-2.5 bg-primary" : "w-2.5 h-2.5 bg-background/70 hover:bg-background/90 hover:scale-110")} 
+              onClick={(e) => { e.stopPropagation(); goToSlide(index); }} 
             />
           ))}
+        </div>
+      )}
+
+      {/* Slide Counter - Desktop */}
+      {!isMobile && heroSlides.length > 1 && (
+        <div className="absolute bottom-6 right-6 bg-background/90 rounded-full px-3 py-1.5 text-sm font-medium text-foreground z-20 border border-border/50" aria-live="polite" aria-atomic="true">
+          <span className="sr-only">Slide </span>{currentSlide + 1}<span className="sr-only"> of </span> / {heroSlides.length}
         </div>
       )}
     </section>

@@ -52,9 +52,8 @@ const Header = () => {
     const cartData = useCartContext();
     items = cartData.cartItems || [];
     totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  } catch (error) {
-    console.error('Cart context not available:', error);
-    // Fallback to empty cart if context is not available
+  } catch {
+    // Cart context not available, use defaults
     items = [];
     totalItems = 0;
   }
@@ -149,8 +148,14 @@ const Header = () => {
         <div className={`${isMobile ? 'py-2 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0">
-              <img src={smartkenyaLogo} alt="SmartKenya Logo" className={`object-fill  ${!isMobile ? 'h-12 w-48' : 'h-8 w-34'}`} />
+            <Link to="/" className="flex-shrink-0 group" aria-label="SmartKenya Home">
+              <img 
+                src={smartkenyaLogo} 
+                alt="SmartKenya - Kenya's Leading Electronics Store" 
+                width={isMobile ? 84 : 132}
+                height={isMobile ? 28 : 44}
+                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-7 w-auto'}`} 
+              />
             </Link>
 
             {/* Desktop Search - Expanded */}

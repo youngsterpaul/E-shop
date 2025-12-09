@@ -73,91 +73,93 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const displayReviewCount = product.reviews_count ?? product.reviews ?? 0;
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-white h-full border border-white rounded-sm overflow-hidden w-full mx-auto ${isMobile ? 'max-w-[800px]':'max-w-[180px] hover:rounded-lg'}`}>
-      <CardContent className={`h-full flex flex-col ${isMobile ? 'p-0' : 'p-2'}`}>
-        <Link to={`/product/${productSlug}/${product.id}`} className="block">
-          <div className="relative overflow-hidden bg-white aspect-square rounded-sm">
-            <OptimizedImage
-              src={product.image}
-              alt={product.name}
-              width={200}
-              height={200}
-              aspectRatio="square"
-              className="w-full h-full object-cover bg-gray-100"
-              sizes="200px"
-            />
-            
-            {/* Flash Sale Badge */}
-            {flashSale && (
-              <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 py-0.5 rounded text-xs font-medium shadow-sm flex items-center gap-1">
-                <Zap size={10} />
-                Flash Sale
-              </div>
-            )}
-            
-            {/* Discount Badge */}
-            {!flashSale && product.discount && (
-              <div className="absolute top-1 left-1 bg-red-500 text-white px-1.5 py-0.5 rounded text-xs font-medium shadow-sm">
-                -{product.discount}%
-              </div>
-            )}
-            
-            {/* Out of Stock Overlay */}
-            {!product.inStock && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <span className="text-white font-medium text-xs bg-black bg-opacity-75 px-2 py-1 rounded">
-                  Out of Stock
-                </span>
-              </div>
-            )}
-            
-            {/* Wishlist Button */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleWishlistToggle();
-              }}
-              className="absolute top-1 right-1 p-1.5 rounded-full bg-white/90 hover:bg-white shadow-sm transition-all duration-200 hover:scale-110"
-              aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-            >
-              <Heart
-                size={14}
-                className={`transition-colors ${
-                  isInWishlist(product.id) 
-                    ? 'text-red-500 fill-current' 
-                    : 'text-gray-600 hover:text-red-400'
-                }`}
-              />
-            </button>
-          </div>
-        </Link>
-
-        {/* Product Info - Kilimall style compact layout */}
-        <div className="p-1 flex flex-col flex-grow space-y-1">
-          <Link to={`/product/${productSlug}/${product.id}`}>
-            <h3 className="font-medium. text-sm text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors text-xs leading-tight group-hover:text-red-600 min-h-[32px]">
-              {product.name}
-            </h3>
-          </Link>
-
-          {/* Rating - More compact with real data */}
-          <div className="flex items-center">
-            <div className="flex items-center mr-1">
-              {[...Array(5)].map((_, i) => (
-                <span
-                  key={i}
-                  className={`text-xs ${
-                    i < Math.floor(averageRating) ? 'text-yellow-400' : 'text-gray-300'
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <span className="text-xs text-gray-500">
-              ({displayReviewCount > 999 ? '999+' : displayReviewCount})
+    <Link 
+      to={`/product/${productSlug}/${product.id}`}
+      className={`group relative bg-card rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg ${isMobile ? 'shadow-sm' : 'shadow-sm hover:-translate-y-1'}`}
+      aria-label={`View ${product.name} - ${formatPrice(displayPrice)}${!product.inStock ? ' (Out of Stock)' : ''}`}
+    >
+      {/* Image Container */}
+      <div className="relative aspect-square overflow-hidden bg-muted/30">
+        <OptimizedImage
+          src={product.image}
+          alt={`${product.name} - Product image`}
+          width={300}
+          height={300}
+          aspectRatio="square"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+        />
+        
+        {/* Badges */}
+        <div className={`absolute ${isMobile ? 'top-1.5 left-1.5' : 'top-2 left-2'} flex flex-col gap-1`}>
+          {flashSale && (
+            <span className={`inline-flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`} aria-label="Flash sale item">
+              <Zap size={isMobile ? 10 : 12} className="fill-current" aria-hidden="true" />
+              <span>Flash</span>
+            </span>
+          )}
+          {!flashSale && product.discount && product.discount > 0 && (
+            <span className={`bg-red-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`} aria-label={`${product.discount}% discount`}>
+              -{product.discount}%
+            </span>
+          )}
+        </div>
+        
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlistToggle}
+          type="button"
+          className={`absolute ${isMobile ? 'top-1.5 right-1.5' : 'top-2 right-2'} ${wishlistBtnClass} rounded-full transition-all duration-200 shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
+            isInWishlist(product.id) 
+              ? 'bg-red-50 text-red-500' 
+              : 'bg-white/90 text-muted-foreground hover:bg-white hover:text-red-500'
+          }`}
+          aria-label={isInWishlist(product.id) ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          aria-pressed={isInWishlist(product.id)}
+        >
+          <Heart
+            size={heartSize}
+            className={`transition-all ${isInWishlist(product.id) ? 'fill-current' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        
+        {/* Out of Stock Overlay */}
+        {!product.inStock && (
+          <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center backdrop-blur-[2px]" aria-hidden="true">
+            <span className="bg-foreground/80 text-background px-3 py-1.5 rounded-md text-sm font-medium">
+              Out of Stock
             </span>
           </div>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className={`${isMobile ? 'p-2 space-y-1' : 'p-3 space-y-2'}`}>
+        {/* Product Name */}
+        <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-foreground line-clamp-2 leading-snug ${isMobile ? 'min-h-[2rem]' : 'min-h-[2.5rem]'} group-hover:text-primary transition-colors`}>
+          {product.name}
+        </h3>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1" role="img" aria-label={`Rating: ${averageRating} out of 5 stars, ${displayReviewCount} reviews`}>
+          <div className="flex items-center" aria-hidden="true">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={isMobile ? 10 : 12}
+                className={`${
+                  i < Math.floor(averageRating) 
+                    ? 'text-amber-400 fill-amber-400' 
+                    : 'text-muted-foreground/30'
+                }`}
+              />
+            ))}
+          </div>
+          <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`} aria-hidden="true">
+            ({displayReviewCount > 999 ? '999+' : displayReviewCount})
+          </span>
+        </div>
 
         {/* Price */}
         <div className={`flex items-baseline gap-1.5 ${isMobile ? 'pt-0.5' : 'pt-1'}`}>
