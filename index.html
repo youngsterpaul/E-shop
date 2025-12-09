@@ -68,27 +68,56 @@
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
     
     <!-- Performance Optimization - Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://sgpjnbdrmwrupeqhjqpj.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     
-    <!-- Inline Critical Font CSS to Reduce HTTP Requests -->
+    <!-- Non-blocking font loading with font-display: swap -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    </noscript>
+    
+    <!-- Critical CSS for above-the-fold content to reduce CLS -->
     <style>
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
+      /* Prevent layout shift with explicit sizing */
+      :root {
+        --header-height: 64px;
+        --mobile-nav-height: 60px;
       }
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 600;
-        font-display: swap;
-        src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2) format('woff2');
+      body {
+        font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
+      /* Reserve space for hero section to prevent CLS */
+      .hero-placeholder {
+        min-height: 280px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      }
+      @media (min-width: 768px) {
+        .hero-placeholder {
+          min-height: 480px;
+        }
+      }
+      /* Skeleton loading animation */
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      .skeleton-loading {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      /* Image aspect ratio containers to prevent CLS */
+      .aspect-square { aspect-ratio: 1 / 1; }
+      .aspect-video { aspect-ratio: 16 / 9; }
+      .aspect-hero { aspect-ratio: 4 / 1; }
+      .aspect-hero-mobile { aspect-ratio: 2.68 / 1; }
     </style>
     
     <!-- Accessibility -->
