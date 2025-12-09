@@ -289,14 +289,14 @@ const EnhancedHeroSection = memo(() => {
               className={cn("absolute inset-0 transition-all duration-700 ease-out", index === currentSlide ? "opacity-100 translate-x-0" : index < currentSlide ? "opacity-0 -translate-x-full" : "opacity-0 translate-x-full")}
               aria-hidden={index !== currentSlide}
             >
-              <div className="w-full h-full overflow-hidden">
+              <div className="w-full h-full overflow-hidden relative">
                 <LazyImage 
                   src={slide.image_url} 
                   alt={slide.title || `Promotional banner ${index + 1}`} 
                   priority={index === 0} 
                   width={1920} 
                   height={480}
-                  aspectRatio={isMobile ? 'hero-mobile' : 'hero'}
+                  aspectRatio="fill"
                   className={cn("object-cover w-full h-full transition-transform duration-[5000ms] ease-out", index === currentSlide ? "scale-110" : "scale-100")} 
                 />
               </div>
