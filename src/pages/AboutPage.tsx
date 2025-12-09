@@ -1,3 +1,5 @@
+//changes
+
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useAboutContent } from '@/hooks/useSiteContent';
 import { Button } from '@/components/ui/button';
