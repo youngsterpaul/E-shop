@@ -25,18 +25,32 @@ export function CSVProductImportExport() {
 
       if (error) throw error;
 
-      // Create CSV content
-      const headers = ['name', 'description', 'price', 'stock', 'categories', 'featured', 'reorder_point'];
+      // Create CSV content with all product fields
+      const headers = [
+        'product_id', 'name', 'description', 'price', 'stock', 'categories', 
+        'featured', 'rating', 'reviews_count', 'reorder_point', 'low_stock_threshold',
+        'is_digital', 'store', 'subcategory_id', 'display_order', 'image_urls',
+        'features', 'specification', 'created_at', 'updated_at'
+      ];
+      
       const csvContent = [
         headers.join(','),
         ...products.map(product => 
           headers.map(header => {
             const value = product[header as keyof typeof product];
-            // Handle values that might contain commas
-            if (typeof value === 'string' && value.includes(',')) {
-              return `"${value}"`;
+            // Handle different value types
+            if (value === null || value === undefined) {
+              return '';
             }
-            return value ?? '';
+            if (typeof value === 'object') {
+              // Stringify JSON objects/arrays and escape quotes
+              const jsonStr = JSON.stringify(value).replace(/"/g, '""');
+              return `"${jsonStr}"`;
+            }
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
           }).join(',')
         )
       ].join('\n');
@@ -85,11 +99,25 @@ export function CSVProductImportExport() {
           headers.forEach((header, index) => {
             const value = values[index];
             
-            // Type conversions
-            if (header === 'price' || header === 'stock' || header === 'reorder_point') {
+            // Type conversions based on field type
+            if (['price', 'stock', 'reorder_point', 'low_stock_threshold', 'rating', 'reviews_count', 'display_order', 'subcategory_id'].includes(header)) {
               product[header] = value ? parseFloat(value) : null;
-            } else if (header === 'featured') {
-              product[header] = value.toLowerCase() === 'true';
+            } else if (['featured', 'is_digital'].includes(header)) {
+              product[header] = value?.toLowerCase() === 'true';
+            } else if (['image_urls', 'features', 'specification'].includes(header)) {
+              // Parse JSON fields
+              if (value) {
+                try {
+                  product[header] = JSON.parse(value.replace(/""/g, '"'));
+                } catch {
+                  product[header] = header === 'image_urls' ? [] : null;
+                }
+              } else {
+                product[header] = header === 'image_urls' ? [] : null;
+              }
+            } else if (header === 'product_id') {
+              // Skip product_id for new imports (auto-generated)
+              if (value) product[header] = value;
             } else {
               product[header] = value || null;
             }
@@ -236,10 +264,12 @@ export function CSVProductImportExport() {
         <div className="text-sm text-muted-foreground space-y-1">
           <p className="font-medium">CSV Format Requirements:</p>
           <ul className="list-disc list-inside text-xs space-y-1">
-            <li>Headers: name, description, price, stock, categories, featured, reorder_point</li>
+            <li>Headers: product_id, name, description, price, stock, categories, featured, rating, reviews_count, reorder_point, low_stock_threshold, is_digital, store, subcategory_id, display_order, image_urls, features, specification</li>
             <li>Required fields: name, price</li>
-            <li>Featured should be 'true' or 'false'</li>
+            <li>Boolean fields (featured, is_digital): 'true' or 'false'</li>
+            <li>JSON fields (image_urls, features, specification): valid JSON format</li>
             <li>Use quotes for values containing commas</li>
+            <li>product_id is optional for new imports (auto-generated)</li>
           </ul>
         </div>
       </CardContent>
