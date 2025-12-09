@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -143,8 +143,19 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     setIsDragging(false);
     setDragOffset(0);
     
-    if (dist > minSwipe) next();
-    else if (dist < -minSwipe) prev();
+    if (dist > minSwipe) {
+      // Stop video if playing before swiping
+      if (videoRef.current && isVideoPlaying) {
+        videoRef.current.pause();
+      }
+      next();
+    } else if (dist < -minSwipe) {
+      // Stop video if playing before swiping
+      if (videoRef.current && isVideoPlaying) {
+        videoRef.current.pause();
+      }
+      prev();
+    }
     
     setTouchStartX(null);
   };
@@ -272,23 +283,29 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                         />
                       </div>
                     )}
-                    {/* Play button overlay - only shows when paused */}
-                    {showPlayButton && !isVideoPlaying && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (videoRef.current) {
+                    {/* Play/Pause button overlay */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (videoRef.current) {
+                          if (isVideoPlaying) {
+                            videoRef.current.pause();
+                          } else {
                             videoRef.current.play();
                           }
-                        }}
-                        className="absolute inset-0 flex items-center justify-center transition-opacity"
-                        aria-label="Play video"
-                      >
-                        <div className="w-16 h-16 rounded-full bg-black/50 flex items-center justify-center">
-                          <Play className="w-8 h-8 text-white ml-1" />
-                        </div>
-                      </button>
-                    )}
+                        }
+                      }}
+                      className="absolute inset-0 flex items-center justify-center transition-opacity"
+                      aria-label={isVideoPlaying ? "Pause video" : "Play video"}
+                    >
+                      <div className={`w-14 h-14 rounded-full bg-black/50 flex items-center justify-center transition-opacity duration-200 ${isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
+                        {isVideoPlaying ? (
+                          <Pause className="w-7 h-7 text-white" />
+                        ) : (
+                          <Play className="w-7 h-7 text-white ml-0.5" />
+                        )}
+                      </div>
+                    </button>
                   </div>
                 ) : (
                   <OptimizedImage
