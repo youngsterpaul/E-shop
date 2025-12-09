@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Pause } from "lucide-react";
+import { Video } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -139,24 +139,8 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null) return;
     const dist = touchStartX - e.changedTouches[0].clientX;
-    
-    setIsDragging(false);
-    setDragOffset(0);
-    
-    if (dist > minSwipe) {
-      // Stop video if playing before swiping
-      if (videoRef.current && isVideoPlaying) {
-        videoRef.current.pause();
-      }
-      next();
-    } else if (dist < -minSwipe) {
-      // Stop video if playing before swiping
-      if (videoRef.current && isVideoPlaying) {
-        videoRef.current.pause();
-      }
-      prev();
-    }
-    
+    if (dist > minSwipe) next();
+    if (dist < -minSwipe) prev();
     setTouchStartX(null);
   };
 
@@ -242,71 +226,13 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                 style={{ width: `${100 / allMedia.length}%` }} 
               >
                 {isVideo(media) ? (
-                  <div 
-                    ref={i === currentIndex ? videoContainerRef : null}
-                    className="relative w-full h-full"
-                  >
-                    <video
-                      ref={i === currentIndex ? videoRef : null}
-                      src={media}
-                      className="w-full h-full object-cover object-top"
-                      poster={product.image}
-                      preload="metadata"
-                      playsInline
-                      loop
-                      onPlay={() => {
-                        setIsVideoPlaying(true);
-                        setShowPlayButton(false);
-                      }}
-                      onPause={() => {
-                        setIsVideoPlaying(false);
-                        setShowPlayButton(true);
-                      }}
-                      onEnded={() => {
-                        setIsVideoPlaying(false);
-                        setShowPlayButton(true);
-                        setVideoProgress(0);
-                      }}
-                      onTimeUpdate={(e) => {
-                        const video = e.currentTarget;
-                        if (video.duration) {
-                          setVideoProgress((video.currentTime / video.duration) * 100);
-                        }
-                      }}
-                    />
-                    {/* Video progress bar */}
-                    {isVideoPlaying && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-                        <div 
-                          className="h-full bg-primary transition-all duration-100 ease-linear"
-                          style={{ width: `${videoProgress}%` }}
-                        />
-                      </div>
-                    )}
-                    {/* Play/Pause button overlay */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (videoRef.current) {
-                          if (isVideoPlaying) {
-                            videoRef.current.pause();
-                          } else {
-                            videoRef.current.play();
-                          }
-                        }
-                      }}
-                      className="absolute inset-0 flex items-center justify-center transition-opacity"
-                      aria-label={isVideoPlaying ? "Pause video" : "Play video"}
-                    >
-                      <div className={`w-14 h-14 rounded-full bg-black/50 flex items-center justify-center transition-opacity duration-200 ${isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
-                        {isVideoPlaying ? (
-                          <Pause className="w-7 h-7 text-white" />
-                        ) : (
-                          <Play className="w-7 h-7 text-white ml-0.5" />
-                        )}
-                      </div>
-                    </button>
-                  </div>
+                  <video
+                    src={media}
+                    controls
+                    className="w-full h-full object-cover object-top"
+                    poster={product.image}
+                    preload="metadata"
+                  />
                 ) : (
                   <OptimizedImage
                     src={media}
