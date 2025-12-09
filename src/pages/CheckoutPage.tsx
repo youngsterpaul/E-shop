@@ -219,22 +219,19 @@ const CheckoutPage = () => {
 
   // Navigation functions
   const handleNext = () => {
-    if (currentStep === 1 && validateStep1()) {
-      // Save customer data to profile before moving to step 2
-      updateProfileDeliveryInfo({
-        first_name: customerData.firstName,
-        last_name: customerData.lastName,
-        phone: customerData.phone
-      });
-      setCurrentStep(2);
-    } else if (currentStep === 1 && validateStep2()) {
-      // Save all delivery data to profile before moving to step 3
-      updateProfileDeliveryInfo({
-        address: deliveryData.address,
-        city: deliveryData.city,
-        county: deliveryData.county
-      });
-      setCurrentStep(2);
+    if (currentStep === 1) {
+      if (validateStep1() && validateStep2()) {
+        // Save all data to profile before moving to step 2
+        updateProfileDeliveryInfo({
+          first_name: customerData.firstName,
+          last_name: customerData.lastName,
+          phone: customerData.phone,
+          address: deliveryData.address,
+          city: deliveryData.city,
+          county: deliveryData.county
+        });
+        setCurrentStep(2);
+      }
     } else if (currentStep === 2) {
       setShowPaymentModal(true);
     }
