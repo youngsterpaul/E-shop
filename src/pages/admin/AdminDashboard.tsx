@@ -3,7 +3,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/hooks/use-toast';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { useRealtimeSalesAnalytics } from '@/hooks/useRealtimeSalesAnalytics';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
@@ -104,43 +104,9 @@ const AdminDashboard = () => {
               <CardDescription>Real-time hourly revenue breakdown</CardDescription>
             </CardHeader>
             <CardContent>
-              {hourlyLoading ? (
-                <div className="h-64 flex items-center justify-center">
-                  <Skeleton className="h-full w-full" />
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={hourlySales?.filter(h => {
-                    const currentHour = new Date().getHours();
-                    const hour = parseInt(h.hour.split(':')[0]);
-                    return hour <= currentHour;
-                  }) || []}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis 
-                      dataKey="hour" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                      interval={2}
-                    />
-                    <YAxis 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`KSH ${value.toLocaleString()}`, 'Revenue']}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="revenue" 
-                      fill="hsl(var(--primary))" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
+              <div className="text-2xl font-bold">
+                {metricsLoading ? '...' : summaryMetrics?.totalOrders || '0'}
+              </div>
             </CardContent>
           </Card>
 
