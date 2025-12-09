@@ -72,7 +72,8 @@ const LazyImage = memo(({
         height={imgHeight}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'}
+        // @ts-expect-error fetchPriority is a valid attribute but not in React's types yet
+        fetchpriority={priority ? 'high' : 'auto'}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
