@@ -76,13 +76,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Link 
       to={`/product/${productSlug}/${product.id}`}
       className={`group relative bg-card rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg ${isMobile ? 'shadow-sm' : 'shadow-sm hover:-translate-y-1'}`}
-      aria-label={`View ${product.name} - ${formatPrice(displayPrice)}${!product.inStock ? ' (Out of Stock)' : ''}`}
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-muted/30">
         <OptimizedImage
           src={product.image}
-          alt={`${product.name} - Product image`}
+          alt={product.name}
           width={300}
           height={300}
           aspectRatio="square"
@@ -93,13 +92,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Badges */}
         <div className={`absolute ${isMobile ? 'top-1.5 left-1.5' : 'top-2 left-2'} flex flex-col gap-1`}>
           {flashSale && (
-            <span className={`inline-flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`} aria-label="Flash sale item">
-              <Zap size={isMobile ? 10 : 12} className="fill-current" aria-hidden="true" />
-              <span>Flash</span>
+            <span className={`inline-flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`}>
+              <Zap size={isMobile ? 10 : 12} className="fill-current" />
+              Flash
             </span>
           )}
           {!flashSale && product.discount && product.discount > 0 && (
-            <span className={`bg-red-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`} aria-label={`${product.discount}% discount`}>
+            <span className={`bg-red-500 text-white ${badgeClass} rounded-md font-semibold shadow-md`}>
               -{product.discount}%
             </span>
           )}
@@ -108,25 +107,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
-          type="button"
-          className={`absolute ${isMobile ? 'top-1.5 right-1.5' : 'top-2 right-2'} ${wishlistBtnClass} rounded-full transition-all duration-200 shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
+          className={`absolute ${isMobile ? 'top-1.5 right-1.5' : 'top-2 right-2'} ${wishlistBtnClass} rounded-full transition-all duration-200 shadow-md ${
             isInWishlist(product.id) 
               ? 'bg-red-50 text-red-500' 
               : 'bg-white/90 text-muted-foreground hover:bg-white hover:text-red-500'
           }`}
-          aria-label={isInWishlist(product.id) ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-          aria-pressed={isInWishlist(product.id)}
+          aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart
             size={heartSize}
             className={`transition-all ${isInWishlist(product.id) ? 'fill-current' : ''}`}
-            aria-hidden="true"
           />
         </button>
         
         {/* Out of Stock Overlay */}
         {!product.inStock && (
-          <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center backdrop-blur-[2px]" aria-hidden="true">
+          <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center backdrop-blur-[2px]">
             <span className="bg-foreground/80 text-background px-3 py-1.5 rounded-md text-sm font-medium">
               Out of Stock
             </span>
@@ -142,8 +138,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h3>
 
         {/* Rating */}
-        <div className="flex items-center gap-1" role="img" aria-label={`Rating: ${averageRating} out of 5 stars, ${displayReviewCount} reviews`}>
-          <div className="flex items-center" aria-hidden="true">
+        <div className="flex items-center gap-1">
+          <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
@@ -156,7 +152,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               />
             ))}
           </div>
-          <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`} aria-hidden="true">
+          <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
             ({displayReviewCount > 999 ? '999+' : displayReviewCount})
           </span>
         </div>
