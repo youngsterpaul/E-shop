@@ -6,8 +6,8 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'
   src: string;
   alt: string;
   fallback?: string;
-  priority?: boolean; // true = eager + high fetch priority
-  aspectRatio?: 'square' | 'video' | 'portrait' | 'landscape' | 'hero' | 'hero-mobile';
+  priority?: boolean;
+  aspectRatio?: 'square' | 'video' | 'portrait' | 'landscape' | 'hero' | 'hero-mobile' | 'fill';
   width?: number;
   height?: number;
 }
@@ -39,27 +39,43 @@ const LazyImage = memo(({
     onError?.(e);
   };
 
-  const aspectRatioClass = {
+  const aspectRatioClass: Record<string, string> = {
     square: 'aspect-square',
     video: 'aspect-video',
     portrait: 'aspect-[3/4]',
     landscape: 'aspect-[4/3]',
     hero: 'aspect-[4/1]',
-    'hero-mobile': 'aspect-[2.68/1]'
+    'hero-mobile': 'aspect-[2.68/1]',
+    fill: 'w-full h-full'
   };
 
-  // Default dimensions based on aspect ratio to prevent CLS
-  const defaultDimensions = {
-    square: { width: 300, height: 300 },
-    video: { width: 640, height: 360 },
-    portrait: { width: 300, height: 400 },
-    landscape: { width: 400, height: 300 },
-    hero: { width: 1920, height: 480 },
-    'hero-mobile': { width: 750, height: 280 }
-  };
+  const imgWidth = width || 800;
+  const imgHeight = height || 600;
 
-  const imgWidth = width || defaultDimensions[aspectRatio]?.width;
-  const imgHeight = height || defaultDimensions[aspectRatio]?.height;
+  // For fill mode, render without aspect ratio wrapper
+  if (aspectRatio === 'fill') {
+    return (
+      <>
+        {isLoading && <Skeleton className="absolute inset-0 w-full h-full" aria-hidden="true" />}
+        <img
+          src={hasError ? fallback : src}
+          alt={alt}
+          width={imgWidth}
+          height={imgHeight}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          onLoad={handleLoad}
+          onError={handleError}
+          className={cn(
+            'w-full h-full object-cover transition-opacity duration-300',
+            isLoading ? 'opacity-0' : 'opacity-100',
+            className
+          )}
+          {...props}
+        />
+      </>
+    );
+  }
 
   return (
     <div className={cn('relative overflow-hidden', aspectRatioClass[aspectRatio])}>
@@ -72,8 +88,6 @@ const LazyImage = memo(({
         height={imgHeight}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        // @ts-expect-error fetchPriority is a valid attribute but not in React's types yet
-        fetchpriority={priority ? 'high' : 'auto'}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
