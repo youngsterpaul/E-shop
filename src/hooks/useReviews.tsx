@@ -37,19 +37,23 @@ export const useReviews = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const canUserReviewProduct = async (productId: string) => {
+  const canUserReviewProduct = async (productId: string): Promise<boolean> => {
     if (!user) return false;
     
-    // Original code commented out
-    // const { data, error } = await supabase.rpc('can_user_review_product', {
-    //   p_user_id: user.id,
-    //   p_product_id: productId
-    // });
-    // if (error) {
-    //   console.error('Error checking review eligibility:', error);
-    //   return false;
-    // }
-    // return data;
+    try {
+      const { data, error } = await supabase.rpc('can_user_review_product', {
+        p_user_id: user.id,
+        p_product_id: productId
+      });
+      if (error) {
+        console.error('Error checking review eligibility:', error);
+        return false;
+      }
+      return data ?? false;
+    } catch (error) {
+      console.error('Error checking review eligibility:', error);
+      return false;
+    }
   };
 
   // Utility function to sanitize file names

@@ -96,20 +96,23 @@ export const useProductFlashSale = (productId: string) => {
             title,
             discount_type,
             discount_value,
-            end_date
+            start_date,
+            end_date,
+            is_active
           )
         `)
         .eq('product_id', productId);
 
       if (error) throw error;
 
-      // Filter for active flash sales
+      // Filter for active flash sales (check is_active and start_date)
       const activeFlashSale = data?.find((item: any) => {
         const sale = item.flash_sales;
         return (
           sale &&
-          sale.end_date >= now &&
-          new Date(sale.end_date) >= new Date()
+          sale.is_active === true &&
+          sale.start_date <= now &&
+          sale.end_date >= now
         );
       });
 
