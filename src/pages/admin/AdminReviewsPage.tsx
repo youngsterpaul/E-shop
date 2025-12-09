@@ -340,7 +340,11 @@ export default function AdminReviewsPage() {
 
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">Loading reviews...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-20 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : reviews.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No reviews found

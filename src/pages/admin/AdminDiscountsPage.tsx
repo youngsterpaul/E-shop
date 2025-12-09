@@ -432,7 +432,11 @@ export default function AdminDiscountsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-14 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : discounts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">No discounts found</div>
             ) : (

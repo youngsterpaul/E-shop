@@ -142,7 +142,8 @@ export const useAdminDashboard = () => {
     const { data: orders, error } = await supabase
       .from('orders')
       .select('items')
-      .not('items', 'is', null);
+      .not('items', 'is', null)
+      .in('status', ['processing', 'packed', 'shipped', 'delivered']);
     
     if (error) throw error;
     
@@ -151,15 +152,22 @@ export const useAdminDashboard = () => {
     orders.forEach(order => {
       const items = order.items as any[];
       items?.forEach(item => {
-        if (!productSales[item.product_id]) {
-          productSales[item.product_id] = {
-            name: item.name || 'Unknown Product',
+        // Handle nested product structure: item.product.id, item.product.name, item.product.price
+        const productId = item.product?.id || item.product_id;
+        const productName = item.product?.name || item.name || 'Unknown Product';
+        const productPrice = item.product?.price || item.price || 0;
+        
+        if (!productId) return;
+        
+        if (!productSales[productId]) {
+          productSales[productId] = {
+            name: productName,
             quantity: 0,
             revenue: 0
           };
         }
-        productSales[item.product_id].quantity += item.quantity || 0;
-        productSales[item.product_id].revenue += (item.price || 0) * (item.quantity || 0);
+        productSales[productId].quantity += item.quantity || 0;
+        productSales[productId].revenue += productPrice * (item.quantity || 0);
       });
     });
     
@@ -201,20 +209,34 @@ export const useAdminDashboard = () => {
     const { data: orders, error } = await supabase
       .from('orders')
       .select('items, amount')
-      .not('items', 'is', null);
+      .not('items', 'is', null)
+      .in('status', ['processing', 'packed', 'shipped', 'delivered']);
     
     if (error) throw error;
+    
+    // Fetch all products to get category info
+    const { data: products } = await supabase
+      .from('products')
+      .select('product_id, categories');
+    
+    const productCategoryMap = new Map(
+      products?.map(p => [p.product_id, p.categories || 'Uncategorized']) || []
+    );
     
     const categorySales: Record<string, { sales: number; count: number }> = {};
     
     orders.forEach(order => {
       const items = order.items as any[];
       items?.forEach(item => {
-        const category = item.category || 'Uncategorized';
+        // Handle nested product structure
+        const productId = item.product?.id || item.product_id;
+        const productPrice = item.product?.price || item.price || 0;
+        const category = productCategoryMap.get(productId) || item.category || 'Uncategorized';
+        
         if (!categorySales[category]) {
           categorySales[category] = { sales: 0, count: 0 };
         }
-        categorySales[category].sales += (item.price || 0) * (item.quantity || 0);
+        categorySales[category].sales += productPrice * (item.quantity || 0);
         categorySales[category].count += 1;
       });
     });

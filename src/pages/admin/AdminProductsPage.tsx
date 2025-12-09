@@ -439,7 +439,11 @@ const AdminProductsPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-8">Loading products...</div>
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+              ))}
+            </div>
           ) : filteredProducts.length === 0 ? (
             <EmptyState
               icon={Package}

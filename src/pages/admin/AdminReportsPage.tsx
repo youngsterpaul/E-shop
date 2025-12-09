@@ -283,7 +283,11 @@ export default function AdminReportsPage() {
             </div>
 
             {salesLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -329,7 +333,11 @@ export default function AdminReportsPage() {
             <h2 className="text-xl font-bold">Customer Report</h2>
 
             {customersLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -399,7 +407,11 @@ export default function AdminReportsPage() {
             </div>
 
             {productsLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -455,7 +467,11 @@ export default function AdminReportsPage() {
             <h2 className="text-xl font-bold">Inventory Report</h2>
 
             {inventoryLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
