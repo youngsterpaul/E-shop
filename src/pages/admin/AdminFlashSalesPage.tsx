@@ -209,7 +209,11 @@ const AdminFlashSalesPage = () => {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                ))}
+              </div>
             ) : flashSales && flashSales.length > 0 ? (
               <Table>
                 <TableHeader>

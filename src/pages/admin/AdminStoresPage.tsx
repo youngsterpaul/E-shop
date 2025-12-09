@@ -159,7 +159,13 @@ const AdminStoresPage = () => {
 
       <Card>
         <CardContent className="p-6">
-          {isLoading ? <div className="text-center py-8">Loading...</div> : !stores || stores.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-14 bg-muted rounded animate-pulse" />
+              ))}
+            </div>
+          ) : !stores || stores.length === 0 ? (
             <EmptyState icon={Store} title="No stores yet" description="Add your first store location" actionLabel="Add Store" onAction={() => setIsAddDialogOpen(true)} />
           ) : (
             <Table>

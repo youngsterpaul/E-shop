@@ -3,6 +3,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { useRealtimeSalesAnalytics } from '@/hooks/useRealtimeSalesAnalytics';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
@@ -104,7 +105,9 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {hourlyLoading ? (
-                <div className="h-64 flex items-center justify-center">Loading...</div>
+                <div className="h-64 flex items-center justify-center">
+                  <Skeleton className="h-full w-full" />
+                </div>
               ) : (
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={hourlySales?.filter(h => {
@@ -156,7 +159,9 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             {salesLoading ? (
-              <div className="h-80 flex items-center justify-center">Loading...</div>
+              <div className="h-80 flex items-center justify-center">
+                <Skeleton className="h-full w-full" />
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={dailySales}>
@@ -269,8 +274,10 @@ const AdminDashboard = () => {
               <CardDescription>Revenue distribution across categories</CardDescription>
             </CardHeader>
             <CardContent>
-              {salesCategoryLoading ? (
-                <div className="h-80 flex items-center justify-center">Loading...</div>
+            {salesCategoryLoading ? (
+              <div className="h-80 flex items-center justify-center">
+                <Skeleton className="h-64 w-64 rounded-full mx-auto" />
+              </div>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>

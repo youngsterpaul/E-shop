@@ -183,7 +183,13 @@ const AdminLocationsPage = () => {
 
           <Card>
             <CardContent className="p-6">
-              {countiesLoading ? <div className="text-center py-8">Loading...</div> : !counties || counties.length === 0 ? (
+              {countiesLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : !counties || counties.length === 0 ? (
                 <EmptyState icon={MapPin} title="No counties" description="Add your first county" actionLabel="Add County" onAction={() => setIsAddCountyOpen(true)} />
               ) : (
                 <Table>
@@ -238,7 +244,13 @@ const AdminLocationsPage = () => {
 
           <Card>
             <CardContent className="p-6">
-              {citiesLoading ? <div className="text-center py-8">Loading...</div> : !cities || cities.length === 0 ? (
+              {citiesLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : !cities || cities.length === 0 ? (
                 <EmptyState icon={MapPin} title="No cities" description="Add your first city" actionLabel="Add City" onAction={() => setIsAddCityOpen(true)} />
               ) : (
                 <Table>

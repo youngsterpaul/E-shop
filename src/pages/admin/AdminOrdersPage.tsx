@@ -303,8 +303,10 @@ const AdminOrdersPage = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+              ))}
             </div>
           ) : displayedOrders.length === 0 ? (
             <div className="text-center py-12">

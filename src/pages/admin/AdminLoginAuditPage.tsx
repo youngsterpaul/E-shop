@@ -185,7 +185,13 @@ const AdminLoginAuditPage = () => {
 
       <Card>
         <CardContent className="p-6">
-          {isLoading ? <div className="text-center py-8">Loading...</div> : (
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-14 bg-muted rounded animate-pulse" />
+              ))}
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
