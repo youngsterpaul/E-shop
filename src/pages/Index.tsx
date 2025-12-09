@@ -65,19 +65,15 @@ const Index = () => {
         {isMobile && <Header />}
 
         <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : ''}`}>
-          {/* Hero Section - Desktop Only */}
-          {!isMobile && (
-            <section className="py-4">
-              <EnhancedHeroSection />
-            </section>
-          )}
+          {/* Hero Section */}
+          <section className={isMobile ? '' : 'py-4'}>
+            <EnhancedHeroSection />
+          </section>
 
-          {/* Flash Sale Section - Desktop Only */}
-          {!isMobile && (
-            <section className="mt-6">
-              <FlashSaleBanner />
-            </section>
-          )}
+          {/* Flash Sale Section */}
+          <section className={isMobile ? 'mt-4' : 'mt-6'}>
+            <FlashSaleBanner />
+          </section>
           
           {/* Category Icons - Desktop Only */}
           {!isMobile && (
