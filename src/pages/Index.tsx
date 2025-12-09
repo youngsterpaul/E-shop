@@ -65,15 +65,19 @@ const Index = () => {
         {isMobile && <Header />}
 
         <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6' : ''}`}>
-          {/* Hero Section */}
-          <section className={isMobile ? '' : 'py-4'}>
-            <EnhancedHeroSection />
-          </section>
+          {/* Hero Section - Desktop Only */}
+          {!isMobile && (
+            <section className="py-4">
+              <EnhancedHeroSection />
+            </section>
+          )}
 
-          {/* Flash Sale Section */}
-          <section className={isMobile ? 'mt-4' : 'mt-6'}>
-            <FlashSaleBanner />
-          </section>
+          {/* Flash Sale Section - Desktop Only */}
+          {!isMobile && (
+            <section className="mt-6">
+              <FlashSaleBanner />
+            </section>
+          )}
           
           {/* Category Icons - Desktop Only */}
           {!isMobile && (
@@ -83,29 +87,37 @@ const Index = () => {
           )}
           
           {/* Featured Products */}
-          <section className={`${isMobile ? 'mt-4' : 'mt-6'}`}>
+          <section className={`${isMobile ? '' : 'mt-6'}`}>
             <EnhancedFeaturedProducts />
           </section>
 
-          {/* Recently Viewed */}
-          <section className={`${isMobile ? 'px-4' : ''}`}>
-            <RecentlyViewedProducts maxItems={6} />
-          </section>
+          {/* Recently Viewed - Desktop Only */}
+          {!isMobile && (
+            <section>
+              <RecentlyViewedProducts maxItems={6} />
+            </section>
+          )}
 
-          {/* Trust Badges */}
-          <section className={`${isMobile ? 'mt-4' : 'mt-8'}`}>
-            <TrustBadges />
-          </section>
+          {/* Trust Badges - Desktop Only */}
+          {!isMobile && (
+            <section className="mt-8">
+              <TrustBadges />
+            </section>
+          )}
 
-          {/* Testimonials */}
-          <section className={`${isMobile ? 'px-4' : ''}`}>
-            <Testimonials variant="carousel" />
-          </section>
+          {/* Testimonials - Desktop Only */}
+          {!isMobile && (
+            <section>
+              <Testimonials variant="carousel" />
+            </section>
+          )}
 
-          {/* Newsletter */}
-          <section className={`${isMobile ? 'px-4 py-8 pb-24' : 'py-12'}`}>
-            <NewsletterSubscription />
-          </section>
+          {/* Newsletter - Desktop Only */}
+          {!isMobile && (
+            <section className="py-12">
+              <NewsletterSubscription />
+            </section>
+          )}
         </main>
       </div>
     </>
