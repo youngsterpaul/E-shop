@@ -7,6 +7,7 @@ import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import { CSVProductImportExport } from '@/components/admin/CSVProductImportExport';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -394,24 +395,26 @@ const AdminProductsPage = () => {
         addNewLabel="Add Product"
       />
 
-      <div className="mb-4">
-        <CSVProductImportExport />
-      </div>
+      <SuperadminOnly>
+        <div className="mb-4">
+          <CSVProductImportExport />
+        </div>
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={filteredProducts}
-          filename="products"
-          headers={[
-            { key: 'name', label: 'Product Name' },
-            { key: 'price', label: 'Price' },
-            { key: 'stock', label: 'Stock' },
-            { key: 'categories', label: 'Category' },
-            { key: 'store', label: 'Store' },
-            { key: 'featured', label: 'Featured' },
-          ]}
-        />
-      </div>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={filteredProducts}
+            filename="products"
+            headers={[
+              { key: 'name', label: 'Product Name' },
+              { key: 'price', label: 'Price' },
+              { key: 'stock', label: 'Stock' },
+              { key: 'categories', label: 'Category' },
+              { key: 'store', label: 'Store' },
+              { key: 'featured', label: 'Featured' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <Card>
         <CardContent className="p-6">

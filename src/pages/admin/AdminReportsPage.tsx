@@ -13,8 +13,10 @@ import { toast } from 'sonner';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
+import { useSuperadminCheck } from '@/components/admin/SuperadminOnly';
 
 export default function AdminReportsPage() {
+  const { isSuperAdmin } = useSuperadminCheck();
   const [dateRange, setDateRange] = useState({
     from: format(subMonths(new Date(), 1), 'yyyy-MM-dd'),
     to: format(new Date(), 'yyyy-MM-dd'),
@@ -103,20 +105,45 @@ export default function AdminReportsPage() {
     queryFn: async () => {
       const { data: orders } = await supabase
         .from('orders')
-        .select('items')
+        .select('items, amount')
         .gte('created_at', dateRange.from)
         .lte('created_at', dateRange.to);
+
+      // Collect all product IDs from orders
+      const productIds = new Set<string>();
+      orders?.forEach(order => {
+        const items = order.items as any[];
+        items?.forEach(item => {
+          if (item.product_id) productIds.add(item.product_id);
+        });
+      });
+
+      // Fetch product names from database
+      const { data: products } = await supabase
+        .from('products')
+        .select('product_id, name')
+        .in('product_id', Array.from(productIds));
+
+      const productNameMap = new Map(products?.map(p => [p.product_id, p.name]) || []);
 
       const productStats: Record<string, { name: string; quantity: number; revenue: number }> = {};
 
       orders?.forEach(order => {
         const items = order.items as any[];
         items?.forEach(item => {
-          if (!productStats[item.product_id]) {
-            productStats[item.product_id] = { name: item.name || 'Unknown', quantity: 0, revenue: 0 };
+          const productId = item.product_id || item.id;
+          if (!productId) return;
+          
+          // Get product name from map, fallback to item name, then 'Unknown Product'
+          const productName = productNameMap.get(productId) || item.name || item.product?.name || 'Unknown Product';
+          
+          if (!productStats[productId]) {
+            productStats[productId] = { name: productName, quantity: 0, revenue: 0 };
           }
-          productStats[item.product_id].quantity += item.quantity || 0;
-          productStats[item.product_id].revenue += (item.price || 0) * (item.quantity || 0);
+          productStats[productId].quantity += item.quantity || 1;
+          // Calculate revenue from item price * quantity
+          const itemPrice = item.price || item.product?.price || 0;
+          productStats[productId].revenue += itemPrice * (item.quantity || 1);
         });
       });
 
@@ -276,10 +303,12 @@ export default function AdminReportsPage() {
           <TabsContent value="sales" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Sales Report</h2>
-              <Button onClick={exportSalesReport} disabled={!salesReport?.orders?.length}>
-                <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+              {isSuperAdmin && (
+                <Button onClick={exportSalesReport} disabled={!salesReport?.orders?.length}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
             </div>
 
             {salesLoading ? (
@@ -400,10 +429,12 @@ export default function AdminReportsPage() {
           <TabsContent value="products" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Product Performance</h2>
-              <Button onClick={exportProductReport} disabled={!productReport?.topProducts?.length}>
-                <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+              {isSuperAdmin && (
+                <Button onClick={exportProductReport} disabled={!productReport?.topProducts?.length}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
             </div>
 
             {productsLoading ? (

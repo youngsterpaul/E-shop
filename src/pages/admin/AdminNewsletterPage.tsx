@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { SuperadminOnly, useSuperadminCheck } from '@/components/admin/SuperadminOnly';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ const AdminNewsletterPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
+  const { isSuperAdmin } = useSuperadminCheck();
 
   // Stats
   const totalSubscribers = subscribers.length;
@@ -136,10 +138,12 @@ const AdminNewsletterPage = () => {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button onClick={handleExport} disabled={subscribers.length === 0}>
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
+            {isSuperAdmin && (
+              <Button onClick={handleExport} disabled={subscribers.length === 0}>
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
           </div>
         </div>
 

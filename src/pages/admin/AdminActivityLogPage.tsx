@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -228,18 +229,20 @@ const AdminActivityLogPage = () => {
             </Button>
           )}
         </div>
-        <ExportButton
-          data={filteredLogs}
-          filename="activity-log"
-          headers={[
-            { key: 'created_at', label: 'Date' },
-            { key: 'user_email', label: 'User' },
-            { key: 'action_type', label: 'Action' },
-            { key: 'table_name', label: 'Table' },
-            { key: 'record_name', label: 'Record' },
-            { key: 'record_id', label: 'Record ID' },
-          ]}
-        />
+        <SuperadminOnly>
+          <ExportButton
+            data={filteredLogs}
+            filename="activity-log"
+            headers={[
+              { key: 'created_at', label: 'Date' },
+              { key: 'user_email', label: 'User' },
+              { key: 'action_type', label: 'Action' },
+              { key: 'table_name', label: 'Table' },
+              { key: 'record_name', label: 'Record' },
+              { key: 'record_id', label: 'Record ID' },
+            ]}
+          />
+        </SuperadminOnly>
       </div>
 
       <Card>

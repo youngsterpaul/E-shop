@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Loader2, ChevronDown, Tags } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -84,17 +85,19 @@ const AdminCategoriesPage = () => {
         onRefresh={() => window.location.reload()}
       />
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={mainCategories}
-          filename="categories"
-          headers={[
-            { key: 'category', label: 'Category Name' },
-            { key: 'slug', label: 'Slug' },
-            { key: 'icon_name', label: 'Icon' },
-          ]}
-        />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={mainCategories}
+            filename="categories"
+            headers={[
+              { key: 'category', label: 'Category Name' },
+              { key: 'slug', label: 'Slug' },
+              { key: 'icon_name', label: 'Icon' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <div className="grid gap-6 md:grid-cols-2">
         <CategoryForm

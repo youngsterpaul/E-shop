@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -148,14 +149,16 @@ const AdminStoresPage = () => {
         }
       />
 
-      <div className="flex justify-end mb-4">
-        <ExportButton data={stores || []} filename="stores" headers={[
-          { key: 'name', label: 'Store Name' },
-          { key: 'phone', label: 'Phone' },
-          { key: 'email', label: 'Email' },
-          { key: 'address', label: 'Address' },
-        ]} />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton data={stores || []} filename="stores" headers={[
+            { key: 'name', label: 'Store Name' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'email', label: 'Email' },
+            { key: 'address', label: 'Address' },
+          ]} />
+        </div>
+      </SuperadminOnly>
 
       <Card>
         <CardContent className="p-6">

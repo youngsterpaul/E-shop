@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -162,19 +163,21 @@ const AdminInventoryPage = () => {
         </Card>
       </div>
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={filteredProducts}
-          filename="inventory"
-          headers={[
-            { key: 'name', label: 'Product Name' },
-            { key: 'stock', label: 'Current Stock' },
-            { key: 'reorder_point', label: 'Reorder Point' },
-            { key: 'price', label: 'Unit Price' },
-            { key: 'categories', label: 'Category' },
-          ]}
-        />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={filteredProducts}
+            filename="inventory"
+            headers={[
+              { key: 'name', label: 'Product Name' },
+              { key: 'stock', label: 'Current Stock' },
+              { key: 'reorder_point', label: 'Reorder Point' },
+              { key: 'price', label: 'Unit Price' },
+              { key: 'categories', label: 'Category' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <Card>
         <CardContent className="p-6">

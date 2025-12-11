@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -178,7 +179,9 @@ const AdminLocationsPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
-            <ExportButton data={counties || []} filename="counties" headers={[{ key: 'name', label: 'County' }, { key: 'slug', label: 'Slug' }]} />
+            <SuperadminOnly>
+              <ExportButton data={counties || []} filename="counties" headers={[{ key: 'name', label: 'County' }, { key: 'slug', label: 'Slug' }]} />
+            </SuperadminOnly>
           </div>
 
           <Card>
@@ -239,7 +242,9 @@ const AdminLocationsPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
-            <ExportButton data={cities || []} filename="cities" headers={[{ key: 'name', label: 'City' }, { key: 'slug', label: 'Slug' }]} />
+            <SuperadminOnly>
+              <ExportButton data={cities || []} filename="cities" headers={[{ key: 'name', label: 'City' }, { key: 'slug', label: 'Slug' }]} />
+            </SuperadminOnly>
           </div>
 
           <Card>

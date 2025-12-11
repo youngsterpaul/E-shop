@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,20 +168,22 @@ const AdminSuppliersPage = () => {
         }
       />
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={filteredSuppliers}
-          filename="suppliers"
-          headers={[
-            { key: 'name', label: 'Name' },
-            { key: 'contact_person', label: 'Contact Person' },
-            { key: 'email', label: 'Email' },
-            { key: 'phone', label: 'Phone' },
-            { key: 'address', label: 'Address' },
-            { key: 'is_active', label: 'Active' },
-          ]}
-        />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={filteredSuppliers}
+            filename="suppliers"
+            headers={[
+              { key: 'name', label: 'Name' },
+              { key: 'contact_person', label: 'Contact Person' },
+              { key: 'email', label: 'Email' },
+              { key: 'phone', label: 'Phone' },
+              { key: 'address', label: 'Address' },
+              { key: 'is_active', label: 'Active' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <Card>
         <CardContent className="p-6">

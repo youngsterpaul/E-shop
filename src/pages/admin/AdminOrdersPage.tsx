@@ -5,6 +5,7 @@ import { ExportButton } from '@/components/admin/ExportButton';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { OrderFulfillmentModal } from '@/components/admin/OrderFulfillmentModal';
 import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -261,23 +262,25 @@ const AdminOrdersPage = () => {
         />
       )}
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={filteredOrders}
-          filename="orders"
-          headers={[
-            { key: 'order_id', label: 'Order ID' },
-            { key: 'username', label: 'Customer Name' },
-            { key: 'email', label: 'Customer Email' },
-            { key: 'phone_number', label: 'Phone' },
-            { key: 'amount', label: 'Amount' },
-            { key: 'status', label: 'Status' },
-            { key: 'mpesa_receipt_number', label: 'Transaction Code' },
-            { key: 'tracking_number', label: 'Tracking Number' },
-            { key: 'created_at', label: 'Date' },
-          ]}
-        />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={filteredOrders}
+            filename="orders"
+            headers={[
+              { key: 'order_id', label: 'Order ID' },
+              { key: 'username', label: 'Customer Name' },
+              { key: 'email', label: 'Customer Email' },
+              { key: 'phone_number', label: 'Phone' },
+              { key: 'amount', label: 'Amount' },
+              { key: 'status', label: 'Status' },
+              { key: 'mpesa_receipt_number', label: 'Transaction Code' },
+              { key: 'tracking_number', label: 'Tracking Number' },
+              { key: 'created_at', label: 'Date' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <Card>
         <CardContent className="p-6">

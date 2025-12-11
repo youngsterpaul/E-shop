@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
+import { SuperadminOnly } from '@/components/admin/SuperadminOnly';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -132,18 +133,20 @@ const AdminLoginAuditPage = () => {
         />
       )}
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={audits || []}
-          filename="login-audit"
-          headers={[
-            { key: 'email', label: 'Email' },
-            { key: 'success', label: 'Success' },
-            { key: 'ip_address', label: 'IP Address' },
-            { key: 'created_at', label: 'Date' },
-          ]}
-        />
-      </div>
+      <SuperadminOnly>
+        <div className="flex justify-end mb-4">
+          <ExportButton
+            data={audits || []}
+            filename="login-audit"
+            headers={[
+              { key: 'email', label: 'Email' },
+              { key: 'success', label: 'Success' },
+              { key: 'ip_address', label: 'IP Address' },
+              { key: 'created_at', label: 'Date' },
+            ]}
+          />
+        </div>
+      </SuperadminOnly>
 
       <div className="grid gap-4 md:grid-cols-3 mb-6">
         <Card>
