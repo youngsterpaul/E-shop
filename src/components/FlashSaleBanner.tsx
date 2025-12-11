@@ -63,9 +63,9 @@ const FlashSaleBanner = () => {
   return (
     <section className={`bg-white rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
       {/* Header */}
-      <div className={`flex items-center justify-between ${isMobile ? 'px-2.5 py-2' : 'px-6 py-4'}`}>
+      <div className={`flex items-center justify-between ${isMobile ? 'px-2.5 py-2' : 'px-6 py-4 border-b border-border'}`}>
         {/* Left: Flash Sale title */}
-        <div className="flex items-center gap-1.5 border border-b">
+        <div className="flex items-center gap-1.5">
           <div className={`${isMobile ? 'p-1' : 'p-2'} bg-white/20 rounded-md backdrop-blur-sm`}>
             <Zap className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'} text-primary`} />
           </div>
