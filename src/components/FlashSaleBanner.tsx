@@ -85,7 +85,7 @@ const FlashSaleBanner = () => {
           <TimeBox value={timeLeft.hours} isMobile={isMobile} />
           <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-gray/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
         </div>
         
@@ -112,7 +112,7 @@ const FlashSaleBanner = () => {
 };
 
 const TimeBox = ({ value, isMobile }: { value: number; isMobile: boolean }) => (
-  <span className={`bg-gray/25 text-white backdrop-blur-sm rounded ${isMobile ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-0.5 text-sm'} font-bold ${isMobile ? 'min-w-[18px]' : 'min-w-[28px]'} text-center inline-block`}>
+  <span className={`bg-gray/25 text-gray backdrop-blur-sm rounded ${isMobile ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-0.5 text-sm'} font-bold ${isMobile ? 'min-w-[18px]' : 'min-w-[28px]'} text-center inline-block`}>
     {value.toString().padStart(2, '0')}
   </span>
 );
