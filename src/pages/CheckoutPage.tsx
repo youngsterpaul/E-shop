@@ -485,7 +485,7 @@ const CheckoutPage = () => {
           setPaymentStatus(timeoutStatus);
           paymentStatusRef.current = timeoutStatus;
         }
-      }, 15000);
+      }, 60000);
     } catch (error) {
       //console.error('Payment error:', error);
       setPaymentStatus({
