@@ -67,9 +67,9 @@ const FlashSaleBanner = () => {
         {/* Left: Flash Sale title */}
         <div className="flex items-center gap-1.5">
           <div className={`${isMobile ? 'p-1' : 'p-2'} bg-white/20 rounded-md backdrop-blur-sm`}>
-            <Zap className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'} text-white fill-white`} />
+            <Zap className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'} text-primary`} />
           </div>
-          <h2 className={`${isMobile ? 'text-xs' : 'text-lg'} font-bold text-white`}>
+          <h2 className={`${isMobile ? 'text-xs' : 'text-lg'} font-bold`}>
             Flash Sale
           </h2>
         </div>
@@ -78,14 +78,14 @@ const FlashSaleBanner = () => {
         <div className="flex items-center gap-0.5">
           {!isMobile && (
             <>
-              <Clock className="h-3 w-3 text-white/80 mr-1" />
-              <span className="text-xs text-white/80 mr-2">Ends in</span>
+              <Clock className="h-3 w-3 text-gray/80 mr-1" />
+              <span className="text-xs text-gray/80 mr-2">Ends in</span>
             </>
           )}
           <TimeBox value={timeLeft.hours} isMobile={isMobile} />
-          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-graye/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-gray/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
         </div>
         
