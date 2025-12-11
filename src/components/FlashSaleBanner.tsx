@@ -85,14 +85,14 @@ const FlashSaleBanner = () => {
           <TimeBox value={timeLeft.hours} isMobile={isMobile} />
           <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-          <span className={`text-gray/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
         </div>
         
         {/* Right: More button */}
         <Link 
           to="/flash-sale"
-          className={`flex items-center gap-0.5 ${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-sm px-3 py-1.5'} bg-white/20 hover:bg-white/30 text-white rounded-full font-medium transition-colors backdrop-blur-sm`}
+          className={`flex items-center gap-0.5 ${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-sm px-3 py-1.5'} bg-white/20 hover:bg-white/30 text-gray rounded-full font-medium transition-colors backdrop-blur-sm`}
         >
           More
           <ChevronRight className={`${isMobile ? 'h-2.5 w-2.5' : 'h-4 w-4'}`} />
