@@ -61,7 +61,7 @@ const FlashSaleBanner = () => {
   if (isLoading || !timeLeft || products.length === 0) return null;
 
   return (
-    <section className={`bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
+    <section className={`bg-white rounded-xl ${isMobile ? 'mx-2 rounded-lg' : ''} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center justify-between ${isMobile ? 'px-2.5 py-2' : 'px-6 py-4'}`}>
         {/* Left: Flash Sale title */}
