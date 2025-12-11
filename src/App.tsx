@@ -1,3 +1,4 @@
+//app
 import { Routes, Route, Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense, ReactNode } from "react";
