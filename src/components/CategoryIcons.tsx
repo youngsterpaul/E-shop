@@ -126,8 +126,9 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   }
 
   return (
-    <section className="bg-card rounded-xl border border-border/50 shadow-sm">
-      <h2 className="px-6 py-4 text-lg font-semibold text-foreground border-b border-border/50">
+    <section className="bg-card rounded-xl shadow-sm">
+      <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-5 border-b border-border'}`}>
+      <h2 className="px-6 py-4 text-lg font-semibold text-foreground">
         Shop by Category
       </h2>
       <div className={`grid ${gridCols} gap-4 p-6`}>
@@ -163,6 +164,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
             </div>
           );
         })}
+      </div>
       </div>
     </section>
   );
