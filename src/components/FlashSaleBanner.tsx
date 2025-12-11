@@ -65,7 +65,7 @@ const FlashSaleBanner = () => {
       {/* Header */}
       <div className={`flex items-center justify-between ${isMobile ? 'px-2.5 py-2' : 'px-6 py-4'}`}>
         {/* Left: Flash Sale title */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 border border-b">
           <div className={`${isMobile ? 'p-1' : 'p-2'} bg-white/20 rounded-md backdrop-blur-sm`}>
             <Zap className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'} text-primary`} />
           </div>
@@ -83,9 +83,9 @@ const FlashSaleBanner = () => {
             </>
           )}
           <TimeBox value={timeLeft.hours} isMobile={isMobile} />
-          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-gray/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
-          <span className={`text-white/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
+          <span className={`text-gray/80 ${isMobile ? 'text-[10px]' : 'text-sm'} font-bold`}>:</span>
           <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
         </div>
         
