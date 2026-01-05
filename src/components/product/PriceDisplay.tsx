@@ -33,11 +33,10 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
       )}
 
       <div className="flex items-center gap-4">
-        {!isMobile && (
-          <span className={`text-lg font-bold ${hasFlashSale ? 'text-red-500' : 'text-orange-500'}`}>
-            {formatPrice(displayPrice)}
-          </span>
-        )}
+        <span className={`text-lg font-bold ${hasFlashSale ? 'text-red-500' : 'text-orange-500'}`}>
+          {formatPrice(displayPrice)}
+        </span>
+  
         {(showOriginalPrice || hasFlashSale) && !isMobile && (
           <span className="text-xl text-gray-500 line-through">
             {formatPrice(hasFlashSale ? currentPrice : originalPrice!)}
