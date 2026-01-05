@@ -99,7 +99,7 @@ const MobileBottomActions = ({
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 //md:hidden shadow-lg">
         <div className="flex items-center gap-3">
           {/* Price display */}
-          <div className="flex-1">
+          {/* <div className="flex-1">
             <div className="text-md font-bold text-orange-500">
               {formatPrice(calculatePrice())}
             </div>
@@ -108,7 +108,7 @@ const MobileBottomActions = ({
                 {formatPrice(product.originalPrice)}
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Action buttons */}
           <div className="flex gap-2">
