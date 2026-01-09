@@ -395,11 +395,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         {/* Main Image Wrapper (Fixed Size) */}
         <div
           ref={mainRef}
-          className={
-            `relative bg-white overflow-hidden rounded-lg shadow-xl w-[400px] h-[400px] ${
-              isVideo(allMedia[currentIndex]) ? 'cursor-pointer' : 'cursor-crosshair'
-            }`
-          }
+          className="relative bg-white overflow-hidden rounded-lg shadow-xl cursor-crosshair w-[400px] h-[400px]"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >

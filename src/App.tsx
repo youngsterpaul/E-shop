@@ -1,4 +1,3 @@
-//app
 import { Routes, Route, Link } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense, ReactNode } from "react";
@@ -20,6 +19,7 @@ import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
 import { useCartContext } from '@/contexts/CartContext';
 import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
+import ChatWidget from './components/chat/ChatWidget';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -92,6 +92,8 @@ const AdminRoutePermissionsPage = lazy(() => import("./pages/admin/AdminRoutePer
 const AdminNewsletterPage = lazy(() => import("./pages/admin/AdminNewsletterPage"));
 const AdminTestimonialsPage = lazy(() => import("./pages/admin/AdminTestimonialsPage"));
 const AdminABTestingPage = lazy(() => import("./pages/admin/AdminABTestingPage"));
+const AdminQRCodeScannerPage = lazy(() => import("./pages/admin/AdminQRCodeScannerPage"));
+const AdminChatPage = lazy(() => import("./pages/admin/AdminChatPage"));
 
 // Add the lazy import for CategoryPage
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
@@ -304,6 +306,8 @@ function App() {
             <Route path="/supersmartkenyaadmin123/newsletter" element={<AdminRoute requiredRole="admin"><AdminNewsletterPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/testimonials" element={<AdminRoute requiredRole="admin"><AdminTestimonialsPage /></AdminRoute>} />
             <Route path="/supersmartkenyaadmin123/ab-testing" element={<AdminRoute requiredRole="superadmin"><AdminABTestingPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/qr-scanner" element={<AdminRoute requiredRole="moderator"><AdminQRCodeScannerPage /></AdminRoute>} />
+            <Route path="/supersmartkenyaadmin123/chat" element={<AdminRoute requiredRole="moderator"><AdminChatPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
@@ -318,6 +322,7 @@ function App() {
       </div>}
       {!isMobile && <Footer />}
       {isMobile && <MobileNav />}
+      {!isAdminRoute && <ChatWidget />}
       </div>
       </TooltipProvider>;
 }

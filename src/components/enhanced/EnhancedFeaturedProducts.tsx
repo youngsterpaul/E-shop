@@ -157,6 +157,12 @@ const EnhancedFeaturedProducts = memo(() => {
               Hot Deals
             </h2>
           </div>
+          {!isMobile && hasNextPage && (
+            <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
+              View All
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
         </div>
         
         {/* Products Grid */}

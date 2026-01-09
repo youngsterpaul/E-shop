@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { ShoppingCart, Heart, Share2 } from 'lucide-react';
+import { ShoppingCart, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useWishlist } from '@/hooks/useWishlist';
-import { useToast } from '@/hooks/use-toast';
 import MobileAddToCartModal from './MobileAddToCartModal';
+import MobileBuyNowModal from './MobileBuyNowModal';
 
 interface MobileBottomActionsProps {
   product: {
     product_id: string;
     name: string;
-    image: string | string[]; // Fixed: handle both string and array
+    image: string | string[];
     price: number;
     originalPrice?: number;
     description?: string;
@@ -35,113 +34,31 @@ const MobileBottomActions = ({
   calculatePrice
 }: MobileBottomActionsProps) => {
   const [isAddToCartModalOpen, setIsAddToCartModalOpen] = useState(false);
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { toast } = useToast();
-
-  const handleWishlist = async () => {
-    try {
-      if (isInWishlist(product.product_id)) {
-        await removeFromWishlist(product.product_id);
-        toast({
-          title: "Removed from Wishlist",
-          description: "Item removed from your wishlist.",
-        });
-      } else {
-        await addToWishlist(product.product_id);
-        toast({
-          title: "Added to Wishlist",
-          description: "Item added to your wishlist.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update wishlist. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: product.name,
-          url: window.location.href,
-        });
-      } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link Copied",
-          description: "Product link copied to clipboard.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Share Failed",
-        description: "Unable to share at this time.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES'
-    }).format(price);
-  };
+  const [isBuyNowModalOpen, setIsBuyNowModalOpen] = useState(false);
 
   return (
     <>
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 //md:hidden shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-lg">
         <div className="flex items-center gap-3">
-          {/* Price display */}
-          {/* <div className="flex-1">
-            <div className="text-md font-bold text-orange-500">
-              {formatPrice(calculatePrice())}
-            </div>
-            {product.originalPrice && (
-              <div className="text-sm text-gray-500 line-through">
-                {formatPrice(product.originalPrice)}
-              </div>
-            )}
-          </div> */}
-
           {/* Action buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleWishlist}
-              className={`p-2 transition-colors ${
-                isInWishlist(product.product_id) 
-                  ? 'text-red-500 border-red-500 bg-red-50' 
-                  : 'hover:text-red-500 hover:border-red-500'
-              }`}
-            >
-              <Heart className={`h-4 w-4 ${isInWishlist(product.product_id) ? 'fill-current' : ''}`} />
-            </Button>
-                       
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleShare} 
-              className="p-2 hover:bg-gray-50"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-                       
+          <div className="flex gap-3 flex-1">
             <Button
               onClick={() => setIsAddToCartModalOpen(true)}
               disabled={!product.inStock}
-              className="px-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
-              size="sm"
+              className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
             >
-              <ShoppingCart className="mr-2 h-3 w-3" />
+              <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Cart
+            </Button>
+
+            <Button
+              onClick={() => setIsBuyNowModalOpen(true)}
+              disabled={!product.inStock}
+              className="flex-1 h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-300 text-white font-semibold shadow-lg disabled:shadow-none"
+            >
+              <Zap className="mr-2 h-5 w-5" />
+              Buy Now
             </Button>
           </div>
         </div>
@@ -151,6 +68,17 @@ const MobileBottomActions = ({
       <MobileAddToCartModal
         isOpen={isAddToCartModalOpen}
         onClose={() => setIsAddToCartModalOpen(false)}
+        product={product}
+        selectedVariants={selectedVariants}
+        requiredVariants={requiredVariants}
+        onVariantChange={onVariantChange}
+        calculatePrice={calculatePrice}
+      />
+
+      {/* Mobile Buy Now Modal */}
+      <MobileBuyNowModal
+        isOpen={isBuyNowModalOpen}
+        onClose={() => setIsBuyNowModalOpen(false)}
         product={product}
         selectedVariants={selectedVariants}
         requiredVariants={requiredVariants}

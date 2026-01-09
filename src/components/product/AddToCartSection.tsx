@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
-import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, Share2, Check, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AddToCartSectionProps {
   product: {
@@ -29,7 +31,10 @@ const AddToCartSection = ({
   onQuantityChange,
   className = ''
 }: AddToCartSectionProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
   const { addToCart } = useCart();
@@ -89,6 +94,42 @@ const AddToCartSection = ({
       });
     } finally {
       setIsAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!inStock) {
+      toast({
+        title: "Out of Stock",
+        description: "This item is currently out of stock",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validateVariantSelection()) {
+      return;
+    }
+
+    setIsBuyingNow(true);
+    
+    try {
+      await addToCart(product.product_id, selectedVariants, quantity);
+      
+      if (user) {
+        navigate('/checkout');
+      } else {
+        // Store return URL and redirect to auth
+        sessionStorage.setItem('redirectAfterAuth', '/checkout');
+        navigate('/auth');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to proceed to checkout",
+        variant: "destructive"
+      });
+      setIsBuyingNow(false);
     }
   };
 
@@ -179,7 +220,7 @@ const AddToCartSection = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
@@ -207,6 +248,25 @@ const AddToCartSection = ({
             </>
           )}
         </Button>
+
+        <Button
+          onClick={handleBuyNow}
+          disabled={!inStock || isBuyingNow}
+          className="h-12 text-base font-semibold bg-primary hover:bg-primary/90"
+          size="lg"
+        >
+          {isBuyingNow ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Zap className="mr-2 h-5 w-5" />
+              Buy Now
+            </>
+          )}
+        </Button>
         
         <Button
           variant="outline"
@@ -221,7 +281,6 @@ const AddToCartSection = ({
           <Heart className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} />
           {isInWishlistState ? 'Wishlisted' : 'Add to Wishlist'}
         </Button>
-
         
         <Button
           variant="outline"
@@ -230,7 +289,6 @@ const AddToCartSection = ({
           className="h-12 w-12 p-0"
         >
           <Share2 className="h-5 w-5" />
-          
         </Button>
       </div>
     </div>

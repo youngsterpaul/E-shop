@@ -36,6 +36,8 @@ import {
   Lock,
   MessageSquareQuote,
   Newspaper,
+  QrCode,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -99,6 +101,12 @@ export function ModernAdminSidebar() {
       badgeVariant: 'default' as const,
     },
     {
+      name: 'QR Scanner',
+      icon: QrCode,
+      path: '/supersmartkenyaadmin123/qr-scanner',
+      badge: null,
+    },
+    {
       name: 'Discounts',
       icon: Tag,
       path: '/supersmartkenyaadmin123/discounts',
@@ -116,6 +124,12 @@ export function ModernAdminSidebar() {
       path: '/supersmartkenyaadmin123/returns',
       badge: pendingReturnsCount > 0 ? String(pendingReturnsCount) : null,
       badgeVariant: 'destructive' as const,
+    },
+    {
+      name: 'Chat',
+      icon: MessageCircle,
+      path: '/supersmartkenyaadmin123/chat',
+      badge: null,
     },
   ];
 

@@ -70,6 +70,9 @@ verify_jwt = false
 [functions.order-fulfillment]
 verify_jwt = true
 
+[functions.generate-product-details]
+verify_jwt = true
+
 [analytics]
 enabled = false
 port = 54327

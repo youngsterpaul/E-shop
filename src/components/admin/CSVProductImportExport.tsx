@@ -8,12 +8,84 @@ import { Upload, Download, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 
+// Proper CSV parser that handles quoted fields with commas
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Escaped quote within quoted field
+        current += '"';
+        i++; // Skip next quote
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      // End of field
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  // Add last field
+  result.push(current.trim());
+  
+  return result;
+}
+
+// Parse CSV content into rows
+function parseCSV(text: string): string[][] {
+  const lines: string[] = [];
+  let currentLine = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentLine += '""';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        currentLine += char;
+      }
+    } else if ((char === '\n' || (char === '\r' && nextChar === '\n')) && !inQuotes) {
+      if (currentLine.trim()) {
+        lines.push(currentLine);
+      }
+      currentLine = '';
+      if (char === '\r') i++; // Skip \n after \r
+    } else if (char !== '\r') {
+      currentLine += char;
+    }
+  }
+  
+  // Add last line
+  if (currentLine.trim()) {
+    lines.push(currentLine);
+  }
+  
+  return lines.map(line => parseCSVLine(line));
+}
+
 export function CSVProductImportExport() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
+  const [importStats, setImportStats] = useState<{ inserted: number; updated: number } | null>(null);
 
   // Export products to CSV
   const exportMutation = useMutation({
@@ -78,26 +150,42 @@ export function CSVProductImportExport() {
     setImporting(true);
     setProgress(0);
     setErrors([]);
+    setImportStats(null);
 
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
+      const rows = parseCSV(text);
       
-      if (lines.length < 2) {
+      if (rows.length < 2) {
         throw new Error('CSV file is empty or invalid');
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const products: any[] = [];
+      const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, ''));
+      const productsToInsert: any[] = [];
+      const productsToUpdate: any[] = [];
       const importErrors: string[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
+      // Get existing product IDs to check for duplicates
+      const { data: existingProducts } = await supabase
+        .from('products')
+        .select('product_id');
+      
+      const existingIds = new Set(existingProducts?.map(p => p.product_id) || []);
+
+      for (let i = 1; i < rows.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+          const values = rows[i];
           const product: any = {};
 
           headers.forEach((header, index) => {
-            const value = values[index];
+            let value = values[index] || '';
+            
+            // Remove surrounding quotes if present
+            if (value.startsWith('"') && value.endsWith('"')) {
+              value = value.slice(1, -1);
+            }
+            // Handle escaped quotes
+            value = value.replace(/""/g, '"');
             
             // Type conversions based on field type
             if (['price', 'stock', 'reorder_point', 'low_stock_threshold', 'rating', 'reviews_count', 'display_order', 'subcategory_id'].includes(header)) {
@@ -108,15 +196,25 @@ export function CSVProductImportExport() {
               // Parse JSON fields
               if (value) {
                 try {
-                  product[header] = JSON.parse(value.replace(/""/g, '"'));
+                  product[header] = JSON.parse(value);
                 } catch {
-                  product[header] = header === 'image_urls' ? [] : null;
+                  // Try to parse as cleaned string
+                  try {
+                    product[header] = JSON.parse(value.replace(/""/g, '"'));
+                  } catch {
+                    product[header] = header === 'image_urls' ? [] : null;
+                  }
                 }
               } else {
                 product[header] = header === 'image_urls' ? [] : null;
               }
+            } else if (['created_at', 'updated_at'].includes(header)) {
+              // Skip timestamps for imports - let DB handle them
+              // Only keep for updates
+              if (value && header === 'updated_at') {
+                product[header] = new Date().toISOString();
+              }
             } else if (header === 'product_id') {
-              // Skip product_id for new imports (auto-generated)
               if (value) product[header] = value;
             } else {
               product[header] = value || null;
@@ -124,42 +222,87 @@ export function CSVProductImportExport() {
           });
 
           // Validate required fields
-          if (!product.name || !product.price) {
-            importErrors.push(`Line ${i + 1}: Missing required fields (name, price)`);
+          if (!product.name || product.name.trim() === '') {
+            importErrors.push(`Line ${i + 1}: Missing required field (name)`);
+            continue;
+          }
+          
+          if (product.price === null || product.price === undefined || isNaN(product.price)) {
+            importErrors.push(`Line ${i + 1}: Missing or invalid required field (price)`);
             continue;
           }
 
-          products.push(product);
+          // Check if product exists for update or insert
+          if (product.product_id && existingIds.has(product.product_id)) {
+            // Remove created_at for updates
+            delete product.created_at;
+            product.updated_at = new Date().toISOString();
+            productsToUpdate.push(product);
+          } else {
+            // Remove product_id for new inserts (let DB generate it)
+            delete product.product_id;
+            delete product.created_at;
+            delete product.updated_at;
+            productsToInsert.push(product);
+          }
         } catch (error) {
           importErrors.push(`Line ${i + 1}: ${error instanceof Error ? error.message : 'Parse error'}`);
         }
 
-        setProgress(((i / (lines.length - 1)) * 100));
+        setProgress(((i / (rows.length - 1)) * 50));
       }
 
-      if (products.length === 0) {
-        throw new Error('No valid products found in CSV');
+      let insertedCount = 0;
+      let updatedCount = 0;
+
+      // Insert new products in batches
+      if (productsToInsert.length > 0) {
+        const batchSize = 50;
+        for (let i = 0; i < productsToInsert.length; i += batchSize) {
+          const batch = productsToInsert.slice(i, i + batchSize);
+          const { error } = await supabase
+            .from('products')
+            .insert(batch as any[]);
+
+          if (error) {
+            importErrors.push(`Insert batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
+          } else {
+            insertedCount += batch.length;
+          }
+          
+          setProgress(50 + ((i / productsToInsert.length) * 25));
+        }
       }
 
-      // Insert products in batches
-      const batchSize = 50;
-      for (let i = 0; i < products.length; i += batchSize) {
-        const batch = products.slice(i, i + batchSize);
-        const { error } = await supabase
-          .from('products')
-          .insert(batch as any[]);
+      // Update existing products individually (to avoid conflicts)
+      if (productsToUpdate.length > 0) {
+        for (let i = 0; i < productsToUpdate.length; i++) {
+          const product = productsToUpdate[i];
+          const productId = product.product_id;
+          delete product.product_id; // Remove from update payload
+          
+          const { error } = await supabase
+            .from('products')
+            .update(product)
+            .eq('product_id', productId);
 
-        if (error) {
-          importErrors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
+          if (error) {
+            importErrors.push(`Update product ${productId}: ${error.message}`);
+          } else {
+            updatedCount++;
+          }
+          
+          setProgress(75 + ((i / productsToUpdate.length) * 25));
         }
       }
 
       setErrors(importErrors);
+      setImportStats({ inserted: insertedCount, updated: updatedCount });
       
       if (importErrors.length === 0) {
-        toast.success(`Successfully imported ${products.length} products`);
+        toast.success(`Successfully imported: ${insertedCount} new, ${updatedCount} updated`);
       } else {
-        toast.warning(`Imported ${products.length} products with ${importErrors.length} errors`);
+        toast.warning(`Imported ${insertedCount} new, ${updatedCount} updated, with ${importErrors.length} errors`);
       }
 
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -214,7 +357,7 @@ export function CSVProductImportExport() {
           <div className="space-y-2">
             <h3 className="font-medium">Import Products</h3>
             <p className="text-sm text-muted-foreground">
-              Upload a CSV file to bulk import or update products
+              Upload a CSV file to add new or update existing products
             </p>
             <input
               type="file"
@@ -244,8 +387,18 @@ export function CSVProductImportExport() {
           </div>
         )}
 
+        {importStats && (
+          <Alert className="border-green-500/50 bg-green-500/10">
+            <AlertDescription>
+              <p className="font-medium text-green-700 dark:text-green-400">
+                Import complete: {importStats.inserted} new products added, {importStats.updated} products updated
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {errors.length > 0 && (
-          <Alert>
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-1">
@@ -264,12 +417,13 @@ export function CSVProductImportExport() {
         <div className="text-sm text-muted-foreground space-y-1">
           <p className="font-medium">CSV Format Requirements:</p>
           <ul className="list-disc list-inside text-xs space-y-1">
-            <li>Headers: product_id, name, description, price, stock, categories, featured, rating, reviews_count, reorder_point, low_stock_threshold, is_digital, store, subcategory_id, display_order, image_urls, features, specification</li>
+            <li>Headers: product_id, name, description, price, stock, categories, featured, etc.</li>
             <li>Required fields: name, price</li>
             <li>Boolean fields (featured, is_digital): 'true' or 'false'</li>
             <li>JSON fields (image_urls, features, specification): valid JSON format</li>
-            <li>Use quotes for values containing commas</li>
-            <li>product_id is optional for new imports (auto-generated)</li>
+            <li>Use double quotes for values containing commas or quotes</li>
+            <li><strong>New products:</strong> Leave product_id empty for auto-generation</li>
+            <li><strong>Update existing:</strong> Include product_id to update instead of insert</li>
           </ul>
         </div>
       </CardContent>

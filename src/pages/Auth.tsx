@@ -93,7 +93,14 @@ const AuthPage = () => {
     }
     
     if (user && authMode !== 'reset' && mode !== 'reset' && !isPasswordRecovery && !passwordResetComplete) {
-      navigate('/');
+      // Check for redirect URL stored during "Buy Now" flow
+      const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+      if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterAuth');
+        navigate(redirectUrl);
+      } else {
+        navigate('/');
+      }
     }
   }, [user, navigate, searchParams, authMode, isPasswordRecovery, passwordResetComplete]);
 
