@@ -459,6 +459,7 @@ const productForTabs = useMemo(() => {
               )}
 
               {/* Social Share */}
+              {/*
               {!isMobile && (
                 <div className="pt-4 border-t border-border/50">
                   <SocialShare 
@@ -467,7 +468,8 @@ const productForTabs = useMemo(() => {
                     variant="compact"
                   />
                 </div>
-              )}
+              )} 
+              */}
             </div>
           </div>
 
@@ -481,9 +483,11 @@ const productForTabs = useMemo(() => {
           )}
 
           {/* Recently Viewed */}
-          <div className={isMobile ? 'px-4' : ''}>
-            <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
-          </div>
+          {!isMobile && (
+            <div className={isMobile ? 'px-4' : ''}>
+              <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
+            </div>
+         )}
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
