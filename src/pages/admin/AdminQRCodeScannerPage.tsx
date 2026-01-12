@@ -126,6 +126,7 @@ const AdminQRCodeScannerPage = () => {
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const isScanningRef = useRef(false); // Use ref for immediate access in interval
 
   // Load recent scans from localStorage on mount
   useEffect(() => {
@@ -410,6 +411,7 @@ const AdminQRCodeScannerPage = () => {
             await videoRef.current?.play();
             setCameraActive(true);
             setIsScanning(true);
+            isScanningRef.current = true; // Set ref immediately
             startScanning();
             toast({ title: 'Camera Ready', description: 'Point at a QR code to scan' });
           } catch (playError) {
@@ -431,6 +433,7 @@ const AdminQRCodeScannerPage = () => {
 
   const stopCamera = useCallback(() => {
     setIsScanning(false);
+    isScanningRef.current = false; // Update ref immediately
     
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
@@ -471,25 +474,35 @@ const AdminQRCodeScannerPage = () => {
   };
 
   const startScanning = () => {
+    // Clear any existing interval
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+    
     scanIntervalRef.current = setInterval(() => {
-      if (videoRef.current && canvasRef.current && isScanning) {
+      // Use ref for immediate access instead of state
+      if (!isScanningRef.current) return;
+      
+      if (videoRef.current && canvasRef.current) {
         const video = videoRef.current;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        if (ctx && video.readyState === video.HAVE_ENOUGH_DATA) {
+        if (ctx && video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: 'dontInvert',
+            inversionAttempts: 'attemptBoth', // Try both normal and inverted
           });
           
           if (code && code.data && code.data !== lastScannedCode) {
+            console.log('QR Code detected:', code.data);
             setLastScannedCode(code.data);
             setIsScanning(false);
+            isScanningRef.current = false; // Update ref immediately
             playSuccessSound();
             
             // Vibrate if supported
@@ -508,12 +521,13 @@ const AdminQRCodeScannerPage = () => {
             // Resume scanning after a delay
             setTimeout(() => {
               setIsScanning(true);
+              isScanningRef.current = true;
               setLastScannedCode(null);
             }, 3000);
           }
         }
       }
-    }, 150); // Faster scanning interval
+    }, 100); // Faster scanning interval for better detection
   };
 
   useEffect(() => {

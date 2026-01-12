@@ -122,9 +122,9 @@ const CategorySidebar = memo(() => {
       </div>
 
       {/* Mega Menu - Matches hero section width with min-width to prevent compression */}
-      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 min-w-[600px] w-[calc(100vw-260px-4rem)] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
+      {hoveredCategoryData && hoveredCategoryData.subcategories.length > 0 && <div className="absolute left-full top-0 bottom-0 min-w-[1100px] bg-card shadow-2xl border border-border/30 z-[100] rounded-r-xl flex flex-col" onMouseEnter={() => setHoveredCategory(hoveredCategoryData.id)} onMouseLeave={() => setHoveredCategory(null)}>
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/30 px-5 py-3 rounded-tr-xl">
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center /justify-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 {hoveredCategoryData.icon && <hoveredCategoryData.icon size={16} className="text-primary" />}
               </div>
@@ -333,7 +333,7 @@ const EnhancedHeroSection = memo(() => {
       {/* Slide Indicators */}
       {heroSlides.length > 1 && (
         <div 
-          className={cn("absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20", !isMobile ? "bottom-6" : "bottom-3")}
+          className={cn("absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20", !isMobile ? "bottom-6 ml-28" : "bottom-3")}
           role="tablist"
           aria-label="Slide navigation"
         >
@@ -344,19 +344,13 @@ const EnhancedHeroSection = memo(() => {
               role="tab"
               aria-selected={index === currentSlide}
               aria-label={`Go to slide ${index + 1}: ${slide.title || `Promotion ${index + 1}`}`}
-              className={cn("rounded-full transition-all duration-500 shadow-sm min-w-[24px] min-h-[24px] flex items-center justify-center", index === currentSlide ? "w-8 h-2.5 bg-primary" : "w-2.5 h-2.5 bg-background/70 hover:bg-background/90 hover:scale-110")} 
+              className={cn("rounded-full transition-all duration-500 shadow-sm min-w-[8px] min-h-[8px] flex items-center justify-center", index === currentSlide ? "w-0.5 h-0.5 bg-primary" : "w-0.5 h-0.5 bg-background/70 hover:bg-background/90 hover:scale-110")} 
               onClick={(e) => { e.stopPropagation(); goToSlide(index); }} 
             />
           ))}
         </div>
       )}
 
-      {/* Slide Counter - Desktop */}
-      {!isMobile && heroSlides.length > 1 && (
-        <div className="absolute bottom-6 right-6 bg-background/90 rounded-full px-3 py-1.5 text-sm font-medium text-foreground z-20 border border-border/50" aria-live="polite" aria-atomic="true">
-          <span className="sr-only">Slide </span>{currentSlide + 1}<span className="sr-only"> of </span> / {heroSlides.length}
-        </div>
-      )}
     </section>
   );
 });

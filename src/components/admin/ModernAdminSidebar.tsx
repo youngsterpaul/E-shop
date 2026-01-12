@@ -5,6 +5,7 @@ import { useUserRoutePermissions } from '@/hooks/useUserRoutePermissions';
 import { useSecurityAlertsCount } from '@/hooks/useSecurityAlertsCount';
 import { usePendingOrdersCount } from '@/hooks/usePendingOrdersCount';
 import { usePendingReturnsCount } from '@/hooks/usePendingReturnsCount';
+import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
 import {
   LayoutDashboard,
   Package,
@@ -77,6 +78,7 @@ export function ModernAdminSidebar() {
   const securityAlertsCount = useSecurityAlertsCount();
   const pendingOrdersCount = usePendingOrdersCount();
   const pendingReturnsCount = usePendingReturnsCount();
+  const unreadChatCount = useUnreadChatCount();
 
   const loading = rolesLoading || permissionsLoading;
 
@@ -129,7 +131,8 @@ export function ModernAdminSidebar() {
       name: 'Chat',
       icon: MessageCircle,
       path: '/supersmartkenyaadmin123/chat',
-      badge: null,
+      badge: unreadChatCount > 0 ? String(unreadChatCount) : null,
+      badgeVariant: 'default' as const,
     },
   ];
 

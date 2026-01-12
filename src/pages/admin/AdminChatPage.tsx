@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, User, Bot, Headphones, MessageCircle, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Send, X, User, Bot, Headphones, MessageCircle, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,6 +10,16 @@ import { useAdminChat } from '@/hooks/useAdminChat';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const AdminChatPage = () => {
   const {
@@ -20,9 +30,12 @@ const AdminChatPage = () => {
     selectConversation,
     sendMessage,
     closeConversation,
+    deleteConversation,
   } = useAdminChat();
 
   const [inputValue, setInputValue] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -190,6 +203,17 @@ const AdminChatPage = () => {
                         Close
                       </Button>
                     )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setConversationToDelete(selectedConversation.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
                   </div>
                 </div>
 
@@ -276,6 +300,35 @@ const AdminChatPage = () => {
             )}
           </Card>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the conversation and all messages. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setConversationToDelete(null)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (conversationToDelete) {
+                    deleteConversation(conversationToDelete);
+                    setConversationToDelete(null);
+                    setDeleteDialogOpen(false);
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

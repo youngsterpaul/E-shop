@@ -187,6 +187,47 @@ export const useAdminChat = () => {
     }
   };
 
+  // Delete conversation and all messages
+  const deleteConversation = async (conversationId: string) => {
+    try {
+      // First delete all messages in the conversation
+      const { error: messagesError } = await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      if (messagesError) throw messagesError;
+
+      // Then delete the conversation
+      const { error: convError } = await supabase
+        .from('chat_conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (convError) throw convError;
+
+      // Update local state
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+      
+      if (selectedConversation?.id === conversationId) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation and all messages have been removed",
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Select conversation
   const selectConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
@@ -250,6 +291,7 @@ export const useAdminChat = () => {
     selectConversation,
     sendMessage,
     closeConversation,
+    deleteConversation,
     loadConversations,
   };
 };

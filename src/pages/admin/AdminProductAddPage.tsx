@@ -137,14 +137,26 @@ const AdminProductAdd = () => {
     try {
       setIsSubmitting(true);
 
-      let specificationToStore = data.specification || '';
-      
+      // Parse specification safely
+      let specificationToStore: Record<string, string> | null = null;
       if (data.specification) {
         try {
-          JSON.parse(data.specification);
-          specificationToStore = data.specification;
+          specificationToStore = JSON.parse(data.specification);
         } catch {
-          specificationToStore = JSON.stringify({ description: data.specification });
+          specificationToStore = { description: data.specification };
+        }
+      }
+
+      // Parse features safely - split by newline and filter empty strings
+      let featuresToStore: string[] | null = null;
+      if (data.features && data.features.trim()) {
+        featuresToStore = data.features
+          .split('\n')
+          .map(f => f.trim())
+          .filter(f => f.length > 0);
+        
+        if (featuresToStore.length === 0) {
+          featuresToStore = null;
         }
       }
 
@@ -153,20 +165,22 @@ const AdminProductAdd = () => {
       // Combine image and video URLs
       const allMediaUrls = [...imageUrls, ...videoUrls];
       
+      const productData = {
+        name: data.name,
+        price: data.price,
+        description: data.description,
+        stock: data.stock,
+        store: data.store,
+        categories: categoryToStore,
+        featured: data.featured,
+        features: featuresToStore as unknown as null,
+        specification: specificationToStore as unknown as null,
+        image_urls: allMediaUrls
+      };
+      
       const { error } = await supabase
         .from('products')
-        .insert({
-          name: data.name,
-          price: data.price,
-          description: data.description,
-          stock: data.stock,
-          store: data.store,
-          categories: categoryToStore,
-          featured: data.featured,
-          features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
-          specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: allMediaUrls
-        });
+        .insert(productData);
         
       if (error) throw error;
       

@@ -273,14 +273,26 @@ const AdminProductEdit = () => {
     try {
       setIsSubmitting(true);
 
-      let specificationToStore = data.specification || '';
-      
+      // Parse specification safely
+      let specificationToStore: Record<string, string> | null = null;
       if (data.specification) {
         try {
-          JSON.parse(data.specification);
-          specificationToStore = data.specification;
+          specificationToStore = JSON.parse(data.specification);
         } catch {
-          specificationToStore = JSON.stringify({ description: data.specification });
+          specificationToStore = { description: data.specification };
+        }
+      }
+
+      // Parse features safely - split by newline and filter empty strings
+      let featuresToStore: string[] | null = null;
+      if (data.features && data.features.trim()) {
+        featuresToStore = data.features
+          .split('\n')
+          .map(f => f.trim())
+          .filter(f => f.length > 0);
+        
+        if (featuresToStore.length === 0) {
+          featuresToStore = null;
         }
       }
 
@@ -293,21 +305,23 @@ const AdminProductEdit = () => {
         ...videoUrls
       ];
       
+      const updateData = {
+        name: data.name,
+        price: data.price,
+        description: data.description,
+        stock: data.stock,
+        store: data.store,
+        categories: categoryToStore,
+        featured: data.featured,
+        features: featuresToStore as unknown as null,
+        specification: specificationToStore as unknown as null,
+        image_urls: finalMediaUrls,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('products')
-        .update({
-          name: data.name,
-          price: data.price,
-          description: data.description,
-          stock: data.stock,
-          store: data.store,
-          categories: categoryToStore,
-          featured: data.featured,
-          features: data.features ? JSON.parse(`[${data.features.split('\n').map(f => `"${f.trim()}"`).join(',')}]`) : null,
-          specification: specificationToStore ? JSON.parse(specificationToStore) : null,
-          image_urls: finalMediaUrls,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('product_id', productId || '');
         
       if (error) throw error;

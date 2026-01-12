@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useRef, useEffect } from 'react';
 
 export interface Notification {
   id: string;
@@ -15,14 +15,39 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
+  playNotificationSound: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'time' | 'read'>) => {
+  // Initialize audio on mount
+  useEffect(() => {
+    audioRef.current = new Audio('/sounds/notification.mp3');
+    audioRef.current.volume = 0.5;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(console.error);
+      }
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  }, []);
+
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'time' | 'read'>) => {
     const newNotification: Notification = {
       ...notification,
       id: `${Date.now()}-${Math.random()}`,
@@ -34,21 +59,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     };
     
     setNotifications(prev => [newNotification, ...prev].slice(0, 50)); // Keep last 50
-  };
+    
+    // Play sound for new notifications
+    playNotificationSound();
+  }, [playNotificationSound]);
 
-  const markAsRead = (id: string) => {
+  const markAsRead = useCallback((id: string) => {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, read: true } : n))
     );
-  };
+  }, []);
 
-  const markAllAsRead = () => {
+  const markAllAsRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setNotifications([]);
-  };
+  }, []);
 
   return (
     <NotificationContext.Provider
@@ -58,6 +86,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         markAsRead,
         markAllAsRead,
         clearAll,
+        playNotificationSound,
       }}
     >
       {children}

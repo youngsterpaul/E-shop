@@ -20,6 +20,7 @@ import { useCartContext } from '@/contexts/CartContext';
 import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import ChatWidget from './components/chat/ChatWidget';
+import { OfflineDataPreloader } from './components/OfflineDataPreloader';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -31,6 +32,7 @@ const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const WishlistPage = lazy(() => import("./pages/WishlistPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
+const ChattingPage = lazy(() => import("./pages/ChattingPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
@@ -196,7 +198,11 @@ function App() {
       title = "Place Order";
     } else if (location.pathname.startsWith("/chat")) {
       title = "Customer Support";
-    } else if (location.pathname.startsWith("/cart")) {
+    } else if (location.pathname.startsWith("/chatting")) {
+      backTo = "/chat";
+      title = "Smartkenya Support";
+    }
+    else if (location.pathname.startsWith("/cart")) {
       title = "Shopping Cart";
     } else if (location.pathname.startsWith("/careers")) {
       title = "Careers";
@@ -219,6 +225,7 @@ function App() {
   useSessionTimeout();
   return <TooltipProvider>
       <SecurityHeaders />
+      <OfflineDataPreloader />
       <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
@@ -246,6 +253,7 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chatting" element={<ChattingPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/mfa-setup" element={<MFASetup />} />

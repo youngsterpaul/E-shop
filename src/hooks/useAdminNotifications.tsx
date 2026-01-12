@@ -155,11 +155,61 @@ export const useAdminNotifications = (isAdmin: boolean) => {
       )
       .subscribe();
 
+    // Channel for new chat messages from users
+    const chatChannel = supabase
+      .channel('admin-chat-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+        },
+        async (payload) => {
+          const message = payload.new as any;
+          
+          // Only notify for user messages (not admin or AI)
+          if (message.sender_type === 'user') {
+            // Try to get user info
+            let userName = 'Customer';
+            if (message.sender_id) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('email, first_name')
+                .eq('user_id', message.sender_id)
+                .maybeSingle();
+              
+              if (profile) {
+                userName = profile.first_name || profile.email?.split('@')[0] || 'Customer';
+              }
+            }
+
+            const truncatedContent = message.content.length > 50 
+              ? message.content.substring(0, 50) + '...' 
+              : message.content;
+
+            toast({
+              title: `💬 New message from ${userName}`,
+              description: truncatedContent,
+              duration: 5000,
+            });
+
+            addNotification({
+              title: `New Chat Message`,
+              description: `${userName}: ${truncatedContent}`,
+              type: 'message',
+            });
+          }
+        }
+      )
+      .subscribe();
+
     // Cleanup subscriptions on unmount
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(securityChannel);
+      supabase.removeChannel(chatChannel);
     };
-  }, [isAdmin, queryClient]);
+  }, [isAdmin, queryClient, addNotification]);
 };

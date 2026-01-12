@@ -1,11 +1,17 @@
 import React from 'react';
-import { MessageCircle, Phone, Mail } from 'lucide-react';
+import { MessageCircle, Phone, Mail, Headset } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 
 const RealtimeChat = () => {
+  const navigate = useNavigate();
   const phoneNumber = "+254798229783";
   const email = "support@smartkenya.co.ke";
   
+  const handleInAppClick = () => {
+    navigate("/chatting");
+  };
+
   const handleWhatsAppClick = () => {
     const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=Hello, I need support with my account`;
     window.open(whatsappUrl, '_blank');
@@ -20,6 +26,14 @@ const RealtimeChat = () => {
   };
 
   const contactItems = [
+    {
+      icon: Headset,
+      title: 'Live Support ()',
+      description: 'Chat with our team instantly',
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      onClick: handleInAppClick
+    },
     {
       icon: MessageCircle,
       title: 'WhatsApp Chat',

@@ -395,7 +395,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         {/* Main Image Wrapper (Fixed Size) */}
         <div
           ref={mainRef}
-          className="relative bg-white overflow-hidden rounded-lg shadow-xl cursor-crosshair w-[400px] h-[400px]"
+          className="relative bg-white overflow-hidden rounded-lg shadow-xl cursor-zoom-in w-[400px] h-[400px]"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -435,7 +435,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         {/* 3. Magnified View Panel - FIX APPLIED HERE */}
         {showLens && !isVideo(allMedia[currentIndex]) && (
           <div
-            className="absolute left-full top-0 ml-6 w-[400px] h-[400px] bg-white rounded-lg shadow-2xl overflow-hidden border border-gray-200"
+            className="absolute left-full top-0 ml-6 w-[400px] h-[400px] bg-white rounded-lg shadow-2xl overflow-hidden border border-gray-200 z-50"
           >
             {/* Inner wrapper for the zoom transform */}
             <div
