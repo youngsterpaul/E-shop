@@ -48,6 +48,7 @@ import {
   Volume2,
   VolumeX,
   Scan,
+  X
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -510,13 +511,29 @@ const AdminQRCodeScannerPage = () => {
               navigator.vibrate(200);
             }
             
+            // Parse the QR code data - it might be a URL or just an order ID
+            let orderId = code.data;
+            
+            // Check if it's a URL containing the order ID
+            try {
+              const url = new URL(code.data);
+              // Try to extract order ID from URL path or query params
+              const pathParts = url.pathname.split('/').filter(Boolean);
+              const orderIdFromPath = pathParts.find(part => part.length >= 8);
+              const orderIdFromQuery = url.searchParams.get('order') || url.searchParams.get('orderId') || url.searchParams.get('id');
+              orderId = orderIdFromQuery || orderIdFromPath || code.data;
+            } catch {
+              // Not a URL, use the raw data as order ID
+              orderId = code.data.trim();
+            }
+            
             toast({ 
               title: 'QR Code Detected!', 
-              description: `Scanning order: ${code.data.slice(0, 20)}...` 
+              description: `Fetching order: ${orderId.slice(0, 20)}${orderId.length > 20 ? '...' : ''}` 
             });
             
-            // Fetch the order
-            fetchOrder(code.data);
+            // Fetch the order with the parsed order ID
+            fetchOrder(orderId);
             
             // Resume scanning after a delay
             setTimeout(() => {
@@ -557,171 +574,96 @@ const AdminQRCodeScannerPage = () => {
         {/* Scanner Section */}
         <div className="lg:col-span-1 space-y-6">
           {/* Camera Scanner */}
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Scan className="h-5 w-5 text-primary" />
-                    QR Scanner
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    Point camera at order QR code
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setSoundEnabled(!soundEnabled)}
-                    title={soundEnabled ? 'Mute sound' : 'Enable sound'}
-                  >
-                    {soundEnabled ? (
-                      <Volume2 className="h-4 w-4" />
-                    ) : (
-                      <VolumeX className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-0">
-              <div className="relative aspect-square bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-border/50">
-                {/* Hidden video and canvas for processing */}
-                <video
-                  ref={videoRef}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
-                  playsInline
-                  muted
-                  autoPlay
-                  webkit-playsinline="true"
-                />
-                <canvas ref={canvasRef} className="hidden" />
-                
-                {cameraActive ? (
-                  /* Scanning overlay when camera is active */
-                  <div className="absolute inset-0 pointer-events-none">
-                    {/* Corner markers - larger and more prominent */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative w-64 h-64 sm:w-56 sm:h-56">
-                        {/* Glowing corner markers */}
-                        <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-2xl shadow-[0_0_15px_hsl(var(--primary)/0.6)]" />
-                        <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-2xl shadow-[0_0_15px_hsl(var(--primary)/0.6)]" />
-                        <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-2xl shadow-[0_0_15px_hsl(var(--primary)/0.6)]" />
-                        <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-2xl shadow-[0_0_15px_hsl(var(--primary)/0.6)]" />
-                        
-                        {/* Animated scan line */}
-                        <div 
-                          className="absolute left-4 right-4 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full shadow-[0_0_20px_4px_hsl(var(--primary)/0.8)]"
-                          style={{ 
-                            top: `${scanLinePosition}%`,
-                            transition: 'none',
-                          }}
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Scanning status pill */}
-                    <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-                      <div className={`px-5 py-2.5 rounded-full backdrop-blur-xl border ${isScanning ? 'bg-primary/20 border-primary/30' : 'bg-green-500/20 border-green-500/30'}`}>
-                        <div className="flex items-center gap-2.5 text-white text-sm font-semibold">
-                          {isScanning ? (
-                            <>
-                              <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-                              <span>Scanning...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="h-5 w-5 text-green-400" />
-                              <span>Code detected!</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Vignette overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-                  </div>
-                ) : (
-                  /* Inactive state with nice UI */
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                    {/* Animated icon container */}
-                    <div className="relative mb-6">
-                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                      <div className="relative bg-gradient-to-br from-primary/20 to-primary/5 p-6 rounded-full border border-primary/20">
-                        <QrCode className="h-16 w-16 text-primary/80" />
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Scan</h3>
-                    <p className="text-sm text-muted-foreground max-w-[200px]">
-                      Tap the button below to activate your camera and scan order QR codes
-                    </p>
-                    
-                    {cameraError && (
-                      <div className="mt-4 px-4 py-3 bg-destructive/10 rounded-xl border border-destructive/20">
-                        <div className="flex items-center gap-2 text-destructive">
-                          <XCircle className="h-4 w-4" />
-                          <p className="text-xs font-medium">{cameraError}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+<Card className="max-w-[320px] mx-auto overflow-hidden border-none shadow-2xl bg-zinc-950 rounded-[32px]">
+  <CardContent className="p-0">
+    <div className="relative aspect-square w-full group overflow-hidden">
+      
+      {/* 1. Camera Viewport */}
+      <video
+        ref={videoRef}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
+        playsInline
+        muted
+        autoPlay
+      />
+      
+      {/* 2. Inactive State (Abstract Background) */}
+      {!cameraActive && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800 to-zinc-950">
+          <div className="p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm">
+            <Scan className="h-8 w-8 text-zinc-500" strokeWidth={1.5} />
+          </div>
+        </div>
+      )}
+
+      {/* 3. Scanning Overlays */}
+      {cameraActive && (
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Subtle Vignette */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+          
+          {/* Precision Focus Frame */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative w-48 h-48 border-2 border-white/20 rounded-3xl transition-transform duration-500 group-hover:scale-105">
+              {/* Corner Accents */}
+              <div className="absolute top-[-2px] left-[-2px] w-6 h-6 border-l-4 border-t-4 border-primary rounded-tl-xl" />
+              <div className="absolute top-[-2px] right-[-2px] w-6 h-6 border-r-4 border-t-4 border-primary rounded-tr-xl" />
+              <div className="absolute bottom-[-2px] left-[-2px] w-6 h-6 border-l-4 border-b-4 border-primary rounded-bl-xl" />
+              <div className="absolute bottom-[-2px] right-[-2px] w-6 h-6 border-r-4 border-b-4 border-primary rounded-br-xl" />
               
-              {/* Camera controls - Enhanced */}
-              <div className="flex gap-3">
-                <Button
-                  onClick={cameraActive ? stopCamera : startCamera}
-                  variant={cameraActive ? 'destructive' : 'default'}
-                  className={`flex-1 h-12 text-base font-semibold ${!cameraActive ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25' : ''}`}
-                  size="lg"
-                >
-                  {cameraActive ? (
-                    <>
-                      <CameraOff className="h-5 w-5 mr-2" />
-                      Stop Scanner
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="h-5 w-5 mr-2" />
-                      Start Scanner
-                    </>
-                  )}
-                </Button>
-                
-                {cameraActive && torchSupported && (
-                  <Button
-                    onClick={toggleTorch}
-                    variant={torchOn ? 'secondary' : 'outline'}
-                    size="lg"
-                    className={`h-12 px-5 ${torchOn ? 'bg-yellow-500/20 border-yellow-500/50 hover:bg-yellow-500/30' : ''}`}
-                    title={torchOn ? 'Turn off flashlight' : 'Turn on flashlight'}
-                  >
-                    {torchOn ? (
-                      <Flashlight className="h-5 w-5 text-yellow-500" />
-                    ) : (
-                      <FlashlightOff className="h-5 w-5" />
-                    )}
-                  </Button>
-                )}
-              </div>
-              
-              {/* Status indicator */}
-              <div className="flex items-center justify-center gap-2 py-2">
-                <div className={`w-2 h-2 rounded-full ${cameraActive ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
-                <p className="text-xs text-muted-foreground">
-                  {cameraActive 
-                    ? `Scanning active${torchSupported ? ' • Torch available' : ''}`
-                    : 'Camera ready to activate'
-                  }
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Scanning Glow Line */}
+              <div 
+                className="absolute left-1 right-1 h-[2px] bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
+                style={{ top: `${scanLinePosition}%`, transition: 'none' }}
+              />
+            </div>
+          </div>
+
+          {/* Minimal Status Indicator */}
+          <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-xl border ${isScanning ? 'bg-black/40 border-white/10' : 'bg-green-500/20 border-green-500/50'}`}>
+              <div className={`h-1.5 w-1.5 rounded-full ${isScanning ? 'bg-primary animate-pulse' : 'bg-green-400'}`} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* 4. Minimalist Control Bar */}
+    <div className="p-4 bg-zinc-900/50 backdrop-blur-xl flex items-center gap-3">
+      <Button
+        onClick={cameraActive ? stopCamera : startCamera}
+        variant="ghost"
+        className={`flex-1 h-12 rounded-2xl transition-all duration-300 font-medium ${
+          cameraActive 
+            ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' 
+            : 'bg-white text-black hover:bg-white/90 shadow-lg'
+        }`}
+      >
+        {cameraActive ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <div className="flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            <span>Open</span>
+          </div>
+        )}
+      </Button>
+
+      {cameraActive && torchSupported && (
+        <Button
+          onClick={toggleTorch}
+          variant="outline"
+          className={`h-12 w-12 rounded-2xl border-white/10 bg-white/5 transition-all duration-300 ${
+            torchOn ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'text-zinc-400'
+          }`}
+        >
+          {torchOn ? <Flashlight className="h-5 w-5 fill-current" /> : <FlashlightOff className="h-5 w-5" />}
+        </Button>
+      )}
+    </div>
+  </CardContent>
+</Card>
 
           {/* Manual Input */}
           <Card>

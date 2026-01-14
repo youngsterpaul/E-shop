@@ -196,15 +196,31 @@ export const useAdminChat = () => {
         .delete()
         .eq('conversation_id', conversationId);
 
-      if (messagesError) throw messagesError;
+      if (messagesError) {
+        console.error('Error deleting messages:', messagesError);
+        throw messagesError;
+      }
+      
+      console.log('Messages deleted for conversation:', conversationId);
 
       // Then delete the conversation
-      const { error: convError } = await supabase
+      const { error: convError, data: deletedConv } = await supabase
         .from('chat_conversations')
         .delete()
-        .eq('id', conversationId);
+        .eq('id', conversationId)
+        .select();
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Error deleting conversation:', convError);
+        throw convError;
+      }
+      
+      console.log('Conversation deleted:', deletedConv);
+
+      // Verify deletion was successful
+      if (!deletedConv || deletedConv.length === 0) {
+        throw new Error('Conversation was not deleted - check RLS policies');
+      }
 
       // Update local state
       setConversations(prev => prev.filter(c => c.id !== conversationId));
@@ -218,13 +234,16 @@ export const useAdminChat = () => {
         title: "Conversation deleted",
         description: "The conversation and all messages have been removed",
       });
-    } catch (error) {
+      
+      return true;
+    } catch (error: any) {
       console.error('Error deleting conversation:', error);
       toast({
         title: "Error",
-        description: "Failed to delete conversation",
+        description: error.message || "Failed to delete conversation",
         variant: "destructive",
       });
+      return false;
     }
   };
 

@@ -173,7 +173,7 @@ const ChattingPage = () => {
       )}
 
       {/* Input */}
-      <div className="p-4 border bottom-0 right-0 left-0 fixed rounded-b-lg bg-background">
+      <div className="p-4 border bottom-4 right-0 left-0 fixed rounded-b-lg bg-background">
         <div className="flex gap-2">
           <Input
             ref={inputRef}

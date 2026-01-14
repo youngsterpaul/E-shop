@@ -109,11 +109,12 @@ const Index = () => {
           )}
 
           {/* Newsletter - Desktop Only */}
+          {/* 
           {!isMobile && (
             <section className="py-12">
               <NewsletterSubscription />
             </section>
-          )}
+          )}  */}
         </main>
       </div>
     </>

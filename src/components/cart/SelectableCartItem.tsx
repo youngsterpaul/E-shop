@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCartContext } from '@/contexts/CartContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import OptimizedImage from '../OptimizedImage';
 
 interface SelectableCartItemProps {
   item: {
@@ -197,7 +198,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
               />
 
               <div className="w-16 h-16 flex-shrink-0 flex gap-3 mb-3">
-                <img
+                <OptimizedImage
                   src={item.product.image}
                   alt={item.product.name}
                   className="w-full h-full object-cover rounded-md bg-gray-100"

@@ -39,14 +39,14 @@ const MobileBottomActions = ({
   return (
     <>
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-40 shadow-lg">
         <div className="flex items-center gap-3">
           {/* Action buttons */}
           <div className="flex gap-3 flex-1">
             <Button
               onClick={() => setIsAddToCartModalOpen(true)}
               disabled={!product.inStock}
-              className="flex-1 h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
+              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Cart
@@ -55,7 +55,7 @@ const MobileBottomActions = ({
             <Button
               onClick={() => setIsBuyNowModalOpen(true)}
               disabled={!product.inStock}
-              className="flex-1 h-12 bg-primary hover:bg-primary/90 disabled:bg-gray-300 text-white font-semibold shadow-lg disabled:shadow-none"
+              className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-gray-300 text-white font-semibold shadow-lg disabled:shadow-none"
             >
               <Zap className="mr-2 h-5 w-5" />
               Buy Now

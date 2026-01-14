@@ -163,11 +163,20 @@ function App() {
             <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
               <Heart className="h-4 w-4" />
             </Button>
-            <Link to="/cart" aria-label="View Cart" className="relative text-gray-700 hover:text-primary transition-colors p-2">
-              <ShoppingCart size={16} />
-              {totalItems > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[14px] h-[14px] flex items-center justify-center">
-                  {totalItems > 99 ? '99+' : totalItems}
-                </span>}
+            <Link
+              to="/cart"
+              aria-label={`View Cart, ${totalItems} items`}
+              className="flex items-center justify-center p-2 text-gray-700 hover:text-primary transition-colors"
+            >
+              <span className="relative">
+                <ShoppingCart size={16} />
+
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-3 min-w-3 items-center justify-center rounded-full bg-red-500 px-1 text-[8px] font-bold leading-none text-white">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </span>
             </Link>
           </div>;
     } else if (location.pathname.startsWith("/category")) {
@@ -196,11 +205,11 @@ function App() {
       title = "Product Category";
     } else if (location.pathname.startsWith("/checkout")) {
       title = "Place Order";
-    } else if (location.pathname.startsWith("/chat")) {
-      title = "Customer Support";
     } else if (location.pathname.startsWith("/chatting")) {
       backTo = "/chat";
       title = "Smartkenya Support";
+    } else if (location.pathname.startsWith("/chat")) {
+      title = "Customer Support";
     }
     else if (location.pathname.startsWith("/cart")) {
       title = "Shopping Cart";
@@ -325,9 +334,6 @@ function App() {
         
       {/*<Toaster />*/}
       {/* ✅ Footer stays at bottom naturally (not fixed) */}
-      {isMobile && isAuthRoute && <div className="text-center text-xs text-gray-400 py-3 border-t border-gray-100 bg-white left-0 right-0 mt-8">
-        © 2025 SmartKenya. All rights reserved.
-      </div>}
       {!isMobile && <Footer />}
       {isMobile && <MobileNav />}
       {!isAdminRoute && <ChatWidget />}

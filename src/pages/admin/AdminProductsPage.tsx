@@ -25,6 +25,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import OptimizedImage from '@/components/OptimizedImage';
 
 interface Product {
   product_id: string;
@@ -83,7 +84,7 @@ const SortableRow = ({ product, isSelected, onToggle, onEdit, onDelete, onManage
       </TableCell>
       <TableCell>
         {product.image_urls && product.image_urls.length > 0 ? (
-          <img 
+          <OptimizedImage
             src={product.image_urls[0]} 
             alt={product.name}
             className="w-12 h-12 object-cover rounded"

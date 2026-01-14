@@ -105,7 +105,7 @@ const Footer = ({ className }: FooterProps) => {
         })}
       </script>
 
-      <footer className={cn('bg-background border-t border-border/40', !isMobile && 'min-w-max', className)}>
+      <footer className={cn('bg-background border-t border-border/40', !isMobile && 'min-w-max min-w-[1400px]', className)}>
         {/* About Section */}
         {!shouldHideFooter && (
           <div className="bg-muted/30 py-12">

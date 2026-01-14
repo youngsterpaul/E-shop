@@ -209,7 +209,7 @@ const Header = () => {
                         className="gap-2 px-3 py-2 h-auto rounded-full hover:bg-muted/50"
                       >
                         <User className="h-5 w-5" />
-                        <span className="text-sm font-medium hidden lg:inline">Account</span>
+                        <span className="text-sm font-medium inline">Account</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg border-border/50">
