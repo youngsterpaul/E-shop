@@ -61,7 +61,7 @@ This will open Xcode where you can:
 
 **Android:**
 ```bash
-npx cap run android
+npx cap open android
 ```
 This will open Android Studio where you can:
 - Select your device/emulator
@@ -125,7 +125,7 @@ Custom SmartKenya icons and splash screens have been generated!
 **Automatic Generation:**
 ```bash
 # Generate all platform-specific icons and splash screens
-npx @capacitor/assets generate --iconBackgroundColor '#f97316' --splashBackgroundColor '#f97316'
+npx @capacitor/assets generate --iconBackgroundColor '#16a34a' --splashBackgroundColor '#16a34a'
 ```
 
 This creates all required sizes for iOS and Android from your source files:

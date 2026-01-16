@@ -10,6 +10,7 @@ export const OfflineIndicator = () => {
   const { isSyncing, pendingItems, syncNow } = useOfflineSync();
   const [cacheStats, setCacheStats] = useState({ products: 0, categories: 0, images: 0, pendingSync: 0 });
   const [showReconnected, setShowReconnected] = useState(false);
+  const [showOffline, setShowOffline] = useState(false);
 
   useEffect(() => {
     getCacheStats().then(setCacheStats).catch(() => {
@@ -17,6 +18,7 @@ export const OfflineIndicator = () => {
     });
   }, [isOnline]);
 
+  // Show reconnected message briefly when coming back online
   useEffect(() => {
     if (isOnline && wasOffline) {
       setShowReconnected(true);
@@ -24,6 +26,17 @@ export const OfflineIndicator = () => {
       return () => clearTimeout(timer);
     }
   }, [isOnline, wasOffline]);
+
+  // Show offline message briefly when going offline
+  useEffect(() => {
+    if (!isOnline) {
+      setShowOffline(true);
+      const timer = setTimeout(() => setShowOffline(false), 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowOffline(false);
+    }
+  }, [isOnline]);
 
   // Show reconnected message briefly
   if (showReconnected) {
@@ -42,44 +55,44 @@ export const OfflineIndicator = () => {
     );
   }
 
-  if (isOnline) return null;
-
-  return (
-    <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top max-w-md">
-      <div className="bg-muted border border-border px-6 py-4 rounded-lg shadow-lg">
-        <div className="flex items-start gap-3">
-          <WifiOff className="h-5 w-5 mt-0.5 text-muted-foreground" />
-          <div className="flex-1">
-            <p className="font-medium text-foreground">Offline Mode</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Browsing {cacheStats.products} cached products
-            </p>
-            {pendingItems > 0 && (
-              <div className="mt-2 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {pendingItems} actions pending sync
-                </span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={syncNow}
-                  disabled={isSyncing}
-                  className="h-6 text-xs"
-                >
-                  {isSyncing ? (
-                    <>
-                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                      Syncing...
-                    </>
-                  ) : (
-                    'Retry Sync'
-                  )}
-                </Button>
-              </div>
-            )}
+  // Show offline message briefly
+  if (!isOnline && showOffline) {
+    return (
+      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top max-w-md">
+        <div className="bg-muted border border-border px-6 py-4 rounded-lg shadow-lg">
+          <div className="flex items-start gap-3">
+            <WifiOff className="h-5 w-5 mt-0.5 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="font-medium text-foreground">Offline Mode</p>
+              {pendingItems > 0 && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {pendingItems} actions pending sync
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={syncNow}
+                    disabled={isSyncing}
+                    className="h-6 text-xs"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      'Retry Sync'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };

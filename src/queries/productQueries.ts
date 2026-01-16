@@ -18,6 +18,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { UseQueryOptions, UseInfiniteQueryOptions } from '@tanstack/react-query';
 import { PRODUCT_LIST_FIELDS, PRODUCT_DETAIL_FIELDS } from '@/utils/queryOptimizations';
 import { cacheProducts, getCachedProducts, getCachedProduct } from '@/utils/offlineStorage';
+import { getUserIntent } from "@/utils/userIntent";
+import { smartSortFallback } from "@/utils/smartSortFallback";
+
 
 // ============================================================================
 // TYPES
@@ -148,11 +151,41 @@ async function fetchPage(
     const products = processProducts(data || []);
     const hasNextPage = total > from + products.length;
 
-    // Cache products for offline use
-    cacheProductsForOffline(products);
+    // ===============================
+    // SMART SORT INTEGRATION (HERE)
+    // ===============================
+    const intent = getUserIntent();
+    let smartProducts = products;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/smart-sort-products`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            products,
+            intent,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        smartProducts = await res.json();
+      }
+    } catch (err) {
+      console.warn("Smart sort failed, using fallback:", err);
+      smartProducts = smartSortFallback(products, intent);
+    }
+
+    // Cache SMART products for offline use
+    cacheProductsForOffline(smartProducts);
 
     return {
-      products,
+      products: smartProducts,
       totalCount: total,
       hasNextPage,
       nextPage: hasNextPage ? pageParam + 1 : undefined,

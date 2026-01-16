@@ -1,14 +1,14 @@
 {
-  "iconBackgroundColor": "#f97316",
+  "iconBackgroundColor": "#16a34a",
   "iconForegroundColor": "#ffffff",
-  "splashBackgroundColor": "#f97316",
-  "splashBackgroundColorDark": "#ea580c",
+  "splashBackgroundColor": "#16a34a",
+  "splashBackgroundColorDark": "#15803d",
   "android": {
-    "iconBackgroundColor": "#f97316",
+    "iconBackgroundColor": "#16a34a",
     "adaptiveIconForeground": "public/app-icon.png",
-    "adaptiveIconBackground": "#f97316"
+    "adaptiveIconBackground": "#16a34a"
   },
   "ios": {
-    "iconBackgroundColor": "#f97316"
+    "iconBackgroundColor": "#16a34a"
   }
 }
