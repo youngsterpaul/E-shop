@@ -1,4 +1,6 @@
 import { StrictMode } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -35,6 +37,18 @@ import { ScrollToTop } from '@/components/ScrollToTop';
 
 // Initialize Sentry before anything else
 initSentry();
+
+// Initialize native UI (StatusBar, etc.)
+const initNativeUI = async () => {
+  if (!Capacitor.isNativePlatform()) return;
+
+  await StatusBar.setOverlaysWebView({ overlay: true });
+  await StatusBar.setStyle({ style: Style.Light });
+  await StatusBar.setBackgroundColor({ color: '#16a34a' });
+};
+
+// Call it once
+initNativeUI();
 
 const AppWithAnalytics = () => {
   useErrorReporting();

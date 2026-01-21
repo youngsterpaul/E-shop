@@ -8,7 +8,7 @@ interface MobileHeaderProps {
   title: string;
   onBack?: () => void;
   backTo?: string;
-  rightAction?: ReactNode; // ✅ matches getHeaderProps return type
+  rightAction?: ReactNode;
 }
 
 export const MobileHeader = ({
@@ -26,12 +26,14 @@ export const MobileHeader = ({
     else navigate(-1);
   };
 
-  // ✅ Safe early return (no hooks below this)
   if (!isMobile) return null;
-  if (location.pathname === '/') return null;
 
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 flex items-center justify-between overflow-hidden">
+    <div
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-4 shadow-sm"
+      style={{ top: 'env(safe-area-inset-top)', transition: 'top 0.2s ease' }}
+
+    >
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -41,13 +43,9 @@ export const MobileHeader = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-sm font-semibold truncate overflow-hidden">{title}</h1>
+        <h1 className="text-sm font-semibold truncate">{title}</h1>
       </div>
-      {rightAction && (
-        <div className="flex-shrink-0">
-          {rightAction}
-        </div>
-      )}
+      {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
     </div>
   );
 };

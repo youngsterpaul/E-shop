@@ -145,7 +145,10 @@ const Header = () => {
           </nav>
         )}
 
-        <div className={`${isMobile ? 'py-2 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}>
+        <div
+          className={`bg-white ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}
+          style={isMobile ? { top: 'env(safe-area-inset-top)', transition: 'top 0.2s ease' } : undefined}
+        >
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group" aria-label="SmartKenya Home">

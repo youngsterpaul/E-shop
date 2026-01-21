@@ -11,7 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -363,7 +362,6 @@ const AuthPage = () => {
     <>
       {isMobile ? (
         <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
-          <MobileHeader title="" backTo="/" />
 
           <div className="flex-1 pt-8 pb-8 px-4">
             {passwordResetComplete && (

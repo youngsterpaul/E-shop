@@ -22,7 +22,7 @@ npm install
 ### Step 2: Generate All Platform-Specific Assets
 ```bash
 # This command generates all required icon sizes for iOS and Android
-npx @capacitor/assets generate --iconBackgroundColor '#f97316' --splashBackgroundColor '#f97316'
+npx @capacitor/assets generate --iconBackgroundColor '#16a34a' --splashBackgroundColor '#16a34a'
 ```
 
 This will automatically create:

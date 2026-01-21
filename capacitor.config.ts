@@ -1,12 +1,17 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
-// Import version from centralized version file
 const version = require('./version.json');
 
 const config: CapacitorConfig = {
-  appId: 'ke.co.smartkenya',
+  appId: 'com.smartkenya.app',
   appName: 'SmartKenya',
   webDir: 'dist',
+
+  android: {
+    allowMixedContent: true,
+    backgroundColor: '#ffffff',
+  },
+
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -15,11 +20,16 @@ const config: CapacitorConfig = {
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
-      androidSpinnerStyle: 'large',
-      iosSpinnerStyle: 'small',
-      spinnerColor: '#ffffff',
-      splashFullScreen: true,
-      splashImmersive: true,
+
+      // ❌ IMPORTANT: do NOT use immersive mode
+      splashFullScreen: false,
+      splashImmersive: false,
+    },
+
+    StatusBar: {
+      style: 'LIGHT',          // Icons visible
+      backgroundColor: '#16a34a',
+      overlaysWebView: false,  // ✅ KEY FIX (no overlay)
     },
   },
 };

@@ -1,4 +1,4 @@
-package com.ephantus.smartkenya;
+package com.smartkenya.app;
 
 import com.getcapacitor.BridgeActivity;
 

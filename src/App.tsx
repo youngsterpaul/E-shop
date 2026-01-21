@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import React, { lazy, Suspense, ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +21,8 @@ import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import ChatWidget from './components/chat/ChatWidget';
 import { OfflineDataPreloader } from './components/OfflineDataPreloader';
+import { useAndroidBackButton } from './hooks/useAndroidBackButton';
+import { useSwipeBack } from './hooks/useSwipeBack';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -102,6 +104,9 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
 const FlashSalePage = lazy(() => import("./pages/FlashSalePage"));
 function App() {
+  useAndroidBackButton();
+  useSwipeBack(Navigate);
+
   const {
     user,
     profile,
@@ -115,6 +120,8 @@ function App() {
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");
+  const isSearchPage = location.pathname.startsWith("/search");
+  const isHomePage = location.pathname === "/";
 
   // ✅ define handleLogout inside App so it’s in scope
   const handleLogout = async () => {
@@ -179,7 +186,7 @@ function App() {
               </span>
             </Link>
           </div>;
-    } else if (location.pathname.startsWith("/category")) {
+    } else if (location.pathname === "/category") {
       title = "Product Category";
     } else if (location.pathname.startsWith("/orders")) {
       title = "My Orders";
@@ -241,11 +248,18 @@ function App() {
       <div className="flex flex-col min-h-screen bg-white">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
-        {isMobile && !isAdminRoute && !isAuthRoute && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
-
+        {isMobile && !isAdminRoute && !isHomePage && !isSearchPage && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
+        
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           {/* main content fills available space */}
-          <main id="main-content" className="flex-grow">
+          <main  
+            id="main-content" 
+            className="flex-grow"
+            style={{
+              paddingTop: 'calc(54px + env(safe-area-inset-top))',
+              height: '100vh'
+            }}
+          >
             <Routes>
             {/* Public Routes */}
             <Route path="auth" element={<Auth />} />
