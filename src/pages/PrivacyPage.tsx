@@ -35,7 +35,7 @@ const PrivacyPage = () => {
       </script>
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
+        <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
           <SiteBreadcrumb 
             items={[
               { label: 'Home', href: '/' },

@@ -256,7 +256,7 @@ const WriteReviewPage = () => {
 
   if (!product) {
     return (
-      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max min-w-[1200px]' : ''}`}>
         <main className="flex-grow max-w-[1400px] mx-auto px-4 lg:px-6 py-8 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
           <Button 

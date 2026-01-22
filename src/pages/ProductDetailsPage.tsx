@@ -402,7 +402,7 @@ const productForTabs = useMemo(() => {
       />
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1400px] mx-auto px-4 lg:px-6 py-6'}`}>
+        <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1200px] mx-auto px-4 lg:px-6 py-6'}`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-8 ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>

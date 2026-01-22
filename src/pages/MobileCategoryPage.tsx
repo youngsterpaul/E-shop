@@ -225,7 +225,7 @@ const MobileCategoryPage = () => {
         <main className="flex-grow pb-20">
           {/* Breadcrumb - Desktop Only */}
           {!isMobile && (
-            <div className="max-w-[1400px] mx-auto px-4 lg:px-6 pt-6">
+            <div className="max-w-[1200px] mx-auto px-4 lg:px-6 pt-6">
               <SiteBreadcrumb
                 items={[
                   { label: 'Home', href: '/' },
@@ -237,7 +237,7 @@ const MobileCategoryPage = () => {
           )}
 
           {/* Page Header */}
-          <div className={`${isMobile ? 'px-4 pt-4 pb-3' : 'max-w-[1400px] mx-auto px-4 lg:px-6 mb-6'}`}>
+          <div className={`${isMobile ? 'px-4 pt-4 pb-3' : 'max-w-[1200px] mx-auto px-4 lg:px-6 mb-6'}`}>
             {isMobile ? (
               <div className="space-y-3">
                 <div>
@@ -265,7 +265,7 @@ const MobileCategoryPage = () => {
           </div>
 
           {/* Category List */}
-          <div className={isMobile ? 'px-4 space-y-3' : 'max-w-[1400px] mx-auto px-4 lg:px-6'}>
+          <div className={isMobile ? 'px-4 space-y-3' : 'max-w-[1200px] mx-auto px-4 lg:px-6'}>
             {isLoading ? (
               <CategorySkeleton />
             ) : error ? (

@@ -92,7 +92,7 @@ const CareersPage = () => {
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
         {/* Hero Section - Compact */}
         <section className="py-8 px-4 border-b bg-muted/30">
-          <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+          <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-primary" />
@@ -107,7 +107,7 @@ const CareersPage = () => {
 
         {/* Job Listings Section */}
         <section className="py-6 px-4">
-          <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
+          <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
             {/* Filters */}
             <Card className="border shadow-sm mb-6">
               <CardContent className="p-3">

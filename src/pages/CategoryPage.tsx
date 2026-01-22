@@ -207,7 +207,7 @@ const CategoryPage = () => {
     : 'No products found in this category.';
 
   return (
-    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max min-w-[1200px]' : ''}`}>
       <PageHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -216,7 +216,7 @@ const CategoryPage = () => {
         placeholder={useGlobalSearch ? "Search all products..." : "Search in this category..."}
       />
 
-      <main className={`flex-grow ${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 pb-8 mt-6' : 'px-0'}`}>
+      <main className={`flex-grow ${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 pb-8 mt-6' : 'px-0'}`}>
         <Breadcrumbs items={breadcrumbs} onItemClick={handleBreadcrumbClick} />
 
         {useGlobalSearch && !isMobile && (

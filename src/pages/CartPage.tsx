@@ -58,7 +58,7 @@ const CartPage = () => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <div className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-0 pt-0 pb-40'}`}>
+      <div className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-8' : 'px-0 pt-0 pb-40'}`}>
         
         {/* Page Header - Desktop */}
         {!isMobile && (

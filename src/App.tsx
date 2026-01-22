@@ -260,9 +260,11 @@ function App() {
           <main
             id="main-content"
             className="flex-grow overflow-y-auto"
-            style={!isAdminRoute ? {
-              paddingTop: `calc(${HEADER_OFFSET} + env(safe-area-inset-top))`,
-            } : undefined}
+            style={
+              !isAdminRoute && isMobile
+                ? { paddingTop: `calc(${HEADER_OFFSET} + env(safe-area-inset-top))` }
+                : undefined
+            }
           >
             <Routes>
             {/* Public Routes */}
