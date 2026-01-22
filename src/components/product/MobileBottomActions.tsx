@@ -39,7 +39,12 @@ const MobileBottomActions = ({
   return (
     <>
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-40 shadow-lg">
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-40 shadow-lg"
+        style={{
+          paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
+        }}
+      >
         <div className="flex items-center gap-3">
           {/* Action buttons */}
           <div className="flex gap-3 flex-1">

@@ -1,5 +1,6 @@
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { Capacitor } from '@capacitor/core';
 import React, { lazy, Suspense, ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
@@ -121,7 +122,11 @@ function App() {
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");
   const isSearchPage = location.pathname.startsWith("/search");
+  const isCategoryPage = location.pathname.startsWith("/category/");
   const isHomePage = location.pathname === "/";
+  const HEADER_OFFSET = Capacitor.isNativePlatform()
+    ? '14px'
+    : '48px';
 
   // ✅ define handleLogout inside App so it’s in scope
   const handleLogout = async () => {
@@ -186,7 +191,7 @@ function App() {
               </span>
             </Link>
           </div>;
-    } else if (location.pathname === "/category") {
+    } else if (location.pathname.startsWith("/category")) {
       title = "Product Category";
     } else if (location.pathname.startsWith("/orders")) {
       title = "My Orders";
@@ -248,17 +253,16 @@ function App() {
       <div className="flex flex-col min-h-screen bg-white">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
-        {isMobile && !isAdminRoute && !isHomePage && !isSearchPage && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
+        {isMobile && !isAdminRoute && !isHomePage && !isSearchPage&& !isCategoryPage && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
         
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           {/* main content fills available space */}
-          <main  
-            id="main-content" 
-            className="flex-grow"
-            style={{
-              paddingTop: 'calc(54px + env(safe-area-inset-top))',
-              height: '100vh'
-            }}
+          <main
+            id="main-content"
+            className="flex-grow overflow-y-auto"
+            style={!isAdminRoute ? {
+              paddingTop: `calc(${HEADER_OFFSET} + env(safe-area-inset-top))`,
+            } : undefined}
           >
             <Routes>
             {/* Public Routes */}

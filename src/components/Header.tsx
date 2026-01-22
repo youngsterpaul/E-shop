@@ -147,7 +147,11 @@ const Header = () => {
 
         <div
           className={`bg-white ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}
-          style={isMobile ? { top: 'env(safe-area-inset-top)', transition: 'top 0.2s ease' } : undefined}
+          style={isMobile ? {
+            top: 0,
+            paddingTop: 'calc(10px + env(safe-area-inset-top))',
+            height: 'calc(56px + env(safe-area-inset-top))',
+          } : undefined}
         >
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
@@ -155,9 +159,9 @@ const Header = () => {
               <img 
                 src={smartkenyaLogo} 
                 alt="SmartKenya - Kenya's Leading Electronics Store" 
-                width={isMobile ? 84 : 132}
-                height={isMobile ? 28 : 44}
-                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-7 w-auto'}`} 
+                width={isMobile ? 132 : 132}
+                height={isMobile ? 44 : 44}
+                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-9 w-auto'}`} 
               />
             </Link>
 

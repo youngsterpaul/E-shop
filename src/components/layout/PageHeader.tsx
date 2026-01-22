@@ -24,7 +24,14 @@ export const PageHeader = ({
   if (!isMobile) return null;
 
   return (
-    <div className="fixed top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 w-full">
+    <div 
+      className="fixed top-0 z-40 bg-white border-b border-gray-200 px-2 py-2 w-full"
+      style={isMobile ? {
+        top: 0,
+        paddingTop: 'calc(10px + env(safe-area-inset-top))',
+        height: 'calc(56px + env(safe-area-inset-top))',
+      } : undefined}
+    >
       <div className="flex w-full items-center gap-2">
         <Button
           variant="ghost"

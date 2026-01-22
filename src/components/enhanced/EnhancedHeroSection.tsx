@@ -173,24 +173,49 @@ const EnhancedHeroSection = memo(() => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
   useEffect(() => {
+    const CACHE_KEY = 'heroSlides';
+    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+    // Try to read cached slides
+    const cachedDataRaw = localStorage.getItem(CACHE_KEY);
+    if (cachedDataRaw) {
+      try {
+        const cachedData = JSON.parse(cachedDataRaw);
+        // Check if cache is still valid
+        if (cachedData?.slides && Date.now() - cachedData.timestamp < CACHE_TTL) {
+          setHeroSlides(cachedData.slides);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error parsing cached hero slides:', err);
+      }
+    }
+
+    // Fetch fresh slides from Supabase
     const fetchHeroSlides = async () => {
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('hero_slides').select('*').eq('is_active', true).order('display_order', {
-          ascending: true
-        });
+        const { data, error } = await supabase
+          .from('hero_slides')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
         if (error) throw error;
         setHeroSlides(data || []);
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching hero slides:', error);
+        // Save to cache with timestamp
+        localStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ slides: data, timestamp: Date.now() })
+        );
+      } catch (err) {
+        console.error('Error fetching hero slides:', err);
         setLoading(false);
       }
     };
+
     fetchHeroSlides();
   }, []);
+
   useEffect(() => {
     if (!isAutoPlaying || heroSlides.length <= 1) return;
     const timer = setInterval(() => {

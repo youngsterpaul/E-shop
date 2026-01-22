@@ -6,6 +6,7 @@ import { useSecurityAlertsCount } from '@/hooks/useSecurityAlertsCount';
 import { usePendingOrdersCount } from '@/hooks/usePendingOrdersCount';
 import { usePendingReturnsCount } from '@/hooks/usePendingReturnsCount';
 import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
+import { Capacitor } from '@capacitor/core';
 import {
   LayoutDashboard,
   Package,
@@ -56,6 +57,7 @@ import { NavLink } from '@/components/NavLink';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface MenuItem {
   name: string;
@@ -79,6 +81,7 @@ export function ModernAdminSidebar() {
   const pendingOrdersCount = usePendingOrdersCount();
   const pendingReturnsCount = usePendingReturnsCount();
   const unreadChatCount = useUnreadChatCount();
+  const isApp = Capacitor.isNativePlatform()
 
   const loading = rolesLoading || permissionsLoading;
 
@@ -339,6 +342,8 @@ export function ModernAdminSidebar() {
     });
   };
 
+  const isMobile = isMobileUserAgent();
+
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
@@ -355,7 +360,17 @@ export function ModernAdminSidebar() {
 
     return (
       <SidebarGroup>
-        <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <SidebarGroupLabel 
+          className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+          style={
+            isMobile && isApp
+              ? {
+                  top: 0,
+                  paddingTop: 'calc(10px + env(safe-area-inset-top))',
+                }
+              : undefined
+          }
+        >
           {label}
         </SidebarGroupLabel>
         <SidebarGroupContent>

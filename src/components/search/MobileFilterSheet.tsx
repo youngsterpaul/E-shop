@@ -37,7 +37,7 @@ const MobileFilterSheet = memo(({ products, filters, onFiltersChange, activeFilt
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[85%] max-w-sm p-0 flex flex-col">
+      <SheetContent side="right" className="w-[85%] max-w-sm p-0 flex flex-col">
         <SheetHeader className="p-4 border-b border-gray-200">
           <SheetTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />

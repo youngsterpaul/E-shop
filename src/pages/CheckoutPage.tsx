@@ -917,7 +917,12 @@ return <div>
               </div>
 
               {/* Navigation */}
-              <div className={`border-t ${isMobile ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2' : 'p-6'}`}>
+              <div 
+                className={`border-t ${isMobile ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2 bg-white' : 'p-6'}`}
+                style={{
+                  paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
+                }}
+              >
                 <div className="flex justify-between max-w-md mx-auto">
                   <Button variant="outline" onClick={handleBack} className="flex-1 mr-2">
                     {currentStep === 1 ? 'Back to Cart' : 'Back'}

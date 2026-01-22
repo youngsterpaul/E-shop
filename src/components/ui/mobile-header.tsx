@@ -30,9 +30,12 @@ export const MobileHeader = ({
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-4 shadow-sm"
-      style={{ top: 'env(safe-area-inset-top)', transition: 'top 0.2s ease' }}
-
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 flex items-center justify-between px-2 py-4 shadow-sm"
+      style={{
+        top: 0,
+        paddingTop: 'calc(10px + env(safe-area-inset-top))',
+        height: 'calc(56px + env(safe-area-inset-top))',
+      }}
     >
       <div className="flex items-center gap-2">
         <Button

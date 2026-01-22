@@ -3,10 +3,14 @@ import { Home, MessageCircle, ShoppingCart, User, List } from 'lucide-react';
 import { useCartContext } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { isMobileUserAgent } from "@/hooks/use-mobile";
+import { Capacitor } from '@capacitor/core';
 
 const MobileNav = () => {
   const location = useLocation();
   const isMobile = isMobileUserAgent();
+  const NAV_OFFSET = Capacitor.isNativePlatform()
+      ? '4px'
+      : '4px';
 
   const showMobileNavOnPaths = ['/', '/category', '/chat', '/account', '/cart'];
   const showMobileNav = showMobileNavOnPaths.includes(location.pathname);
@@ -44,6 +48,9 @@ const MobileNav = () => {
       {showMobileNav && (
         <nav 
           className="fixed bottom-0 left-0 right-0 bg-background border-t border-border w-full z-50 safe-area-inset-bottom"
+          style={{
+            paddingBottom: `calc(${NAV_OFFSET} + env(safe-area-inset-bottom))`,
+          }}
           role="navigation"
           aria-label="Mobile navigation"
         >
