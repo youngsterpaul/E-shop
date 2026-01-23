@@ -259,7 +259,7 @@ function App() {
           {/* main content fills available space */}
           <main
             id="main-content"
-            className="flex-grow overflow-y-auto"
+            className={`flex-grow ${isMobile ? 'overflow-y-auto' : ''}`}
             style={
               !isAdminRoute && isMobile
                 ? { paddingTop: `calc(${HEADER_OFFSET} + env(safe-area-inset-top))` }

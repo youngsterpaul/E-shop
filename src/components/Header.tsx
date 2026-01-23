@@ -25,8 +25,6 @@ const Header = () => {
   let totalItems = 0;
   const [showTopHeader, setShowTopHeader] = useState(true);
   const [showBottomNav, setShowBottomNav] = useState(true);
-  const hideMainHeaderOnPaths = ['/privacy', '/careers', '/contact', '/returns', '/faq', '/terms', '/about'];
-  const hideMainHeader = hideMainHeaderOnPaths.includes(location.pathname);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -146,7 +144,7 @@ const Header = () => {
         )}
 
         <div
-          className={`bg-white ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 lg:px-8 py-4 transition-all duration-300'}`}
+          className={`bg-white ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 xl:px-28 py-4 transition-all duration-300'}`}
           style={isMobile ? {
             top: 0,
             paddingTop: 'calc(10px + env(safe-area-inset-top))',
@@ -166,7 +164,7 @@ const Header = () => {
             </Link>
 
             {/* Desktop Search - Expanded */}
-            {!isMobile && !hideMainHeader && (
+            {!isMobile && (
               <div className="flex-1 min-w-0">
                 <EnhancedSearchInput 
                   value={searchQuery} 
@@ -182,7 +180,7 @@ const Header = () => {
             {isMobile && <div className="flex-1" />}
 
             {/* Desktop Actions */}
-            {!isMobile && !hideMainHeader && (
+            {!isMobile && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 {/* Wishlist */}
                 <Link 

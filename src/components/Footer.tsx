@@ -120,23 +120,6 @@ const Footer = ({ className }: FooterProps) => {
                     As we continue to grow, we remain dedicated to enriching the lives of our customers by providing them with top-tier products, exceptional customer service and a shopping experience that is second to none. Our platform supports secure M-Pesa payment options, ensuring convenience and flexibility.
                   </p>
                 </div>
-
-                <div className="pt-4">
-                  <h4 className="text-lg font-bold text-foreground mb-4">Why Choose SmartKenya?</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { title: 'Verified Reviews', desc: 'Genuine customer feedback' },
-                      { title: 'Secure Payments', desc: 'M-Pesa & Card accepted' },
-                      { title: 'Order Tracking', desc: 'Real-time delivery updates' },
-                      { title: 'Trusted Sellers', desc: 'Certified quality assurance' },
-                    ].map((item) => (
-                      <div key={item.title} className="bg-background rounded-xl p-4 border border-border/50">
-                        <h5 className="font-semibold text-foreground text-sm">{item.title}</h5>
-                        <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -168,7 +151,7 @@ const Footer = ({ className }: FooterProps) => {
               {/* Social Links */}
               <div className="space-y-4">
                 <h3 className="font-bold text-foreground">Follow Us</h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex .flex-wrap gap-2">
                   {socialLinks.map((social) => (
                     <a
                       key={social.label}
@@ -203,7 +186,7 @@ const Footer = ({ className }: FooterProps) => {
         {/* Copyright */}
         <div className="border-t border-border/40 py-6 bg-muted/20">
           <div className="container max-w-6xl lg:max-w-7xl">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col /md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} SmartKenya. All rights reserved.
               </p>
