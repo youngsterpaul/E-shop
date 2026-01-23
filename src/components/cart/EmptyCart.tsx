@@ -6,6 +6,7 @@ import { useFeaturedProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
 import ProductSkeleton from '@/components/products/ProductSkeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import EnhancedFeaturedProducts from '../enhanced/EnhancedFeaturedProducts';
 
 const EmptyCart = () => {
   const { data: products, isLoading } = useFeaturedProducts();
@@ -15,7 +16,7 @@ const EmptyCart = () => {
     : "grid-cols-6";
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? 'min-w-max' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-white ${!isMobile ? ' ' : ''}`}>
       <div className={`w-full ${!isMobile ? 'container xl:px-24 px-4 py-12' : 'px-0 pb-12'} mx-auto`}>
         {/* Empty Cart Section */}
         <div className="text-center mb-16 bg-white p-8">
@@ -34,7 +35,7 @@ const EmptyCart = () => {
           </h1>
         </div>
         {/* Featured Products Section */}
-      <div className={`mx-auto bg-white ${!isMobile ? 'p-8':''}`}>
+      <div className={`mx-auto bg-white ${!isMobile ? '.p-8':''}`}>
           <h2 className={`text-2xl font-bold text-gray-900 mx-2 my-4 ${isMobile ? 'p-2 border-b':''}`}>You might also like</h2>
           {isLoading ? (
             <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
@@ -43,22 +44,8 @@ const EmptyCart = () => {
               ))}
             </div>
           ) : (
-            <div className={`grid ${gridCols} bg-white gap-2 p-2 shadow-sm`}>
-              {products?.products?.slice(0, 12).map((product) => {
-                const productCardData = {
-                  id: product.product_id,
-                  name: product.name,
-                  price: product.price,
-                  originalPrice: undefined, // Database doesn't have original_price
-                  image: product.image_urls?.[0] || '/placeholder.svg',
-                  rating: product.rating || 4,
-                  reviews_count: product.reviews_count || 0,
-                  discount: undefined,
-                  category: product.categories || 'General',
-                  inStock: (product.stock || 0) > 0,
-                };
-                return <ProductCard key={product.product_id} product={productCardData} />;
-              })}
+            <div className='max-w-[1200px]'>
+              <EnhancedFeaturedProducts />
             </div>
           )}
         </div>

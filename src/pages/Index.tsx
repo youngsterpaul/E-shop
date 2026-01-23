@@ -87,13 +87,13 @@ const Index = () => {
             <EnhancedFeaturedProducts />
           </section>
 
-          {/* Recently Viewed - Desktop Only */}
+          {/* Recently Viewed - Desktop Only
           {!isMobile && (
             <section>
               <RecentlyViewedProducts maxItems={6} />
             </section>
           )}
-
+    */}
           {/* Trust Badges - Desktop Only */}
           {!isMobile && (
             <section className="mt-8">

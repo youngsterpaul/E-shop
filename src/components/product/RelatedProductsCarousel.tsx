@@ -1,14 +1,11 @@
-
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { memo, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import LazySection from '@/components/performance/LazySection';
 import { useOptimizedRelatedProducts } from '@/hooks/useOptimizedRelatedProducts';
-import { Skeleton } from '@/components/ui/skeleton';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ProductSkeleton from '../products/ProductSkeleton';
-import Footer from '../Footer';
 
 interface RelatedProductsCarouselProps {
   currentProduct: {
@@ -17,114 +14,86 @@ interface RelatedProductsCarouselProps {
   };
 }
 
-const RelatedProductsCarousel = ({ currentProduct }: RelatedProductsCarouselProps) => {
-  const { data: products = [], isLoading: loading } = useOptimizedRelatedProducts(
-    currentProduct.category, 
+const RelatedProductsCarousel = memo(({ currentProduct }: RelatedProductsCarouselProps) => {
+  const isMobile = isMobileUserAgent();
+  const { data: products = [], isLoading, isError, error } = useOptimizedRelatedProducts(
+    currentProduct.category,
     currentProduct.id
   );
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const isMobile = isMobileUserAgent();
-  const gridCols = isMobile 
-    ? "grid-cols-2" 
-    : "grid-cols-6";
 
-  const maxIndex = Math.max(0, products.length - 8);
+  const transformedProducts = useMemo(
+    () =>
+      products.map((product) => ({
+        id: product.product_id,
+        name: product.name,
+        price: product.price || 0,
+        originalPrice: undefined,
+        image: product.image_urls?.[0] || '/placeholder-image.webp',
+        rating: product.rating || 4,
+        reviews_count: product.reviews_count || 0,
+        discount: undefined,
+        category: product.categories || '',
+        inStock: true,
+      })),
+    [products]
+  );
 
-  const nextSlide = () => {
-    setCurrentIndex(prev => Math.min(prev + 1, maxIndex));
-  };
+  const loadingSkeleton = (
+    <div className={`${isMobile ? 'px-2' : 'p-6'}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-6 gap-4'}`}>
+        {Array.from({ length: isMobile ? 4 : 6 }).map((_, i) => (
+          <ProductSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
 
-  const prevSlide = () => {
-    setCurrentIndex(prev => Math.max(prev - 1, 0));
-  };
-
-  if (loading) {
+  if (isError) {
     return (
-      <div className="mt-12">
-        <div className={`grid ${gridCols} bg-white gap-1 shadow-sm`}>
-          {Array(4).fill(null).map((_, index) => (
-            <ProductSkeleton key={index} />
-          ))}
-        </div>
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">Failed to load related products</h3>
+        <p className="text-muted-foreground text-center mb-4">
+          {error?.message || 'Something went wrong while fetching related products.'}
+        </p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Try Again
+        </Button>
       </div>
     );
   }
 
-  if (products.length === 0) {
-    return null;
+  if (isLoading) {
+    return <LazySection fallback={loadingSkeleton}>{loadingSkeleton}</LazySection>;
   }
 
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <h3 className="text-lg font-semibold text-foreground mb-2">No related products</h3>
+        <p className="text-muted-foreground">Check back later for more recommendations.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-12">
-      <div className={`mx-auto bg-white pt-4 ${!isMobile ? 'px-4':''}`}>
-        {/* Header with title and navigation */}
-        <div className="flex items-center justify-between mb-2 border-b pb-2">
-          <h2 className="text-md font-bold text-gray-900 px-2">You might also like</h2>
-          
-          {products.length > 8 && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={prevSlide}
-                disabled={currentIndex === 0}
-                className="rounded-full"
-                aria-label="Previous products"
-              >
-                <ChevronLeft size={20} />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={nextSlide}
-                disabled={currentIndex >= maxIndex}
-                className="rounded-full"
-                aria-label="Next products"
-              >
-                <ChevronRight size={20} />
-              </Button>
-            </div>
-          )}
+    <LazySection fallback={loadingSkeleton}>
+      <div className="mt-12 bg-white rounded-xl shadow-sm">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+          <h2 className="font-semibold text-foreground text-lg">You might also like</h2>
         </div>
 
-        {/* Products Grid */}
-        <div className={`grid ${gridCols} ${isMobile ? '':'bg-white'} gap-2 shadow-sm p-2`}>
-          {products.slice(0, 6).map((product) => {
-            const productCardData = {
-              id: product.product_id,
-              name: product.name,
-              price: product.price || 0,
-              originalPrice: undefined, // or map if available
-              image: product.image_urls?.[0] || '',
-              rating: product.rating || 4,
-              reviews_count: product.reviews_count || 0,
-              discount: undefined, // map if available
-              category: product.categories || '',
-              inStock: true,
-            };
-            return <ProductCard key={product.product_id} product={productCardData} />;
-          })}
-        </div>
-
-        {/* Dots Indicator */}
-        {products.length > 8 && (
-          <div className="flex justify-center gap-2 mt-6">
-            {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                  currentIndex === index ? 'bg-primary' : 'bg-gray-300'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
+        <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-6 gap-4'}`}>
+            {transformedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </LazySection>
   );
-};
+});
 
+RelatedProductsCarousel.displayName = 'RelatedProductsCarousel';
 export default RelatedProductsCarousel;

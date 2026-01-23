@@ -482,13 +482,13 @@ const productForTabs = useMemo(() => {
             </div>
           )}
 
-          {/* Recently Viewed */}
+          {/* Recently Viewed 
           {!isMobile && (
             <div className={isMobile ? 'px-4' : ''}>
               <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
             </div>
          )}
-
+        */}
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
           />
