@@ -54,7 +54,7 @@ const CartPage = () => {
   };
 
   if (loading) return <CartSkeleton />;
-  if (isCartEmpty) return <div className='min-w-max'><EmptyCart /></div>;
+  if (isCartEmpty) return <div className={`${isMobile ? '' : 'min-w-max'}`}><EmptyCart /></div>;
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
