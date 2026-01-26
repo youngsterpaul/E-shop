@@ -117,7 +117,7 @@ const Header = () => {
         })}
       </script>
 
-      <header className={`bg-background border-b border-border/40 top-0 z-50 ${!isMobile ? 'min-w-[1200px]' : 'sticky'}`}>
+      <header className={`bg-white bg-background border-b border-border/40 top-0 z-50 ${!isMobile ? 'min-w-[1200px]' : 'sticky'}`}>
         {/* Main navigation for desktop */}
         {!isMobile && (
           <nav 

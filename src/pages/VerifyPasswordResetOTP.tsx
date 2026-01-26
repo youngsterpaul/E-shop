@@ -6,7 +6,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { KeyRound, ArrowLeft, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 const STORAGE_KEY = 'otp_timer_';
 const RATE_LIMIT_KEY = 'otp_requests_';
@@ -389,17 +388,6 @@ const VerifyPasswordResetOTP = () => {
       </div>
     </div>
   );
-
-  if (isMobile) {
-    return (
-      <>
-        <MobileHeader title="Verify Reset Code" onBack={() => navigate('/auth?mode=forgot')} />
-        <div className="pt-16">
-          {content}
-        </div>
-      </>
-    );
-  }
 
   return content;
 };

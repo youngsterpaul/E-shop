@@ -7,7 +7,6 @@ import { Shield, ArrowLeft, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { MobileHeader } from '@/components/ui/mobile-header';
 
 const STORAGE_KEY = 'otp_timer_signup_';
 const RATE_LIMIT_KEY = 'otp_requests_signup_';
@@ -392,17 +391,6 @@ const VerifyOTP = () => {
       </div>
     </div>
   );
-
-  if (isMobile) {
-    return (
-      <>
-        <MobileHeader title="Verify Email" onBack={() => navigate('/auth?mode=signup')} />
-        <div className="pt-16">
-          {content}
-        </div>
-      </>
-    );
-  }
 
   return content;
 };

@@ -102,6 +102,7 @@ const CheckoutPage = () => {
   };
   const [errors, setErrors] = useState<ErrorsType>({});
   const freeDeliveryThreshold = 10000;
+  const PAYMENT_TIMEOUT = 90000; // 90 seconds
   const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
 
   // Initialize form data
@@ -469,7 +470,7 @@ const CheckoutPage = () => {
         } catch (error) {
           //console.error('Error checking payment status:', error);
         }
-      }, 1000);
+      }, 3000);
 
       // Set timeout for payment
       setTimeout(() => {
@@ -485,7 +486,7 @@ const CheckoutPage = () => {
           setPaymentStatus(timeoutStatus);
           paymentStatusRef.current = timeoutStatus;
         }
-      }, 15000);
+      }, PAYMENT_TIMEOUT);
     } catch (error) {
       //console.error('Payment error:', error);
       setPaymentStatus({
