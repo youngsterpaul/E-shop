@@ -361,7 +361,7 @@ const AuthPage = () => {
   return (
     <>
       {isMobile ? (
-        <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+        <div className="fixed left-0 right-0 h-[100dvh] bg-background flex flex-col overflow-hidden">
 
           <div className="flex-1 pt-8 pb-8 px-4">
             {passwordResetComplete && (
@@ -379,7 +379,7 @@ const AuthPage = () => {
               <img
                 src={smartkenyaLogo}
                 alt="SmartKenya Logo"
-                className="h-8 object-contain"
+                className="h-12 object-contain"
               />
             </div>
 

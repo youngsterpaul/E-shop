@@ -126,7 +126,7 @@ function App() {
   const isHomePage = location.pathname === "/";
   const HEADER_OFFSET = Capacitor.isNativePlatform()
     ? '14px'
-    : '48px';
+    : '52px';
 
   // ✅ define handleLogout inside App so it’s in scope
   const handleLogout = async () => {

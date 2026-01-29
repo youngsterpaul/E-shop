@@ -141,7 +141,7 @@ const CartPage = () => {
 
       {/* Mobile Bottom Bar */}
       {isMobile && calculations.selectedItemsCount > 0 && (
-        <div className="fixed bottom-14 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
+        <div className="fixed bottom-16 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
           {/* Free Shipping Progress */}
           {!isEligibleForFreeDelivery && amountToFreeShipping > 0 && (
             <div className="px-3 py-1.5 bg-primary/5 border-b border-border">

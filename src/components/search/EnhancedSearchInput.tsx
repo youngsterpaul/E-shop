@@ -126,22 +126,10 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
         
         {!isMobile && (
           <div className="absolute right-1.5 flex items-center gap-1">
-            {value && (
-              <Button 
-                type="button" 
-                variant="ghost"
-                size="sm"
-                onClick={handleClear} 
-                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground" 
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
             <Button 
               type="button" 
               onClick={() => handleSubmit()} 
-              className="h-9 px-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
+              className="h-9 px-5 rounded-full bg-gray-600 hover:bg-gray-700 text-primary-foreground font-medium" 
               aria-label="Search"
             >
               Search
