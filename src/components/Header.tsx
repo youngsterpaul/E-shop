@@ -159,7 +159,7 @@ const Header = () => {
                 alt="SmartKenya - Kenya's Leading Electronics Store" 
                 width={isMobile ? 132 : 132}
                 height={isMobile ? 40 : 44}
-                className={`object-contain transition-transform duration-200 group-hover:scale-105 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 
+                className={`object-contain transition-transform duration-200 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 
               />
             </Link>
 
