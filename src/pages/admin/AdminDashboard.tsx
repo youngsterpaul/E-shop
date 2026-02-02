@@ -9,8 +9,11 @@ import { useRealtimeSalesAnalytics } from '@/hooks/useRealtimeSalesAnalytics';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { LiveMetricsPanel } from '@/components/admin/LiveMetricsPanel';
 import { ConversionFunnel } from '@/components/admin/ConversionFunnel';
+import { CustomerInsightsCard } from '@/components/admin/CustomerInsightsCard';
+import { KeyboardShortcutsDialog } from '@/components/admin/KeyboardShortcutsDialog';
 import { 
   ShoppingCart, 
   Package, 
@@ -39,6 +42,9 @@ const AdminDashboard = () => {
   
   // Enable real-time notifications for admins
   useAdminNotifications(isAdmin);
+  
+  // Keyboard shortcuts
+  const { showShortcutsDialog, setShowShortcutsDialog } = useKeyboardShortcuts(isAdmin);
   
   const {
     useRecentOrders,
@@ -343,7 +349,17 @@ const AdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Customer Insights */}
+        <CustomerInsightsCard />
       </div>
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog 
+        open={showShortcutsDialog} 
+        onOpenChange={setShowShortcutsDialog}
+        isAdmin={isAdmin}
+      />
     </AdminLayout>
   );
 };

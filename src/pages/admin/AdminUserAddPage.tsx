@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -10,17 +9,96 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import { AppRole } from '@/hooks/useUserRole';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-interface UserFormData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  role: AppRole;
-}
+// Strong password validation schema matching useAuth.tsx requirements
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password must not exceed 128 characters')
+  .refine(
+    (password) => /(?=.*[a-z])/.test(password),
+    'Password must contain at least one lowercase letter'
+  )
+  .refine(
+    (password) => /(?=.*[A-Z])/.test(password),
+    'Password must contain at least one uppercase letter'
+  )
+  .refine(
+    (password) => /(?=.*\d)/.test(password),
+    'Password must contain at least one number'
+  )
+  .refine(
+    (password) => /(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password),
+    'Password must contain at least one special character'
+  )
+  .refine(
+    (password) => {
+      const commonPasswords = ['password', '12345678', 'qwerty', 'admin', 'letmein'];
+      return !commonPasswords.some(common => password.toLowerCase().includes(common));
+    },
+    'Password cannot contain common words'
+  );
+
+const userSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .min(5, 'Email too short')
+    .max(255, 'Email too long')
+    .transform(val => val.toLowerCase().trim()),
+  password: passwordSchema,
+  firstName: z.string()
+    .trim()
+    .min(1, 'First name is required')
+    .max(50, 'First name too long')
+    .regex(/^[a-zA-Z\s'-]+$/, 'Invalid characters in first name'),
+  lastName: z.string()
+    .trim()
+    .min(1, 'Last name is required')
+    .max(50, 'Last name too long')
+    .regex(/^[a-zA-Z\s'-]+$/, 'Invalid characters in last name'),
+  phone: z.string()
+    .optional()
+    .refine(
+      val => !val || /^(\+254|0)[17]\d{8}$/.test(val),
+      'Invalid Kenyan phone number format (e.g., +254712345678 or 0712345678)'
+    ),
+  role: z.enum(['superadmin', 'admin', 'moderator', 'user'] as const),
+});
+
+type UserFormData = z.infer<typeof userSchema>;
+
+// Password strength indicator component
+const PasswordStrengthIndicator = ({ password }: { password: string }) => {
+  const checks = [
+    { label: 'At least 8 characters', valid: password.length >= 8 },
+    { label: 'Lowercase letter', valid: /(?=.*[a-z])/.test(password) },
+    { label: 'Uppercase letter', valid: /(?=.*[A-Z])/.test(password) },
+    { label: 'Number', valid: /(?=.*\d)/.test(password) },
+    { label: 'Special character', valid: /(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password) },
+  ];
+
+  if (!password) return null;
+
+  return (
+    <div className="mt-2 space-y-1">
+      {checks.map((check, index) => (
+        <div key={index} className="flex items-center gap-2 text-xs">
+          {check.valid ? (
+            <CheckCircle className="h-3 w-3 text-green-500" />
+          ) : (
+            <XCircle className="h-3 w-3 text-red-500" />
+          )}
+          <span className={check.valid ? 'text-green-600' : 'text-muted-foreground'}>
+            {check.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const AdminUserAddPage = () => {
   const navigate = useNavigate();
@@ -28,6 +106,7 @@ const AdminUserAddPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -184,8 +263,9 @@ const AdminUserAddPage = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" required minLength={6} />
+                        <Input {...field} type="password" required />
                       </FormControl>
+                      <PasswordStrengthIndicator password={field.value} />
                       <FormMessage />
                     </FormItem>
                   )}

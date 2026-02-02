@@ -1,12 +1,16 @@
-import { Award, TrendingUp, Gift, Users } from 'lucide-react';
+import { Award, TrendingUp, Gift, Users, Flame, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useGamification } from '@/hooks/useGamification';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const LoyaltyPointsWidget = () => {
   const { points, referralStats, isLoading } = useLoyaltyPoints();
+  const { streak, userTier, getNextTierProgress } = useGamification();
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -24,26 +28,56 @@ export const LoyaltyPointsWidget = () => {
 
   if (!points) return null;
 
+  const tierProgress = getNextTierProgress();
+  const currentTierName = userTier?.tier?.tier_name || 'Bronze';
+
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Award className="h-5 w-5 text-primary" />
-          Loyalty Points
-        </CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5 text-primary" />
+            Loyalty Points
+          </CardTitle>
+          {streak && streak.current_streak > 0 && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Flame className="h-3 w-3 text-orange-500" />
+              {streak.current_streak} day streak
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Points Display */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Available Points</p>
             <p className="text-3xl font-bold text-primary">{points.points}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Total Earned</p>
-            <p className="text-2xl font-semibold text-foreground">{points.total_earned}</p>
+            <p className="text-sm text-muted-foreground">Member Status</p>
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              <span className="font-semibold text-foreground">{currentTierName}</span>
+            </div>
           </div>
         </div>
 
+        {/* Tier Progress */}
+        {tierProgress.nextTier && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Progress to {tierProgress.nextTier.tier_name}</span>
+              <span className="font-medium">{Math.round(tierProgress.progress)}%</span>
+            </div>
+            <Progress value={tierProgress.progress} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {tierProgress.pointsNeeded.toLocaleString()} points to next tier
+            </p>
+          </div>
+        )}
+
+        {/* Stats */}
         <div className="grid grid-cols-2 gap-2 pt-2">
           <div className="flex items-center gap-2 text-sm">
             <TrendingUp className="h-4 w-4 text-green-600" />
@@ -74,9 +108,9 @@ export const LoyaltyPointsWidget = () => {
             size="sm" 
             variant="outline"
             className="flex-1"
-            onClick={() => navigate('/loyalty')}
+            onClick={() => navigate('/achievements')}
           >
-            Details
+            Achievements
           </Button>
         </div>
       </CardContent>

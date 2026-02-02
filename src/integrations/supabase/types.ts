@@ -578,6 +578,51 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_insights: {
+        Row: {
+          active_customers: number | null
+          avg_lifetime_value: number | null
+          avg_order_value: number | null
+          churn_rate: number | null
+          created_at: string | null
+          customer_segments: Json | null
+          id: string
+          insight_date: string
+          new_customers: number | null
+          returning_customers: number | null
+          top_categories: Json | null
+          total_customers: number | null
+        }
+        Insert: {
+          active_customers?: number | null
+          avg_lifetime_value?: number | null
+          avg_order_value?: number | null
+          churn_rate?: number | null
+          created_at?: string | null
+          customer_segments?: Json | null
+          id?: string
+          insight_date: string
+          new_customers?: number | null
+          returning_customers?: number | null
+          top_categories?: Json | null
+          total_customers?: number | null
+        }
+        Update: {
+          active_customers?: number | null
+          avg_lifetime_value?: number | null
+          avg_order_value?: number | null
+          churn_rate?: number | null
+          created_at?: string | null
+          customer_segments?: Json | null
+          id?: string
+          insight_date?: string
+          new_customers?: number | null
+          returning_customers?: number | null
+          top_categories?: Json | null
+          total_customers?: number | null
+        }
+        Relationships: []
+      }
       daily_sales: {
         Row: {
           created_at: string | null
@@ -1075,6 +1120,54 @@ export type Database = {
           total_redeemed?: number
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      member_tiers: {
+        Row: {
+          badge_color: string | null
+          benefits: Json | null
+          created_at: string | null
+          discount_percent: number | null
+          early_access: boolean | null
+          free_shipping_threshold: number | null
+          icon_name: string | null
+          id: string
+          max_points: number | null
+          min_points: number
+          priority_support: boolean | null
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          badge_color?: string | null
+          benefits?: Json | null
+          created_at?: string | null
+          discount_percent?: number | null
+          early_access?: boolean | null
+          free_shipping_threshold?: number | null
+          icon_name?: string | null
+          id?: string
+          max_points?: number | null
+          min_points?: number
+          priority_support?: boolean | null
+          tier_level: number
+          tier_name: string
+        }
+        Update: {
+          badge_color?: string | null
+          benefits?: Json | null
+          created_at?: string | null
+          discount_percent?: number | null
+          early_access?: boolean | null
+          free_shipping_threshold?: number | null
+          icon_name?: string | null
+          id?: string
+          max_points?: number | null
+          min_points?: number
+          priority_support?: boolean | null
+          tier_level?: number
+          tier_name?: string
         }
         Relationships: []
       }
@@ -2011,6 +2104,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_wishlists: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_public: boolean | null
+          share_code: string
+          title: string | null
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          share_code: string
+          title?: string | null
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          share_code?: string
+          title?: string | null
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content: Json
@@ -2152,6 +2281,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_name: string
+          achievement_type: string
+          badge_icon: string | null
+          id: string
+          metadata: Json | null
+          points_awarded: number | null
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_name: string
+          achievement_type: string
+          badge_icon?: string | null
+          id?: string
+          metadata?: Json | null
+          points_awarded?: number | null
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_name?: string
+          achievement_type?: string
+          badge_icon?: string | null
+          id?: string
+          metadata?: Json | null
+          points_awarded?: number | null
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_mfa_settings: {
         Row: {
           backup_codes: string[] | null
@@ -2211,6 +2376,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_type: string | null
+          total_active_days: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string | null
+          total_active_days?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string | null
+          total_active_days?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tiers: {
+        Row: {
+          created_at: string | null
+          current_period_points: number | null
+          id: string
+          lifetime_points: number | null
+          next_tier_progress: number | null
+          tier_id: string | null
+          tier_updated_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_points?: number | null
+          id?: string
+          lifetime_points?: number | null
+          next_tier_progress?: number | null
+          tier_id?: string | null
+          tier_updated_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_points?: number | null
+          id?: string
+          lifetime_points?: number | null
+          next_tier_progress?: number | null
+          tier_id?: string | null
+          tier_updated_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tiers_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "member_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wishlists: {
         Row: {
@@ -2289,6 +2534,7 @@ export type Database = {
         Args: { first_name: string; order_id: number }
         Returns: undefined
       }
+      update_user_streak: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "superadmin" | "admin" | "moderator" | "user"

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   User, ShoppingBag, Heart, Shield, HelpCircle, Info, 
   LucideMessageCircleQuestion, CarTaxiFront, GraduationCap, 
-  PackageX, Settings, ChevronRight, LogOut 
+  PackageX, Settings, ChevronRight, LogOut, Award, Gift, Flame
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -38,6 +38,14 @@ const AccountPage = () => {
         { icon: ShoppingBag, title: 'My Orders', description: 'Track your orders', href: '/orders' },
         { icon: Heart, title: 'Wishlist', description: 'Your saved items', href: '/wishlist' },
         { icon: PackageX, title: 'My Returns', description: 'Track return requests', href: '/my-returns' },
+      ]
+    },
+    {
+      title: "Rewards & Achievements",
+      items: [
+        { icon: Gift, title: 'Loyalty Points', description: 'Earn & redeem points', href: '/loyalty' },
+        { icon: Award, title: 'Achievements', description: 'Your badges & tier', href: '/achievements' },
+        { icon: Flame, title: 'Rewards', description: 'Available rewards', href: '/rewards' },
       ]
     },
     {

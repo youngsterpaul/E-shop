@@ -9,6 +9,7 @@ import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { WishlistShareButton } from '@/components/wishlist/WishlistShareButton';
 
 const WishlistPage = () => {
   const isMobile = isMobileUserAgent();
@@ -75,6 +76,7 @@ const WishlistPage = () => {
             <h1 className="text-2xl font-bold text-foreground">My Wishlist</h1>
             <p className="text-sm text-muted-foreground">{wishlistItems.length} items saved</p>
           </div>
+          {wishlistItems.length > 0 && <WishlistShareButton />}
         </div>
 
         {loading ? (
