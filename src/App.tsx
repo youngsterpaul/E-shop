@@ -24,6 +24,7 @@ import ChatWidget from './components/chat/ChatWidget';
 import { OfflineDataPreloader } from './components/OfflineDataPreloader';
 import { useAndroidBackButton } from './hooks/useAndroidBackButton';
 import { useSwipeBack } from './hooks/useSwipeBack';
+import { useUserBehaviorTracking } from './hooks/useUserBehaviorTracking';
 
 // Lazy load pages for better performance
 const Auth = lazy(() => import("./pages/Auth"));
@@ -119,6 +120,10 @@ function App() {
 
   // Enable session timeout for authenticated users
   useSessionTimeout();
+  
+  // Track user behavior for personalized recommendations
+  useUserBehaviorTracking();
+  
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useDeliveryAddresses } from '@/hooks/useDeliveryAddresses';
 import { useLocations } from '@/hooks/useLocations';
+import { trackPurchase } from '@/utils/userIntent';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -448,6 +449,15 @@ const CheckoutPage = () => {
                       .eq('id', coupon.id);
                   }
                 }
+              }
+              
+              // Track purchase for personalization - extract categories from items
+              const selectedItems = getSelectedItems();
+              const purchasedCategories = selectedItems
+                .map(item => item.product?.category || '')
+                .filter(Boolean);
+              if (purchasedCategories.length > 0) {
+                trackPurchase(purchasedCategories);
               }
               
               clearCart();

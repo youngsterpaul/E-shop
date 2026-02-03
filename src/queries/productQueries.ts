@@ -152,29 +152,30 @@ async function fetchPage(
     const hasNextPage = total > from + products.length;
 
     // ===============================
-    // SMART SORT INTEGRATION (HERE)
+    // SMART SORT INTEGRATION (AI-Enhanced)
     // ===============================
     const intent = getUserIntent();
     let smartProducts = products;
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/smart-sort-products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      const { data, error } = await supabase.functions.invoke('smart-sort-products', {
+        body: {
+          products,
+          intent: {
+            ...intent,
+            timeOfDay: new Date().getHours().toString(),
+            deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
           },
-          body: JSON.stringify({
-            products,
-            intent,
-          }),
-        }
-      );
+          useAI: true,
+        },
+      });
 
-      if (res.ok) {
-        smartProducts = await res.json();
+      if (!error && data && Array.isArray(data)) {
+        smartProducts = data;
+        console.log('Smart sort applied with AI personalization');
+      } else if (error) {
+        console.warn("Smart sort error:", error);
+        smartProducts = smartSortFallback(products, intent);
       }
     } catch (err) {
       console.warn("Smart sort failed, using fallback:", err);

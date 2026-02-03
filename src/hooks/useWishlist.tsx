@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { trackWishlistAdd } from '@/utils/userIntent';
 
 interface WishlistItem {
   id: string;
@@ -87,7 +88,10 @@ export const useWishlist = () => {
         });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, productId) => {
+      // Track wishlist addition for personalization
+      trackWishlistAdd(productId);
+      
       queryClient.invalidateQueries({ queryKey: ['wishlist', user?.id] });
       toast({
         title: "Added to wishlist",

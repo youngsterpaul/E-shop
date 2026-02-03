@@ -1,6 +1,10 @@
 import { Product } from "@/queries/productQueries";
 import { UserIntent } from "./userIntent";
 
+/**
+ * Client-side fallback for smart product sorting
+ * Used when the edge function is unavailable
+ */
 export const smartSortFallback = (
   products: Product[],
   intent: UserIntent
@@ -9,12 +13,70 @@ export const smartSortFallback = (
     .map((p) => {
       let score = 0;
 
-      if (intent.viewedCategories.some(c => p.categories?.includes(c))) score += 30;
-      if (intent.viewedProducts.includes(p.product_id)) score += 20;
-      if (intent.cartProductIds.includes(p.product_id)) score += 50;
-      if (intent.wishlistProductIds.includes(p.product_id)) score += 60;
+      // Wishlist items - highest priority
+      if (intent.wishlistProductIds?.includes(p.product_id)) {
+        score += 80;
+      }
+
+      // Cart items - high intent
+      if (intent.cartProductIds?.includes(p.product_id)) {
+        score += 70;
+      }
+
+      // Category affinity (weighted by recency)
+      const categoryIndex = intent.viewedCategories?.findIndex(
+        (c) => p.categories?.toLowerCase().includes(c.toLowerCase())
+      );
+      if (categoryIndex !== undefined && categoryIndex !== -1) {
+        score += Math.max(40 - categoryIndex * 5, 10);
+      }
+
+      // Purchased categories (repeat behavior)
+      if (intent.purchasedCategories?.some(
+        (c) => p.categories?.toLowerCase().includes(c.toLowerCase())
+      )) {
+        score += 35;
+      }
+
+      // Recently viewed products
+      const viewIndex = intent.viewedProducts?.indexOf(p.product_id);
+      if (viewIndex !== undefined && viewIndex !== -1) {
+        score += Math.max(25 - viewIndex * 3, 5);
+      }
+
+      // Clicked products (engaged but not added to cart)
+      if (intent.clickedProducts?.includes(p.product_id)) {
+        score += 15;
+      }
+
+      // Search term matches
+      if (intent.searchedTerms?.some(
+        (term) => p.name?.toLowerCase().includes(term.toLowerCase())
+      )) {
+        score += 30;
+      }
+
+      // Dwell time bonus (spent time looking at this product)
+      const dwellTime = intent.dwellTime?.[p.product_id];
+      if (dwellTime) {
+        score += Math.min(dwellTime, 20); // Cap at 20 points
+      }
+
+      // Price range preference
+      if (intent.preferredPriceRange && p.price) {
+        const [minPrice, maxPrice] = intent.preferredPriceRange;
+        if (p.price >= minPrice && p.price <= maxPrice) {
+          score += 15;
+        }
+      }
+
+      // Quality signals
       score += Math.min(p.reviews_count || 0, 20);
-      if (p.featured) score += 10;
+      score += Math.round((p.rating || 0) * 5);
+      
+      if (p.featured) {
+        score += 10;
+      }
 
       return { ...p, relevance_score: score };
     })

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { trackCartAdd } from '@/utils/userIntent';
 
 interface CartItem {
   id: string;
@@ -480,6 +481,9 @@ export const useCart = () => {
       if (!cart?.id) {
         await fetchCart();
       }
+      
+      // Track cart addition for personalization (AI recommendations)
+      trackCartAdd(productId);
       
       toast({
         title: "Added to cart",

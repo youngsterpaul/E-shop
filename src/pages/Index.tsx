@@ -12,7 +12,6 @@ import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import Testimonials from '@/components/Testimonials';
 import { WebsiteStructuredData, LocalBusinessStructuredData } from '@/components/seo/StructuredData';
-import { ScrollToTopButton } from '@/components/ui/scroll-to-top-button';
 
 const Index = () => {
   const isMobile = isMobileUserAgent();
@@ -118,8 +117,6 @@ const Index = () => {
           )}  */}
         </main>
 
-        {/* Scroll to Top Button - Mobile only */}
-        {isMobile && <ScrollToTopButton />}
       </div>
     </>
   );

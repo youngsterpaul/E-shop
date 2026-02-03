@@ -7,6 +7,7 @@ import { useSearchHistory } from '@/hooks/useSearchHistory';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { useLocation } from 'react-router-dom';
+import { trackSearch } from '@/utils/userIntent';
 interface EnhancedSearchInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -61,6 +62,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
     if (!query.trim()) return;
     const trimmedQuery = query.trim();
     addToHistory(trimmedQuery);
+    trackSearch(trimmedQuery); // Track for AI personalization
     onSearch(trimmedQuery);
     setIsFocused(false);
     setSelectedIndex(-1);

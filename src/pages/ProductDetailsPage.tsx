@@ -24,6 +24,7 @@ import SocialShare from '@/components/SocialShare';
 import TrustBadges from '@/components/TrustBadges';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
+import { useProductTracking } from '@/hooks/useUserBehaviorTracking';
 
 // ✅ Properly typed interfaces
 interface ProductVariant {
@@ -110,6 +111,13 @@ const ProductDetailsPage: React.FC = () => {
       addToRecentlyViewed(product);
     }
   }, [product?.product_id]);
+
+  // Track product view for personalization (AI-powered recommendations)
+  useProductTracking(
+    product?.product_id,
+    product?.categories,
+    product?.discount_price || product?.price
+  );
 
   const amountNeededForFreeDelivery = (freeShippingThreshold || 0) - calculations.subtotal;
 
