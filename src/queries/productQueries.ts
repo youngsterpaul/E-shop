@@ -45,6 +45,12 @@ export type Product = {
   featured?: boolean;
   specification?: string | Record<string, any>;
   features?: string | string[];
+  display_order?: number;
+  created_at?: string;
+  // AI-enhanced smart sort properties
+  relevance_score?: number;
+  ai_boost?: number;
+  personalization_reason?: string;
 };
 
 export type PaginatedProducts = {
@@ -117,6 +123,49 @@ const cacheProductsForOffline = (products: Product[]) => {
  */
 const isOnline = () => typeof navigator !== 'undefined' && navigator.onLine;
 
+/**
+ * Background AI sort enhancement (non-blocking)
+ * Updates session cache with AI-sorted results for next page load
+ */
+const triggerBackgroundAISort = async (
+  products: Product[],
+  intent: ReturnType<typeof getUserIntent>,
+  cacheKey: string,
+  currentResult: PaginatedProducts
+): Promise<void> => {
+  try {
+    const { data: sortedData, error } = await supabase.functions.invoke('smart-sort-products', {
+      body: {
+        products,
+        intent: {
+          ...intent,
+          timeOfDay: new Date().getHours().toString(),
+          deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
+        },
+        useAI: true,
+      },
+    });
+
+    if (!error && sortedData && Array.isArray(sortedData)) {
+      // Update cache with AI-sorted results for next load
+      const aiResult: PaginatedProducts = {
+        ...currentResult,
+        products: sortedData.slice(0, currentResult.products.length),
+      };
+      
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          timestamp: Date.now(),
+          data: aiResult
+        }));
+      }
+      console.log('🧠 AI sort completed in background, cached for next load');
+    }
+  } catch (err) {
+    console.warn('Background AI sort failed (non-critical):', err);
+  }
+};
+
 async function fetchPage(
   query: ReturnType<typeof supabase.from>,
   { pageParam = 0, pageSize = PAGINATION_CONFIG.DESKTOP_PAGE_SIZE } = {}
@@ -151,38 +200,11 @@ async function fetchPage(
     const products = processProducts(data || []);
     const hasNextPage = total > from + products.length;
 
-    // ===============================
-    // SMART SORT INTEGRATION (AI-Enhanced)
-    // ===============================
+    // FAST client-side smart sort (no AI call - instant)
     const intent = getUserIntent();
-    let smartProducts = products;
+    const smartProducts = smartSortFallback(products, intent);
 
-    try {
-      const { data, error } = await supabase.functions.invoke('smart-sort-products', {
-        body: {
-          products,
-          intent: {
-            ...intent,
-            timeOfDay: new Date().getHours().toString(),
-            deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
-          },
-          useAI: true,
-        },
-      });
-
-      if (!error && data && Array.isArray(data)) {
-        smartProducts = data;
-        console.log('Smart sort applied with AI personalization');
-      } else if (error) {
-        console.warn("Smart sort error:", error);
-        smartProducts = smartSortFallback(products, intent);
-      }
-    } catch (err) {
-      console.warn("Smart sort failed, using fallback:", err);
-      smartProducts = smartSortFallback(products, intent);
-    }
-
-    // Cache SMART products for offline use
+    // Cache products for offline use
     cacheProductsForOffline(smartProducts);
 
     return {
@@ -250,12 +272,34 @@ export const productFetchers = {
     }
   },
 
-  /** Fetch featured products ordered by display_order */
+  /** 
+   * Fetch featured products with FAST loading + background AI enhancement
+   * Strategy: Return products instantly with client-side sort, AI enhances in background
+   */
   fetchFeaturedProducts: async (opts?: { pageParam?: number; pageSize?: number }): Promise<PaginatedProducts> => {
     const pageParam = opts?.pageParam ?? 0;
     const pageSize = opts?.pageSize ?? PAGINATION_CONFIG.DESKTOP_PAGE_SIZE;
     const from = pageParam * pageSize;
     const to = from + pageSize - 1;
+
+    // Check session cache first for instant return
+    const cacheKey = `smart_sorted_featured_${pageParam}_${pageSize}`;
+    const cachedResult = typeof sessionStorage !== 'undefined' 
+      ? sessionStorage.getItem(cacheKey) 
+      : null;
+    
+    if (cachedResult) {
+      try {
+        const parsed = JSON.parse(cachedResult);
+        // Cache valid for 2 minutes
+        if (Date.now() - parsed.timestamp < 2 * 60 * 1000) {
+          console.log('⚡ Using cached smart-sorted products (instant load)');
+          return parsed.data;
+        }
+      } catch (e) {
+        // Invalid cache, continue with fetch
+      }
+    }
 
     // If offline, use cached products
     if (!isOnline()) {
@@ -272,12 +316,12 @@ export const productFetchers = {
     }
 
     try {
+      // Fetch products from database - FAST
       const { data, error, count } = await supabase
         .from('products')
         .select('*', { count: 'exact' })
         .eq('featured', true)
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: false })
+        .order('display_order', { ascending: true, nullsFirst: false })
         .range(from, to);
 
       if (error) {
@@ -287,17 +331,37 @@ export const productFetchers = {
 
       const total = count || 0;
       const products = processProducts(data || []);
-      const hasNextPage = total > from + products.length;
+      const hasNextPage = total > to + 1;
+
+      // Apply FAST client-side smart sort immediately (no waiting for AI)
+      const intent = getUserIntent();
+      const fastSortedProducts = smartSortFallback(products, intent);
 
       // Cache products for offline use
-      cacheProductsForOffline(products);
+      cacheProductsForOffline(fastSortedProducts);
 
-      return {
-        products,
+      const result: PaginatedProducts = {
+        products: fastSortedProducts,
         totalCount: total,
         hasNextPage,
         nextPage: hasNextPage ? pageParam + 1 : undefined,
       };
+
+      // Background AI enhancement (non-blocking) - only on first page and if user has intent
+      if (pageParam === 0 && (intent.viewedCategories?.length || intent.viewedProducts?.length)) {
+        // Fire and forget - don't await
+        triggerBackgroundAISort(products, intent, cacheKey, result).catch(() => {});
+      }
+
+      // Cache the fast result
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          timestamp: Date.now(),
+          data: result
+        }));
+      }
+
+      return result;
     } catch (error) {
       // Fallback to cache on error
       console.log('Network error, falling back to cached products:', error);

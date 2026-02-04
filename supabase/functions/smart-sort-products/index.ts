@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,9 +27,14 @@ interface UserIntent {
   cartProductIds: string[];
   wishlistProductIds: string[];
   purchasedCategories?: string[];
+  preferredPriceRange?: [number, number] | null;
+  preferredBrands?: string[];
+  clickedProducts?: string[];
+  dwellTime?: Record<string, number>;
   timeOfDay?: string;
   deviceType?: string;
   sessionDuration?: number;
+  sessionCount?: number;
 }
 
 interface ScoredProduct extends Product {
@@ -39,72 +43,136 @@ interface ScoredProduct extends Product {
   personalization_reason?: string;
 }
 
-// Time-based scoring adjustments
-function getTimeBasedBoost(timeOfDay?: string): Record<string, number> {
+// Time-based scoring - what users typically browse at different times
+function getTimeBasedBoost(): Record<string, number> {
   const hour = new Date().getHours();
   const boosts: Record<string, number> = {};
   
-  // Morning (6-11): boost breakfast, fitness, productivity items
+  // Morning (6-11): breakfast, fitness, work essentials
   if (hour >= 6 && hour < 11) {
-    boosts["Food & Beverages"] = 15;
-    boosts["Sports & Fitness"] = 10;
-    boosts["Electronics"] = 5;
+    boosts["Food"] = 15;
+    boosts["Beverages"] = 12;
+    boosts["Sports"] = 10;
+    boosts["Fitness"] = 10;
+    boosts["Electronics"] = 8;
+    boosts["Office"] = 8;
   }
-  // Afternoon (11-17): general shopping time
-  else if (hour >= 11 && hour < 17) {
-    boosts["Fashion"] = 10;
-    boosts["Home & Living"] = 10;
+  // Lunch (11-14): quick purchases, food
+  else if (hour >= 11 && hour < 14) {
+    boosts["Food"] = 20;
+    boosts["Beverages"] = 15;
+    boosts["Restaurant"] = 12;
   }
-  // Evening (17-22): entertainment, home items
-  else if (hour >= 17 && hour < 22) {
+  // Afternoon (14-17): general shopping peak
+  else if (hour >= 14 && hour < 17) {
+    boosts["Fashion"] = 12;
+    boosts["Clothing"] = 12;
+    boosts["Home"] = 10;
+    boosts["Beauty"] = 10;
+    boosts["Accessories"] = 8;
+  }
+  // Evening (17-21): entertainment, home, relaxation
+  else if (hour >= 17 && hour < 21) {
     boosts["Electronics"] = 15;
-    boosts["Home & Living"] = 12;
-    boosts["Entertainment"] = 10;
+    boosts["Entertainment"] = 12;
+    boosts["Home"] = 12;
+    boosts["Kitchen"] = 10;
+    boosts["Gaming"] = 10;
   }
-  // Night (22-6): minimal boosts
+  // Night (21-6): minimal activity, comfort items
+  else {
+    boosts["Health"] = 8;
+    boosts["Books"] = 8;
+    boosts["Home"] = 5;
+  }
   
   return boosts;
 }
 
-// Calculate engagement score based on user behavior
+// Calculate engagement score based on comprehensive user behavior
 function calculateEngagementScore(product: Product, intent: UserIntent): number {
   let score = 0;
   
-  // Strong signals
+  // ===== HIGHEST PRIORITY: Direct product interactions =====
+  
+  // Products in wishlist = very high intent (user saved for later)
   if (intent.wishlistProductIds?.includes(product.product_id)) {
-    score += 80; // Very high intent
+    score += 100;
   }
+  
+  // Products in cart = high purchase intent (might be re-considering)
   if (intent.cartProductIds?.includes(product.product_id)) {
-    score += 70; // High purchase intent (but might be abandoned)
+    score += 90;
   }
   
-  // Category affinity (weighted by recency - more recent = higher weight)
-  const categoryMatch = intent.viewedCategories?.findIndex(
-    (c) => product.categories?.toLowerCase().includes(c.toLowerCase())
-  );
-  if (categoryMatch !== undefined && categoryMatch !== -1) {
-    // More recent views (lower index) get higher scores
-    score += Math.max(40 - categoryMatch * 5, 10);
+  // Products user clicked on = showed interest
+  if (intent.clickedProducts?.includes(product.product_id)) {
+    score += 60;
   }
   
-  // Previously purchased categories (repeat customer behavior)
-  if (intent.purchasedCategories?.some(
-    (c) => product.categories?.toLowerCase().includes(c.toLowerCase())
-  )) {
-    score += 35;
-  }
-  
-  // Recently viewed product (but not in cart/wishlist - might need reminding)
+  // Recently viewed products (but not in cart/wishlist)
   if (intent.viewedProducts?.includes(product.product_id)) {
     const viewIndex = intent.viewedProducts.indexOf(product.product_id);
-    score += Math.max(25 - viewIndex * 3, 5);
+    // More recent = higher score (exponential decay)
+    score += Math.max(50 - viewIndex * 4, 10);
   }
   
-  // Search term relevance
-  if (intent.searchedTerms?.some(
-    (term) => product.name?.toLowerCase().includes(term.toLowerCase())
+  // ===== HIGH PRIORITY: Dwell time (engagement depth) =====
+  const dwellTime = intent.dwellTime?.[product.product_id];
+  if (dwellTime) {
+    // Users who spent time viewing = interested
+    if (dwellTime > 60) score += 40; // > 1 min = very interested
+    else if (dwellTime > 30) score += 25; // 30-60s = interested
+    else if (dwellTime > 10) score += 15; // 10-30s = curious
+    else score += 5;
+  }
+  
+  // ===== MEDIUM PRIORITY: Category affinity =====
+  const productCategory = product.categories?.toLowerCase() || '';
+  
+  // Category matches from viewed categories (weighted by recency)
+  intent.viewedCategories?.forEach((category, index) => {
+    if (productCategory.includes(category.toLowerCase())) {
+      // More recent categories get higher scores
+      score += Math.max(35 - index * 3, 8);
+    }
+  });
+  
+  // Previously purchased categories (repeat customer behavior)
+  if (intent.purchasedCategories?.some(cat => 
+    productCategory.includes(cat.toLowerCase())
   )) {
-    score += 30;
+    score += 45; // Strong signal - they buy from this category
+  }
+  
+  // ===== MEDIUM PRIORITY: Search term relevance =====
+  intent.searchedTerms?.forEach((term, index) => {
+    const termLower = term.toLowerCase();
+    const nameLower = product.name?.toLowerCase() || '';
+    
+    if (nameLower.includes(termLower)) {
+      score += Math.max(40 - index * 5, 10);
+    } else if (productCategory.includes(termLower)) {
+      score += Math.max(25 - index * 3, 5);
+    }
+  });
+  
+  // ===== LOWER PRIORITY: Price preference =====
+  if (intent.preferredPriceRange && product.price) {
+    const [minPrice, maxPrice] = intent.preferredPriceRange;
+    const price = product.discount_price || product.price;
+    
+    if (price >= minPrice && price <= maxPrice) {
+      score += 20; // Perfect match
+    } else if (price >= minPrice * 0.7 && price <= maxPrice * 1.3) {
+      score += 10; // Close match
+    }
+  }
+  
+  // ===== BONUS: Returning customer =====
+  if (intent.sessionCount && intent.sessionCount > 1) {
+    // Slight boost for returning customers' preferred items
+    score = Math.round(score * (1 + Math.min(intent.sessionCount * 0.02, 0.2)));
   }
   
   return score;
@@ -279,7 +347,7 @@ serve(async (req: Request) => {
     });
 
     // Get time-based category boosts
-    const timeBoosts = getTimeBasedBoost(intent?.timeOfDay);
+    const timeBoosts = getTimeBasedBoost();
     
     // Get AI-enhanced scores (only for meaningful intent data)
     let aiScores = new Map<string, { boost: number; reason: string }>();

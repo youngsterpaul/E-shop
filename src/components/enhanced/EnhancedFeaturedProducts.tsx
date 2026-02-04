@@ -1,10 +1,11 @@
 import { memo, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Flame, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Flame, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
 import { useFeaturedProducts, PAGINATION_CONFIG } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { Badge } from '@/components/ui/badge';
 
 const EnhancedFeaturedProducts = memo(() => {
   const isMobile = isMobileUserAgent();
@@ -25,6 +26,12 @@ const EnhancedFeaturedProducts = memo(() => {
   
   const products = useMemo(() => data?.products || [], [data?.products]);
   const totalCount = useMemo(() => data?.totalCount || 0, [data?.totalCount]);
+  
+  // Check if products have been personalized (have relevance scores)
+  const isPersonalized = useMemo(() => 
+    products.some(p => (p as any).relevance_score > 0),
+    [products]
+  );
   
   // Optimized scroll handler
   const handleScroll = useCallback(() => {
@@ -79,7 +86,7 @@ const EnhancedFeaturedProducts = memo(() => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   
-  const transformProductData = useCallback((product) => ({
+  const transformProductData = useCallback((product: any) => ({
     id: product.product_id,
     name: product.name,
     price: product.price,
@@ -90,6 +97,10 @@ const EnhancedFeaturedProducts = memo(() => {
     discount: undefined,
     category: product.categories || '',
     inStock: (product.stock || 0) > 0,
+    // Pass personalization data for potential UI indicators
+    relevanceScore: product.relevance_score,
+    aiBoost: product.ai_boost,
+    personalizationReason: product.personalization_reason,
   }), []);
   
   const transformedProducts = useMemo(() => 
@@ -154,8 +165,14 @@ const EnhancedFeaturedProducts = memo(() => {
               <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
             </div>
             <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
-              Hot Deals
+              {isPersonalized ? 'Picked For You' : 'Hot Deals'}
             </h2>
+            {isPersonalized && !isMobile && (
+              <Badge variant="secondary" className="ml-2 gap-1 text-xs">
+                <Sparkles className="h-3 w-3" />
+                Personalized
+              </Badge>
+            )}
           </div>
           {!isMobile && hasNextPage && (
             <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
@@ -164,6 +181,16 @@ const EnhancedFeaturedProducts = memo(() => {
             </Button>
           )}
         </div>
+        
+        {/* Personalization indicator for mobile */}
+        {isPersonalized && isMobile && (
+          <div className="px-3 pb-2">
+            <Badge variant="secondary" className="gap-1 text-xs">
+              <Sparkles className="h-3 w-3" />
+              Picked for you
+            </Badge>
+          </div>
+        )}
         
         {/* Products Grid */}
         <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>
