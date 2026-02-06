@@ -126,7 +126,7 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   }
 
   return (
-    <section className="bg-card shadow-sm">
+    <section className="bg-card rounded-xl shadow-sm">
       <h2 className="px-6 py-4 text-lg font-semibold text-foreground">
         Shop by Category
       </h2>
