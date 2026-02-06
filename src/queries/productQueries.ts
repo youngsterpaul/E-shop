@@ -20,6 +20,7 @@ import { PRODUCT_LIST_FIELDS, PRODUCT_DETAIL_FIELDS } from '@/utils/queryOptimiz
 import { cacheProducts, getCachedProducts, getCachedProduct } from '@/utils/offlineStorage';
 import { getUserIntent } from "@/utils/userIntent";
 import { smartSortFallback } from "@/utils/smartSortFallback";
+import { sortBySearchRelevance } from "@/utils/searchRelevance";
 
 
 // ============================================================================
@@ -464,15 +465,21 @@ export const productFetchers = {
     return { products: [], totalCount: 0, hasNextPage: false, nextPage: undefined };
   },
 
-  /** Search products */
-  searchProducts: (term: string, opts?: { pageParam?: number; pageSize?: number }) =>
-    fetchPage(
+  /** Search products with relevance-based sorting */
+  searchProducts: async (term: string, opts?: { pageParam?: number; pageSize?: number }): Promise<PaginatedProducts> => {
+    const result = await fetchPage(
       supabase
         .from('products')
         .select('*', { count: 'exact' })
         .or(`name.ilike.%${term}%,description.ilike.%${term}%,categories.ilike.%${term}%`),
       opts
-    ),
+    );
+
+    // Apply search relevance sorting so exact matches appear first
+    result.products = sortBySearchRelevance(result.products, term);
+
+    return result;
+  },
 
   /** Fetch product by name */
   fetchProductByName: async (productName: string): Promise<Product | null> => {

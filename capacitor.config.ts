@@ -9,27 +9,30 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: true,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#16a34a',
   },
 
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 2500,
       launchAutoHide: true,
       backgroundColor: '#16a34a',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
-
-      // ❌ IMPORTANT: do NOT use immersive mode
-      splashFullScreen: false,
+      splashFullScreen: true,
       splashImmersive: false,
     },
 
     StatusBar: {
-      style: 'LIGHT',          // Icons visible
+      style: 'LIGHT',
       backgroundColor: '#16a34a',
-      overlaysWebView: false,  // ✅ KEY FIX (no overlay)
+      overlaysWebView: false,
+    },
+    
+    // Browser plugin for OAuth
+    Browser: {
+      windowName: '_self',
     },
   },
 };

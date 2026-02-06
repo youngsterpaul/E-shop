@@ -1,6 +1,8 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+import { App as CapacitorApp } from '@capacitor/app';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,24 +12,119 @@ const GoogleSignInButton = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Handle deep link for native OAuth callback
+    if (!Capacitor.isNativePlatform()) return;
+
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    const setupListener = async () => {
+      listenerHandle = await CapacitorApp.addListener('appUrlOpen', async (event) => {
+        const url = event.url;
+        
+        // Check if this is an OAuth callback
+        if (url.includes('auth/callback') || url.includes('access_token') || url.includes('code=')) {
+          try {
+            // Close the browser
+            await Browser.close();
+            
+            // Extract tokens from URL
+            const urlObj = new URL(url);
+            const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken && refreshToken) {
+              // Set the session manually
+              const { error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              
+              if (error) throw error;
+              
+              toast({
+                title: "Success",
+                description: "Signed in with Google successfully!",
+              });
+              
+              navigate('/');
+            } else {
+              // Try to get session from URL query params (authorization code flow)
+              const code = urlObj.searchParams.get('code');
+              if (code) {
+                // Exchange code for session - Supabase handles this automatically
+                const { error } = await supabase.auth.exchangeCodeForSession(code);
+                if (error) throw error;
+                
+                toast({
+                  title: "Success",
+                  description: "Signed in with Google successfully!",
+                });
+                
+                navigate('/');
+              }
+            }
+          } catch (error: any) {
+            console.error('OAuth callback error:', error);
+            toast({
+              title: "Sign in failed",
+              description: "Failed to complete Google sign in. Please try again.",
+              variant: "destructive",
+            });
+          } finally {
+            setIsLoading(false);
+          }
+        }
+      });
+    };
+
+    setupListener();
+    
+    return () => {
+      if (listenerHandle) {
+        listenerHandle.remove();
+      }
+    };
+  }, [navigate, toast]);
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
+      if (Capacitor.isNativePlatform()) {
+        // Native app: Use in-app browser for OAuth
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'com.smartkenya.app://auth/callback',
+            skipBrowserRedirect: true, // Don't let Supabase handle the redirect
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.url) {
+          // Open the OAuth URL in the system browser or in-app browser
+          await Browser.open({
+            url: data.url,
+            windowName: '_self',
+            presentationStyle: 'popover',
+          });
         }
-      });
+      } else {
+        // Web: Standard OAuth flow
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/`
+          }
+        });
 
-      if (error) {
-        throw error;
+        if (error) throw error;
+        // OAuth redirect will handle the rest for web
       }
-
-      // OAuth redirect will handle the rest
     } catch (error: any) {
-      // Don't log sensitive auth errors in production
       if (process.env.NODE_ENV === 'development') {
         console.error('Google sign in error:', error);
       }
@@ -36,7 +133,6 @@ const GoogleSignInButton = () => {
         description: "Failed to sign in with Google. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

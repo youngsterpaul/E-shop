@@ -102,6 +102,19 @@ const orderStatuses = [
   { value: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'bg-red-500' },
 ];
 
+// Valid status transitions based on the DB trigger logic
+const getValidNextStatuses = (currentStatus: string): string[] => {
+  switch (currentStatus) {
+    case 'pending': return ['processing', 'cancelled'];
+    case 'processing': return ['packed', 'cancelled'];
+    case 'packed': return ['shipped', 'cancelled'];
+    case 'shipped': return ['delivered', 'cancelled'];
+    case 'delivered': return []; // Terminal state
+    case 'cancelled': return []; // Terminal state
+    default: return [];
+  }
+};
+
 const AdminQRCodeScannerPage = () => {
   const [manualOrderId, setManualOrderId] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
@@ -182,7 +195,9 @@ const AdminQRCodeScannerPage = () => {
       };
 
       setOrder(orderData);
-      setNewStatus(orderData.status);
+      // Auto-select the first valid next status instead of current status
+      const validNext = getValidNextStatuses(orderData.status);
+      setNewStatus(validNext.length > 0 ? validNext[0] : orderData.status);
       setTrackingNumber(orderData.tracking_number || '');
       saveRecentScan(orderData);
       fetchStatusHistory(orderData.order_id);
@@ -211,6 +226,17 @@ const AdminQRCodeScannerPage = () => {
   const updateOrderStatus = async () => {
     if (!order || !newStatus) return;
 
+    // Validate transition before sending to DB
+    const validStatuses = getValidNextStatuses(order.status);
+    if (!validStatuses.includes(newStatus)) {
+      toast({ 
+        title: 'Invalid Transition', 
+        description: `Cannot change from "${order.status}" to "${newStatus}". Valid: ${validStatuses.join(', ') || 'none (terminal state)'}`,
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     setUpdating(true);
     try {
       const updateData: any = {
@@ -227,19 +253,17 @@ const AdminQRCodeScannerPage = () => {
         .update(updateData)
         .eq('order_id', order.order_id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        // Parse DB trigger error for a friendly message
+        const msg = updateError.message || '';
+        if (msg.includes('Invalid transition') || msg.includes('Cannot change status')) {
+          throw new Error(msg.split('DETAIL:')[0].trim());
+        }
+        throw updateError;
+      }
 
-      // Log status change
-      const { error: historyError } = await supabase
-        .from('order_status_history')
-        .insert({
-          order_id: order.order_id,
-          old_status: order.status,
-          new_status: newStatus,
-          change_reason: statusNote || null,
-        });
-
-      if (historyError) console.error('Failed to log status change:', historyError);
+      // Note: Status history is logged automatically by the DB trigger
+      // Do NOT manually insert into order_status_history to avoid duplicates
 
       // Trigger email notification via edge function
       try {
@@ -261,7 +285,7 @@ const AdminQRCodeScannerPage = () => {
       await fetchOrder(order.order_id);
       setStatusNote('');
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to update order', variant: 'destructive' });
+      toast({ title: 'Update Failed', description: error.message || 'Failed to update order status', variant: 'destructive' });
     } finally {
       setUpdating(false);
     }
@@ -988,72 +1012,90 @@ const AdminQRCodeScannerPage = () => {
                     <Edit className="h-4 w-4" />
                     Update Order Status
                   </CardTitle>
+                  {/* Status flow indicator */}
+                  <CardDescription>
+                    Current: <span className="font-medium capitalize">{order.status}</span>
+                    {getValidNextStatuses(order.status).length > 0 
+                      ? ` → Valid next: ${getValidNextStatuses(order.status).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}`
+                      : ' (terminal state — no further transitions)'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>New Status</Label>
-                      <Select value={newStatus} onValueChange={setNewStatus}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {orderStatuses.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              <div className="flex items-center gap-2">
-                                <status.icon className="h-4 w-4" />
-                                {status.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {getValidNextStatuses(order.status).length === 0 ? (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted text-muted-foreground">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="text-sm">This order is in a terminal state and cannot be updated further.</span>
                     </div>
-
-                    {(newStatus === 'shipped' || newStatus === 'delivered') && (
-                      <div className="space-y-2">
-                        <Label>Tracking Number</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={trackingNumber}
-                            onChange={(e) => setTrackingNumber(e.target.value)}
-                            placeholder="Enter tracking number"
-                          />
-                          <Button variant="outline" size="icon" onClick={generateTrackingNumber}>
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>New Status</Label>
+                          <Select value={newStatus} onValueChange={setNewStatus}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orderStatuses
+                                .filter(status => getValidNextStatuses(order.status).includes(status.value))
+                                .map((status) => (
+                                  <SelectItem key={status.value} value={status.value}>
+                                    <div className="flex items-center gap-2">
+                                      <status.icon className="h-4 w-4" />
+                                      {status.label}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
                         </div>
+
+                        {(newStatus === 'shipped' || newStatus === 'delivered') && (
+                          <div className="space-y-2">
+                            <Label>Tracking Number</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                value={trackingNumber}
+                                onChange={(e) => setTrackingNumber(e.target.value)}
+                                placeholder="Enter tracking number"
+                              />
+                              <Button variant="outline" size="icon" onClick={generateTrackingNumber}>
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>Status Note (Optional)</Label>
-                    <Textarea
-                      value={statusNote}
-                      onChange={(e) => setStatusNote(e.target.value)}
-                      placeholder="Add a note about this status change..."
-                      rows={2}
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label>Status Note (Optional)</Label>
+                        <Textarea
+                          value={statusNote}
+                          onChange={(e) => setStatusNote(e.target.value)}
+                          placeholder="Add a note about this status change..."
+                          rows={2}
+                        />
+                      </div>
 
-                  <Button
-                    onClick={updateOrderStatus}
-                    disabled={updating || newStatus === order.status}
-                    className="w-full"
-                  >
-                    {updating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Update Status & Notify Customer
-                      </>
-                    )}
-                  </Button>
+                      <Button
+                        onClick={updateOrderStatus}
+                        disabled={updating || newStatus === order.status || !getValidNextStatuses(order.status).includes(newStatus)}
+                        className="w-full"
+                      >
+                        {updating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Update Status & Notify Customer
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
