@@ -165,14 +165,8 @@ const EnhancedFeaturedProducts = memo(() => {
               <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
             </div>
             <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
-              {isPersonalized ? 'Picked For You' : 'Hot Deals'}
+              {isPersonalized ? 'Hot Deals' : 'Hot Deals'}
             </h2>
-            {isPersonalized && !isMobile && (
-              <Badge variant="secondary" className="ml-2 gap-1 text-xs">
-                <Sparkles className="h-3 w-3" />
-                Personalized
-              </Badge>
-            )}
           </div>
           {!isMobile && hasNextPage && (
             <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
@@ -181,16 +175,6 @@ const EnhancedFeaturedProducts = memo(() => {
             </Button>
           )}
         </div>
-        
-        {/* Personalization indicator for mobile */}
-        {isPersonalized && isMobile && (
-          <div className="px-3 pb-2">
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <Sparkles className="h-3 w-3" />
-              Picked for you
-            </Badge>
-          </div>
-        )}
         
         {/* Products Grid */}
         <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>

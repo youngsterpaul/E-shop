@@ -77,7 +77,7 @@ const Index = () => {
           
           {/* Category Icons - Desktop Only */}
           {!isMobile && (
-            <section className="mt-6 bg-card rounded-xl p-6 shadow-sm">
+            <section className="mt-6 bg-card rounded-xl .p-6 shadow-sm">
               <CategoryIcons showAll={false} />
             </section>
           )}

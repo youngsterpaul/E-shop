@@ -126,11 +126,11 @@ const CategoryIcons: React.FC<CategoryIconsProps> = ({ showAll = false }) => {
   }
 
   return (
-    <section className="bg-card rounded-xl border border-border/50 shadow-sm">
-      <h2 className=".px-6 py-4 text-lg font-semibold text-foreground border-b border-border/50">
+    <section className="bg-card shadow-sm">
+      <h2 className="px-6 py-4 text-lg font-semibold text-foreground">
         Shop by Category
       </h2>
-      <div className={`grid ${gridCols} gap-4 .p-6`}>
+      <div className={`grid ${gridCols} gap-4 p-6 border-t border-border/50`}>
         {categoriesToShow.map((category) => {
           const IconComponent = category.icon;
           return (
