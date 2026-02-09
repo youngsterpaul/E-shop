@@ -16,12 +16,7 @@ const CartHeader = ({ totalItems, selectedCount, onSelectAll, allSelected }: Car
     <div className={`flex items-center justify-between p-4 border border-gray-200 ${isMobile ? '.bg-gray-50':'bg-white pb-4'}`}>
       <div className="flex items-center gap-2">
         <Checkbox
-          checked={allSelected}
-          ref={(ref) => {
-            if (ref && 'indeterminate' in ref) {
-              (ref as HTMLInputElement).indeterminate = isIndeterminate;
-            }
-          }}
+          checked={isIndeterminate ? "indeterminate" : allSelected}
           onCheckedChange={onSelectAll}
           aria-label={
             allSelected 

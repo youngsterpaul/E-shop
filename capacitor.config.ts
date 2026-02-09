@@ -14,25 +14,20 @@ const config: CapacitorConfig = {
 
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2500,
       launchAutoHide: true,
-      backgroundColor: '#16a34a',
+      backgroundColor: '#FFFFFF',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
       splashFullScreen: true,
-      splashImmersive: false,
+      splashImmersive: true,
     },
 
     StatusBar: {
       style: 'LIGHT',
       backgroundColor: '#16a34a',
       overlaysWebView: false,
-    },
-    
-    // Browser plugin for OAuth
-    Browser: {
-      windowName: '_self',
     },
   },
 };

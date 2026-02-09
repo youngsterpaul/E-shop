@@ -105,10 +105,9 @@ const GoogleSignInButton = () => {
         if (error) throw error;
 
         if (data?.url) {
-          // Open the OAuth URL in the system browser or in-app browser
+          // Open OAuth URL in Chrome Custom Tab (in-app overlay)
           await Browser.open({
             url: data.url,
-            windowName: '_self',
             presentationStyle: 'popover',
           });
         }

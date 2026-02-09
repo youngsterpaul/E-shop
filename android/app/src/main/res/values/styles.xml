@@ -16,14 +16,14 @@
         <item name="android:background">@null</item>
     </style>
 
-    <!-- Splash screen launch theme with proper splash image -->
+    <!-- Splash screen launch theme with splash.png drawable -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:windowBackground">@drawable/splash</item>
-        <item name="android:statusBarColor">#16a34a</item>
-        <item name="android:navigationBarColor">#16a34a</item>
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowFullscreen">true</item>
         <item name="postSplashScreenTheme">@style/AppTheme</item>
     </style>
 </resources>
