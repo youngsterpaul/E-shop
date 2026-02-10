@@ -1,54 +1,83 @@
-import { useState, useEffect } from 'react';
-import { useActiveFlashSales, useAllActiveFlashSaleProducts } from '@/hooks/useFlashSales';
-import { Clock, Zap, TrendingUp, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFlashSaleProductsByTimeRange } from '@/hooks/useFlashSales';
+import { Clock, Zap, AlertCircle, Timer, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { Button } from '@/components/ui/button';
+import { TIME_SLOTS, getCurrentSlotIndex, getSlotDates, type TimeSlot } from '@/utils/flashSaleSlots';
+
+type SlotStatus = 'live' | 'upcoming' | 'ended';
+
+const getSlotStatusForToday = (idx: number, currentIdx: number): SlotStatus => {
+  if (idx < currentIdx) return 'ended';
+  if (idx === currentIdx) return 'live';
+  return 'upcoming';
+};
 
 const FlashSalePage = () => {
   const isMobile = isMobileUserAgent();
-  const { data: flashSales, isLoading: salesLoading } = useActiveFlashSales();
+  const [activeSlotIdx, setActiveSlotIdx] = useState(getCurrentSlotIndex());
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [today, setToday] = useState(() => new Date());
+  const currentSlotIdx = getCurrentSlotIndex();
+
+  const selectedSlot = TIME_SLOTS[activeSlotIdx];
+  const { start: slotStart, end: slotEnd } = useMemo(
+    () => getSlotDates(today, selectedSlot),
+    [today, selectedSlot]
+  );
+
+  const slotStatus = getSlotStatusForToday(activeSlotIdx, currentSlotIdx);
 
   const pageSize = isMobile ? 20 : 24;
-  const gridConfig = isMobile
-    ? { cols: "grid-cols-2", gap: "gap-2", padding: "p-2" }
-    : { cols: "grid-cols-6", gap: "gap-4", padding: "p-6" };
+  const { data: productsData, isLoading } = useFlashSaleProductsByTimeRange(slotStart, slotEnd, pageSize);
 
-  const { data: productsData, isLoading: productsLoading } = useAllActiveFlashSaleProducts(pageSize);
-
-  const [timeLeft, setTimeLeft] = useState<{
-    hours: number;
-    minutes: number;
-    seconds: number;
-  } | null>(null);
-
+  // Countdown logic
   useEffect(() => {
-    if (!productsData?.earliestEndDate) return;
+    const calcTime = () => {
+      const now = new Date();
+      if (slotStatus === 'ended') {
+        setTimeLeft(null);
+        return;
+      }
 
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const end = new Date(productsData.earliestEndDate).getTime();
-      const difference = end - now;
-
-      if (difference > 0) {
-        const hours = Math.floor(difference / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        setTimeLeft({ hours, minutes, seconds });
+      const target = slotStatus === 'live' ? slotEnd : slotStart;
+      const diff = target.getTime() - now.getTime();
+      if (diff > 0) {
+        setTimeLeft({
+          hours: Math.floor(diff / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000),
+        });
       } else {
         setTimeLeft(null);
       }
     };
+    calcTime();
+    const timer = setInterval(calcTime, 1000);
+    return () => clearInterval(timer);
+  }, [slotStatus, slotStart, slotEnd]);
 
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
-
+  // Auto-update current slot and refresh date at midnight
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const newIdx = getCurrentSlotIndex();
+      if (newIdx !== currentSlotIdx) {
+        setActiveSlotIdx(newIdx);
+      }
+      // Refresh date if day changed
+      const todayStr = today.toDateString();
+      if (now.toDateString() !== todayStr) {
+        setToday(now);
+      }
+    }, 30000);
     return () => clearInterval(interval);
-  }, [productsData?.earliestEndDate]);
+  }, [currentSlotIdx, today]);
 
-  const transformProductData = (product: any) => ({
+  const transformProductData = useCallback((product: any) => ({
     id: product.product_id,
     name: product.name,
     price: product.price,
@@ -59,139 +88,122 @@ const FlashSalePage = () => {
     discount: undefined,
     category: product.categories || '',
     inStock: (product.stock || 0) > 0,
-  });
+  }), []);
 
   const products = productsData?.products || [];
-  const transformedProducts = products.map(transformProductData);
+  const transformedProducts = useMemo(() => products.map(transformProductData), [products, transformProductData]);
 
-  if (salesLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading flash sales...</p>
-        </div>
-      </div>
-    );
-  }
+  const gridConfig = isMobile
+    ? { cols: 'grid-cols-2', gap: 'gap-2', padding: 'p-2' }
+    : { cols: 'grid-cols-5', gap: 'gap-4', padding: 'p-6' };
 
-  if (!flashSales || flashSales.length === 0) {
-    return (
-      <div className="min-h-screen bg-background py-12">
-        <SEOHelmet 
-          title="Flash Sales - SmartKenya"
-          description="Check out our amazing flash sales and limited-time offers"
-        />
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center py-16">
-            <div className="bg-primary/10 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-              <Zap className="h-10 w-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-4">No Active Flash Sales</h1>
-            <p className="text-muted-foreground mb-8">
-              There are currently no active flash sales. Check back soon for amazing deals!
-            </p>
-            <Button onClick={() => window.location.href = '/'}>
-              Browse Products
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Countdown label
+  const countdownLabel = slotStatus === 'live' ? 'Ends in' : slotStatus === 'upcoming' ? 'Starts in' : '';
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHelmet 
-        title="Flash Sales - SmartKenya"
-        description="Don't miss out on our limited-time flash sale offers. Huge discounts on electronics, gadgets and more!"
-      />
+      <SEOHelmet title="Flash Sales - SmartKenya" description="Don't miss out on our limited-time flash sale offers. Huge discounts on electronics, gadgets and more!" />
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
-        <div className={`max-w-[1200px] mx-auto px-4 lg:px-6 ${isMobile ? 'py-4' : 'py-12'}`}>
-          {isMobile ? (
-            // Mobile: Compact single-row layout
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                  <Zap className="h-4 w-4 fill-white" />
-                </div>
-                <div>
-                  <h1 className="text-base font-bold">Flash Sales</h1>
-                  <p className="text-[10px] text-white/80">
-                    {flashSales?.length || 0} sales • {productsData?.totalCount || 0} items
-                  </p>
-                </div>
+      {/* Hero Header */}
+      <div className="container max-w-[1200px] bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
+        <div className={`mx-auto px-4 lg:px-6 ${isMobile ? 'py-3' : 'py-6'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`bg-white/20 ${isMobile ? 'p-1.5' : 'p-3'} rounded-full backdrop-blur-sm`}>
+                <Zap className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'} fill-white`} />
               </div>
-
-              {timeLeft && (
-                <div className="flex items-center gap-1">
-                  <TimeBox value={timeLeft.hours} label="h" isMobile={isMobile} />
-                  <span className="text-white/60 text-xs font-bold">:</span>
-                  <TimeBox value={timeLeft.minutes} label="m" isMobile={isMobile} />
-                  <span className="text-white/60 text-xs font-bold">:</span>
-                  <TimeBox value={timeLeft.seconds} label="s" isMobile={isMobile} />
-                </div>
-              )}
+              <div>
+                <h1 className={`${isMobile ? 'text-base' : 'text-2xl'} font-bold`}>Flash Sales</h1>
+                <p className={`${isMobile ? 'text-[10px]' : 'text-sm'} text-white/80`}>
+                  {productsData?.totalCount || 0} products • {selectedSlot.label}
+                </p>
+              </div>
             </div>
-          ) : (
-            // Desktop: Original layout
-            <>
-              <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
-                    <Zap className="h-10 w-10" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">Flash Sales</h1>
-                    <p className="text-white/90 text-lg">
-                      {flashSales?.length || 0} active sales • {productsData?.totalCount || 0} products
-                    </p>
-                  </div>
+            <div className="flex items-center gap-1.5">
+              {slotStatus === 'ended' ? (
+                <Badge className="bg-white/20 text-white border-0">
+                  <Clock className="h-3 w-3 mr-1" /> Ended
+                </Badge>
+              ) : timeLeft ? (
+                <div className="flex items-center gap-1">
+                  {!isMobile && (
+                    <span className="text-white/80 text-xs mr-1">{countdownLabel}</span>
+                  )}
+                  <SlotCountdown timeLeft={timeLeft} isMobile={isMobile} />
                 </div>
-
-                {timeLeft && (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-6 w-6" />
-                      <span className="text-lg font-medium">Ends in:</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <TimeBox value={timeLeft.hours} label="Hours" isMobile={isMobile} />
-                      <TimeBox value={timeLeft.minutes} label="Mins" isMobile={isMobile} />
-                      <TimeBox value={timeLeft.seconds} label="Secs" isMobile={isMobile} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                {flashSales && flashSales.length > 0 && (
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-base px-4 py-2">
-                    {flashSales.length} Active Sale{flashSales.length > 1 ? 's' : ''}
-                  </Badge>
-                )}
-                {productsData?.totalCount && (
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-base px-4 py-2">
-                    {productsData.totalCount} Products on Sale
-                  </Badge>
-                )}
-              </div>
-            </>
-          )}
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Time Slot Tabs */}
+      <div className="max-w-[1200px] mx-auto bg-card border-b border-border sticky top-0 z-10">
+        <div className={`flex ${isMobile ? 'overflow-x-auto scrollbar-none' : 'overflow-x-auto scrollbar-none'} gap-0`}>
+          {TIME_SLOTS.map((slot, idx) => {
+            const status = getSlotStatusForToday(idx, currentSlotIdx);
+            const isActive = idx === activeSlotIdx;
+            const isCurrent = idx === currentSlotIdx;
+            return (
+              <button
+                key={idx}
+                onClick={() => setActiveSlotIdx(idx)}
+                className={`relative flex-shrink-0 ${isMobile ? 'px-2.5 py-2' : 'px-3 py-2.5'} text-center transition-all border-b-2 ${
+                  isActive
+                    ? status === 'live'
+                      ? 'border-green-500 text-green-600 font-semibold bg-green-50 dark:bg-green-950/20'
+                      : 'border-primary text-primary font-semibold bg-primary/5'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                } ${status === 'ended' && !isActive ? 'opacity-50' : ''}`}
+              >
+                <div className={`${isMobile ? 'text-[9px]' : 'text-[11px]'} whitespace-nowrap`}>{slot.label}</div>
+                <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                  {status === 'live' && (
+                    <Badge className={`${isMobile ? 'text-[7px] px-1 py-0' : 'text-[9px] px-1 py-0'} bg-green-500 border-0`}>
+                      Live
+                    </Badge>
+                  )}
+                  {status === 'upcoming' && isActive && (
+                    <Badge variant="outline" className={`${isMobile ? 'text-[7px] px-1 py-0' : 'text-[9px] px-1 py-0'} border-blue-400 text-blue-500`}>
+                      Soon
+                    </Badge>
+                  )}
+                  {status === 'ended' && isActive && (
+                    <Badge variant="secondary" className={`${isMobile ? 'text-[7px] px-1 py-0' : 'text-[9px] px-1 py-0'}`}>
+                      Ended
+                    </Badge>
+                  )}
+                </div>
+                {isCurrent && !isActive && (
+                  <span className="absolute top-1 right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {slotStatus === 'upcoming' && (
+        <div className="bg-blue-50 dark:bg-blue-950/20 border-b border-border">
+          <div className="max-w-[1200px] mx-auto px-4 py-2.5 flex items-center gap-2">
+            <Timer className="h-4 w-4 text-blue-500" />
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-600 dark:text-blue-400`}>
+              This flash sale hasn't started yet.
+              {timeLeft && ` Starts in ${timeLeft.hours}h ${timeLeft.minutes}m.`}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Products Section */}
-      <div className={`max-w-[1200px] mx-auto ${gridConfig.padding}`}>
-        {productsLoading ? (
+      <div className={`max-w-[1200px] mx-auto`}>
+        {isLoading ? (
           <div className={`grid ${gridConfig.cols} ${gridConfig.gap}`}>
             {Array.from({ length: pageSize }).map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden border border-border/50"
-              >
+              <div key={i} className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden border border-border/50">
                 <div className="h-40 bg-muted animate-pulse" />
                 <div className="p-3 space-y-2">
                   <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
@@ -203,43 +215,42 @@ const FlashSalePage = () => {
         ) : products.length === 0 ? (
           <div className="text-center py-16">
             <AlertCircle className={`${isMobile ? 'h-12 w-12' : 'h-16 w-16'} text-muted-foreground/50 mx-auto mb-4`} />
-            <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-foreground mb-2`}>No Products Available</h3>
-            <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>
-              Products will be added to this flash sale soon. Check back later!
-            </p>
+            <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-foreground mb-2`}>
+              {slotStatus === 'ended' ? 'Flash Sale Ended' : slotStatus === 'upcoming' ? 'Coming Soon' : 'No Products Available'}
+            </h3>
+            {slotStatus !== 'live' && (
+              <Button variant="outline" onClick={() => setActiveSlotIdx(currentSlotIdx)}>
+                View Current Sale
+              </Button>
+            )}
           </div>
         ) : (
-          <>
-            {!isMobile && (
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-2xl font-bold text-foreground">Flash Sale Items</h2>
-                </div>
-                <p className="text-muted-foreground">
-                  Showing {products.length} {productsData?.totalCount && `of ${productsData.totalCount}`} products
-                </p>
-              </div>
-            )}
-
-            <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-card rounded-xl shadow-sm p-4`}>
-              {transformedProducts.map((product, index) => (
-                <ProductCard key={`${product.id}-${index}`} product={product} />
-              ))}
-            </div>
-          </>
+          <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-card rounded-xl shadow-sm p-4`}>
+            {transformedProducts.map((product, index) => (
+              <ProductCard key={`${product.id}-${index}`} product={product} />
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-const TimeBox = ({ value, label, isMobile }: { value: number; label: string; isMobile: boolean }) => (
-  <div className={`flex flex-col items-center bg-white/25 backdrop-blur-sm ${isMobile ? 'px-1.5 py-1 rounded min-w-[28px]' : 'px-4 py-3 rounded-lg min-w-[70px]'}`}>
-    <span className={`${isMobile ? 'text-sm' : 'text-3xl'} font-bold text-white leading-tight`}>
+const SlotCountdown = ({ timeLeft, isMobile }: { timeLeft: { hours: number; minutes: number; seconds: number }; isMobile: boolean }) => (
+  <div className="flex items-center gap-1">
+    <TimeBox value={timeLeft.hours} isMobile={isMobile} />
+    <span className="text-white/60 text-xs font-bold">:</span>
+    <TimeBox value={timeLeft.minutes} isMobile={isMobile} />
+    <span className="text-white/60 text-xs font-bold">:</span>
+    <TimeBox value={timeLeft.seconds} isMobile={isMobile} />
+  </div>
+);
+
+const TimeBox = ({ value, isMobile }: { value: number; isMobile: boolean }) => (
+  <div className={`flex items-center justify-center bg-white/25 backdrop-blur-sm ${isMobile ? 'px-1.5 py-0.5 rounded min-w-[24px]' : 'px-2.5 py-1 rounded-md min-w-[36px]'}`}>
+    <span className={`${isMobile ? 'text-xs' : 'text-lg'} font-bold text-white leading-tight`}>
       {value.toString().padStart(2, '0')}
     </span>
-    {!isMobile && <span className="text-sm text-white/80">{label}</span>}
   </div>
 );
 

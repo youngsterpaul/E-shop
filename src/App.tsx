@@ -256,7 +256,7 @@ function App() {
       <TopProgressBar />
       {/*<Sonner />*/}
       {/* ✅ Use flex column to make footer stay at the bottom */}
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-background">
         {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
         {isMobile && !isAdminRoute && !isHomePage && !isSearchPage&& !isCategoryPage && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}

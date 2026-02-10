@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
+import { ThemeProvider } from 'next-themes';
 import { initSentry } from './lib/sentry';
 import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/contexts/CartContext';
@@ -83,34 +84,36 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GlobalErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <ABTestProvider>
-                <NotificationProvider>
-                  <FlashSaleProvider>
-                    <CartProvider>
-                      <SelectiveCartProvider>
-                        <CheckoutProvider>
-                        <AccessibilitySkipLink />
-                        <AppWithAnalytics />
-                      {/* <CookieConsent /> */}
-                      <SpeedInsights />
-                      {/* <Analytics />*/}
-                      {/* <PWAInstallPrompt /> */}
-                        <OfflineIndicator />
-                        <OfflineCacheManager />
-                        </CheckoutProvider>
-                      </SelectiveCartProvider>
-                    </CartProvider>
-                  </FlashSaleProvider>
-                </NotificationProvider>
-              </ABTestProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="smartkenya-theme">
+        <HelmetProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <ABTestProvider>
+                  <NotificationProvider>
+                    <FlashSaleProvider>
+                      <CartProvider>
+                        <SelectiveCartProvider>
+                          <CheckoutProvider>
+                          <AccessibilitySkipLink />
+                          <AppWithAnalytics />
+                        {/* <CookieConsent /> */}
+                        <SpeedInsights />
+                        {/* <Analytics />*/}
+                        {/* <PWAInstallPrompt /> */}
+                          <OfflineIndicator />
+                          <OfflineCacheManager />
+                          </CheckoutProvider>
+                        </SelectiveCartProvider>
+                      </CartProvider>
+                    </FlashSaleProvider>
+                  </NotificationProvider>
+                </ABTestProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </HelmetProvider>
+      </ThemeProvider>
     </GlobalErrorBoundary>
   </StrictMode>
 );

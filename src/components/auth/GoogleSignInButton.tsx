@@ -109,6 +109,8 @@ const GoogleSignInButton = () => {
           await Browser.open({
             url: data.url,
             presentationStyle: 'popover',
+            toolbarColor: '#16a34a',
+            windowName: '_blank',
           });
         }
       } else {

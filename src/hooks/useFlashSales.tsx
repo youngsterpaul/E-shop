@@ -41,7 +41,7 @@ export const useActiveFlashSales = () => {
       if (error) throw error;
       return data as FlashSale[];
     },
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
   });
 };
 
@@ -67,7 +67,6 @@ export const useFlashSaleProducts = (flashSaleId?: string) => {
     queryKey: ['flash-sale-products', flashSaleId],
     queryFn: async () => {
       if (!flashSaleId) return [];
-      
       const { data, error } = await supabase
         .from('flash_sale_products')
         .select('*')
@@ -86,34 +85,22 @@ export const useProductFlashSale = (productId: string) => {
     queryKey: ['product-flash-sale', productId],
     queryFn: async () => {
       const now = new Date().toISOString();
-      
       const { data, error } = await supabase
         .from('flash_sale_products')
         .select(`
           *,
           flash_sales:flash_sale_id (
-            id,
-            title,
-            discount_type,
-            discount_value,
-            start_date,
-            end_date,
-            is_active
+            id, title, discount_type, discount_value,
+            start_date, end_date, is_active
           )
         `)
         .eq('product_id', productId);
 
       if (error) throw error;
 
-      // Filter for active flash sales (check is_active and start_date)
       const activeFlashSale = data?.find((item: any) => {
         const sale = item.flash_sales;
-        return (
-          sale &&
-          sale.is_active === true &&
-          sale.start_date <= now &&
-          sale.end_date >= now
-        );
+        return sale && sale.is_active === true && sale.start_date <= now && sale.end_date >= now;
       });
 
       return activeFlashSale ? activeFlashSale.flash_sales : null;
@@ -125,13 +112,11 @@ export const useProductFlashSale = (productId: string) => {
 // Create flash sale
 export const useCreateFlashSale = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: {
       flashSale: Omit<FlashSale, 'id' | 'created_at' | 'updated_at'>;
       productIds: string[];
     }) => {
-      // Insert flash sale
       const { data: flashSale, error: saleError } = await supabase
         .from('flash_sales')
         .insert(data.flashSale)
@@ -140,20 +125,16 @@ export const useCreateFlashSale = () => {
 
       if (saleError) throw saleError;
 
-      // Insert flash sale products
       if (data.productIds.length > 0) {
         const products = data.productIds.map((productId) => ({
           flash_sale_id: flashSale.id,
           product_id: productId,
         }));
-
         const { error: productsError } = await supabase
           .from('flash_sale_products')
           .insert(products);
-
         if (productsError) throw productsError;
       }
-
       return flashSale;
     },
     onSuccess: () => {
@@ -169,14 +150,12 @@ export const useCreateFlashSale = () => {
 // Update flash sale
 export const useUpdateFlashSale = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: {
       id: string;
       flashSale: Partial<FlashSale>;
       productIds?: string[];
     }) => {
-      // Update flash sale
       const { error: saleError } = await supabase
         .from('flash_sales')
         .update(data.flashSale)
@@ -184,25 +163,16 @@ export const useUpdateFlashSale = () => {
 
       if (saleError) throw saleError;
 
-      // Update products if provided
       if (data.productIds) {
-        // Delete existing products
-        await supabase
-          .from('flash_sale_products')
-          .delete()
-          .eq('flash_sale_id', data.id);
-
-        // Insert new products
+        await supabase.from('flash_sale_products').delete().eq('flash_sale_id', data.id);
         if (data.productIds.length > 0) {
           const products = data.productIds.map((productId) => ({
             flash_sale_id: data.id,
             product_id: productId,
           }));
-
           const { error: productsError } = await supabase
             .from('flash_sale_products')
             .insert(products);
-
           if (productsError) throw productsError;
         }
       }
@@ -221,14 +191,9 @@ export const useUpdateFlashSale = () => {
 // Delete flash sale
 export const useDeleteFlashSale = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('flash_sales')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('flash_sales').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -244,14 +209,9 @@ export const useDeleteFlashSale = () => {
 // Toggle flash sale active status
 export const useToggleFlashSale = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
-        .from('flash_sales')
-        .update({ is_active })
-        .eq('id', id);
-
+      const { error } = await supabase.from('flash_sales').update({ is_active }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -267,8 +227,6 @@ export const useFlashSaleProductsWithDetails = (flashSaleId?: string, pageSize: 
     queryKey: ['flash-sale-products-details', flashSaleId, pageSize],
     queryFn: async () => {
       if (!flashSaleId) return { products: [], totalCount: 0 };
-      
-      // Get product IDs from flash_sale_products
       const { data: flashSaleProducts, error: flashSaleError } = await supabase
         .from('flash_sale_products')
         .select('product_id')
@@ -280,29 +238,14 @@ export const useFlashSaleProductsWithDetails = (flashSaleId?: string, pageSize: 
       }
 
       const productIds = flashSaleProducts.map(p => p.product_id);
-
-      // Fetch product details
       const { data: products, error: productsError, count } = await supabase
         .from('products')
-        .select(`
-          product_id,
-          name,
-          price,
-          image_urls,
-          categories,
-          stock,
-          rating,
-          reviews_count
-        `, { count: 'exact' })
+        .select('product_id, name, price, image_urls, categories, stock, rating, reviews_count', { count: 'exact' })
         .in('product_id', productIds)
         .limit(pageSize);
 
       if (productsError) throw productsError;
-
-      return {
-        products: products || [],
-        totalCount: count || 0
-      };
+      return { products: products || [], totalCount: count || 0 };
     },
     enabled: !!flashSaleId,
     staleTime: 60 * 1000,
@@ -315,8 +258,6 @@ export const useAllActiveFlashSaleProducts = (pageSize: number = 12) => {
     queryKey: ['all-active-flash-sale-products', pageSize],
     queryFn: async () => {
       const now = new Date().toISOString();
-      
-      // Get all active flash sale IDs
       const { data: activeSales, error: salesError } = await supabase
         .from('flash_sales')
         .select('id, end_date')
@@ -330,14 +271,10 @@ export const useAllActiveFlashSaleProducts = (pageSize: number = 12) => {
       }
 
       const saleIds = activeSales.map(s => s.id);
-      // Get the earliest end date for countdown
       const earliestEndDate = activeSales.reduce((earliest, sale) => {
-        return !earliest || new Date(sale.end_date) < new Date(earliest) 
-          ? sale.end_date 
-          : earliest;
+        return !earliest || new Date(sale.end_date) < new Date(earliest) ? sale.end_date : earliest;
       }, activeSales[0].end_date);
 
-      // Get ALL product IDs from all active flash sales
       const { data: flashSaleProducts, error: flashSaleError } = await supabase
         .from('flash_sale_products')
         .select('product_id')
@@ -348,33 +285,94 @@ export const useAllActiveFlashSaleProducts = (pageSize: number = 12) => {
         return { products: [], totalCount: 0, earliestEndDate };
       }
 
-      // Get unique product IDs
       const productIds = [...new Set(flashSaleProducts.map(p => p.product_id))];
-
-      // Fetch product details
       const { data: products, error: productsError, count } = await supabase
         .from('products')
-        .select(`
-          product_id,
-          name,
-          price,
-          image_urls,
-          categories,
-          stock,
-          rating,
-          reviews_count
-        `, { count: 'exact' })
+        .select('product_id, name, price, image_urls, categories, stock, rating, reviews_count', { count: 'exact' })
         .in('product_id', productIds)
         .limit(pageSize);
 
       if (productsError) throw productsError;
+      return { products: products || [], totalCount: count || 0, earliestEndDate };
+    },
+    staleTime: 60 * 1000,
+  });
+};
 
+// Fetch products by time range - finds flash sales overlapping the given window
+export const useFlashSaleProductsByTimeRange = (
+  startTime: Date | null,
+  endTime: Date | null,
+  pageSize: number = 24
+) => {
+  return useQuery({
+    queryKey: ['flash-sale-products-time-range', startTime?.toISOString(), endTime?.toISOString(), pageSize],
+    queryFn: async () => {
+      if (!startTime || !endTime) return { products: [], totalCount: 0, flashSales: [] };
+
+      const startStr = startTime.toISOString();
+      const endStr = endTime.toISOString();
+
+      // Find flash sales that overlap with the given time window
+      const { data: sales, error: salesError } = await supabase
+        .from('flash_sales')
+        .select('*')
+        .eq('is_active', true)
+        .lte('start_date', endStr)
+        .gte('end_date', startStr);
+
+      if (salesError) throw salesError;
+      if (!sales || sales.length === 0) {
+        return { products: [], totalCount: 0, flashSales: [] };
+      }
+
+      const saleIds = sales.map(s => s.id);
+      const { data: flashSaleProducts, error: fspError } = await supabase
+        .from('flash_sale_products')
+        .select('product_id')
+        .in('flash_sale_id', saleIds);
+
+      if (fspError) throw fspError;
+      if (!flashSaleProducts || flashSaleProducts.length === 0) {
+        return { products: [], totalCount: 0, flashSales: sales as FlashSale[] };
+      }
+
+      const productIds = [...new Set(flashSaleProducts.map(p => p.product_id))];
+      const { data: products, error: productsError, count } = await supabase
+        .from('products')
+        .select('product_id, name, price, image_urls, categories, stock, rating, reviews_count', { count: 'exact' })
+        .in('product_id', productIds)
+        .limit(pageSize);
+
+      if (productsError) throw productsError;
       return {
         products: products || [],
         totalCount: count || 0,
-        earliestEndDate
+        flashSales: sales as FlashSale[],
       };
     },
+    enabled: !!startTime && !!endTime,
     staleTime: 60 * 1000,
+  });
+};
+
+// Fetch product counts per flash sale (for admin)
+export const useFlashSaleProductCounts = () => {
+  return useQuery({
+    queryKey: ['flash-sale-product-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('flash_sale_products')
+        .select('flash_sale_id');
+
+      if (error) throw error;
+
+      const counts: Record<string, number> = {};
+      (data || []).forEach(item => {
+        counts[item.flash_sale_id] = (counts[item.flash_sale_id] || 0) + 1;
+      });
+      return counts;
+    },
+    staleTime: 30 * 1000,
   });
 };
