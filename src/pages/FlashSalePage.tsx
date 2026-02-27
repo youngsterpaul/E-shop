@@ -107,11 +107,8 @@ const FlashSalePage = () => {
       {/* Hero Header */}
       <div className="container max-w-[1200px] bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
         <div className={`mx-auto px-4 lg:px-6 ${isMobile ? 'py-3' : 'py-6'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`bg-white/20 ${isMobile ? 'p-1.5' : 'p-3'} rounded-full backdrop-blur-sm`}>
-                <Zap className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'} fill-white`} />
-              </div>
+          <div className="flex justify-between">
+            <div className="flex gap-2">
               <div>
                 <h1 className={`${isMobile ? 'text-base' : 'text-2xl'} font-bold`}>Flash Sales</h1>
                 <p className={`${isMobile ? 'text-[10px]' : 'text-sm'} text-white/80`}>

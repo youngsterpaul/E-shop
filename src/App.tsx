@@ -39,6 +39,7 @@ const ChatPage = lazy(() => import("./pages/ChatPage"));
 const ChattingPage = lazy(() => import("./pages/ChattingPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
@@ -134,11 +135,6 @@ function App() {
     ? '14px'
     : '52px';
 
-  // ✅ define handleLogout inside App so it’s in scope
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/");
-  };
   let totalItems = 0;
   try {
     const {
@@ -156,22 +152,12 @@ function App() {
     let rightAction: ReactNode = null;
     if (location.pathname.startsWith("/account")) {
       title = "Account";
-      rightAction = <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleLogout}>
-                <LogOut className="mr-3 h-5 w-5" />
-                Sign Out
-              </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>;
+rightAction = (
+  <Link to="/settings">
+    <Button variant="ghost" size="sm" className="p-2">
+      <Settings className="h-4 w-4" />
+    </Button>
+  </Link>);
     } else if (location.pathname.startsWith("/product")) {
       title = "Product Details";
       rightAction = <div className="flex items-center gap-2">
@@ -228,6 +214,15 @@ function App() {
       title = "Smartkenya Support";
     } else if (location.pathname.startsWith("/chat")) {
       title = "Customer Support";
+    }
+    else if (location.pathname.startsWith("/settings")) {
+      title = "Settings";
+    }
+    else if (location.pathname.startsWith("/flash-sale")) {
+      title = "Flash Sales";
+    }
+    else if (location.pathname.startsWith("/my-returns")) {
+      title = "Returns";
     }
     else if (location.pathname.startsWith("/cart")) {
       title = "Shopping Cart";
@@ -291,6 +286,7 @@ function App() {
             <Route path="/chatting" element={<ChattingPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/mfa-setup" element={<MFASetup />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/search" element={<SearchPage />} />
@@ -299,8 +295,8 @@ function App() {
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/returns" element={<ReturnsPage />} />
-          <Route path="/my-returns" element={<CustomerReturnsPage />} />
+            <Route path="/returns" element={<ReturnsPage />} />
+            <Route path="/my-returns" element={<CustomerReturnsPage />} />
                     
             {/* New Pages */}
             <Route path="/careers" element={<CareersPage />} />

@@ -291,7 +291,7 @@ const EnhancedHeroSection = memo(() => {
   }
   return (
     <section 
-      className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}
+      className={cn("relative group overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}
       aria-label="Featured promotions"
       role="region"
     >
@@ -338,7 +338,7 @@ const EnhancedHeroSection = memo(() => {
             <button 
               onClick={(e) => { e.stopPropagation(); prevSlide(); }} 
               type="button"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px]" 
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px] opacity-0 group-hover:opacity-100" 
               aria-label="Previous slide"
             >
               <ChevronLeft size={22} aria-hidden="true" />
@@ -346,7 +346,7 @@ const EnhancedHeroSection = memo(() => {
             <button 
               onClick={(e) => { e.stopPropagation(); nextSlide(); }} 
               type="button"
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px]" 
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-background/90 shadow-lg flex items-center justify-center text-foreground hover:bg-background hover:scale-110 transition-all duration-300 z-20 border border-border/50 min-w-[44px] min-h-[44px] opacity-0 group-hover:opacity-100" 
               aria-label="Next slide"
             >
               <ChevronRight size={22} aria-hidden="true" />
