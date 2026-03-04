@@ -1,5 +1,5 @@
 import { useEffect, useState, memo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,6 @@ interface Order {
 }
 
 const statusConfig = {
-  all: { label: 'All', icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' },
   pending: { label: 'Pending', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-100' },
   processing: { label: 'Processing', icon: Settings, color: 'text-purple-600', bg: 'bg-purple-100' },
   packed: { label: 'Packed', icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -75,7 +74,8 @@ const OrdersPage = memo(() => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeStatus, setActiveStatus] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeStatus, setActiveStatus] = useState(searchParams.get('status') || 'pending');
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loadingMore, setLoadingMore] = useState(false);
   
@@ -123,7 +123,7 @@ const OrdersPage = memo(() => {
   };
 
   const filteredOrders = orders.filter((o) => {
-    const statusMatch = activeStatus === 'all' || o.status === activeStatus;
+    const statusMatch = o.status === activeStatus;
     const searchMatch =
       !searchQuery ||
       o.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -285,7 +285,7 @@ const OrdersPage = memo(() => {
         ) : (
           <div className="space-y-4">
             {displayedOrders.map((order) => {
-              const cfg = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.all;
+              const cfg = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
               const Icon = cfg.icon;
               return (
                 <Card key={order.order_id} className="border-0 shadow-sm">

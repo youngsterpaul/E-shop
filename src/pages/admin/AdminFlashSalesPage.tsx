@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Zap, Clock, ChevronLeft, ChevronRight, Copy, Power, PowerOff, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Zap, Clock, ChevronLeft, ChevronRight, Copy, Power, PowerOff, Loader2, AlertTriangle } from 'lucide-react';
 import { DebouncedSearchInput } from '@/components/admin/DebouncedSearchInput';
 import {
   useAllFlashSales, useCreateFlashSale, useUpdateFlashSale,
@@ -22,7 +22,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format } from 'date-fns';
+import { format, addHours, isBefore, parseISO } from 'date-fns';
 import { FlashSaleSlotCreator } from '@/components/admin/FlashSaleSlotCreator';
 import { getSlotStatus } from '@/utils/flashSaleSlots';
 import { toast } from 'sonner';
@@ -35,6 +35,7 @@ const AdminFlashSalesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [tableFilter, setTableFilter] = useState<'all' | 'live' | 'upcoming' | 'ended'>('all');
   const [bulkSelected, setBulkSelected] = useState<string[]>([]);
+  const [dateError, setDateError] = useState<string | null>(null);
   const pageSize = 10;
 
   const { data: flashSales, isLoading } = useAllFlashSales();
@@ -73,12 +74,45 @@ const AdminFlashSalesPage = () => {
     }
   }, [saleProducts, editingSale]);
 
+  // Validate dates whenever they change
+  useEffect(() => {
+    if (formData.start_date && formData.end_date) {
+      const start = new Date(formData.start_date);
+      const end = new Date(formData.end_date);
+      if (isBefore(end, start)) {
+        setDateError('End date must be after start date');
+      } else if (end.getTime() === start.getTime()) {
+        setDateError('Start and end dates cannot be the same');
+      } else {
+        setDateError(null);
+      }
+    } else {
+      setDateError(null);
+    }
+  }, [formData.start_date, formData.end_date]);
+
   const resetForm = () => {
     setFormData({ title: '', description: '', start_date: '', end_date: '', discount_type: 'percentage', discount_value: '', is_active: true });
     setSelectedProducts([]);
     setEditingSale(null);
     setSearchQuery('');
     setCurrentPage(1);
+    setDateError(null);
+  };
+
+  const toLocalDatetime = (isoStr: string) => {
+    try {
+      const d = new Date(isoStr);
+      // Format as YYYY-MM-DDTHH:mm for datetime-local input
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return isoStr.slice(0, 16);
+    }
   };
 
   const handleEdit = (sale: FlashSale) => {
@@ -86,8 +120,8 @@ const AdminFlashSalesPage = () => {
     setFormData({
       title: sale.title,
       description: sale.description || '',
-      start_date: new Date(sale.start_date).toISOString().slice(0, 16),
-      end_date: new Date(sale.end_date).toISOString().slice(0, 16),
+      start_date: toLocalDatetime(sale.start_date),
+      end_date: toLocalDatetime(sale.end_date),
       discount_type: sale.discount_type,
       discount_value: sale.discount_value.toString(),
       is_active: sale.is_active,
@@ -123,8 +157,8 @@ const AdminFlashSalesPage = () => {
     setFormData({
       title: slotData.title,
       description: '',
-      start_date: new Date(slotData.start_date).toISOString().slice(0, 16),
-      end_date: new Date(slotData.end_date).toISOString().slice(0, 16),
+      start_date: toLocalDatetime(slotData.start_date),
+      end_date: toLocalDatetime(slotData.end_date),
       discount_type: slotData.discount_type,
       discount_value: slotData.discount_value.toString(),
       is_active: true,
@@ -135,11 +169,30 @@ const AdminFlashSalesPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (dateError) {
+      toast.error(dateError);
+      return;
+    }
+
+    if (!formData.start_date || !formData.end_date) {
+      toast.error('Please set both start and end dates');
+      return;
+    }
+
+    const startDate = new Date(formData.start_date);
+    const endDate = new Date(formData.end_date);
+
+    if (isBefore(endDate, startDate)) {
+      toast.error('End date must be after start date');
+      return;
+    }
+
     const saleData = {
       title: formData.title,
       description: formData.description || null,
-      start_date: new Date(formData.start_date).toISOString(),
-      end_date: new Date(formData.end_date).toISOString(),
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
       discount_type: formData.discount_type,
       discount_value: parseFloat(formData.discount_value),
       is_active: formData.is_active,
@@ -208,6 +261,21 @@ const AdminFlashSalesPage = () => {
     }
   };
 
+  // Quick duration presets
+  const applyDuration = (hours: number) => {
+    if (!formData.start_date) {
+      // Set start to now
+      const now = new Date();
+      const startStr = toLocalDatetime(now.toISOString());
+      const endStr = toLocalDatetime(addHours(now, hours).toISOString());
+      setFormData({ ...formData, start_date: startStr, end_date: endStr });
+    } else {
+      const start = new Date(formData.start_date);
+      const endStr = toLocalDatetime(addHours(start, hours).toISOString());
+      setFormData({ ...formData, end_date: endStr });
+    }
+  };
+
   const filteredSales = flashSales?.filter(sale => {
     if (tableFilter === 'all') return true;
     return getSlotStatus(sale) === tableFilter;
@@ -217,6 +285,19 @@ const AdminFlashSalesPage = () => {
   const upcomingCount = flashSales?.filter(s => getSlotStatus(s) === 'upcoming').length || 0;
 
   const allPageProductsSelected = products.length > 0 && products.every(p => selectedProducts.includes(p.product_id));
+
+  // Compute duration display
+  const durationDisplay = formData.start_date && formData.end_date ? (() => {
+    const start = new Date(formData.start_date);
+    const end = new Date(formData.end_date);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs <= 0) return null;
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
+  })() : null;
 
   return (
     <AdminLayout>
@@ -270,7 +351,6 @@ const AdminFlashSalesPage = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Bulk Actions */}
             {bulkSelected.length > 0 && (
               <div className="flex items-center gap-2 mb-3 p-2 bg-muted rounded-lg">
                 <span className="text-sm font-medium">{bulkSelected.length} selected</span>
@@ -380,7 +460,7 @@ const AdminFlashSalesPage = () => {
         </Card>
 
         {/* Create/Edit Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingSale ? 'Edit Flash Sale' : 'Create Flash Sale'}</DialogTitle>
@@ -397,15 +477,73 @@ const AdminFlashSalesPage = () => {
                 <Textarea id="description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date & Time *</Label>
-                  <Input id="start_date" type="datetime-local" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} required />
+              {/* Date/Time Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">Schedule</Label>
+                  {durationDisplay && (
+                    <Badge variant="outline" className="text-xs">
+                      Duration: {durationDisplay}
+                    </Badge>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date & Time *</Label>
-                  <Input id="end_date" type="datetime-local" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })} required />
+
+                {/* Quick duration presets */}
+                <div className="flex flex-wrap gap-1.5">
+                  <Label className="text-xs text-muted-foreground mr-1 self-center">Quick:</Label>
+                  {[
+                    { label: '1h', hours: 1 },
+                    { label: '2h', hours: 2 },
+                    { label: '4h', hours: 4 },
+                    { label: '6h', hours: 6 },
+                    { label: '12h', hours: 12 },
+                    { label: '24h', hours: 24 },
+                  ].map(({ label, hours }) => (
+                    <Button key={label} type="button" variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => applyDuration(hours)}>
+                      {label}
+                    </Button>
+                  ))}
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="start_date" className="text-xs">Start Date & Time *</Label>
+                    <Input
+                      id="start_date"
+                      type="datetime-local"
+                      value={formData.start_date}
+                      onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                      required
+                      className={dateError ? 'border-destructive' : ''}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="end_date" className="text-xs">End Date & Time *</Label>
+                    <Input
+                      id="end_date"
+                      type="datetime-local"
+                      value={formData.end_date}
+                      onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+                      required
+                      min={formData.start_date || undefined}
+                      className={dateError ? 'border-destructive' : ''}
+                    />
+                  </div>
+                </div>
+
+                {dateError && (
+                  <div className="flex items-center gap-1.5 text-destructive text-xs">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {dateError}
+                  </div>
+                )}
+
+                {/* Readable summary */}
+                {formData.start_date && formData.end_date && !dateError && (
+                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                    📅 {format(new Date(formData.start_date), 'EEE, MMM dd yyyy, hh:mm a')} → {format(new Date(formData.end_date), 'EEE, MMM dd yyyy, hh:mm a')}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -427,7 +565,7 @@ const AdminFlashSalesPage = () => {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Select Products *</Label>
+                  <Label>Select Products</Label>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="select-all-products"
@@ -488,7 +626,9 @@ const AdminFlashSalesPage = () => {
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>Cancel</Button>
-                <Button type="submit">{editingSale ? 'Update' : 'Create'} Flash Sale</Button>
+                <Button type="submit" disabled={!!dateError}>
+                  {editingSale ? 'Update' : 'Create'} Flash Sale
+                </Button>
               </div>
             </form>
           </DialogContent>

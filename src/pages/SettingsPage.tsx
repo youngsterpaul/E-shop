@@ -5,7 +5,7 @@ import {
   User, Bell, Globe, CreditCard, MapPin,
   ShoppingBag, Heart, Lock, Info,
   MessageCircleQuestion, RotateCcw, HelpCircle,
-  Shield, Settings, LogOut,
+  Shield, Settings, LogOut, Palette,
 } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -51,6 +51,7 @@ const SettingsPage = () => {
         { icon: Lock,       label: 'Password & Security', description: 'Update your password',          href: '/security' },
         { icon: Bell,       label: 'Notifications',       description: 'Alerts & order updates',        href: '/notifications' },
         { icon: Globe,      label: 'Language & Region',   description: 'App language & currency',       href: '/language' },
+        { icon: Palette,    label: 'Appearance',           description: 'Dark or light theme',           href: '/appearance' },
       ],
     },
     {
@@ -105,55 +106,55 @@ const SettingsPage = () => {
   ];
 
   return (
-    <div className={`min-h-screen bg-gray-100 pb-10 ${!isMobile ? 'max-w-[480px] mx-auto' : ''}`}>
+    <div className={`min-h-screen bg-muted/50 pb-10 ${!isMobile ? 'max-w-[480px] mx-auto' : ''}`}>
       <div className="px-4 pt-4 space-y-3">
         {sections.map((section, si) =>
           section.items.length === 0 ? null : (
             <div key={si}>
               {section.title && (
-                <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 px-1 mb-2">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground px-1 mb-2">
                   {section.title}
                 </p>
               )}
-              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
                 {section.items.map((item, ii) => {
                   const { icon: Icon, label, description, href, onClick, danger, primary } = item;
 
                   const content = (
                     <div
                       className={`flex items-center gap-4 px-4 py-3.5 transition-colors
-                        ${danger   ? 'hover:bg-red-50'    : ''}
-                        ${primary  ? 'hover:bg-primary/5' : ''}
-                        ${!danger && !primary ? 'hover:bg-gray-50' : ''}
-                        ${ii !== section.items.length - 1 ? 'border-b border-gray-50' : ''}
+                        ${danger   ? 'hover:bg-destructive/5'  : ''}
+                        ${primary  ? 'hover:bg-primary/5'      : ''}
+                        ${!danger && !primary ? 'hover:bg-muted/50' : ''}
+                        ${ii !== section.items.length - 1 ? 'border-b border-border' : ''}
                       `}
                     >
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0
-                        ${danger  ? 'bg-red-50'     : ''}
-                        ${primary ? 'bg-primary/10' : ''}
-                        ${!danger && !primary ? 'bg-gray-100' : ''}
+                        ${danger  ? 'bg-destructive/10' : ''}
+                        ${primary ? 'bg-primary/10'     : ''}
+                        ${!danger && !primary ? 'bg-muted' : ''}
                       `}>
                         <Icon className={`w-[18px] h-[18px]
-                          ${danger  ? 'text-red-500'  : ''}
-                          ${primary ? 'text-primary'  : ''}
-                          ${!danger && !primary ? 'text-gray-500' : ''}
+                          ${danger  ? 'text-destructive'   : ''}
+                          ${primary ? 'text-primary'       : ''}
+                          ${!danger && !primary ? 'text-muted-foreground' : ''}
                         `} />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <p className={`text-[14px] font-medium
-                          ${danger  ? 'text-red-500' : ''}
-                          ${primary ? 'text-primary' : ''}
-                          ${!danger && !primary ? 'text-gray-800' : ''}
+                          ${danger  ? 'text-destructive' : ''}
+                          ${primary ? 'text-primary'     : ''}
+                          ${!danger && !primary ? 'text-foreground' : ''}
                         `}>
                           {label}
                         </p>
                         {description && (
-                          <p className="text-[11px] text-gray-400 mt-0.5 truncate">{description}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{description}</p>
                         )}
                       </div>
 
-                      {!danger && <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
+                      {!danger && <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                     </div>
                   );
 
@@ -173,7 +174,7 @@ const SettingsPage = () => {
         )}
       </div>
 
-      <p className="text-center text-[11px] text-gray-300 mt-8">SmartKenya v1.0.0</p>
+      <p className="text-center text-[11px] text-muted-foreground mt-8">SmartKenya v1.0.0</p>
     </div>
   );
 };

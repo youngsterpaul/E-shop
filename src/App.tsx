@@ -58,6 +58,12 @@ const CareersPage = lazy(() => import("./pages/CareersPage"));
 const LoyaltyPage = lazy(() => import("./pages/LoyaltyPage"));
 const RewardsPage = lazy(() => import("./pages/RewardsPage"));
 const AchievementsPage = lazy(() => import("./pages/AchievementsPage"));
+const NotificationsSettingsPage = lazy(() => import("./pages/NotificationsSettingsPage"));
+const LanguageSettingsPage = lazy(() => import("./pages/LanguageSettingsPage"));
+const SecuritySettingsPage = lazy(() => import("./pages/SecuritySettingsPage"));
+const AddressesPage = lazy(() => import("./pages/AddressesPage"));
+const BillingPage = lazy(() => import("./pages/BillingPage"));
+const AppearanceSettingsPage = lazy(() => import("./pages/AppearanceSettingsPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -230,6 +236,18 @@ rightAction = (
       title = "Careers";
     } else if (location.pathname.startsWith("/profile")) {
       title = "My Profile";
+    } else if (location.pathname.startsWith("/notifications")) {
+      title = "Notifications";
+    } else if (location.pathname.startsWith("/language")) {
+      title = "Language & Region";
+    } else if (location.pathname.startsWith("/security")) {
+      title = "Security";
+    } else if (location.pathname.startsWith("/addresses")) {
+      title = "My Addresses";
+    } else if (location.pathname.startsWith("/billing")) {
+      title = "Billing";
+    } else if (location.pathname.startsWith("/appearance")) {
+      title = "Appearance";
     }
     return {
       title,
@@ -304,6 +322,12 @@ rightAction = (
             <Route path="/rewards" element={<RewardsPage />} />
             <Route path="/achievements" element={<AchievementsPage />} />
             <Route path="/flash-sale" element={<FlashSalePage />} />
+            <Route path="/notifications" element={<NotificationsSettingsPage />} />
+            <Route path="/language" element={<LanguageSettingsPage />} />
+            <Route path="/security" element={<SecuritySettingsPage />} />
+            <Route path="/addresses" element={<AddressesPage />} />
+            <Route path="/billing" element={<BillingPage />} />
+            <Route path="/appearance" element={<AppearanceSettingsPage />} />
 
             {/* Admin Routes */}
             <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />
