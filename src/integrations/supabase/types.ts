@@ -1459,14 +1459,18 @@ export type Database = {
       }
       products: {
         Row: {
+          brand: string | null
           categories: string | null
           created_at: string | null
           description: string | null
+          discount_price: number | null
           display_order: number | null
           featured: boolean | null
           features: Json | null
           image_urls: string[] | null
+          is_active: boolean | null
           is_digital: boolean | null
+          is_featured: boolean | null
           low_stock_threshold: number | null
           name: string
           preferred_supplier_id: string | null
@@ -1475,6 +1479,7 @@ export type Database = {
           rating: number | null
           reorder_point: number | null
           reviews_count: number
+          sku: number | null
           specification: Json | null
           stock: number | null
           store: string | null
@@ -1482,14 +1487,18 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          brand?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           display_order?: number | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null
+          is_active?: boolean | null
           is_digital?: boolean | null
+          is_featured?: boolean | null
           low_stock_threshold?: number | null
           name: string
           preferred_supplier_id?: string | null
@@ -1498,6 +1507,7 @@ export type Database = {
           rating?: number | null
           reorder_point?: number | null
           reviews_count?: number
+          sku?: number | null
           specification?: Json | null
           stock?: number | null
           store?: string | null
@@ -1505,14 +1515,18 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          brand?: string | null
           categories?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           display_order?: number | null
           featured?: boolean | null
           features?: Json | null
           image_urls?: string[] | null
+          is_active?: boolean | null
           is_digital?: boolean | null
+          is_featured?: boolean | null
           low_stock_threshold?: number | null
           name?: string
           preferred_supplier_id?: string | null
@@ -1521,6 +1535,7 @@ export type Database = {
           rating?: number | null
           reorder_point?: number | null
           reviews_count?: number
+          sku?: number | null
           specification?: Json | null
           stock?: number | null
           store?: string | null

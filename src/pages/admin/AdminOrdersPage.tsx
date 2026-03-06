@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveModal, ResponsiveModalHeader, ResponsiveModalFooter, ResponsiveModalTitle, ResponsiveModalDescription } from "@/components/ui/responsive-modal";
 import { toast } from "@/hooks/use-toast";
 import { Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -502,14 +502,13 @@ const AdminOrdersPage = () => {
       />
 
       {/* Order Details Modal */}
-      <Dialog open={viewOrderModal.open} onOpenChange={(open) => !open && setViewOrderModal({ open: false, order: null })}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
-            <DialogDescription>
-              Complete information about order #{viewOrderModal.order?.order_id.slice(0, 8)}
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveModal open={viewOrderModal.open} onOpenChange={(open) => !open && setViewOrderModal({ open: false, order: null })} className="max-w-3xl">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Order Details</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            Complete information about order #{viewOrderModal.order?.order_id.slice(0, 8)}
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
           
           {viewOrderModal.order && (
             <div className="space-y-6">
@@ -645,7 +644,7 @@ const AdminOrdersPage = () => {
             </div>
           )}
 
-          <DialogFooter>
+          <ResponsiveModalFooter>
             <Button variant="outline" onClick={() => setViewOrderModal({ open: false, order: null })}>
               Close
             </Button>
@@ -655,29 +654,26 @@ const AdminOrdersPage = () => {
                 Download Receipt
               </Button>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveModalFooter>
+      </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Orders</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {selectedOrders.length} order(s)? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleBulkDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ResponsiveModal open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Delete Orders</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            Are you sure you want to delete {selectedOrders.length} order(s)? This action cannot be undone.
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
+        <ResponsiveModalFooter>
+          <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleBulkDelete}>
+            Delete
+          </Button>
+        </ResponsiveModalFooter>
+      </ResponsiveModal>
     </AdminLayout>
   );
 };

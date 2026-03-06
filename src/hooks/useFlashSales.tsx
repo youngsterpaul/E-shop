@@ -313,13 +313,13 @@ export const useFlashSaleProductsByTimeRange = (
       const startStr = startTime.toISOString();
       const endStr = endTime.toISOString();
 
-      // Find flash sales that overlap with the given time window
+      // Find flash sales that fit within the given time window (strict boundaries)
       const { data: sales, error: salesError } = await supabase
         .from('flash_sales')
         .select('*')
         .eq('is_active', true)
-        .lte('start_date', endStr)
-        .gte('end_date', startStr);
+        .gte('start_date', startStr)
+        .lte('end_date', endStr);
 
       if (salesError) throw salesError;
       if (!sales || sales.length === 0) {

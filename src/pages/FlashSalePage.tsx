@@ -91,7 +91,19 @@ const FlashSalePage = () => {
   }), []);
 
   const products = productsData?.products || [];
+  const flashSales = productsData?.flashSales || [];
   const transformedProducts = useMemo(() => products.map(transformProductData), [products, transformProductData]);
+
+  // Build flash sale override for this slot's sales (only show flash price if slot is live)
+  const slotFlashSaleOverride = useMemo(() => {
+    if (slotStatus !== 'live' || flashSales.length === 0) return null;
+    // Use the first sale's discount info (all products in a slot share the same sale typically)
+    const sale = flashSales[0];
+    return {
+      discount_type: sale.discount_type as 'percentage' | 'fixed_amount',
+      discount_value: sale.discount_value,
+    };
+  }, [slotStatus, flashSales]);
 
   const gridConfig = isMobile
     ? { cols: 'grid-cols-2', gap: 'gap-2', padding: 'p-2' }
@@ -224,7 +236,7 @@ const FlashSalePage = () => {
         ) : (
           <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-card rounded-xl shadow-sm p-4`}>
             {transformedProducts.map((product, index) => (
-              <ProductCard key={`${product.id}-${index}`} product={product} />
+              <ProductCard key={`${product.id}-${index}`} product={product} flashSaleOverride={slotFlashSaleOverride} />
             ))}
           </div>
         )}

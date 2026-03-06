@@ -14,14 +14,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ResponsiveModal, ResponsiveModalHeader, ResponsiveModalFooter, ResponsiveModalTitle, ResponsiveModalDescription } from '@/components/ui/responsive-modal';
 import {
   Select,
   SelectContent,
@@ -442,16 +435,15 @@ export default function AdminReturnsPage() {
         </Card>
 
         {/* Details Dialog */}
-        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Return Details</DialogTitle>
-              <DialogDescription>
-                Complete information about this return request
-              </DialogDescription>
-            </DialogHeader>
+        <ResponsiveModal open={showDetailsDialog} onOpenChange={setShowDetailsDialog} className="max-w-2xl">
+          <ResponsiveModalHeader>
+            <ResponsiveModalTitle>Return Details</ResponsiveModalTitle>
+            <ResponsiveModalDescription>
+              Complete information about this return request
+            </ResponsiveModalDescription>
+          </ResponsiveModalHeader>
             {selectedReturn && (
-              <div className="space-y-4">
+              <div className="space-y-4 px-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-muted-foreground">Return Number</Label>
@@ -510,25 +502,23 @@ export default function AdminReturnsPage() {
                 )}
               </div>
             )}
-          </DialogContent>
-        </Dialog>
+        </ResponsiveModal>
 
         {/* Process Dialog */}
-        <Dialog open={showProcessDialog} onOpenChange={setShowProcessDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {processAction === 'approve' ? 'Approve Return' : 'Reject Return'}
-              </DialogTitle>
-              <DialogDescription>
-                {processAction === 'approve' 
-                  ? 'Enter refund details to approve this return'
-                  : 'Provide a reason for rejecting this return'
-                }
-              </DialogDescription>
-            </DialogHeader>
+        <ResponsiveModal open={showProcessDialog} onOpenChange={setShowProcessDialog}>
+          <ResponsiveModalHeader>
+            <ResponsiveModalTitle>
+              {processAction === 'approve' ? 'Approve Return' : 'Reject Return'}
+            </ResponsiveModalTitle>
+            <ResponsiveModalDescription>
+              {processAction === 'approve' 
+                ? 'Enter refund details to approve this return'
+                : 'Provide a reason for rejecting this return'
+              }
+            </ResponsiveModalDescription>
+          </ResponsiveModalHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 px-4">
               {processAction === 'approve' && (
                 <>
                   <div>
@@ -577,7 +567,7 @@ export default function AdminReturnsPage() {
               </div>
             </div>
 
-            <DialogFooter>
+            <ResponsiveModalFooter>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -593,9 +583,8 @@ export default function AdminReturnsPage() {
               >
                 {processReturnMutation.isPending ? 'Processing...' : 'Confirm'}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </ResponsiveModalFooter>
+        </ResponsiveModal>
       </div>
     </AdminLayout>
   );

@@ -291,7 +291,7 @@ const EnhancedHeroSection = memo(() => {
   }
   return (
     <section 
-      className={cn("relative group overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}
+      className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}
       aria-label="Featured promotions"
       role="region"
     >
@@ -299,7 +299,7 @@ const EnhancedHeroSection = memo(() => {
       
       {/* Hero Carousel with Slide Animation */}
       <div 
-        className={cn("absolute inset-0 cursor-pointer", !isMobile && "ml-[260px] rounded-r-xl overflow-hidden")} 
+        className={cn("absolute inset-0 cursor-pointer group", !isMobile && "ml-[260px] rounded-r-xl overflow-hidden")} 
         onClick={handleSlideClick}
         role="button"
         tabIndex={0}

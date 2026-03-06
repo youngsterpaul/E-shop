@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -869,11 +870,30 @@ const CheckoutPage = () => {
             </div>;
       }
     };
-    return <Dialog open={showPaymentModal} onOpenChange={() => {
+    const handleModalClose = () => {
       if (paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
         setShowPaymentModal(false);
       }
-    }}>
+    };
+
+    if (isMobile) {
+      return (
+        <Drawer open={showPaymentModal} onOpenChange={handleModalClose}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader className="text-left">
+              <DrawerTitle>Payment</DrawerTitle>
+              <DrawerDescription>Complete your M-Pesa payment</DrawerDescription>
+            </DrawerHeader>
+            <div className="px-4 pb-6 overflow-y-auto">
+              {renderPaymentContent()}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      );
+    }
+
+    return (
+      <Dialog open={showPaymentModal} onOpenChange={handleModalClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Payment</DialogTitle>
@@ -881,7 +901,8 @@ const CheckoutPage = () => {
           </DialogHeader>
           {renderPaymentContent()}
         </DialogContent>
-      </Dialog>;
+      </Dialog>
+    );
   };
   const progressValue = currentStep / 2 * 100;
 return <div>

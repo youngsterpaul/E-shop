@@ -22,14 +22,21 @@ interface Product {
   features?: string[];
 }
 
-interface ProductCardProps {
-  product: Product;
+interface FlashSaleOverride {
+  discount_type: 'percentage' | 'fixed_amount';
+  discount_value: number;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+interface ProductCardProps {
+  product: Product;
+  flashSaleOverride?: FlashSaleOverride | null;
+}
+
+const ProductCard = ({ product, flashSaleOverride }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const isMobile = isMobileUserAgent();
-  const { data: flashSale } = useProductFlashSaleFromContext(product.id);
+  const { data: contextFlashSale } = useProductFlashSaleFromContext(product.id);
+  const flashSale = flashSaleOverride !== undefined ? flashSaleOverride : contextFlashSale;
   
   // Mobile-specific compact sizes
   const badgeClass = isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs';

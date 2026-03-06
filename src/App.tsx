@@ -1,7 +1,7 @@
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Capacitor } from '@capacitor/core';
-import React, { lazy, Suspense, ReactNode } from "react";
+import { lazy, Suspense, ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AdminRoute from "@/components/AdminRoute";
 import TopProgressBar from './components/TopProgressBar';
@@ -12,10 +12,8 @@ import MobileNav from '@/components/MobileNav';
 import { MobileHeader } from './components/ui/mobile-header';
 import { useLocation } from "react-router-dom";
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
 import { useCartContext } from '@/contexts/CartContext';
 import SecurityHeaders from './components/SecurityHeaders';
@@ -158,12 +156,13 @@ function App() {
     let rightAction: ReactNode = null;
     if (location.pathname.startsWith("/account")) {
       title = "Account";
-rightAction = (
-  <Link to="/settings">
-    <Button variant="ghost" size="sm" className="p-2">
-      <Settings className="h-4 w-4" />
-    </Button>
-  </Link>);
+  rightAction = (
+    <Link to="/settings">
+      <Button variant="ghost" size="sm" className="p-2">
+        <Settings className="h-4 w-4" />
+      </Button>
+    </Link>
+    );
     } else if (location.pathname.startsWith("/product")) {
       title = "Product Details";
       rightAction = <div className="flex items-center gap-2">
