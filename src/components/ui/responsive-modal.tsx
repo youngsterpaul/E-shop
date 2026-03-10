@@ -32,7 +32,7 @@ export function ResponsiveModal({ open, onOpenChange, children, className }: Res
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className={cn("max-h-[90vh]", className)}>
-          <div className="overflow-y-auto max-h-[calc(90vh-2rem)]">
+          <div className="overflow-y-auto px-2 max-h-[calc(90vh-2rem)]">
             {children}
           </div>
         </DrawerContent>

@@ -498,7 +498,7 @@ const AdminFlashSalesPage = () => {
         </Card>
 
         {/* Create/Edit Dialog */}
-        <ResponsiveModal open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }} className="sm:max-w-3xl">
+        <ResponsiveModal open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }} className="sm:max-w-10xl">
             <ResponsiveModalHeader>
               <ResponsiveModalTitle>{editingSale ? 'Edit Flash Sale' : 'Create Flash Sale'}</ResponsiveModalTitle>
               <ResponsiveModalDescription>Set up a time-limited promotional sale with per-product pricing</ResponsiveModalDescription>
@@ -649,7 +649,7 @@ const AdminFlashSalesPage = () => {
                               <span className="text-muted-foreground">- KES {product.price}</span>
                             </label>
                             {isSelected && discount && (
-                              <div className="flex items-center gap-1 flex-shrink-0">
+                              <div className="flex items-center gap-1 flex-shrink-0 flex-column">
                                 <Input
                                   type="number"
                                   step="0.01"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,35 @@ const AuthPage = () => {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
   const isMobile = isMobileUserAgent();
+  
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+
+  const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      passwordRef.current?.focus();
+    }
+  };
+
+  const handlePasswordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (authMode === 'signup') {
+        confirmPasswordRef.current?.focus();
+      } else {
+        submitRef.current?.click();
+      }
+    }
+  };
+
+  const handleConfirmPasswordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitRef.current?.click();
+    }
+  };
   
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -425,6 +454,7 @@ const AuthPage = () => {
                       placeholder="Enter your email"
                       value={email}
                       onChange={handleEmailChange}
+                      onKeyDown={handleEmailKeyDown}
                       className={`pl-10 h-10 text-sm rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.email ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -455,6 +485,8 @@ const AuthPage = () => {
                         placeholder="Enter new password"
                         value={newPassword}
                         onChange={handleNewPasswordChange}
+                        ref={passwordRef}
+                        onKeyDown={handlePasswordKeyDown}
                         className={`pl-10 pr-10 h-10 text-sm rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                           errors.password ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                         }`}
@@ -489,6 +521,8 @@ const AuthPage = () => {
                         placeholder="Confirm new password"
                         value={confirmNewPassword}
                         onChange={handleConfirmNewPasswordChange}
+                        ref={confirmPasswordRef}
+                        onKeyDown={handleConfirmPasswordKeyDown}
                         className={`pl-10 pr-10 h-10 text-sm rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                           errors.confirmPassword ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                         }`}
@@ -525,6 +559,8 @@ const AuthPage = () => {
                       placeholder="Enter your password"
                       value={password}
                       onChange={handlePasswordChange}
+                      ref={passwordRef}
+                      onKeyDown={handlePasswordKeyDown}
                       className={`pl-10 pr-10 h-10 text-sm rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.password ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -560,6 +596,8 @@ const AuthPage = () => {
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      ref={confirmPasswordRef}
+                      onKeyDown={handleConfirmPasswordKeyDown}
                       className={`pl-10 pr-10 h-10 text-sm rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.confirmPassword ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -584,6 +622,7 @@ const AuthPage = () => {
 
               <Button
                 type="submit"
+                ref={submitRef}
                 className="w-full h-10 rounded-lg font-semibold text-sm"
                 disabled={isSubmitting || loading || passwordResetComplete}
               >
@@ -765,6 +804,7 @@ const AuthPage = () => {
                       placeholder="Enter your email address"
                       value={email}
                       onChange={handleEmailChange}
+                      onKeyDown={handleEmailKeyDown}
                       className={`pl-10 h-10 text-sm rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.email ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -807,6 +847,8 @@ const AuthPage = () => {
                         placeholder="Enter your new password"
                         value={newPassword}
                         onChange={handleNewPasswordChange}
+                        ref={passwordRef}
+                        onKeyDown={handlePasswordKeyDown}
                         className={`pl-10 pr-11 h-10 text-sm rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                           errors.password ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                         }`}
@@ -841,6 +883,8 @@ const AuthPage = () => {
                         placeholder="Confirm your new password"
                         value={confirmNewPassword}
                         onChange={handleConfirmNewPasswordChange}
+                        ref={confirmPasswordRef}
+                        onKeyDown={handleConfirmPasswordKeyDown}
                         className={`pl-10 pr-11 h-10 text-sm rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                           errors.confirmPassword ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                         }`}
@@ -877,6 +921,8 @@ const AuthPage = () => {
                       placeholder="Enter your password"
                       value={password}
                       onChange={handlePasswordChange}
+                      ref={passwordRef}
+                      onKeyDown={handlePasswordKeyDown}
                       className={`pl-10 pr-11 h-10 text-sm rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.password ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -912,6 +958,8 @@ const AuthPage = () => {
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      ref={confirmPasswordRef}
+                      onKeyDown={handleConfirmPasswordKeyDown}
                       className={`pl-10 pr-11 h-10 text-sm rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                         errors.confirmPassword ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'
                       }`}
@@ -952,6 +1000,7 @@ const AuthPage = () => {
 
               <Button
                 type="submit"
+                ref={submitRef}
                 className="w-full h-10 rounded-xl font-semibold text-sm"
                 disabled={isSubmitting || loading || passwordResetComplete}
               >
