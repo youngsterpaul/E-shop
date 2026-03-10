@@ -3,14 +3,12 @@ import { Home, MessageCircle, ShoppingCart, User, List } from 'lucide-react';
 import { useCartContext } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { isMobileUserAgent } from "@/hooks/use-mobile";
-import { Capacitor } from '@capacitor/core';
+import { useUserUnreadChat } from '@/hooks/useUserUnreadChat';
 
 const MobileNav = () => {
   const location = useLocation();
   const isMobile = isMobileUserAgent();
-  const NAV_OFFSET = Capacitor.isNativePlatform()
-      ? '4px'
-      : '4px';
+  const { unreadCount: chatUnread } = useUserUnreadChat();
 
   const showMobileNavOnPaths = ['/', '/category', '/chat', '/account', '/cart'];
   const showMobileNav = showMobileNavOnPaths.includes(location.pathname);
@@ -31,7 +29,7 @@ const MobileNav = () => {
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: List, label: 'Category', path: '/category' },
-    { icon: MessageCircle, label: 'Chat', path: '/chat' },
+    { icon: MessageCircle, label: 'Chat', path: '/chat', count: chatUnread },
     { 
       icon: ShoppingCart, 
       label: 'Cart', 
@@ -49,7 +47,7 @@ const MobileNav = () => {
         <nav 
           className="fixed bottom-0 left-0 right-0 bg-background border-t border-border w-full z-50 safe-area-inset-bottom"
           style={{
-            paddingBottom: `calc(${NAV_OFFSET} + env(safe-area-inset-bottom))`,
+            paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
           }}
           role="navigation"
           aria-label="Mobile navigation"

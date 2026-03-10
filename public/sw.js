@@ -58,7 +58,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   // Skip Supabase realtime and auth requests
-  if (url.hostname.includes('supabase.co') && 
+  if (url.hostname.includes('supabase.co') &&
       (url.pathname.includes('/realtime/') || url.pathname.includes('/auth/'))) {
     return;
   }
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
       caches.open(IMAGE_CACHE).then((cache) => {
         return cache.match(request).then((cachedResponse) => {
           const fetchPromise = fetch(request).then((networkResponse) => {
-            if (networkResponse.ok) {
+            if (networkResponse.ok && networkResponse.status === 200) {
               cache.put(request, networkResponse.clone());
             }
             return networkResponse;
@@ -91,6 +91,13 @@ self.addEventListener('fetch', (event) => {
         return caches.match(request);
       })
     );
+    return;
+  }
+
+  // Handle audio/video files - pass through without caching
+  // Range requests for media return 206 Partial Content which the Cache API rejects
+  if (url.pathname.match(/\.(mp3|mp4|wav|ogg|webm|aac|flac)$/)) {
+    event.respondWith(fetch(request));
     return;
   }
 
@@ -121,7 +128,8 @@ self.addEventListener('fetch', (event) => {
 
       return caches.open(RUNTIME_CACHE).then((cache) => {
         return fetch(request).then((networkResponse) => {
-          if (networkResponse.ok) {
+          // Only cache full 200 OK responses - partial (206) responses are not supported
+          if (networkResponse.ok && networkResponse.status === 200) {
             try {
               const clone = networkResponse.clone();
               cache.put(request, clone).catch((err) => {
@@ -155,7 +163,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'CACHE_URLS') {
     const urls = event.data.urls;
     caches.open(IMAGE_CACHE).then((cache) => {

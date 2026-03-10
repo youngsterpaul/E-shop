@@ -898,18 +898,24 @@ export type Database = {
       flash_sale_products: {
         Row: {
           created_at: string | null
+          discount_type: string | null
+          discount_value: number | null
           flash_sale_id: string
           id: string
           product_id: string
         }
         Insert: {
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           flash_sale_id: string
           id?: string
           product_id: string
         }
         Update: {
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           flash_sale_id?: string
           id?: string
           product_id?: string
@@ -2185,6 +2191,36 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_notifications: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          notified: boolean | null
+          notified_at: string | null
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          notified?: boolean | null
+          notified_at?: string | null
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          notified?: boolean | null
+          notified_at?: string | null
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       store: {
         Row: {
           address: string | null
@@ -2329,6 +2365,63 @@ export type Database = {
           points_awarded?: number | null
           unlocked_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_behavior: {
+        Row: {
+          cart_product_ids: string[] | null
+          clicked_products: string[] | null
+          created_at: string | null
+          dwell_time: Json | null
+          id: string
+          last_visit: string | null
+          preferred_brands: string[] | null
+          preferred_price_range: Json | null
+          purchased_categories: string[] | null
+          searched_terms: string[] | null
+          session_count: number | null
+          updated_at: string | null
+          user_id: string
+          viewed_categories: string[] | null
+          viewed_products: string[] | null
+          wishlist_product_ids: string[] | null
+        }
+        Insert: {
+          cart_product_ids?: string[] | null
+          clicked_products?: string[] | null
+          created_at?: string | null
+          dwell_time?: Json | null
+          id?: string
+          last_visit?: string | null
+          preferred_brands?: string[] | null
+          preferred_price_range?: Json | null
+          purchased_categories?: string[] | null
+          searched_terms?: string[] | null
+          session_count?: number | null
+          updated_at?: string | null
+          user_id: string
+          viewed_categories?: string[] | null
+          viewed_products?: string[] | null
+          wishlist_product_ids?: string[] | null
+        }
+        Update: {
+          cart_product_ids?: string[] | null
+          clicked_products?: string[] | null
+          created_at?: string | null
+          dwell_time?: Json | null
+          id?: string
+          last_visit?: string | null
+          preferred_brands?: string[] | null
+          preferred_price_range?: Json | null
+          purchased_categories?: string[] | null
+          searched_terms?: string[] | null
+          session_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+          viewed_categories?: string[] | null
+          viewed_products?: string[] | null
+          wishlist_product_ids?: string[] | null
         }
         Relationships: []
       }
@@ -2514,6 +2607,7 @@ export type Database = {
       }
       cleanup_expired_carts: { Args: never; Returns: number }
       cleanup_expired_otps: { Args: never; Returns: number }
+      cleanup_expired_pending_orders: { Args: never; Returns: number }
       cleanup_expired_sessions: { Args: never; Returns: number }
       generate_po_number: { Args: never; Returns: string }
       generate_referral_code: {

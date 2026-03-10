@@ -72,18 +72,21 @@ export const FlashSaleSlotCreator = ({ flashSales, productCounts, onQuickCreate,
 
     if (onBatchCreate) {
       setIsFilling(true);
-      const slots = emptySlots.map(slot => {
-        const { start, end } = getSlotDates(selectedDate, slot);
-        return {
-          title: generateSlotTitle(selectedDate, slot),
-          start_date: start.toISOString(),
-          end_date: end.toISOString(),
-          discount_type: defaultDiscountType,
-          discount_value: parseFloat(defaultDiscount) || 10,
-        };
-      });
-      onBatchCreate(slots);
-      setIsFilling(false);
+      try {
+        const slots = emptySlots.map(slot => {
+          const { start, end } = getSlotDates(selectedDate, slot);
+          return {
+            title: generateSlotTitle(selectedDate, slot),
+            start_date: start.toISOString(),
+            end_date: end.toISOString(),
+            discount_type: defaultDiscountType,
+            discount_value: parseFloat(defaultDiscount) || 10,
+          };
+        });
+        await onBatchCreate(slots);
+      } finally {
+        setIsFilling(false);
+      }
     } else {
       handleQuickCreate(emptySlots[0]);
     }

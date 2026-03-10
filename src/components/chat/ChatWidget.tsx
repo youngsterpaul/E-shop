@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, User, Bot, Headphones, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, User, Bot, Headphones, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useUserUnreadChat } from '@/hooks/useUserUnreadChat';
 
 const ChatWidget = () => {
   const { user } = useAuth();
@@ -20,14 +21,14 @@ const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { unreadCount } = useUserUnreadChat();
 
   // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isStreaming]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -60,13 +61,13 @@ const ChatWidget = () => {
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+              className="h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 relative"
             >
               <MessageCircle className="h-6 w-6" />
             </Button>
-            {messages.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                {messages.filter(m => m.sender_type !== 'user' && !m.is_read).length || ''}
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center animate-pulse">
+                {unreadCount}
               </span>
             )}
           </motion.div>
@@ -180,6 +181,7 @@ const ChatWidget = () => {
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
 

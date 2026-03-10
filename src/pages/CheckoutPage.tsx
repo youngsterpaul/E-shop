@@ -394,6 +394,21 @@ const CheckoutPage = () => {
       
       setOrderId(currentOrderId);
 
+      // Notify admin about new order (fire and forget)
+      if (!existingOrderId) {
+        supabase.functions.invoke('notify-admin-new-order', {
+          body: {
+            orderId: currentOrderId,
+            customerName: `${customerData.firstName} ${customerData.lastName}`.trim(),
+            customerEmail: customerData.email,
+            customerPhone: customerData.phone,
+            amount: finalTotal,
+            items: orderItems,
+            shippingAddress: `${countyName}, ${cityName}, ${deliveryData.address}`,
+          }
+        }).catch((err) => console.error('Admin notification failed:', err));
+      }
+
       // Initiate M-Pesa payment
       const result = await initiatePayment({
         phone: customerData.phone,

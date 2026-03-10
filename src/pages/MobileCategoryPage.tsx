@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, Search, Grid3X3 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, Grid3X3, Sparkles } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { SEOHelmet } from '@/components/SEOHelmet';
@@ -37,15 +37,15 @@ const generateCategoryUrl = (
 };
 
 const CategorySkeleton = () => (
-  <div className="space-y-3 p-4">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border/50">
-        <Skeleton className="w-14 h-14 rounded-xl" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-20" />
+  <div className="space-y-2 px-4">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-3 p-3 bg-card rounded-xl">
+        <Skeleton className="w-11 h-11 rounded-lg" />
+        <div className="flex-1 space-y-1.5">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-3 w-16" />
         </div>
-        <Skeleton className="w-5 h-5 rounded-full" />
+        <Skeleton className="w-4 h-4" />
       </div>
     ))}
   </div>
@@ -64,9 +64,9 @@ const SubcategoryItem = ({ subcategory, parentCategory, onNavigate }: Subcategor
   return (
     <div
       onClick={onNavigate}
-      className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl hover:bg-muted/60 transition-all duration-200 cursor-pointer group"
+      className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer group"
     >
-      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
+      <div className="relative w-9 h-9 rounded-md overflow-hidden bg-muted/40 flex-shrink-0">
         {subcategory.productImage ? (
           <OptimizedImage
             src={subcategory.productImage.replace(/^http:\/\//, 'https://')}
@@ -76,14 +76,14 @@ const SubcategoryItem = ({ subcategory, parentCategory, onNavigate }: Subcategor
           />
         ) : (
           <div className={`w-full h-full flex items-center justify-center ${subcategory.color || 'bg-primary/10'}`}>
-            <IconComponent size={20} className="text-primary" />
+            <IconComponent size={16} className="text-primary" />
           </div>
         )}
       </div>
-      <span className="flex-1 text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+      <span className="flex-1 text-[13px] font-medium text-foreground/80 group-hover:text-primary transition-colors">
         {subcategory.name}
       </span>
-      <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+      <ChevronRight size={14} className="text-muted-foreground/50" />
     </div>
   );
 };
@@ -107,48 +107,52 @@ const CategoryCard = ({
   const hasSubcategories = category.subcategories && category.subcategories.length > 0;
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+    <div className={`rounded-xl overflow-hidden transition-all duration-200 ${isExpanded ? 'bg-card border border-border/60 shadow-sm' : ''}`}>
       {/* Category Header */}
       <div
         onClick={hasSubcategories ? onToggle : onNavigateToCategory}
-        className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted/30 transition-all duration-200"
+        className={`flex items-center gap-3 p-3 cursor-pointer active:bg-muted/40 transition-colors ${!isExpanded ? 'hover:bg-muted/30' : ''}`}
       >
-        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <IconComponent size={28} className="text-primary" />
+        <div className="w-11 h-11 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+          <IconComponent size={22} className="text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-base truncate">{category.name}</h3>
+          <h3 className="font-semibold text-foreground text-[14px] truncate">{category.name}</h3>
           {hasSubcategories && (
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-muted-foreground">
               {category.subcategories.length} subcategor{category.subcategories.length === 1 ? 'y' : 'ies'}
             </p>
           )}
         </div>
         {hasSubcategories ? (
-          <div className={`p-2 rounded-full bg-muted/50 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-            <ChevronDown size={18} className="text-muted-foreground" />
-          </div>
+          <ChevronDown 
+            size={16} 
+            className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+          />
         ) : (
-          <ChevronRight size={20} className="text-muted-foreground" />
+          <ChevronRight size={16} className="text-muted-foreground/50" />
         )}
       </div>
 
       {/* Subcategories */}
       {hasSubcategories && isExpanded && (
-        <div className="px-4 pb-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
-          {/* View All Link */}
+        <div className="px-3 pb-3 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+          {/* View All */}
           <div
             onClick={onNavigateToCategory}
-            className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl hover:bg-primary/10 transition-all duration-200 cursor-pointer group border border-primary/10"
+            className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg bg-primary/5 hover:bg-primary/10 active:bg-primary/15 transition-colors cursor-pointer group"
           >
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Grid3X3 size={20} className="text-primary" />
+            <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Grid3X3 size={16} className="text-primary" />
             </div>
-            <span className="flex-1 text-sm font-medium text-primary">
-              View All {category.name}
+            <span className="flex-1 text-[13px] font-semibold text-primary">
+              All {category.name}
             </span>
-            <ChevronRight size={16} className="text-primary" />
+            <ChevronRight size={14} className="text-primary/60" />
           </div>
+
+          {/* Divider */}
+          <div className="h-px bg-border/40 mx-3 my-1" />
 
           {/* Subcategory Items */}
           {category.subcategories.map((subcategory) => (
@@ -225,7 +229,7 @@ const MobileCategoryPage = () => {
         <main className="flex-grow pb-20">
           {/* Breadcrumb - Desktop Only */}
           {!isMobile && (
-            <div className="max-w-[1200px] mx-auto px-4 lg:px-6 pt-6">
+            <div className="max-w-[1400px] mx-auto px-4 lg:px-6 pt-6">
               <SiteBreadcrumb
                 items={[
                   { label: 'Home', href: '/' },
@@ -236,59 +240,59 @@ const MobileCategoryPage = () => {
             </div>
           )}
 
-          {/* Page Header */}
-          <div className={`${isMobile ? 'px-4 pt-4 pb-3' : 'max-w-[1200px] mx-auto px-4 lg:px-6 mb-6'}`}>
-            {isMobile ? (
-              <div className="space-y-3">
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">Categories</h1>
-                  <p className="text-sm text-muted-foreground mt-0.5">Browse all product categories</p>
-                </div>
-                {/* Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search categories..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-11 bg-muted/30 border-border/50 rounded-xl"
-                  />
-                </div>
+          {/* Mobile Header */}
+          {isMobile ? (
+            <div className="px-4 pt-3 pb-2 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-bold text-foreground">Categories</h1>
+                <span className="text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                  {filteredCategories.length} categories
+                </span>
               </div>
-            ) : (
-              <>
-                <h1 className="text-2xl font-bold text-foreground">All Categories</h1>
-                <p className="text-muted-foreground mt-1">Browse products by category</p>
-              </>
-            )}
-          </div>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search categories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 text-[13px] bg-muted/30 border-border/40 rounded-lg"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-[1400px] mx-auto px-4 lg:px-6 mb-6">
+              <h1 className="text-2xl font-bold text-foreground">All Categories</h1>
+              <p className="text-muted-foreground mt-1">Browse products by category</p>
+            </div>
+          )}
 
           {/* Category List */}
-          <div className={isMobile ? 'px-4 space-y-3' : 'max-w-[1200px] mx-auto px-4 lg:px-6'}>
+          <div className={isMobile ? 'px-3' : 'max-w-[1400px] mx-auto px-4 lg:px-6'}>
             {isLoading ? (
               <CategorySkeleton />
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="text-destructive mb-2">Failed to load categories</div>
-                <p className="text-sm text-muted-foreground">Please try again later</p>
+                <div className="text-destructive text-sm mb-1">Failed to load categories</div>
+                <p className="text-xs text-muted-foreground">Please try again later</p>
               </div>
             ) : filteredCategories.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Search size={48} className="text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">No categories found</p>
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Search size={36} className="text-muted-foreground/30 mb-3" />
+                <p className="text-sm text-muted-foreground">No categories found</p>
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="mt-2 text-sm text-primary hover:underline"
+                    className="mt-2 text-xs text-primary font-medium"
                   >
                     Clear search
                   </button>
                 )}
               </div>
             ) : isMobile ? (
-              // Mobile - Accordion Style
-              <div className="space-y-3 pb-4">
+              /* Mobile - Compact Accordion */
+              <div className="space-y-1 pb-4">
                 {filteredCategories.map((category) => (
                   <CategoryCard
                     key={category.id}
@@ -301,7 +305,7 @@ const MobileCategoryPage = () => {
                 ))}
               </div>
             ) : (
-              // Desktop - Keep existing grid style
+              /* Desktop - Grid */
               <section className="bg-card rounded-xl border border-border/50 shadow-sm">
                 <h2 className="px-6 py-4 text-lg font-semibold text-foreground border-b border-border/50">
                   Shop by Category

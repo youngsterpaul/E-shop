@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import autoTable from 'jspdf-autotable';
@@ -52,176 +51,313 @@ async function getBase64ImageFromURL(url: string): Promise<string> {
   });
 }
 
+// Brand colors
+const BRAND_GREEN: [number, number, number] = [0, 128, 0];
+const DARK_TEXT: [number, number, number] = [33, 33, 33];
+const MID_TEXT: [number, number, number] = [100, 100, 100];
+const LIGHT_BG: [number, number, number] = [245, 245, 245];
+const WHITE: [number, number, number] = [255, 255, 255];
+const BORDER_COLOR: [number, number, number] = [220, 220, 220];
+
+const formatReceiptDate = (dateString: string | null): string => {
+  if (!dateString) return 'N/A';
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Africa/Nairobi',
+  };
+  return new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+};
+
+const drawDottedLine = (doc: jsPDF, x1: number, x2: number, y: number) => {
+  const dashLen = 1;
+  const gapLen = 0.8;
+  doc.setDrawColor(...BORDER_COLOR);
+  doc.setLineWidth(0.15);
+  for (let x = x1; x < x2; x += dashLen + gapLen) {
+    doc.line(x, y, Math.min(x + dashLen, x2), y);
+  }
+};
 
 export const generatePDFReceipt = async (order: Order): Promise<void> => {
-    // Format date
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'Africa/Nairobi',
-    };
-
-    const formatted = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
-    return formatted.replace(/\sGMT.*$/, '');
-  };
-
   try {
-    const receiptWidth = 80;
+    const W = 80; // receipt width in mm
+    const M = 5; // margin
+    const contentW = W - M * 2;
 
-    const doc = new jsPDF({
-      format: [receiptWidth, 400], // Height will expand if needed
-      unit: 'mm',
-    });
+    const doc = new jsPDF({ format: [W, 400], unit: 'mm' });
+    let y = 6;
 
-    let y = 8;
-
-    // Header
+    // ── Logo ──
     const base64Logo = await getBase64ImageFromURL(smartkenyaLogo);
+    const logoW = 42;
+    const logoH = 11;
+    doc.addImage(base64Logo, 'PNG', (W - logoW) / 2, y, logoW, logoH);
+    y += logoH + 3;
 
-    // Calculate position to center the logo
-    const logoWidth = 48;  // Adjust width
-    const logoHeight = 12; // Adjust height
-    const xPos = (receiptWidth / 2) - (logoWidth / 2);
-
-    // Add logo to PDF
-    doc.addImage(base64Logo, 'PNG', xPos, y, logoWidth, logoHeight);
-
-    y += logoHeight + 6;
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RECEIPT', receiptWidth / 2, y, { align: 'center' });
-    y += 4;
-
-    doc.setLineWidth(0.2);
-    doc.line(4, y, receiptWidth - 4, y);
-    y += 4;
-
-    // Order Info
-    doc.setFontSize(8);
+    // ── Company tagline ──
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Receipt #: ${order.order_id}`, 4, y); y += 4;
-    doc.text(`Order Date: ${formatDate(order.created_at)}`, 4, y); y += 4;
-    doc.text(`Status: ${order.status.toUpperCase()}`, 4, y); y += 4;
+    doc.setTextColor(...MID_TEXT);
+    doc.text('Your Smart Shopping Destination', W / 2, y, { align: 'center' });
+    y += 5;
 
-    doc.line(4, y, receiptWidth - 4, y);
+    // ── Receipt title bar ──
+    doc.setFillColor(...BRAND_GREEN);
+    doc.roundedRect(M, y, contentW, 7, 1, 1, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...WHITE);
+    doc.text('PURCHASE RECEIPT', W / 2, y + 4.8, { align: 'center' });
+    y += 11;
+
+    // ── Order details box ──
+    doc.setFillColor(...LIGHT_BG);
+    doc.roundedRect(M, y, contentW, 22, 1, 1, 'F');
+
+    const infoX = M + 2;
+    const valX = W - M - 2;
     y += 4;
 
-    // Customer Info
-    doc.setFont('helvetica', 'bold');
-    doc.text('Customer:', 4, y); y += 4;
+    doc.setFontSize(6.5);
 
+    // Receipt No
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...MID_TEXT);
+    doc.text('RECEIPT NO', infoX, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Name: ${order.username || 'N/A'}`, 4, y); y += 4;
-    doc.text(`Email: ${order.email || 'N/A'}`, 4, y); y += 4;
-    doc.text(`Phone: ${order.phone_number || 'N/A'}`, 4, y); y += 4;
-    doc.text(`Address: ${order.shipping_address || 'N/A'}`, 4, y); y += 4;
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(order.order_id, valX, y, { align: 'right' });
+    y += 4.5;
+
+    // Date
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...MID_TEXT);
+    doc.text('DATE', infoX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(formatReceiptDate(order.created_at), valX, y, { align: 'right' });
+    y += 4.5;
+
+    // Status
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...MID_TEXT);
+    doc.text('STATUS', infoX, y);
+    const statusText = order.status.toUpperCase();
+    const statusColor: [number, number, number] =
+      statusText === 'DELIVERED' || statusText === 'COMPLETED' ? [0, 150, 0] :
+      statusText === 'PENDING' ? [200, 150, 0] :
+      statusText === 'CANCELLED' ? [200, 0, 0] : BRAND_GREEN;
+    doc.setTextColor(...statusColor);
+    doc.setFont('helvetica', 'bold');
+    doc.text(statusText, valX, y, { align: 'right' });
+    y += 4.5;
+
+    // M-Pesa
     if (order.mpesa_receipt_number) {
-      doc.text(`M-Pesa Code: ${order.mpesa_receipt_number}`, 4, y); y += 4;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...MID_TEXT);
+      doc.text('M-PESA REF', infoX, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...DARK_TEXT);
+      doc.text(order.mpesa_receipt_number, valX, y, { align: 'right' });
+      y += 4.5;
     }
 
-    doc.line(4, y, receiptWidth - 4, y);
+    y += 3; // bottom padding of box
+
+    drawDottedLine(doc, M, W - M, y);
     y += 4;
 
-    // Items Table
-    const items = order.items || [];
+    // ── Customer section ──
+    doc.setFillColor(...LIGHT_BG);
+    doc.roundedRect(M, y, contentW, order.shipping_address ? 20 : 16, 1, 1, 'F');
+    
+    const custX = M + 2;
+    y += 4;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...BRAND_GREEN);
+    doc.text('BILL TO', custX, y);
+    y += 4;
 
-    const tableBody = items.map((item) => {
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK_TEXT);
+    doc.text(order.username || 'Walk-in Customer', custX, y);
+    y += 3.5;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...MID_TEXT);
+    if (order.email) {
+      doc.text(order.email, custX, y);
+      y += 3.5;
+    }
+    if (order.phone_number) {
+      doc.text(order.phone_number, custX, y);
+      y += 3.5;
+    }
+    if (order.shipping_address) {
+      const addressLines = doc.splitTextToSize(order.shipping_address, contentW - 4);
+      doc.text(addressLines, custX, y);
+      y += addressLines.length * 3.5;
+    }
+    y += 3;
+
+    // ── Items table ──
+    const items = order.items || [];
+    const tableBody = items.map((item, idx) => {
       const qty = item.quantity || 0;
       const price = item.product.price || 0;
       const total = qty * price;
-
       return [
-        qty.toString(),
+        (idx + 1).toString(),
         item.product.name || 'Unknown Item',
-        `KES ${price.toLocaleString()}`,
-        `KES ${total.toLocaleString()}`
+        qty.toString(),
+        `${price.toLocaleString()}`,
+        `${total.toLocaleString()}`
       ];
     });
 
     autoTable(doc, {
       startY: y,
-      theme: 'grid',
-      styles: { fontSize: 8, cellPadding: 1 },
-      headStyles: { fillColor: [240, 240, 240] },
-      margin: { left: 4, right: 4 },
-      head: [['QTY', 'ITEM', 'PRICE', 'TOTAL']],
-      body: tableBody.length > 0 ? tableBody : [['', 'No items in order.', '', '']],
+      theme: 'plain',
+      styles: { 
+        fontSize: 7, 
+        cellPadding: { top: 1.5, bottom: 1.5, left: 1, right: 1 },
+        textColor: DARK_TEXT,
+      },
+      headStyles: { 
+        fillColor: BRAND_GREEN,
+        textColor: WHITE,
+        fontStyle: 'bold',
+        fontSize: 6.5,
+        cellPadding: { top: 2, bottom: 2, left: 1, right: 1 },
+      },
+      alternateRowStyles: {
+        fillColor: [250, 250, 250],
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 6 },
+        1: { cellWidth: 'auto' },
+        2: { halign: 'center', cellWidth: 8 },
+        3: { halign: 'right', cellWidth: 14 },
+        4: { halign: 'right', cellWidth: 16, fontStyle: 'bold' },
+      },
+      margin: { left: M, right: M },
+      head: [['#', 'ITEM DESCRIPTION', 'QTY', 'PRICE', 'AMOUNT']],
+      body: tableBody.length > 0 ? tableBody : [['', 'No items in order.', '', '', '']],
       didDrawPage: (data) => {
         if (data.cursor) {
-          y = data.cursor.y + 4;
+          y = data.cursor.y + 2;
         }
       }
     });
 
-    // Summary Section
+    y += 4;
+
+    // ── Summary section ──
     const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.product.price || 0), 0);
     const discountAmount = order.discount_amount ?? 0;
     const deliveryFee = order.delivery_fee ?? 0;
     const grandTotal = subtotal - discountAmount + deliveryFee;
 
-    // Spacing from items table
-    y += 6;
-
-    // Subtotal line
+    const summaryX = W / 2 + 2;
+    const summaryValX = W - M;
+    
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('Subtotal:', 10, y);
-    doc.text(`KES ${subtotal.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
-    y += 6;
+    doc.setTextColor(...MID_TEXT);
 
-    // Discount line (if applicable)
+    // Subtotal
+    doc.text('Subtotal:', summaryX, y);
+    doc.text(`KES ${subtotal.toLocaleString()}`, summaryValX, y, { align: 'right' });
+    y += 4;
+
+    // Discount
     if (discountAmount > 0) {
-      doc.setTextColor(0, 150, 0); // Green color for discount
-      doc.text('Discount:', 10, y);
-      doc.text(`-KES ${discountAmount.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
-      doc.setTextColor(0, 0, 0); // Reset to black
-      y += 6;
+      doc.setTextColor(0, 150, 0);
+      doc.text('Discount:', summaryX, y);
+      doc.text(`-KES ${discountAmount.toLocaleString()}`, summaryValX, y, { align: 'right' });
+      doc.setTextColor(...MID_TEXT);
+      y += 4;
     }
 
-    // Delivery line
-    doc.text('Delivery:', 10, y);
-    doc.text(`KES ${deliveryFee.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
-    y += 6;
+    // Delivery
+    doc.text('Delivery Fee:', summaryX, y);
+    doc.text(deliveryFee > 0 ? `KES ${deliveryFee.toLocaleString()}` : 'FREE', summaryValX, y, { align: 'right' });
+    y += 4;
 
-    // Draw line above total
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.3);
-    doc.line(10, y, receiptWidth - 10, y);
-    y += 6;
+    // Total divider
+    doc.setDrawColor(...BRAND_GREEN);
+    doc.setLineWidth(0.4);
+    doc.line(summaryX, y, W - M, y);
+    y += 5;
 
-    // TOTAL line (bigger and bold)
+    // Grand total with background highlight
+    doc.setFillColor(...BRAND_GREEN);
+    doc.roundedRect(summaryX - 2, y - 3.5, (W - M) - summaryX + 4, 8, 1, 1, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('TOTAL:', 10, y);
-    doc.text(`KES ${grandTotal.toLocaleString()}`, receiptWidth - 10, y, { align: 'right' });
-    y += 10; // some extra space after total
+    doc.setFontSize(9);
+    doc.setTextColor(...WHITE);
+    doc.text('TOTAL', summaryX + 1, y + 1);
+    doc.text(`KES ${grandTotal.toLocaleString()}`, summaryValX - 1, y + 1, { align: 'right' });
+    y += 10;
 
+    // ── Payment method indicator ──
+    if (order.mpesa_receipt_number) {
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...MID_TEXT);
+      doc.text('Paid via M-Pesa', W / 2, y, { align: 'center' });
+      y += 5;
+    }
 
+    // ── QR Code section ──
+    drawDottedLine(doc, M, W - M, y);
+    y += 4;
 
-    // QR Code
-    const qrValue = `https://www.smartkenya.co.ke/order/${order.order_id}`;
-    const qrDataUrl = await QRCode.toDataURL(qrValue, { width: 80, margin: 1 });
-    doc.addImage(qrDataUrl, 'PNG', (receiptWidth - 24) / 2, y, 24, 24);
-    y += 28;
-
-    // Footer
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...MID_TEXT);
+    doc.text('Scan to track your order', W / 2, y, { align: 'center' });
+    y += 3;
+
+    const qrValue = `https://www.smartkenya.co.ke/order/${order.order_id}`;
+    const qrDataUrl = await QRCode.toDataURL(qrValue, { width: 100, margin: 1 });
+    const qrSize = 22;
+    doc.addImage(qrDataUrl, 'PNG', (W - qrSize) / 2, y, qrSize, qrSize);
+    y += qrSize + 5;
+
+    // ── Footer ──
+    drawDottedLine(doc, M, W - M, y);
+    y += 4;
+
     doc.setFontSize(7);
-    doc.text('Thank you for shopping with us!', receiptWidth / 2, y, { align: 'center' }); y += 4;
-    doc.text('www.smartkenya.co.ke', receiptWidth / 2, y, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK_TEXT);
+    doc.text('Thank you for shopping with us!', W / 2, y, { align: 'center' });
+    y += 4;
+
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...MID_TEXT);
+    doc.text('www.smartkenya.co.ke', W / 2, y, { align: 'center' });
+    y += 3;
+    doc.text('support@smartkenya.co.ke', W / 2, y, { align: 'center' });
+    y += 4;
+
+    doc.setFontSize(5);
+    doc.text('This receipt is computer-generated and does not require a signature.', W / 2, y, { align: 'center' });
+    y += 3;
+    doc.text(`Generated on ${formatReceiptDate(new Date().toISOString())}`, W / 2, y, { align: 'center' });
 
     // Save
-    const fileName = `receipt-${order.order_id}.pdf`;
-    doc.save(fileName);
+    doc.save(`SmartKenya-Receipt-${order.order_id}.pdf`);
   } catch (error) {
     console.error('Error generating PDF receipt:', error);
     throw error;

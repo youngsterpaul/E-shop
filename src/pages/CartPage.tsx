@@ -141,54 +141,42 @@ const CartPage = () => {
 
       {/* Mobile Bottom Bar */}
       {isMobile && calculations.selectedItemsCount > 0 && (
-        <div className="fixed bottom-16 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
-          {/* Free Shipping Progress */}
+        <div className="fixed bottom-16 left-0 right-0 bg-card border-t border-border shadow-[0_-2px_8px_rgba(0,0,0,0.08)] z-40">
           {!isEligibleForFreeDelivery && amountToFreeShipping > 0 && (
-            <div className="px-3 py-1.5 bg-primary/5 border-b border-border">
-              <p className="text-[11px] text-muted-foreground text-center">
-                Add <span className="font-semibold text-primary">KES {amountToFreeShipping.toLocaleString()}</span> more for free delivery
+            <div className="px-3 py-1 bg-primary/5">
+              <p className="text-[10px] text-muted-foreground text-center">
+                Add <span className="font-semibold text-primary">KES {amountToFreeShipping.toLocaleString()}</span> for free delivery
               </p>
             </div>
           )}
           
-          <div className="px-3 py-2.5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between text-[11px] mb-1">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground">Total</span>
-                  <span className="text-sm font-bold text-foreground">
-                    KES {calculations.total.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-0.5">
-                <span className={`text-[10px] font-medium ${isEligibleForFreeDelivery ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Delivery: {isEligibleForFreeDelivery ? 'FREE' : `KES ${calculations.shipping.toLocaleString()}`}
+          <div className="px-3 py-2 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[10px] text-muted-foreground">Total</span>
+                <span className="text-[15px] font-bold text-foreground">
+                  KES {calculations.total.toLocaleString()}
                 </span>
-                <Button
-                  onClick={handleCheckout}
-                  disabled={isNavigating}
-                  size="sm"
-                  className="h-9 px-5 text-sm"
-                >
-                  {isNavigating ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                      <span className="text-xs">Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      Checkout
-                      <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                    </>
-                  )}
-                </Button>
               </div>
+              <span className={`text-[10px] font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : 'text-muted-foreground'}`}>
+                Delivery: {isEligibleForFreeDelivery ? 'FREE' : `KES ${calculations.shipping.toLocaleString()}`}
+              </span>
             </div>
+            <Button
+              onClick={handleCheckout}
+              disabled={isNavigating}
+              size="sm"
+              className="h-9 px-6 text-sm shrink-0"
+            >
+              {isNavigating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <>
+                  Checkout
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </>
+              )}
+            </Button>
           </div>
         </div>
       )}

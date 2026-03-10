@@ -21,6 +21,8 @@ export interface FlashSaleProduct {
   id: string;
   flash_sale_id: string;
   product_id: string;
+  discount_type: string | null;
+  discount_value: number | null;
   created_at: string;
 }
 
@@ -69,7 +71,7 @@ export const useFlashSaleProducts = (flashSaleId?: string) => {
       if (!flashSaleId) return [];
       const { data, error } = await supabase
         .from('flash_sale_products')
-        .select('*')
+        .select('id, flash_sale_id, product_id, discount_type, discount_value, created_at')
         .eq('flash_sale_id', flashSaleId);
 
       if (error) throw error;
@@ -115,7 +117,7 @@ export const useCreateFlashSale = () => {
   return useMutation({
     mutationFn: async (data: {
       flashSale: Omit<FlashSale, 'id' | 'created_at' | 'updated_at'>;
-      productIds: string[];
+      productDiscounts: Array<{ product_id: string; discount_type: 'percentage' | 'fixed_amount'; discount_value: number }>;
     }) => {
       const { data: flashSale, error: saleError } = await supabase
         .from('flash_sales')
@@ -125,10 +127,12 @@ export const useCreateFlashSale = () => {
 
       if (saleError) throw saleError;
 
-      if (data.productIds.length > 0) {
-        const products = data.productIds.map((productId) => ({
+      if (data.productDiscounts.length > 0) {
+        const products = data.productDiscounts.map((p) => ({
           flash_sale_id: flashSale.id,
-          product_id: productId,
+          product_id: p.product_id,
+          discount_type: p.discount_type,
+          discount_value: p.discount_value,
         }));
         const { error: productsError } = await supabase
           .from('flash_sale_products')
@@ -139,6 +143,7 @@ export const useCreateFlashSale = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flash-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['all-active-flash-sales'] });
       toast.success('Flash sale created successfully');
     },
     onError: (error: any) => {
@@ -154,7 +159,7 @@ export const useUpdateFlashSale = () => {
     mutationFn: async (data: {
       id: string;
       flashSale: Partial<FlashSale>;
-      productIds?: string[];
+      productDiscounts?: Array<{ product_id: string; discount_type: 'percentage' | 'fixed_amount'; discount_value: number }>;
     }) => {
       const { error: saleError } = await supabase
         .from('flash_sales')
@@ -163,12 +168,14 @@ export const useUpdateFlashSale = () => {
 
       if (saleError) throw saleError;
 
-      if (data.productIds) {
+      if (data.productDiscounts) {
         await supabase.from('flash_sale_products').delete().eq('flash_sale_id', data.id);
-        if (data.productIds.length > 0) {
-          const products = data.productIds.map((productId) => ({
+        if (data.productDiscounts.length > 0) {
+          const products = data.productDiscounts.map((p) => ({
             flash_sale_id: data.id,
-            product_id: productId,
+            product_id: p.product_id,
+            discount_type: p.discount_type,
+            discount_value: p.discount_value,
           }));
           const { error: productsError } = await supabase
             .from('flash_sale_products')
@@ -180,6 +187,7 @@ export const useUpdateFlashSale = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flash-sales'] });
       queryClient.invalidateQueries({ queryKey: ['product-flash-sale'] });
+      queryClient.invalidateQueries({ queryKey: ['all-active-flash-sales'] });
       toast.success('Flash sale updated successfully');
     },
     onError: (error: any) => {

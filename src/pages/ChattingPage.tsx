@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useChat } from '@/hooks/useChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserUnreadChat } from '@/hooks/useUserUnreadChat';
 import { cn } from '@/lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -14,16 +15,21 @@ const ChattingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { messages, isLoading, isStreaming, sendMessage, requestAdmin, conversation } = useChat();
+  const { markAsRead } = useUserUnreadChat();
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mark messages as read when entering chat
+  useEffect(() => {
+    markAsRead();
+  }, [markAsRead, messages]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isStreaming]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -154,6 +160,7 @@ const ChattingPage = () => {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 

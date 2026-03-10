@@ -18,7 +18,7 @@ export const useOptimizedRelatedProducts = (category: string, currentProductId: 
   
   return useQuery({
     queryKey: productKeys.related(safeCategory, currentProductId),
-    queryFn: () => productFetchers.fetchRelatedProducts(safeCategory, currentProductId, 12),
+    queryFn: () => productFetchers.fetchRelatedProducts(safeCategory, currentProductId, 50),
     enabled: !!category && !!currentProductId,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,

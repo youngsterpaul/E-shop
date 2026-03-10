@@ -6,7 +6,6 @@ import { useSecurityAlertsCount } from '@/hooks/useSecurityAlertsCount';
 import { usePendingOrdersCount } from '@/hooks/usePendingOrdersCount';
 import { usePendingReturnsCount } from '@/hooks/usePendingReturnsCount';
 import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
-import { Capacitor } from '@capacitor/core';
 import {
   LayoutDashboard,
   Package,
@@ -40,6 +39,7 @@ import {
   Newspaper,
   QrCode,
   MessageCircle,
+  Eye,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -81,7 +81,6 @@ export function ModernAdminSidebar() {
   const pendingOrdersCount = usePendingOrdersCount();
   const pendingReturnsCount = usePendingReturnsCount();
   const unreadChatCount = useUnreadChatCount();
-  const isApp = Capacitor.isNativePlatform()
 
   const loading = rolesLoading || permissionsLoading;
 
@@ -307,6 +306,18 @@ export function ModernAdminSidebar() {
       badge: null,
     },
     {
+      name: 'User Behavior',
+      icon: Eye,
+      path: '/supersmartkenyaadmin123/user-behavior',
+      badge: null,
+    },
+    {
+      name: 'Sales Forecast',
+      icon: TrendingUp,
+      path: '/supersmartkenyaadmin123/sales-forecast',
+      badge: null,
+    },
+    {
       name: 'Revenue Dashboard',
       icon: DollarSign,
       path: '/supersmartkenyaadmin123/revenue-dashboard',
@@ -362,14 +373,6 @@ export function ModernAdminSidebar() {
       <SidebarGroup>
         <SidebarGroupLabel 
           className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-          style={
-            isMobile && isApp
-              ? {
-                  top: 0,
-                  paddingTop: 'calc(10px + env(safe-area-inset-top))',
-                }
-              : undefined
-          }
         >
           {label}
         </SidebarGroupLabel>

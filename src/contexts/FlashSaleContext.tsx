@@ -22,7 +22,6 @@ const FlashSaleContext = createContext<FlashSaleContextType>({
 export const useFlashSaleContext = () => useContext(FlashSaleContext);
 
 export const FlashSaleProvider = ({ children }: { children: ReactNode }) => {
-  // Fetch all active flash sale products in a single query
   const { data: flashSaleData, isLoading } = useQuery({
     queryKey: ['all-active-flash-sales'],
     queryFn: async () => {
@@ -32,6 +31,8 @@ export const FlashSaleProvider = ({ children }: { children: ReactNode }) => {
         .from('flash_sale_products')
         .select(`
           product_id,
+          discount_type,
+          discount_value,
           flash_sales:flash_sale_id (
             discount_type,
             discount_value,
@@ -43,22 +44,24 @@ export const FlashSaleProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Filter and map to product_id -> flash sale data
       const flashSalesMap = new Map<string, FlashSaleData>();
       
       data?.forEach((item: any) => {
         const sale = item.flash_sales;
-        // Check if flash sale is active and not expired
         if (
           sale &&
           sale.is_active &&
           sale.start_date <= now &&
           sale.end_date >= now
         ) {
+          // Use per-product discount if set, otherwise fall back to sale-level discount
+          const discountType = item.discount_type || sale.discount_type;
+          const discountValue = item.discount_value != null ? item.discount_value : sale.discount_value;
+          
           flashSalesMap.set(item.product_id, {
             product_id: item.product_id,
-            discount_type: sale.discount_type,
-            discount_value: sale.discount_value,
+            discount_type: discountType,
+            discount_value: discountValue,
             end_date: sale.end_date,
           });
         }
@@ -66,8 +69,8 @@ export const FlashSaleProvider = ({ children }: { children: ReactNode }) => {
 
       return flashSalesMap;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -83,7 +86,6 @@ export const FlashSaleProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook to get flash sale for a specific product
 export const useProductFlashSaleFromContext = (productId: string) => {
   const { flashSales, isLoading } = useFlashSaleContext();
   

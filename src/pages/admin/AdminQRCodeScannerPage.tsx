@@ -134,6 +134,7 @@ const AdminQRCodeScannerPage = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [scanLinePosition, setScanLinePosition] = useState(0);
   const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
+  const lastScannedCodeRef = useRef<string | null>(null); // Ref mirror for interval access
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -175,17 +176,33 @@ const AdminQRCodeScannerPage = () => {
     setOrder(null);
 
     try {
-      const { data, error } = await supabase
+      // Try exact match first
+      let { data, error } = await supabase
         .from('orders')
         .select(`
           *,
           mpesa_payments!left(mpesa_receipt_number)
         `)
-        .or(`order_id.eq.${orderId},order_id.ilike.%${orderId}%`)
-        .limit(1)
-        .single();
+        .eq('order_id', orderId)
+        .maybeSingle();
+
+      // If no exact match, try partial match
+      if (!data && !error) {
+        const { data: fuzzyData, error: fuzzyError } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            mpesa_payments!left(mpesa_receipt_number)
+          `)
+          .ilike('order_id', `%${orderId}%`)
+          .limit(1);
+
+        if (fuzzyError) throw fuzzyError;
+        data = fuzzyData?.[0] || null;
+      }
 
       if (error) throw error;
+      if (!data) throw new Error('No order found');
 
       const orderData: Order = {
         ...data,
@@ -195,7 +212,6 @@ const AdminQRCodeScannerPage = () => {
       };
 
       setOrder(orderData);
-      // Auto-select the first valid next status instead of current status
       const validNext = getValidNextStatuses(orderData.status);
       setNewStatus(validNext.length > 0 ? validNext[0] : orderData.status);
       setTrackingNumber(orderData.tracking_number || '');
@@ -523,8 +539,9 @@ const AdminQRCodeScannerPage = () => {
             inversionAttempts: 'attemptBoth', // Try both normal and inverted
           });
           
-          if (code && code.data && code.data !== lastScannedCode) {
+          if (code && code.data && code.data !== lastScannedCodeRef.current) {
             console.log('QR Code detected:', code.data);
+            lastScannedCodeRef.current = code.data;
             setLastScannedCode(code.data);
             setIsScanning(false);
             isScanningRef.current = false; // Update ref immediately
@@ -541,7 +558,6 @@ const AdminQRCodeScannerPage = () => {
             // Check if it's a URL containing the order ID
             try {
               const url = new URL(code.data);
-              // Try to extract order ID from URL path or query params
               const pathParts = url.pathname.split('/').filter(Boolean);
               const orderIdFromPath = pathParts.find(part => part.length >= 8);
               const orderIdFromQuery = url.searchParams.get('order') || url.searchParams.get('orderId') || url.searchParams.get('id');
@@ -556,13 +572,13 @@ const AdminQRCodeScannerPage = () => {
               description: `Fetching order: ${orderId.slice(0, 20)}${orderId.length > 20 ? '...' : ''}` 
             });
             
-            // Fetch the order with the parsed order ID
             fetchOrder(orderId);
             
             // Resume scanning after a delay
             setTimeout(() => {
               setIsScanning(true);
               isScanningRef.current = true;
+              lastScannedCodeRef.current = null;
               setLastScannedCode(null);
             }, 3000);
           }

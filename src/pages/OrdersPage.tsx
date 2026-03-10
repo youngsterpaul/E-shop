@@ -1,4 +1,6 @@
 import { useEffect, useState, memo, useRef } from 'react';
+import OrderTrackingTimeline from '@/components/order/OrderTrackingTimeline';
+import PendingOrderCountdown from '@/components/order/PendingOrderCountdown';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ReviewButton from '@/components/ReviewButton';
 import { useMpesaPayment } from '@/hooks/useMpesaPayment';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveModal, ResponsiveModalHeader, ResponsiveModalTitle, ResponsiveModalDescription } from '@/components/ui/responsive-modal';
 import { Progress } from '@/components/ui/progress';
 import {
   Package,
@@ -340,6 +342,9 @@ const OrdersPage = memo(() => {
                       </div>
                     ))}
 
+                    {/* Order Tracking Timeline */}
+                    <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
+
                     <div className="border-t pt-3 space-y-2">
                       {order.discount_amount && order.discount_amount > 0 && (
                         <div className="flex justify-between text-xs text-green-600">
@@ -354,16 +359,19 @@ const OrdersPage = memo(() => {
                         </span>
                       </div>
                       
-                      {/* Pay Now button for pending orders */}
+                      {/* Countdown + Pay Now for pending orders */}
                       {order.status === 'pending' && (
-                        <Button
-                          className="w-full mt-3"
-                          onClick={() => handlePayNow(order)}
-                          disabled={payingOrderId === order.order_id}
-                        >
-                          <CreditCard className="h-4 w-4 mr-2" />
-                          Pay Now
-                        </Button>
+                        <div className="space-y-2 mt-2">
+                          <PendingOrderCountdown createdAt={order.created_at} expiryHours={48} />
+                          <Button
+                            className="w-full"
+                            onClick={() => handlePayNow(order)}
+                            disabled={payingOrderId === order.order_id}
+                          >
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Pay Now
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </CardContent>
@@ -394,73 +402,71 @@ const OrdersPage = memo(() => {
         )}
       </main>
 
-      {/* Payment Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={(open) => {
+      {/* Payment Modal - Bottom sheet on mobile, dialog on desktop */}
+      <ResponsiveModal open={showPaymentModal} onOpenChange={(open) => {
         if (!open && paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
           setShowPaymentModal(false);
           setPayingOrderId(null);
           setPaymentStatus({ status: 'idle', message: '' });
         }
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              M-Pesa Payment
-            </DialogTitle>
-            <DialogDescription>
-              {payingOrderId && `Order #${payingOrderId.slice(-8).toUpperCase()}`}
-            </DialogDescription>
-          </DialogHeader>
+      }} className="sm:max-w-md">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            M-Pesa Payment
+          </ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            {payingOrderId && `Order #${payingOrderId.slice(-8).toUpperCase()}`}
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
+        
+        <div className="py-6 text-center px-4">
+          {paymentStatus.status === 'processing' && (
+            <div className="space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+              <p className="text-sm text-muted-foreground">Initiating payment...</p>
+            </div>
+          )}
           
-          <div className="py-6 text-center">
-            {paymentStatus.status === 'processing' && (
-              <div className="space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-                <p className="text-sm text-muted-foreground">Initiating payment...</p>
+          {paymentStatus.status === 'waiting' && (
+            <div className="space-y-4">
+              <div className="relative">
+                <Progress value={50} className="h-2" />
               </div>
-            )}
-            
-            {paymentStatus.status === 'waiting' && (
-              <div className="space-y-4">
-                <div className="relative">
-                  <Progress value={50} className="h-2" />
-                </div>
-                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-                <p className="font-medium">Check your phone</p>
-                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
-              </div>
-            )}
-            
-            {paymentStatus.status === 'success' && (
-              <div className="space-y-4">
-                <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
-                <p className="font-medium text-green-600">Payment Successful!</p>
-              </div>
-            )}
-            
-            {(paymentStatus.status === 'failed' || paymentStatus.status === 'timeout') && (
-              <div className="space-y-4">
-                <XCircle className="h-12 w-12 mx-auto text-red-500" />
-                <p className="font-medium text-red-600">
-                  {paymentStatus.status === 'timeout' ? 'Payment Timed Out' : 'Payment Failed'}
-                </p>
-                <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setPayingOrderId(null);
-                    setPaymentStatus({ status: 'idle', message: '' });
-                  }}
-                >
-                  Close
-                </Button>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+              <p className="font-medium">Check your phone</p>
+              <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+            </div>
+          )}
+          
+          {paymentStatus.status === 'success' && (
+            <div className="space-y-4">
+              <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+              <p className="font-medium text-green-600">Payment Successful!</p>
+            </div>
+          )}
+          
+          {(paymentStatus.status === 'failed' || paymentStatus.status === 'timeout') && (
+            <div className="space-y-4">
+              <XCircle className="h-12 w-12 mx-auto text-red-500" />
+              <p className="font-medium text-red-600">
+                {paymentStatus.status === 'timeout' ? 'Payment Timed Out' : 'Payment Failed'}
+              </p>
+              <p className="text-sm text-muted-foreground">{paymentStatus.message}</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setPayingOrderId(null);
+                  setPaymentStatus({ status: 'idle', message: '' });
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </div>
+      </ResponsiveModal>
     </div>
   );
 });

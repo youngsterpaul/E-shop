@@ -2,9 +2,12 @@ import React from 'react';
 import { MessageCircle, Phone, Mail, Headset } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useUserUnreadChat } from '@/hooks/useUserUnreadChat';
 
 const RealtimeChat = () => {
   const navigate = useNavigate();
+  const { unreadCount } = useUserUnreadChat();
   const phoneNumber = "+254798229783";
   const email = "support@smartkenya.co.ke";
   
@@ -28,11 +31,12 @@ const RealtimeChat = () => {
   const contactItems = [
     {
       icon: Headset,
-      title: 'Live Support ()',
-      description: 'Chat with our team instantly',
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      onClick: handleInAppClick
+      title: `Live Support${unreadCount > 0 ? ` (${unreadCount})` : ''}`,
+      description: unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? 's' : ''}` : 'Chat with our team instantly',
+      bgColor: unreadCount > 0 ? 'bg-red-100' : 'bg-blue-100',
+      iconColor: unreadCount > 0 ? 'text-red-600' : 'text-blue-600',
+      onClick: handleInAppClick,
+      badge: unreadCount,
     },
     {
       icon: MessageCircle,
@@ -72,8 +76,13 @@ const RealtimeChat = () => {
             >
               <CardContent className="p-2">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 ${item.bgColor} rounded-lg flex items-center justify-center`}>
+                  <div className={`w-10 h-10 ${item.bgColor} rounded-lg flex items-center justify-center relative`}>
                     <item.icon className={`h-5 w-5 ${item.iconColor}`} />
+                    {(item as any).badge > 0 && (
+                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 flex items-center justify-center p-0 text-[10px] font-bold">
+                        {(item as any).badge}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-sm">{item.title}</h3>

@@ -1,389 +1,241 @@
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import { Capacitor } from '@capacitor/core';
-import { lazy, Suspense, ReactNode } from "react";
+import { Suspense } from "react";
+import { useLocation } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import AdminRoute from "@/components/AdminRoute";
 import TopProgressBar from './components/TopProgressBar';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { isMobileUserAgent } from './hooks/use-mobile';
 import MobileNav from '@/components/MobileNav';
 import { MobileHeader } from './components/ui/mobile-header';
-import { useLocation } from "react-router-dom";
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { Heart, LogOut, Search, Settings, ShoppingCart } from 'lucide-react';
-import { useCartContext } from '@/contexts/CartContext';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import ChatWidget from './components/chat/ChatWidget';
 import { OfflineDataPreloader } from './components/OfflineDataPreloader';
-import { useAndroidBackButton } from './hooks/useAndroidBackButton';
-import { useSwipeBack } from './hooks/useSwipeBack';
 import { useUserBehaviorTracking } from './hooks/useUserBehaviorTracking';
+import { useMobileHeaderProps } from './hooks/useMobileHeaderProps';
+import { Routes, Route } from 'react-router-dom';
+import React, { lazy } from 'react';
+import AdminRoute from '@/components/AdminRoute';
 
-// Lazy load pages for better performance
-const Auth = lazy(() => import("./pages/Auth"));
-const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
-const VerifyPasswordResetOTP = lazy(() => import("./pages/VerifyPasswordResetOTP"));
-const MFASetup = lazy(() => import("./pages/MFASetup"));
-const Index = lazy(() => import("./pages/Index"));
-const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
-const CartPage = lazy(() => import("./pages/CartPage"));
-const WishlistPage = lazy(() => import("./pages/WishlistPage"));
-const ChatPage = lazy(() => import("./pages/ChatPage"));
-const ChattingPage = lazy(() => import("./pages/ChattingPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const AccountPage = lazy(() => import("./pages/AccountPage"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage"));
-const OrdersPage = lazy(() => import("./pages/OrdersPage"));
-const SearchPage = lazy(() => import("./pages/SearchPage"));
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const WriteReviewPage = lazy(() => import("./pages/WriteReviewPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const ContactPage = lazy(() => import("./pages/ContactPage"));
-const FAQPage = lazy(() => import("./pages/FAQPage"));
-const TermsPage = lazy(() => import("./pages/TermsPage"));
-const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
-const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
-const CustomerReturnsPage = lazy(() => import("./pages/CustomerReturnsPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-
-// New pages
-const CareersPage = lazy(() => import("./pages/CareersPage"));
-const LoyaltyPage = lazy(() => import("./pages/LoyaltyPage"));
-const RewardsPage = lazy(() => import("./pages/RewardsPage"));
-const AchievementsPage = lazy(() => import("./pages/AchievementsPage"));
-const NotificationsSettingsPage = lazy(() => import("./pages/NotificationsSettingsPage"));
-const LanguageSettingsPage = lazy(() => import("./pages/LanguageSettingsPage"));
-const SecuritySettingsPage = lazy(() => import("./pages/SecuritySettingsPage"));
-const AddressesPage = lazy(() => import("./pages/AddressesPage"));
-const BillingPage = lazy(() => import("./pages/BillingPage"));
-const AppearanceSettingsPage = lazy(() => import("./pages/AppearanceSettingsPage"));
+// Public pages
+const Auth = lazy(() => import("@/pages/Auth"));
+const VerifyOTP = lazy(() => import("@/pages/VerifyOTP"));
+const VerifyPasswordResetOTP = lazy(() => import("@/pages/VerifyPasswordResetOTP"));
+const MFASetup = lazy(() => import("@/pages/MFASetup"));
+const Index = lazy(() => import("@/pages/Index"));
+const ProductDetailsPage = lazy(() => import("@/pages/ProductDetailsPage"));
+const CartPage = lazy(() => import("@/pages/CartPage"));
+const WishlistPage = lazy(() => import("@/pages/WishlistPage"));
+const ChatPage = lazy(() => import("@/pages/ChatPage"));
+const ChattingPage = lazy(() => import("@/pages/ChattingPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const AccountPage = lazy(() => import("@/pages/AccountPage"));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
+const SearchPage = lazy(() => import("@/pages/SearchPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const WriteReviewPage = lazy(() => import("@/pages/WriteReviewPage"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const FAQPage = lazy(() => import("@/pages/FAQPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
+const ReturnsPage = lazy(() => import("@/pages/ReturnsPage"));
+const CustomerReturnsPage = lazy(() => import("@/pages/CustomerReturnsPage"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const CareersPage = lazy(() => import("@/pages/CareersPage"));
+const LoyaltyPage = lazy(() => import("@/pages/LoyaltyPage"));
+const RewardsPage = lazy(() => import("@/pages/RewardsPage"));
+const AchievementsPage = lazy(() => import("@/pages/AchievementsPage"));
+const NotificationsSettingsPage = lazy(() => import("@/pages/NotificationsSettingsPage"));
+const LanguageSettingsPage = lazy(() => import("@/pages/LanguageSettingsPage"));
+const SecuritySettingsPage = lazy(() => import("@/pages/SecuritySettingsPage"));
+const AddressesPage = lazy(() => import("@/pages/AddressesPage"));
+const BillingPage = lazy(() => import("@/pages/BillingPage"));
+const AppearanceSettingsPage = lazy(() => import("@/pages/AppearanceSettingsPage"));
+const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
+const MobileCategoryPage = lazy(() => import("@/pages/MobileCategoryPage"));
+const FlashSalePage = lazy(() => import("@/pages/FlashSalePage"));
 
 // Admin pages
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminDailySalesPage = lazy(() => import("./pages/admin/AdminDailySalesPage"));
-const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
-const AdminProductAddPage = lazy(() => import("./pages/admin/AdminProductAddPage"));
-const AdminProductEditPage = lazy(() => import("./pages/admin/AdminProductEditPage"));
-const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
-const AdminStoresPage = lazy(() => import("./pages/admin/AdminStoresPage"));
-const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
-const AdminUserAddPage = lazy(() => import("./pages/admin/AdminUserAddPage"));
-const AdminUserEditPage = lazy(() => import("./pages/admin/AdminUserEditPage"));
-const AdminHeroSlidesPage = lazy(() => import("./pages/admin/AdminHeroSlidesPage"));
-const AdminLocationsPage = lazy(() => import("./pages/admin/AdminLocationsPage"));
-const AdminSecurityAlertsPage = lazy(() => import("./pages/admin/AdminSecurityAlertsPage"));
-const AdminLoginAuditPage = lazy(() => import("./pages/admin/AdminLoginAuditPage"));
-const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
-const AdminActivityLogPage = lazy(() => import("./pages/admin/AdminActivityLogPage"));
-const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
-const AdminDiscountsPage = lazy(() => import("./pages/admin/AdminDiscountsPage"));
-const AdminFlashSalesPage = lazy(() => import("./pages/admin/AdminFlashSalesPage"));
-const AdminReportsPage = lazy(() => import("./pages/admin/AdminReportsPage"));
-const AdminReturnsPage = lazy(() => import("./pages/admin/AdminReturnsPage"));
-const AdminEmailTemplatesPage = lazy(() => import("./pages/admin/AdminEmailTemplatesPage"));
-const AdminRevenueDashboardPage = lazy(() => import("./pages/admin/AdminRevenueDashboardPage"));
-const AdminSuppliersPage = lazy(() => import("./pages/admin/AdminSuppliersPage"));
-const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
-const AdminPurchaseOrdersPage = lazy(() => import("./pages/admin/AdminPurchaseOrdersPage"));
-const AdminPurchaseOrderCreatePage = lazy(() => import("./pages/admin/AdminPurchaseOrderCreatePage"));
-const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
-const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage"));
-const AdminCustomerViewPage = lazy(() => import("./pages/admin/AdminCustomerViewPage"));
-const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
-const AdminCategoryIconsPage = lazy(() => import("./pages/admin/AdminCategoryIconsPage"));
-const AdminContactPage = lazy(() => import("./pages/admin/AdminContactPage"));
-const AdminCareersPage = lazy(() => import("./pages/admin/AdminCareersPage"));
-const AdminFAQPage = lazy(() => import("./pages/admin/AdminFAQPage"));
-const AdminSiteContentPage = lazy(() => import("./pages/admin/AdminSiteContentPage"));
-const AdminRoutePermissionsPage = lazy(() => import("./pages/admin/AdminRoutePermissionsPage"));
-const AdminNewsletterPage = lazy(() => import("./pages/admin/AdminNewsletterPage"));
-const AdminTestimonialsPage = lazy(() => import("./pages/admin/AdminTestimonialsPage"));
-const AdminABTestingPage = lazy(() => import("./pages/admin/AdminABTestingPage"));
-const AdminQRCodeScannerPage = lazy(() => import("./pages/admin/AdminQRCodeScannerPage"));
-const AdminChatPage = lazy(() => import("./pages/admin/AdminChatPage"));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
+const AdminDailySalesPage = lazy(() => import("@/pages/admin/AdminDailySalesPage"));
+const AdminProductsPage = lazy(() => import("@/pages/admin/AdminProductsPage"));
+const AdminProductAddPage = lazy(() => import("@/pages/admin/AdminProductAddPage"));
+const AdminProductEditPage = lazy(() => import("@/pages/admin/AdminProductEditPage"));
+const AdminCategoriesPage = lazy(() => import("@/pages/admin/AdminCategoriesPage"));
+const AdminStoresPage = lazy(() => import("@/pages/admin/AdminStoresPage"));
+const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
+const AdminUserAddPage = lazy(() => import("@/pages/admin/AdminUserAddPage"));
+const AdminUserEditPage = lazy(() => import("@/pages/admin/AdminUserEditPage"));
+const AdminHeroSlidesPage = lazy(() => import("@/pages/admin/AdminHeroSlidesPage"));
+const AdminLocationsPage = lazy(() => import("@/pages/admin/AdminLocationsPage"));
+const AdminSecurityAlertsPage = lazy(() => import("@/pages/admin/AdminSecurityAlertsPage"));
+const AdminLoginAuditPage = lazy(() => import("@/pages/admin/AdminLoginAuditPage"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
+const AdminActivityLogPage = lazy(() => import("@/pages/admin/AdminActivityLogPage"));
+const AdminReviewsPage = lazy(() => import("@/pages/admin/AdminReviewsPage"));
+const AdminDiscountsPage = lazy(() => import("@/pages/admin/AdminDiscountsPage"));
+const AdminFlashSalesPage = lazy(() => import("@/pages/admin/AdminFlashSalesPage"));
+const AdminReportsPage = lazy(() => import("@/pages/admin/AdminReportsPage"));
+const AdminReturnsPage = lazy(() => import("@/pages/admin/AdminReturnsPage"));
+const AdminEmailTemplatesPage = lazy(() => import("@/pages/admin/AdminEmailTemplatesPage"));
+const AdminRevenueDashboardPage = lazy(() => import("@/pages/admin/AdminRevenueDashboardPage"));
+const AdminSuppliersPage = lazy(() => import("@/pages/admin/AdminSuppliersPage"));
+const AdminInventoryPage = lazy(() => import("@/pages/admin/AdminInventoryPage"));
+const AdminPurchaseOrdersPage = lazy(() => import("@/pages/admin/AdminPurchaseOrdersPage"));
+const AdminPurchaseOrderCreatePage = lazy(() => import("@/pages/admin/AdminPurchaseOrderCreatePage"));
+const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage"));
+const AdminCustomersPage = lazy(() => import("@/pages/admin/AdminCustomersPage"));
+const AdminCustomerViewPage = lazy(() => import("@/pages/admin/AdminCustomerViewPage"));
+const AdminAnalyticsPage = lazy(() => import("@/pages/admin/AdminAnalyticsPage"));
+const AdminCategoryIconsPage = lazy(() => import("@/pages/admin/AdminCategoryIconsPage"));
+const AdminContactPage = lazy(() => import("@/pages/admin/AdminContactPage"));
+const AdminCareersPage = lazy(() => import("@/pages/admin/AdminCareersPage"));
+const AdminFAQPage = lazy(() => import("@/pages/admin/AdminFAQPage"));
+const AdminSiteContentPage = lazy(() => import("@/pages/admin/AdminSiteContentPage"));
+const AdminRoutePermissionsPage = lazy(() => import("@/pages/admin/AdminRoutePermissionsPage"));
+const AdminNewsletterPage = lazy(() => import("@/pages/admin/AdminNewsletterPage"));
+const AdminTestimonialsPage = lazy(() => import("@/pages/admin/AdminTestimonialsPage"));
+const AdminABTestingPage = lazy(() => import("@/pages/admin/AdminABTestingPage"));
+const AdminQRCodeScannerPage = lazy(() => import("@/pages/admin/AdminQRCodeScannerPage"));
+const AdminChatPage = lazy(() => import("@/pages/admin/AdminChatPage"));
+const AdminUserBehaviorPage = lazy(() => import("@/pages/admin/AdminUserBehaviorPage"));
+const AdminSalesForecastPage = lazy(() => import("@/pages/admin/AdminSalesForecastPage"));
 
-// Add the lazy import for CategoryPage
-const CategoryPage = lazy(() => import("./pages/CategoryPage"));
-const MobileCategoryPage = lazy(() => import("./pages/MobileCategoryPage"));
-const FlashSalePage = lazy(() => import("./pages/FlashSalePage"));
+const ADMIN_PREFIX = "/supersmartkenyaadmin123";
+
 function App() {
-  useAndroidBackButton();
-  useSwipeBack(Navigate);
-
-  const {
-    user,
-    profile,
-    signOut
-  } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Enable session timeout for authenticated users
   useSessionTimeout();
-  
-  // Track user behavior for personalized recommendations
   useUserBehaviorTracking();
-  
+  //useBehaviorSync();
+
+  const location = useLocation();
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");
   const isSearchPage = location.pathname.startsWith("/search");
   const isCategoryPage = location.pathname.startsWith("/category/");
   const isHomePage = location.pathname === "/";
-  const HEADER_OFFSET = Capacitor.isNativePlatform()
-    ? '14px'
-    : '52px';
 
-  let totalItems = 0;
-  try {
-    const {
-      cartItems
-    } = useCartContext();
-    totalItems = cartItems?.reduce((total, item) => total + item.quantity, 0) ?? 0;
-  } catch {
-    totalItems = 0;
-  }
+  const { title, backTo, rightAction } = useMobileHeaderProps();
 
-  // ✅ move getHeaderProps inside App and remove type Location
-  const getHeaderProps = () => {
-    let title = "";
-    let backTo = "/";
-    let rightAction: ReactNode = null;
-    if (location.pathname.startsWith("/account")) {
-      title = "Account";
-  rightAction = (
-    <Link to="/settings">
-      <Button variant="ghost" size="sm" className="p-2">
-        <Settings className="h-4 w-4" />
-      </Button>
-    </Link>
-    );
-    } else if (location.pathname.startsWith("/product")) {
-      title = "Product Details";
-      rightAction = <div className="flex items-center gap-2">
-            <Button onClick={() => navigate('/search')} variant="ghost" size="sm" className="p-2">
-              <Search className="h-4 w-4" />
-            </Button>
-            <Button onClick={() => navigate('/wishlist')} variant="ghost" size="sm" className="p-2">
-              <Heart className="h-4 w-4" />
-            </Button>
-            <Link
-              to="/cart"
-              aria-label={`View Cart, ${totalItems} items`}
-              className="flex items-center justify-center p-2 text-gray-700 hover:text-primary transition-colors"
-            >
-              <span className="relative">
-                <ShoppingCart size={16} />
-
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-3 min-w-3 items-center justify-center rounded-full bg-red-500 px-1 text-[8px] font-bold leading-none text-white">
-                    {totalItems > 99 ? '99+' : totalItems}
-                  </span>
-                )}
-              </span>
-            </Link>
-          </div>;
-    } else if (location.pathname.startsWith("/category")) {
-      title = "Product Category";
-    } else if (location.pathname.startsWith("/orders")) {
-      title = "My Orders";
-    } else if (location.pathname.startsWith("/order")) {
-      title = "Order Detail";
-    } else if (location.pathname.startsWith("/about")) {
-      title = "About Smartkenya";
-    } else if (location.pathname.startsWith("/faq")) {
-      title = "Faqs";
-    } else if (location.pathname.startsWith("/contact")) {
-      title = "Contact Us";
-    } else if (location.pathname.startsWith("/returns")) {
-      title = "Returns";
-    } else if (location.pathname.startsWith("/terms")) {
-      title = "Terms & Conditions";
-    } else if (location.pathname.startsWith("/wishlist")) {
-      title = "Wishlist";
-    } else if (location.pathname.startsWith("/reviews")) {
-      title = "Write Review";
-    } else if (location.pathname.startsWith("/privacy")) {
-      title = "Privacy";
-    } else if (location.pathname.startsWith("/category")) {
-      title = "Product Category";
-    } else if (location.pathname.startsWith("/checkout")) {
-      title = "Place Order";
-    } else if (location.pathname.startsWith("/chatting")) {
-      backTo = "/chat";
-      title = "Smartkenya Support";
-    } else if (location.pathname.startsWith("/chat")) {
-      title = "Customer Support";
-    }
-    else if (location.pathname.startsWith("/settings")) {
-      title = "Settings";
-    }
-    else if (location.pathname.startsWith("/flash-sale")) {
-      title = "Flash Sales";
-    }
-    else if (location.pathname.startsWith("/my-returns")) {
-      title = "Returns";
-    }
-    else if (location.pathname.startsWith("/cart")) {
-      title = "Shopping Cart";
-    } else if (location.pathname.startsWith("/careers")) {
-      title = "Careers";
-    } else if (location.pathname.startsWith("/profile")) {
-      title = "My Profile";
-    } else if (location.pathname.startsWith("/notifications")) {
-      title = "Notifications";
-    } else if (location.pathname.startsWith("/language")) {
-      title = "Language & Region";
-    } else if (location.pathname.startsWith("/security")) {
-      title = "Security";
-    } else if (location.pathname.startsWith("/addresses")) {
-      title = "My Addresses";
-    } else if (location.pathname.startsWith("/billing")) {
-      title = "Billing";
-    } else if (location.pathname.startsWith("/appearance")) {
-      title = "Appearance";
-    }
-    return {
-      title,
-      backTo,
-      rightAction
-    };
-  };
-  const {
-    title,
-    backTo,
-    rightAction
-  } = getHeaderProps();
-
-  // Enable session timeout for authenticated users
-  useSessionTimeout();
-  return <TooltipProvider>
+  return (
+    <TooltipProvider>
       <SecurityHeaders />
       <OfflineDataPreloader />
       <TopProgressBar />
-      {/*<Sonner />*/}
-      {/* ✅ Use flex column to make footer stay at the bottom */}
       <div className="flex flex-col min-h-screen bg-background">
-        {/* ✅ Header stays at top */}
         {!isMobile && !isAdminRoute && !isAuthRoute && <Header />}
-        {isMobile && !isAdminRoute && !isHomePage && !isSearchPage&& !isCategoryPage && <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />}
-        
+        {isMobile && !isAdminRoute && !isHomePage && !isSearchPage && !isCategoryPage && (
+          <MobileHeader title={title} backTo={backTo} rightAction={rightAction} />
+        )}
+
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
-          {/* main content fills available space */}
           <main
             id="main-content"
-            className={`flex-grow ${isMobile ? 'overflow-y-auto' : ''}`}
-            style={
-              !isAdminRoute && isMobile
-                ? { paddingTop: `calc(${HEADER_OFFSET} + env(safe-area-inset-top))` }
-                : undefined
-            }
+            className={`flex-grow ${isMobile ? 'overflow-y-auto' : ''} ${isMobile && !isAdminRoute ? 'pt-12' : ''}`}
           >
-            <Routes>
-            {/* Public Routes */}
-            <Route path="auth" element={<Auth />} />
-            <Route path="verify-otp" element={<VerifyOTP />} />
-            <Route path="verify-password-reset-otp" element={<VerifyPasswordResetOTP />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/category/:categorySlug" element={<CategoryPage />} />
-            <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
-            <Route path="/category" element={<MobileCategoryPage />} /> 
-            <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
-            <Route path="/products/:productId/review" element={<WriteReviewPage />} />
-            
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/chatting" element={<ChattingPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/mfa-setup" element={<MFASetup />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/returns" element={<ReturnsPage />} />
-            <Route path="/my-returns" element={<CustomerReturnsPage />} />
-                    
-            {/* New Pages */}
-            <Route path="/careers" element={<CareersPage />} />
-            <Route path="/loyalty" element={<LoyaltyPage />} />
-            <Route path="/rewards" element={<RewardsPage />} />
-            <Route path="/achievements" element={<AchievementsPage />} />
-            <Route path="/flash-sale" element={<FlashSalePage />} />
-            <Route path="/notifications" element={<NotificationsSettingsPage />} />
-            <Route path="/language" element={<LanguageSettingsPage />} />
-            <Route path="/security" element={<SecuritySettingsPage />} />
-            <Route path="/addresses" element={<AddressesPage />} />
-            <Route path="/billing" element={<BillingPage />} />
-            <Route path="/appearance" element={<AppearanceSettingsPage />} />
+              <Routes>
+                {/* Public Routes */}
+                <Route path="auth" element={<Auth />} />
+                <Route path="verify-otp" element={<VerifyOTP />} />
+                <Route path="verify-password-reset-otp" element={<VerifyPasswordResetOTP />} />
+                <Route path="/" element={<Index />} />
+                <Route path="/category/:categorySlug" element={<CategoryPage />} />
+                <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
+                <Route path="/category" element={<MobileCategoryPage />} />
+                <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
+                <Route path="/products/:productId/review" element={<WriteReviewPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/chatting" element={<ChattingPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/mfa-setup" element={<MFASetup />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/returns" element={<ReturnsPage />} />
+                <Route path="/my-returns" element={<CustomerReturnsPage />} />
+                <Route path="/careers" element={<CareersPage />} />
+                <Route path="/loyalty" element={<LoyaltyPage />} />
+                <Route path="/rewards" element={<RewardsPage />} />
+                <Route path="/achievements" element={<AchievementsPage />} />
+                <Route path="/flash-sale" element={<FlashSalePage />} />
+                <Route path="/notifications" element={<NotificationsSettingsPage />} />
+                <Route path="/language" element={<LanguageSettingsPage />} />
+                <Route path="/security" element={<SecuritySettingsPage />} />
+                <Route path="/addresses" element={<AddressesPage />} />
+                <Route path="/billing" element={<BillingPage />} />
+                <Route path="/appearance" element={<AppearanceSettingsPage />} />
 
-            {/* Admin Routes */}
-            <Route path="/supersmartkenyaadmin123" element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/daily-sales" element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products" element={<AdminRoute requiredRole="moderator"><AdminProductsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/add" element={<AdminRoute requiredRole="moderator"><AdminProductAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/products/edit/:productId" element={<AdminRoute requiredRole="moderator"><AdminProductEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/categories" element={<AdminRoute requiredRole="superadmin"><AdminCategoriesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/category-icons" element={<AdminRoute requiredRole="superadmin"><AdminCategoryIconsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/stores" element={<AdminRoute requiredRole="admin"><AdminStoresPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/orders" element={<AdminRoute requiredRole="moderator"><AdminOrdersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users" element={<AdminRoute requiredRole="superadmin"><AdminUsersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/add" element={<AdminRoute requiredRole="superadmin"><AdminUserAddPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/users/edit/:userId" element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/heroslides" element={<AdminRoute requiredRole="admin"><AdminHeroSlidesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/locations" element={<AdminRoute requiredRole="superadmin"><AdminLocationsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/security-alerts" element={<AdminRoute requiredRole="superadmin"><AdminSecurityAlertsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/login-audit" element={<AdminRoute requiredRole="superadmin"><AdminLoginAuditPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/settings" element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/activity-log" element={<AdminRoute requiredRole="superadmin"><AdminActivityLogPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/suppliers" element={<AdminRoute requiredRole="admin"><AdminSuppliersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/inventory" element={<AdminRoute requiredRole="admin"><AdminInventoryPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/purchase-orders" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrdersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/purchase-orders/create" element={<AdminRoute requiredRole="admin"><AdminPurchaseOrderCreatePage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/reviews" element={<AdminRoute requiredRole="moderator"><AdminReviewsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/discounts" element={<AdminRoute requiredRole="admin"><AdminDiscountsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/flash-sales" element={<AdminRoute requiredRole="admin"><AdminFlashSalesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/reports" element={<AdminRoute requiredRole="admin"><AdminReportsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/returns" element={<AdminRoute requiredRole="admin"><AdminReturnsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/email-templates" element={<AdminRoute requiredRole="admin"><AdminEmailTemplatesPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/revenue-dashboard" element={<AdminRoute requiredRole="admin"><AdminRevenueDashboardPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/customers" element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/customers/:customerId" element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/analytics" element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/contact" element={<AdminRoute requiredRole="superadmin"><AdminContactPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/careers" element={<AdminRoute requiredRole="admin"><AdminCareersPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/faq" element={<AdminRoute requiredRole="admin"><AdminFAQPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/site-content" element={<AdminRoute requiredRole="admin"><AdminSiteContentPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/route-permissions" element={<AdminRoute requiredRole="superadmin"><AdminRoutePermissionsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/newsletter" element={<AdminRoute requiredRole="admin"><AdminNewsletterPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/testimonials" element={<AdminRoute requiredRole="admin"><AdminTestimonialsPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/ab-testing" element={<AdminRoute requiredRole="superadmin"><AdminABTestingPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/qr-scanner" element={<AdminRoute requiredRole="moderator"><AdminQRCodeScannerPage /></AdminRoute>} />
-            <Route path="/supersmartkenyaadmin123/chat" element={<AdminRoute requiredRole="moderator"><AdminChatPage /></AdminRoute>} />
+                {/* Admin Routes */}
+                <Route path={ADMIN_PREFIX} element={<AdminRoute requiredRole="moderator"><AdminDashboard /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/daily-sales`} element={<AdminRoute requiredRole="superadmin"><AdminDailySalesPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/products`} element={<AdminRoute requiredRole="moderator"><AdminProductsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/products/add`} element={<AdminRoute requiredRole="moderator"><AdminProductAddPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/products/edit/:productId`} element={<AdminRoute requiredRole="moderator"><AdminProductEditPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/categories`} element={<AdminRoute requiredRole="superadmin"><AdminCategoriesPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/category-icons`} element={<AdminRoute requiredRole="superadmin"><AdminCategoryIconsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/stores`} element={<AdminRoute requiredRole="admin"><AdminStoresPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/orders`} element={<AdminRoute requiredRole="moderator"><AdminOrdersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/users`} element={<AdminRoute requiredRole="superadmin"><AdminUsersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/users/add`} element={<AdminRoute requiredRole="superadmin"><AdminUserAddPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/users/edit/:userId`} element={<AdminRoute requiredRole="superadmin"><AdminUserEditPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/heroslides`} element={<AdminRoute requiredRole="admin"><AdminHeroSlidesPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/locations`} element={<AdminRoute requiredRole="superadmin"><AdminLocationsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/security-alerts`} element={<AdminRoute requiredRole="superadmin"><AdminSecurityAlertsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/login-audit`} element={<AdminRoute requiredRole="superadmin"><AdminLoginAuditPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/settings`} element={<AdminRoute requiredRole="superadmin"><AdminSettingsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/activity-log`} element={<AdminRoute requiredRole="superadmin"><AdminActivityLogPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/suppliers`} element={<AdminRoute requiredRole="admin"><AdminSuppliersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/inventory`} element={<AdminRoute requiredRole="admin"><AdminInventoryPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/purchase-orders`} element={<AdminRoute requiredRole="admin"><AdminPurchaseOrdersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/purchase-orders/create`} element={<AdminRoute requiredRole="admin"><AdminPurchaseOrderCreatePage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/reviews`} element={<AdminRoute requiredRole="moderator"><AdminReviewsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/discounts`} element={<AdminRoute requiredRole="admin"><AdminDiscountsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/flash-sales`} element={<AdminRoute requiredRole="admin"><AdminFlashSalesPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/reports`} element={<AdminRoute requiredRole="admin"><AdminReportsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/returns`} element={<AdminRoute requiredRole="admin"><AdminReturnsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/email-templates`} element={<AdminRoute requiredRole="admin"><AdminEmailTemplatesPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/revenue-dashboard`} element={<AdminRoute requiredRole="admin"><AdminRevenueDashboardPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/customers`} element={<AdminRoute requiredRole="superadmin"><AdminCustomersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/customers/:customerId`} element={<AdminRoute requiredRole="superadmin"><AdminCustomerViewPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/analytics`} element={<AdminRoute requiredRole="superadmin"><AdminAnalyticsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/contact`} element={<AdminRoute requiredRole="superadmin"><AdminContactPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/careers`} element={<AdminRoute requiredRole="admin"><AdminCareersPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/faq`} element={<AdminRoute requiredRole="admin"><AdminFAQPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/site-content`} element={<AdminRoute requiredRole="admin"><AdminSiteContentPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/route-permissions`} element={<AdminRoute requiredRole="superadmin"><AdminRoutePermissionsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/newsletter`} element={<AdminRoute requiredRole="admin"><AdminNewsletterPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/testimonials`} element={<AdminRoute requiredRole="admin"><AdminTestimonialsPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/ab-testing`} element={<AdminRoute requiredRole="superadmin"><AdminABTestingPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/qr-scanner`} element={<AdminRoute requiredRole="moderator"><AdminQRCodeScannerPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/chat`} element={<AdminRoute requiredRole="moderator"><AdminChatPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/user-behavior`} element={<AdminRoute requiredRole="superadmin"><AdminUserBehaviorPage /></AdminRoute>} />
+                <Route path={`${ADMIN_PREFIX}/sales-forecast`} element={<AdminRoute requiredRole="superadmin"><AdminSalesForecastPage /></AdminRoute>} />
 
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
           </main>
         </Suspense>
-        
-      {/*<Toaster />*/}
-      {/* ✅ Footer stays at bottom naturally (not fixed) */}
-      {!isMobile && <Footer />}
-      {isMobile && <MobileNav />}
-      {!isAdminRoute && <ChatWidget />}
+
+        {!isMobile && <Footer />}
+        {isMobile && <MobileNav />}
+        {!isAdminRoute && <ChatWidget />}
       </div>
-      </TooltipProvider>;
+    </TooltipProvider>
+  );
 }
+
 export default App;

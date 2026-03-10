@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFlashSaleProductsByTimeRange } from '@/hooks/useFlashSales';
-import { Clock, Zap, AlertCircle, Timer, ArrowRight } from 'lucide-react';
+import { Clock, Zap, AlertCircle, Timer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/ProductCard';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
@@ -91,19 +91,7 @@ const FlashSalePage = () => {
   }), []);
 
   const products = productsData?.products || [];
-  const flashSales = productsData?.flashSales || [];
   const transformedProducts = useMemo(() => products.map(transformProductData), [products, transformProductData]);
-
-  // Build flash sale override for this slot's sales (only show flash price if slot is live)
-  const slotFlashSaleOverride = useMemo(() => {
-    if (slotStatus !== 'live' || flashSales.length === 0) return null;
-    // Use the first sale's discount info (all products in a slot share the same sale typically)
-    const sale = flashSales[0];
-    return {
-      discount_type: sale.discount_type as 'percentage' | 'fixed_amount',
-      discount_value: sale.discount_value,
-    };
-  }, [slotStatus, flashSales]);
 
   const gridConfig = isMobile
     ? { cols: 'grid-cols-2', gap: 'gap-2', padding: 'p-2' }
@@ -113,8 +101,8 @@ const FlashSalePage = () => {
   const countdownLabel = slotStatus === 'live' ? 'Ends in' : slotStatus === 'upcoming' ? 'Starts in' : '';
 
   return (
-    <div className="min-h-screen bg-background">
-      <SEOHelmet title="Flash Sales - SmartKenya" description="Don't miss out on our limited-time flash sale offers. Huge discounts on electronics, gadgets and more!" />
+    <>
+      <div className="min-h-screen bg-background">
 
       {/* Hero Header */}
       <div className="container max-w-[1200px] bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
@@ -236,12 +224,13 @@ const FlashSalePage = () => {
         ) : (
           <div className={`grid ${gridConfig.cols} ${gridConfig.gap} bg-card rounded-xl shadow-sm p-4`}>
             {transformedProducts.map((product, index) => (
-              <ProductCard key={`${product.id}-${index}`} product={product} flashSaleOverride={slotFlashSaleOverride} />
+              <ProductCard key={`${product.id}-${index}`} product={product} flashSaleOverride={slotStatus === 'live' ? undefined : null} />
             ))}
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

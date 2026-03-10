@@ -406,12 +406,26 @@ const AdminProductsPage = () => {
             data={filteredProducts}
             filename="products"
             headers={[
+              { key: 'product_id', label: 'Product ID' },
               { key: 'name', label: 'Product Name' },
+              { key: 'description', label: 'Description' },
               { key: 'price', label: 'Price' },
               { key: 'stock', label: 'Stock' },
-              { key: 'categories', label: 'Category' },
-              { key: 'store', label: 'Store' },
+              { key: 'categories', label: 'Categories' },
               { key: 'featured', label: 'Featured' },
+              { key: 'rating', label: 'Rating' },
+              { key: 'reviews_count', label: 'Reviews Count' },
+              { key: 'reorder_point', label: 'Reorder Point' },
+              { key: 'low_stock_threshold', label: 'Low Stock Threshold' },
+              { key: 'is_digital', label: 'Is Digital' },
+              { key: 'store', label: 'Store' },
+              { key: 'subcategory_id', label: 'Subcategory ID' },
+              { key: 'display_order', label: 'Display Order' },
+              { key: 'image_urls', label: 'Image URLs' },
+              { key: 'features', label: 'Features' },
+              { key: 'specification', label: 'Specification' },
+              { key: 'created_at', label: 'Created At' },
+              { key: 'updated_at', label: 'Updated At' },
             ]}
           />
         </div>

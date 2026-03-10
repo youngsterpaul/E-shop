@@ -79,6 +79,12 @@ verify_jwt = false
 [functions.smart-sort-products]
 verify_jwt = false
 
+[functions.notify-admin-new-order]
+verify_jwt = false
+
+[functions.cleanup-expired-orders]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327

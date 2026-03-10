@@ -34,19 +34,30 @@ export const useChat = () => {
     if (!user) return null;
 
     try {
-      // Check for existing active conversation
+      // Check for ANY existing conversation for this user (regardless of status)
       const { data: existing, error: fetchError } = await supabase
         .from('chat_conversations')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
+        .order('last_message_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
 
       if (existing) {
+        // Reopen closed conversations so user always has one single chat
+        if (existing.status === 'closed') {
+          const { data: reopened, error: reopenError } = await supabase
+            .from('chat_conversations')
+            .update({ status: 'active', last_message_at: new Date().toISOString() })
+            .eq('id', existing.id)
+            .select()
+            .single();
+          if (reopenError) throw reopenError;
+          setConversation(reopened as Conversation);
+          return reopened as Conversation;
+        }
         setConversation(existing as Conversation);
         return existing as Conversation;
       }

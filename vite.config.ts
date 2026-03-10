@@ -124,6 +124,7 @@ export default defineConfig(({ mode }) => {
               '@radix-ui/react-label',
               '@radix-ui/react-switch',
               '@radix-ui/react-tooltip',
+              'lucide-react', // 👈 ADD THIS
             ],
             'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge', 'class-variance-authority'],
             'vendor-data': ['@supabase/supabase-js', '@tanstack/react-query'],

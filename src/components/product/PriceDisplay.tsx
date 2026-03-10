@@ -23,31 +23,43 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
   const hasFlashSale = flashSalePrice && flashSalePrice < currentPrice;
   const isMobile = isMobileUserAgent();
 
+  const discount = showOriginalPrice
+    ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+    : hasFlashSale
+    ? Math.round(((currentPrice - flashSalePrice) / currentPrice) * 100)
+    : 0;
+
   return (
     <div className="space-y-2">
       {showFlashBadge && hasFlashSale && (
-        <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white">
+        <Badge className="bg-gradient-to-r from-destructive to-orange-500 text-destructive-foreground animate-pulse">
           <Zap className="h-3 w-3 mr-1" />
           Flash Sale
         </Badge>
       )}
 
-      <div className="flex items-center gap-4">
-        <span className={`text-lg font-bold ${hasFlashSale ? 'text-red-500' : 'text-orange-500'}`}>
+      <div className="flex items-baseline gap-3 flex-wrap">
+        <span className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold ${hasFlashSale ? 'text-destructive' : 'text-primary'}`}>
           {formatPrice(displayPrice)}
         </span>
         
-        {(showOriginalPrice || hasFlashSale) && !isMobile && (
-          <span className="text-xl text-gray-500 line-through">
+        {(showOriginalPrice || hasFlashSale) && (
+          <span className="text-sm text-muted-foreground line-through">
             {formatPrice(hasFlashSale ? currentPrice : originalPrice!)}
           </span>
         )}
-        {hasFlashSale && (
-          <Badge variant="secondary" className="bg-red-100 text-red-700">
-            Save {formatPrice(currentPrice - flashSalePrice)}
+        {discount > 0 && (
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs font-semibold">
+            -{discount}%
           </Badge>
         )}
       </div>
+      
+      {hasFlashSale && (
+        <p className="text-xs text-destructive font-medium">
+          You save {formatPrice(currentPrice - flashSalePrice)}
+        </p>
+      )}
     </div>
   );
 };

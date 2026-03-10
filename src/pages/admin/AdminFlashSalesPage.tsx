@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ResponsiveModal, ResponsiveModalHeader, ResponsiveModalTitle, ResponsiveModalDescription } from '@/components/ui/responsive-modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,20 +22,28 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format, addHours, isBefore, parseISO } from 'date-fns';
+import { format, addHours, isBefore } from 'date-fns';
 import { FlashSaleSlotCreator } from '@/components/admin/FlashSaleSlotCreator';
 import { getSlotStatus } from '@/utils/flashSaleSlots';
 import { toast } from 'sonner';
 
+interface ProductDiscount {
+  product_id: string;
+  discount_type: 'percentage' | 'fixed_amount';
+  discount_value: number;
+}
+
 const AdminFlashSalesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<FlashSale | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [productDiscounts, setProductDiscounts] = useState<ProductDiscount[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [tableFilter, setTableFilter] = useState<'all' | 'live' | 'upcoming' | 'ended'>('all');
   const [bulkSelected, setBulkSelected] = useState<string[]>([]);
   const [dateError, setDateError] = useState<string | null>(null);
+  const [defaultDiscountType, setDefaultDiscountType] = useState<'percentage' | 'fixed_amount'>('percentage');
+  const [defaultDiscountValue, setDefaultDiscountValue] = useState('10');
   const pageSize = 10;
 
   const { data: flashSales, isLoading } = useAllFlashSales();
@@ -64,17 +72,19 @@ const AdminFlashSalesPage = () => {
 
   const [formData, setFormData] = useState({
     title: '', description: '', start_date: '', end_date: '',
-    discount_type: 'percentage' as 'percentage' | 'fixed_amount',
-    discount_value: '', is_active: true,
+    is_active: true,
   });
 
   useEffect(() => {
     if (saleProducts && editingSale) {
-      setSelectedProducts(saleProducts.map(p => p.product_id));
+      setProductDiscounts(saleProducts.map(p => ({
+        product_id: p.product_id,
+        discount_type: (p.discount_type as 'percentage' | 'fixed_amount') || editingSale.discount_type,
+        discount_value: p.discount_value != null ? p.discount_value : editingSale.discount_value,
+      })));
     }
   }, [saleProducts, editingSale]);
 
-  // Validate dates whenever they change
   useEffect(() => {
     if (formData.start_date && formData.end_date) {
       const start = new Date(formData.start_date);
@@ -92,8 +102,8 @@ const AdminFlashSalesPage = () => {
   }, [formData.start_date, formData.end_date]);
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', start_date: '', end_date: '', discount_type: 'percentage', discount_value: '', is_active: true });
-    setSelectedProducts([]);
+    setFormData({ title: '', description: '', start_date: '', end_date: '', is_active: true });
+    setProductDiscounts([]);
     setEditingSale(null);
     setSearchQuery('');
     setCurrentPage(1);
@@ -103,7 +113,6 @@ const AdminFlashSalesPage = () => {
   const toLocalDatetime = (isoStr: string) => {
     try {
       const d = new Date(isoStr);
-      // Format as YYYY-MM-DDTHH:mm for datetime-local input
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
@@ -122,8 +131,6 @@ const AdminFlashSalesPage = () => {
       description: sale.description || '',
       start_date: toLocalDatetime(sale.start_date),
       end_date: toLocalDatetime(sale.end_date),
-      discount_type: sale.discount_type,
-      discount_value: sale.discount_value.toString(),
       is_active: sale.is_active,
     });
     setIsDialogOpen(true);
@@ -136,14 +143,18 @@ const AdminFlashSalesPage = () => {
       description: sale.description || '',
       start_date: '',
       end_date: '',
-      discount_type: sale.discount_type,
-      discount_value: sale.discount_value.toString(),
       is_active: true,
     });
     if (sale.id) {
-      supabase.from('flash_sale_products').select('product_id').eq('flash_sale_id', sale.id)
+      supabase.from('flash_sale_products').select('product_id, discount_type, discount_value').eq('flash_sale_id', sale.id)
         .then(({ data }) => {
-          if (data) setSelectedProducts(data.map(p => p.product_id));
+          if (data) {
+            setProductDiscounts(data.map((p: any) => ({
+              product_id: p.product_id,
+              discount_type: p.discount_type || sale.discount_type,
+              discount_value: p.discount_value != null ? p.discount_value : sale.discount_value,
+            })));
+          }
         });
     }
     setIsDialogOpen(true);
@@ -159,12 +170,32 @@ const AdminFlashSalesPage = () => {
       description: '',
       start_date: toLocalDatetime(slotData.start_date),
       end_date: toLocalDatetime(slotData.end_date),
-      discount_type: slotData.discount_type,
-      discount_value: slotData.discount_value.toString(),
       is_active: true,
     });
-    setSelectedProducts([]);
+    setDefaultDiscountType(slotData.discount_type);
+    setDefaultDiscountValue(slotData.discount_value.toString());
+    setProductDiscounts([]);
     setIsDialogOpen(true);
+  };
+
+  const addProductWithDiscount = (productId: string, checked: boolean) => {
+    if (checked) {
+      setProductDiscounts(prev => [...prev, {
+        product_id: productId,
+        discount_type: defaultDiscountType,
+        discount_value: parseFloat(defaultDiscountValue) || 10,
+      }]);
+    } else {
+      setProductDiscounts(prev => prev.filter(p => p.product_id !== productId));
+    }
+  };
+
+  const updateProductDiscount = (productId: string, field: 'discount_type' | 'discount_value', value: any) => {
+    setProductDiscounts(prev => prev.map(p =>
+      p.product_id === productId
+        ? { ...p, [field]: field === 'discount_value' ? parseFloat(value) || 0 : value }
+        : p
+    ));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,21 +219,22 @@ const AdminFlashSalesPage = () => {
       return;
     }
 
+    // Use default discount at sale level as fallback
     const saleData = {
       title: formData.title,
       description: formData.description || null,
       start_date: startDate.toISOString(),
       end_date: endDate.toISOString(),
-      discount_type: formData.discount_type,
-      discount_value: parseFloat(formData.discount_value),
+      discount_type: defaultDiscountType,
+      discount_value: parseFloat(defaultDiscountValue) || 10,
       is_active: formData.is_active,
       display_order: 0,
     };
 
     if (editingSale) {
-      await updateMutation.mutateAsync({ id: editingSale.id, flashSale: saleData, productIds: selectedProducts });
+      await updateMutation.mutateAsync({ id: editingSale.id, flashSale: saleData, productDiscounts });
     } else {
-      await createMutation.mutateAsync({ flashSale: saleData, productIds: selectedProducts });
+      await createMutation.mutateAsync({ flashSale: saleData, productDiscounts });
     }
     setIsDialogOpen(false);
     resetForm();
@@ -220,13 +252,17 @@ const AdminFlashSalesPage = () => {
 
   const handleSelectAllProducts = (checked: boolean) => {
     if (checked) {
-      setSelectedProducts(prev => {
-        const newIds = products.map(p => p.product_id).filter(id => !prev.includes(id));
-        return [...prev, ...newIds];
-      });
+      const newProducts = products
+        .filter(p => !productDiscounts.some(pd => pd.product_id === p.product_id))
+        .map(p => ({
+          product_id: p.product_id,
+          discount_type: defaultDiscountType,
+          discount_value: parseFloat(defaultDiscountValue) || 10,
+        }));
+      setProductDiscounts(prev => [...prev, ...newProducts]);
     } else {
       const pageIds = products.map(p => p.product_id);
-      setSelectedProducts(prev => prev.filter(id => !pageIds.includes(id)));
+      setProductDiscounts(prev => prev.filter(p => !pageIds.includes(p.product_id)));
     }
   };
 
@@ -261,10 +297,8 @@ const AdminFlashSalesPage = () => {
     }
   };
 
-  // Quick duration presets
   const applyDuration = (hours: number) => {
     if (!formData.start_date) {
-      // Set start to now
       const now = new Date();
       const startStr = toLocalDatetime(now.toISOString());
       const endStr = toLocalDatetime(addHours(now, hours).toISOString());
@@ -284,9 +318,9 @@ const AdminFlashSalesPage = () => {
   const liveCount = flashSales?.filter(s => getSlotStatus(s) === 'live').length || 0;
   const upcomingCount = flashSales?.filter(s => getSlotStatus(s) === 'upcoming').length || 0;
 
-  const allPageProductsSelected = products.length > 0 && products.every(p => selectedProducts.includes(p.product_id));
+  const selectedProductIds = productDiscounts.map(p => p.product_id);
+  const allPageProductsSelected = products.length > 0 && products.every(p => selectedProductIds.includes(p.product_id));
 
-  // Compute duration display
   const durationDisplay = formData.start_date && formData.end_date ? (() => {
     const start = new Date(formData.start_date);
     const end = new Date(formData.end_date);
@@ -298,6 +332,14 @@ const AdminFlashSalesPage = () => {
     if (minutes === 0) return `${hours}h`;
     return `${hours}h ${minutes}m`;
   })() : null;
+
+  const applyDefaultToAll = () => {
+    setProductDiscounts(prev => prev.map(p => ({
+      ...p,
+      discount_type: defaultDiscountType,
+      discount_value: parseFloat(defaultDiscountValue) || 10,
+    })));
+  };
 
   return (
     <AdminLayout>
@@ -316,14 +358,16 @@ const AdminFlashSalesPage = () => {
           </Button>
         </div>
 
-        {/* Slot Creator */}
         <FlashSaleSlotCreator
           flashSales={flashSales || []}
           productCounts={productCounts}
           onQuickCreate={handleQuickCreate}
           onBatchCreate={async (slots) => {
             try {
-              await Promise.all(slots.map(slot => createMutation.mutateAsync({ flashSale: { ...slot, description: null, is_active: true, display_order: 0 }, productIds: [] })));
+              await Promise.all(slots.map(slot => createMutation.mutateAsync({
+                flashSale: { ...slot, description: null, is_active: true, display_order: 0 },
+                productDiscounts: []
+              })));
               toast.success(`${slots.length} flash sale(s) created`);
             } catch {
               toast.error('Some creations failed');
@@ -387,7 +431,6 @@ const AdminFlashSalesPage = () => {
                       />
                     </TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead>Discount</TableHead>
                     <TableHead>Products</TableHead>
                     <TableHead>Time Window</TableHead>
                     <TableHead>Status</TableHead>
@@ -411,11 +454,6 @@ const AdminFlashSalesPage = () => {
                           />
                         </TableCell>
                         <TableCell className="font-medium">{sale.title}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {sale.discount_type === 'percentage' ? `${sale.discount_value}%` : `KES ${sale.discount_value}`}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {pCount} product{pCount !== 1 ? 's' : ''}
@@ -460,12 +498,11 @@ const AdminFlashSalesPage = () => {
         </Card>
 
         {/* Create/Edit Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingSale ? 'Edit Flash Sale' : 'Create Flash Sale'}</DialogTitle>
-              <DialogDescription>Set up a time-limited promotional sale with special pricing</DialogDescription>
-            </DialogHeader>
+        <ResponsiveModal open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }} className="sm:max-w-3xl">
+            <ResponsiveModalHeader>
+              <ResponsiveModalTitle>{editingSale ? 'Edit Flash Sale' : 'Create Flash Sale'}</ResponsiveModalTitle>
+              <ResponsiveModalDescription>Set up a time-limited promotional sale with per-product pricing</ResponsiveModalDescription>
+            </ResponsiveModalHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
@@ -488,7 +525,6 @@ const AdminFlashSalesPage = () => {
                   )}
                 </div>
 
-                {/* Quick duration presets */}
                 <div className="flex flex-wrap gap-1.5">
                   <Label className="text-xs text-muted-foreground mr-1 self-center">Quick:</Label>
                   {[
@@ -538,7 +574,6 @@ const AdminFlashSalesPage = () => {
                   </div>
                 )}
 
-                {/* Readable summary */}
                 {formData.start_date && formData.end_date && !dateError && (
                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
                     📅 {format(new Date(formData.start_date), 'EEE, MMM dd yyyy, hh:mm a')} → {format(new Date(formData.end_date), 'EEE, MMM dd yyyy, hh:mm a')}
@@ -546,26 +581,40 @@ const AdminFlashSalesPage = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="discount_type">Discount Type *</Label>
-                  <Select value={formData.discount_type} onValueChange={(v: 'percentage' | 'fixed_amount') => setFormData({ ...formData, discount_type: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+              {/* Default discount for quick apply */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Default Discount (for new products)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={defaultDiscountValue}
+                    onChange={e => setDefaultDiscountValue(e.target.value)}
+                    className="w-24 h-9"
+                    placeholder="Value"
+                  />
+                  <Select value={defaultDiscountType} onValueChange={(v: 'percentage' | 'fixed_amount') => setDefaultDiscountType(v)}>
+                    <SelectTrigger className="w-32 h-9">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="percentage">Percentage (%)</SelectItem>
-                      <SelectItem value="fixed_amount">Fixed Amount (KES)</SelectItem>
+                      <SelectItem value="fixed_amount">Fixed (KES)</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discount_value">Discount Value *</Label>
-                  <Input id="discount_value" type="number" step="0.01" min="0" value={formData.discount_value} onChange={e => setFormData({ ...formData, discount_value: e.target.value })} required />
+                  {productDiscounts.length > 0 && (
+                    <Button type="button" variant="outline" size="sm" onClick={applyDefaultToAll} className="text-xs whitespace-nowrap">
+                      Apply to all ({productDiscounts.length})
+                    </Button>
+                  )}
                 </div>
               </div>
 
+              {/* Products with individual discounts */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Select Products</Label>
+                  <Label className="text-sm font-semibold">Products & Discounts</Label>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="select-all-products"
@@ -578,33 +627,56 @@ const AdminFlashSalesPage = () => {
                   </div>
                 </div>
                 <DebouncedSearchInput value={searchQuery} onChange={v => { setSearchQuery(v); setCurrentPage(1); }} placeholder="Search products..." className="mb-2" />
-                <ScrollArea className="h-[200px] border rounded-md p-4">
+                <ScrollArea className="h-[280px] border rounded-md p-3">
                   {isLoadingProducts ? (
                     <div className="text-center py-4 text-sm text-muted-foreground">Loading products...</div>
                   ) : products.length === 0 ? (
                     <div className="text-center py-4 text-sm text-muted-foreground">No products found</div>
                   ) : (
                     <div className="space-y-2">
-                      {products.map(product => (
-                        <div key={product.product_id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={product.product_id}
-                            checked={selectedProducts.includes(product.product_id)}
-                            onCheckedChange={checked => {
-                              if (checked) setSelectedProducts([...selectedProducts, product.product_id]);
-                              else setSelectedProducts(selectedProducts.filter(id => id !== product.product_id));
-                            }}
-                          />
-                          <label htmlFor={product.product_id} className="text-sm cursor-pointer flex-1">
-                            {product.name} - KES {product.price}
-                          </label>
-                        </div>
-                      ))}
+                      {products.map(product => {
+                        const isSelected = selectedProductIds.includes(product.product_id);
+                        const discount = productDiscounts.find(p => p.product_id === product.product_id);
+                        return (
+                          <div key={product.product_id} className={`flex items-center gap-2 p-2 rounded-md transition-colors overflow-hidden ${isSelected ? 'bg-primary/5 border border-primary/20' : 'hover:bg-muted/50'}`}>
+                            <Checkbox
+                              id={product.product_id}
+                              checked={isSelected}
+                              onCheckedChange={checked => addProductWithDiscount(product.product_id, !!checked)}
+                            />
+                            <label htmlFor={product.product_id} className="text-sm cursor-pointer flex-1 min-w-0 truncate">
+                              {product.name.split(' ').slice(0, 6).join(' ')}… 
+                              <span className="text-muted-foreground">- KES {product.price}</span>
+                            </label>
+                            {isSelected && discount && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={discount.discount_value}
+                                  onChange={e => updateProductDiscount(product.product_id, 'discount_value', e.target.value)}
+                                  className="w-32 h-7 text-xs"
+                                />
+                                <Select value={discount.discount_type} onValueChange={(v: 'percentage' | 'fixed_amount') => updateProductDiscount(product.product_id, 'discount_type', v)}>
+                                  <SelectTrigger className="w-16 h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="percentage">%</SelectItem>
+                                    <SelectItem value="fixed_amount">KES</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </ScrollArea>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{selectedProducts.length} product(s) selected</span>
+                  <span className="text-muted-foreground">{productDiscounts.length} product(s) selected</span>
                   {totalPages > 1 && (
                     <div className="flex items-center gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
@@ -631,8 +703,7 @@ const AdminFlashSalesPage = () => {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+        </ResponsiveModal>
       </div>
     </AdminLayout>
   );
