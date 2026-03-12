@@ -1,56 +1,52 @@
 import { useMemo } from 'react';
-import { Product } from './useProducts';
 import { FilterState } from '@/components/search/SearchFilters';
+import { Product } from '@/queries/productQueries';
 
-export const useProductFiltering = (products: Product[] | undefined, filters: FilterState) => {
+/**
+ * Filters products client-side based on the active FilterState.
+ * Spec key comparison is case-insensitive so "Brand" matches filter key "brand".
+ */
+export function useProductFiltering(products: Product[], filters: FilterState): Product[] {
   return useMemo(() => {
     if (!products?.length) return [];
 
-    // Early return if no filters are active
-    const hasSpecFilters = Object.values(filters.specifications).some(arr => arr.length > 0);
-    const hasRatingFilters = filters.ratings.length > 0;
-    const hasPriceFilter = filters.priceRange[0] > 0 || filters.priceRange[1] < 200000;
-
-    if (!hasSpecFilters && !hasRatingFilters && !hasPriceFilter) {
-      return products;
-    }
-
     return products.filter(product => {
-      // Price filter - most common, check first for performance
-      if (hasPriceFilter) {
-        const productPrice = product.price || 0;
-        if (productPrice < filters.priceRange[0] || productPrice > filters.priceRange[1]) {
-          return false;
-        }
+      // ── Price filter ──────────────────────────────────────────────────────
+      const [minPrice, maxPrice] = filters.priceRange;
+      if (product.price < minPrice || product.price > maxPrice) return false;
+
+      // ── Rating filter ─────────────────────────────────────────────────────
+      if (filters.ratings.length > 0) {
+        const productRating = Math.floor(product.rating ?? 0);
+        if (!filters.ratings.includes(productRating)) return false;
       }
 
-      // Specifications filter
-      if (hasSpecFilters) {
-        const productSpec = product.specification;
-        if (!productSpec || typeof productSpec !== 'object') {
-          return false;
-        }
+      // ── Specification filters ─────────────────────────────────────────────
+      const activeSpecs = Object.entries(filters.specifications).filter(
+        ([, values]) => values.length > 0
+      );
 
-        for (const [specType, selectedValues] of Object.entries(filters.specifications)) {
-          if (selectedValues.length === 0) continue;
+      if (activeSpecs.length > 0) {
+        const spec = product.specification;
 
-          const specValue = productSpec[specType];
-          if (!specValue || !selectedValues.includes(String(specValue))) {
-            return false;
+        // Build a normalized lookup map once per product: { "brand": "HP", ... }
+        const normalizedSpec: Record<string, string> = {};
+        if (product.specification && typeof product.specification === 'object' && !Array.isArray(product.specification)) {
+          for (const [k, v] of Object.entries(product.specification)) {
+            if (typeof v === 'string') {
+              normalizedSpec[k.toLowerCase().trim()] = v;
+            }
           }
         }
-      }
 
-      // Rating filter
-      if (hasRatingFilters) {
-        const productRating = product.rating || 4.5;
-        const hasMatchingRating = filters.ratings.some(minRating => productRating >= minRating);
-        if (!hasMatchingRating) {
-          return false;
+        for (const [filterKey, selectedValues] of activeSpecs) {
+          const productValue = normalizedSpec[filterKey.toLowerCase().trim()];
+          // Product must match at least one of the selected values for this spec
+          if (!productValue || !selectedValues.includes(productValue)) return false;
         }
       }
 
       return true;
     });
   }, [products, filters]);
-};
+}

@@ -8,14 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Product } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-
-interface SearchFiltersProps {
-  products: Product[];
-  value?: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
-  onApply?: () => void;
-  className?: string;
-}
+import { SpecConfig } from '@/utils/specConfig';
 
 export interface FilterState {
   priceRange: [number, number];
@@ -23,16 +16,64 @@ export interface FilterState {
   ratings: number[];
 }
 
-// Memoized filter option item
-const FilterOption = memo(({ 
-  id, 
-  label, 
-  checked, 
-  onToggle 
-}: { 
-  id: string; 
-  label: string; 
-  checked: boolean; 
+/**
+ * Default spec config — covers the most universally useful filter specs.
+ * Override per-page or per-category by passing a custom `specConfig` prop.
+ *
+ * Example for a laptop category page:
+ *   const LAPTOP_SPECS: SpecConfig[] = [
+ *     { key: 'brand',     label: 'Brand' },
+ *     { key: 'processor', label: 'Processor' },
+ *     { key: 'ram',       label: 'RAM' },
+ *     { key: 'storage',   label: 'Storage' },
+ *     { key: 'color',     label: 'Color' },
+ *   ];
+ *   <SearchFilters specConfig={LAPTOP_SPECS} ... />
+ */
+export const DEFAULT_SPEC_CONFIG: SpecConfig[] = [
+  { key: 'brand',         label: 'Brand' },
+  { key: 'color',         label: 'Color' },
+  { key: 'storage',       label: 'Storage' },
+  { key: 'ram',           label: 'RAM' },
+  { key: 'processor',     label: 'Processor' },
+  { key: 'screen_size',   label: 'Screen Size' },
+  { key: 'connectivity',  label: 'Connectivity' },
+  { key: 'interface',     label: 'Interface' },
+  { key: 'material',      label: 'Material' },
+  { key: 'weight',        label: 'Weight' },
+  { key: 'dimensions',    label: 'Dimensions' },
+  { key: 'compatibility', label: 'Compatibility' },
+];
+
+interface SearchFiltersProps {
+  products: Product[];
+  value?: FilterState;
+  onFiltersChange: (filters: FilterState) => void;
+  onApply?: () => void;
+  /**
+   * Controls which spec keys appear as filters and in what order.
+   * Pass a SpecConfig[] to whitelist specific specs.
+   * Defaults to DEFAULT_SPEC_CONFIG if omitted.
+   */
+  specConfig?: SpecConfig[];
+  className?: string;
+}
+
+const DEFAULT_FILTERS: FilterState = {
+  priceRange: [0, 200000],
+  specifications: {},
+  ratings: [],
+};
+
+const FilterOption = memo(({
+  id,
+  label,
+  checked,
+  onToggle,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
   onToggle: () => void;
 }) => (
   <div className="flex items-center space-x-2">
@@ -40,185 +81,134 @@ const FilterOption = memo(({
       id={id}
       checked={checked}
       onCheckedChange={onToggle}
+      className="rounded-[3px] h-4 w-4 shrink-0 border border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
     />
-    <label
-      htmlFor={id}
-      className="text-sm text-gray-700 cursor-pointer flex-1 leading-none"
-    >
+    <label htmlFor={id} className="text-sm text-gray-700 cursor-pointer flex-1 leading-none">
       {label}
     </label>
   </div>
 ));
-
 FilterOption.displayName = 'FilterOption';
 
-const SearchFilters = ({ products, value, onFiltersChange, onApply, className }: SearchFiltersProps) => {
+const SearchFilters = ({
+  products,
+  value,
+  onFiltersChange,
+  onApply,
+  specConfig = DEFAULT_SPEC_CONFIG,
+  className,
+}: SearchFiltersProps) => {
   const isMobile = isMobileUserAgent();
 
-  // Local state for price (to allow user to type without triggering filters)
-  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>(
-    value?.priceRange || [0, 200000]
-  );
-  
-  // Applied filters state
-  const [filters, setFilters] = useState<FilterState>(
-    value || {
-      priceRange: [0, 200000],
-      specifications: {},
-      ratings: [],
-    }
-  );
+  const [localMin, setLocalMin] = useState(value?.priceRange[0] ?? 0);
+  const [localMax, setLocalMax] = useState(value?.priceRange[1] ?? 200000);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
-    rating: true,
   });
 
-  // Extract filter options with memoization
-  const filterOptions = useMemo(() => {
-    if (!products?.length) return { specs: {}, maxPrice: 200000 };
+  // Build spec value lists: only keys in specConfig, in config order
+  const { specs, maxPrice } = useMemo(() => {
+    if (!products?.length) {
+      return { specs: [] as { key: string; label: string; values: string[] }[], maxPrice: 200000 };
+    }
 
-    const specs: Record<string, Set<string>> = {};
-    let maxPrice = 0;
+    // Normalize config keys to lowercase for case-insensitive matching
+    const allowedKeys = new Set(specConfig.map(s => s.key.toLowerCase()));
+    const specMap: Record<string, Set<string>> = {};
+    let max = 0;
 
-    products.forEach(product => {
-      if (product.price && product.price > maxPrice) {
-        maxPrice = product.price;
-      }
+    for (const product of products) {
+      if (product.price > max) max = product.price;
 
       if (product.specification && typeof product.specification === 'object') {
-        Object.entries(product.specification).forEach(([key, value]) => {
-          if (value && typeof value === 'string') {
-            if (!specs[key]) specs[key] = new Set();
-            specs[key].add(value);
-          }
-        });
+        for (const [rawKey, val] of Object.entries(product.specification)) {
+          const key = rawKey.toLowerCase().trim(); // normalize DB key
+          if (!allowedKeys.has(key) || !val || typeof val !== 'string') continue;
+          (specMap[key] ??= new Set()).add(val);
+        }
       }
-    });
-
-    const sortedSpecs: Record<string, string[]> = {};
-    Object.entries(specs).forEach(([key, valueSet]) => {
-      sortedSpecs[key] = Array.from(valueSet).sort();
-    });
-
-    return {
-      specs: sortedSpecs,
-      maxPrice: Math.ceil(maxPrice * 1.1),
-    };
-  }, [products]);
-
-  // Sync with parent value prop when it changes
-  useEffect(() => {
-    if (value) {
-      setFilters(value);
-      setLocalPriceRange(value.priceRange);
     }
-  }, [value]);
 
-  // Initialize price range
-  useEffect(() => {
-    if (filterOptions.maxPrice > 0 && !value) {
-      setLocalPriceRange([0, filterOptions.maxPrice]);
-      setFilters(prev => ({
-        ...prev,
-        priceRange: [0, filterOptions.maxPrice],
+    // DEBUG: logs all spec keys found in products so you can match them in specConfig.ts
+    if (process.env.NODE_ENV === 'development' && products.length > 0) {
+      const allKeys = new Set<string>();
+      products.forEach(p => {
+        if (p.specification && typeof p.specification === 'object') {
+          Object.keys(p.specification).forEach(k => allKeys.add(k));
+        }
+      });
+      console.log('[SearchFilters] All spec keys in products:', Array.from(allKeys).sort());
+      console.log('[SearchFilters] Matched keys:', Object.keys(specMap));
+    }
+
+    // Preserve specConfig order; skip keys with no values in this product set
+    const specs = specConfig
+      .filter(({ key }) => (specMap[key.toLowerCase()]?.size ?? 0) > 0)
+      .map(({ key, label }) => ({
+        key: key.toLowerCase(),
+        label,
+        values: Array.from(specMap[key.toLowerCase()]).sort(),
       }));
-    }
-  }, [filterOptions.maxPrice, value]);
 
-  // Auto-apply filters for desktop only (except price)
+    return { specs, maxPrice: Math.ceil(max * 1.1) || 200000 };
+  }, [products, specConfig]);
+
   useEffect(() => {
-    if (!isMobile) {
-      onFiltersChange(filters);
-    }
-  }, [filters.specifications, filters.ratings, isMobile]);
+    setLocalMin(value?.priceRange[0] ?? 0);
+    setLocalMax(value?.priceRange[1] ?? maxPrice);
+  }, [value?.priceRange[0], value?.priceRange[1], maxPrice]);
+
+  const filters = value ?? DEFAULT_FILTERS;
+
+  const activeFiltersCount = useMemo(
+    () =>
+      Object.values(filters.specifications).flat().length +
+      filters.ratings.length +
+      (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0),
+    [filters, maxPrice]
+  );
 
   const toggleSection = useCallback((section: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   }, []);
 
-  const handlePriceInputChange = useCallback((index: 0 | 1, value: string) => {
-    const numValue = Number(value) || 0;
-    setLocalPriceRange(prev => {
-      const newRange: [number, number] = [...prev];
-      newRange[index] = numValue;
-      return newRange;
+  const toggleSpec = useCallback((specKey: string, val: string) => {
+    const key = specKey.toLowerCase();
+    const current = filters.specifications[key] ?? [];
+    const next = current.includes(val)
+      ? current.filter(v => v !== val)
+      : [...current, val];
+
+    onFiltersChange({
+      ...filters,
+      specifications: { ...filters.specifications, [key]: next },
     });
-  }, []);
+  }, [filters, onFiltersChange]);
 
   const applyPriceFilter = useCallback(() => {
-    setFilters(prev => ({
-      ...prev,
-      priceRange: localPriceRange,
-    }));
-    
-    // For desktop, apply immediately
-    if (!isMobile) {
-      onFiltersChange({
-        ...filters,
-        priceRange: localPriceRange,
-      });
-    }
-  }, [localPriceRange, filters, isMobile, onFiltersChange]);
-
-  const toggleSpec = useCallback((specType: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      specifications: {
-        ...prev.specifications,
-        [specType]: prev.specifications[specType]?.includes(value)
-          ? prev.specifications[specType].filter(v => v !== value)
-          : [...(prev.specifications[specType] || []), value],
-      },
-    }));
-  }, []);
-
-  const toggleRating = useCallback((rating: number) => {
-    setFilters(prev => ({
-      ...prev,
-      ratings: prev.ratings.includes(rating)
-        ? prev.ratings.filter(r => r !== rating)
-        : [...prev.ratings, rating],
-    }));
-  }, []);
+    onFiltersChange({ ...filters, priceRange: [localMin, localMax] });
+  }, [filters, localMin, localMax, onFiltersChange]);
 
   const resetFilters = useCallback(() => {
-    const resetState = {
-      priceRange: [0, filterOptions.maxPrice] as [number, number],
-      specifications: {},
-      ratings: [],
-    };
-    setLocalPriceRange(resetState.priceRange);
-    setFilters(resetState);
-    
-    if (isMobile) {
-      onFiltersChange(resetState);
-      onApply?.();
-    } else {
-      onFiltersChange(resetState);
-    }
-  }, [filterOptions.maxPrice, isMobile, onFiltersChange, onApply]);
+    const reset: FilterState = { priceRange: [0, maxPrice], specifications: {}, ratings: [] };
+    setLocalMin(0);
+    setLocalMax(maxPrice);
+    onFiltersChange(reset);
+    onApply?.();
+  }, [maxPrice, onFiltersChange, onApply]);
 
   const applyFilters = useCallback(() => {
-    onFiltersChange(filters);
+    onFiltersChange({ ...filters, priceRange: [localMin, localMax] });
     onApply?.();
-  }, [filters, onFiltersChange, onApply]);
-
-  const activeFiltersCount = useMemo(() => 
-    Object.values(filters.specifications).flat().length +
-    filters.ratings.length + 
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < filterOptions.maxPrice ? 1 : 0),
-    [filters, filterOptions.maxPrice]
-  );
+  }, [filters, localMin, localMax, onFiltersChange, onApply]);
 
   return (
     <div className={`bg-white border border-gray-200 flex flex-col ${isMobile ? 'rounded-lg h-full' : ''} ${className}`}>
       <ScrollArea className={`flex-1 ${isMobile ? 'max-h-[calc(100vh-150px)]' : 'h-[calc(100vh-280px)]'}`}>
         <div className="p-4 space-y-4 pr-4">
-          {/* Price Range Filter */}
+
+          {/* Price Range */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
             <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
               <h4 className="font-medium text-gray-900">Price</h4>
@@ -228,29 +218,25 @@ const SearchFilters = ({ products, value, onFiltersChange, onApply, className }:
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={localPriceRange[0]}
-                  onChange={(e) => handlePriceInputChange(0, e.target.value)}
+                  value={localMin}
+                  onChange={e => setLocalMin(Number(e.target.value) || 0)}
                   className="h-8"
                   placeholder="Min"
                 />
-                <span className="text-gray-400">-</span>
+                <span className="text-gray-400">–</span>
                 <Input
                   type="number"
-                  value={localPriceRange[1]}
-                  onChange={(e) => handlePriceInputChange(1, e.target.value)}
+                  value={localMax}
+                  onChange={e => setLocalMax(Number(e.target.value) || 0)}
                   className="h-8"
                   placeholder="Max"
                 />
               </div>
-              <div className="text-xs text-gray-500">
-                KES {localPriceRange[0].toLocaleString()} - KES {localPriceRange[1].toLocaleString()}
-              </div>
+              <p className="text-xs text-gray-500">
+                KES {localMin.toLocaleString()} – KES {localMax.toLocaleString()}
+              </p>
               {!isMobile && (
-                <Button 
-                  onClick={applyPriceFilter} 
-                  className="w-full h-8 text-sm"
-                  size="sm"
-                >
+                <Button onClick={applyPriceFilter} className="w-full h-8 text-sm" size="sm">
                   Apply
                 </Button>
               )}
@@ -259,27 +245,24 @@ const SearchFilters = ({ products, value, onFiltersChange, onApply, className }:
 
           <Separator />
 
-          {/* Specifications Filters */}
-          {Object.entries(filterOptions.specs).map(([specType, values]) => {
-            const isSpecOpen = openSections[`spec_${specType}`] ?? true;
+          {/* Whitelisted specs in config-defined order */}
+          {specs.map(({ key, label, values }) => {
+            const isOpen = openSections[`spec_${key}`] ?? true;
             return (
-              <div key={specType}>
-                <Collapsible 
-                  open={isSpecOpen} 
-                  onOpenChange={() => toggleSection(`spec_${specType}`)}
-                >
+              <div key={key}>
+                <Collapsible open={isOpen} onOpenChange={() => toggleSection(`spec_${key}`)}>
                   <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
-                    <h4 className="font-medium text-gray-900 capitalize">{specType}</h4>
-                    {isSpecOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    <h4 className="font-medium text-gray-900">{label}</h4>
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-3 space-y-2">
-                    {values.map((value) => (
+                    {values.map(val => (
                       <FilterOption
-                        key={`${specType}-${value}`}
-                        id={`spec-${specType}-${value}`}
-                        label={value}
-                        checked={filters.specifications[specType]?.includes(value) || false}
-                        onToggle={() => toggleSpec(specType, value)}
+                        key={`${key}-${val}`}
+                        id={`spec-${key}-${val}`}
+                        label={val}
+                        checked={filters.specifications[key]?.includes(val) ?? false}
+                        onToggle={() => toggleSpec(key, val)}
                       />
                     ))}
                   </CollapsibleContent>
@@ -289,43 +272,18 @@ const SearchFilters = ({ products, value, onFiltersChange, onApply, className }:
             );
           })}
 
-          {/* Rating Filter */}
-          <Collapsible open={openSections.rating} onOpenChange={() => toggleSection('rating')}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
-              <h4 className="font-medium text-gray-900">Rating</h4>
-              {openSections.rating ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-2">
-              {[4, 3, 2, 1].map((rating) => (
-                <FilterOption
-                  key={rating}
-                  id={`rating-${rating}`}
-                  label={`${rating}★ & Up`}
-                  checked={filters.ratings.includes(rating)}
-                  onToggle={() => toggleRating(rating)}
-                />
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
         </div>
       </ScrollArea>
 
-      {/* Mobile Bottom Actions */}
+      {/* Mobile Actions */}
       {isMobile && (
         <div className="mt-auto border-t border-gray-200 p-3 bg-white sticky bottom-0">
           <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={resetFilters}
-              className="flex-1 h-10"
-            >
+            <Button variant="outline" onClick={resetFilters} className="flex-1 h-10">
               Reset
             </Button>
-            <Button
-              onClick={applyFilters}
-              className="flex-1 h-10"
-            >
-              Apply {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+            <Button onClick={applyFilters} className="flex-1 h-10">
+              Apply{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
             </Button>
           </div>
         </div>

@@ -22,7 +22,7 @@ export const useVersionCheck = (options: UseVersionCheckOptions = {}) => {
   const [currentVersion, setCurrentVersion] = useState<VersionInfo | null>(null);
   const [newVersionAvailable, setNewVersionAvailable] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const checkIntervalRef = useRef<NodeJS.Timeout>();
+  const checkIntervalRef = useRef<ReturnType<typeof setInterval>>();
   const hasNotifiedRef = useRef(false);
 
   const fetchVersion = useCallback(async (): Promise<VersionInfo | null> => {

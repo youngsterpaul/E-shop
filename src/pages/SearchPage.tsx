@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { ProductList } from '@/components/products/ProductList';
 import { useUrlSync } from '@/hooks/useUrlSync';
 import SiteBreadcrumb from '@/components/Breadcrumb';
+import { DEFAULT_SPEC_CONFIG } from '@/utils/specConfig';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('featured');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(24);
+  const [itemsPerPage, setItemsPerPage] = useState(36);
   const [filters, setFilters] = useState<FilterState>({
     priceRange: [0, 200000],
     specifications: {},
@@ -25,13 +26,11 @@ const SearchPage = () => {
 
   const { searchProducts } = useProducts();
 
-  // Sync state with URL
   useUrlSync(
     { searchQuery, sortOption, currentPage, itemsPerPage },
     { setSearchQuery, setSortOption, setCurrentPage, setItemsPerPage }
   );
 
-  // Data Fetch
   const desktopQuery = useQuery({
     queryKey: ['productSearch', searchQuery, currentPage, itemsPerPage],
     queryFn: () =>
@@ -45,9 +44,8 @@ const SearchPage = () => {
 
   const mobileQuery = useProductSearch(searchQuery, isMobile ? 12 : undefined);
 
-  const queryData = isMobile ? mobileQuery : desktopQuery;
-  const isLoading = queryData.isLoading;
-  const isError = queryData.isError;
+  const isLoading = isMobile ? mobileQuery.isLoading : desktopQuery.isLoading;
+  const isError = isMobile ? mobileQuery.isError : desktopQuery.isError;
 
   const allProducts = useMemo(() => {
     return isMobile
@@ -72,7 +70,6 @@ const SearchPage = () => {
 
   useEffect(() => {
     if (!isMobile) return;
-    
     const onScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop >=
@@ -81,44 +78,31 @@ const SearchPage = () => {
         handleLoadMore();
       }
     };
-    
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [isMobile, handleLoadMore]);
 
-  // UI Handlers
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     if (!isMobile) setCurrentPage(1);
   }, [isMobile]);
 
   const handleSortChange = useCallback((val: string) => setSortOption(val), []);
-  
   const handlePageChange = useCallback((p: number) => setCurrentPage(p), []);
-  
   const handlePageSizeChange = useCallback((size: number) => {
     setItemsPerPage(size);
     setCurrentPage(1);
   }, []);
-
-  const handleFiltersChange = useCallback((newFilters: FilterState) => {
-    setFilters(newFilters);
-  }, []);
-
+  const handleFiltersChange = useCallback((newFilters: FilterState) => setFilters(newFilters), []);
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
-  // Reset filters when search query changes
   useEffect(() => {
-    setFilters({
-      priceRange: [0, 200000],
-      specifications: {},
-      ratings: [],
-    });
+    setFilters({ priceRange: [0, 200000], specifications: {}, ratings: [] });
   }, [searchQuery]);
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
-    { label: searchQuery ? `Search: "${searchQuery}"` : 'Search' }
+    { label: searchQuery ? `Search: "${searchQuery}"` : 'Search' },
   ];
 
   return (
@@ -148,16 +132,13 @@ const SearchPage = () => {
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           emptyStateMessage="No products found."
+          specConfig={DEFAULT_SPEC_CONFIG}
         />
 
-        {/* Mobile Loading Indicator */}
         {isMobile && mobileQuery.isFetchingNextPage && (
           <div className="grid grid-cols-2 gap-3 mt-4 px-3">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden"
-              >
+              <div key={i} className="flex flex-col bg-card rounded-xl shadow-sm overflow-hidden">
                 <div className="h-40 bg-muted animate-pulse" />
                 <div className="p-3 space-y-2">
                   <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />

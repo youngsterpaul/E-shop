@@ -26,6 +26,7 @@ import { format, addHours, isBefore } from 'date-fns';
 import { FlashSaleSlotCreator } from '@/components/admin/FlashSaleSlotCreator';
 import { getSlotStatus } from '@/utils/flashSaleSlots';
 import { toast } from 'sonner';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface ProductDiscount {
   product_id: string;
@@ -45,6 +46,7 @@ const AdminFlashSalesPage = () => {
   const [defaultDiscountType, setDefaultDiscountType] = useState<'percentage' | 'fixed_amount'>('percentage');
   const [defaultDiscountValue, setDefaultDiscountValue] = useState('10');
   const pageSize = 10;
+  const isMobile = isMobileUserAgent()
 
   const { data: flashSales, isLoading } = useAllFlashSales();
   const { data: productCounts } = useFlashSaleProductCounts();
@@ -498,7 +500,7 @@ const AdminFlashSalesPage = () => {
         </Card>
 
         {/* Create/Edit Dialog */}
-        <ResponsiveModal open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }} className="sm:max-w-10xl">
+        <ResponsiveModal open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }} className={`${isMobile ? 'max-w-10xl':'max-w-3xl'}`}>
             <ResponsiveModalHeader>
               <ResponsiveModalTitle>{editingSale ? 'Edit Flash Sale' : 'Create Flash Sale'}</ResponsiveModalTitle>
               <ResponsiveModalDescription>Set up a time-limited promotional sale with per-product pricing</ResponsiveModalDescription>
@@ -649,7 +651,7 @@ const AdminFlashSalesPage = () => {
                               <span className="text-muted-foreground">- KES {product.price}</span>
                             </label>
                             {isSelected && discount && (
-                              <div className="flex items-center gap-1 flex-shrink-0 flex-column">
+                              <div className="flex items-center gap-1 flex-shrink-0">
                                 <Input
                                   type="number"
                                   step="0.01"

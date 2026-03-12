@@ -29,7 +29,33 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
 
-  // Get or create conversation for current user
+  // Find existing conversation for current user (does NOT create)
+  const findExistingConversation = useCallback(async () => {
+    if (!user) return null;
+
+    try {
+      const { data: existing, error: fetchError } = await supabase
+        .from('chat_conversations')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existing) {
+        setConversation(existing as Conversation);
+        return existing as Conversation;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error finding conversation:', error);
+      return null;
+    }
+  }, [user]);
+
+  // Get or create conversation - only called when sending a message
   const getOrCreateConversation = useCallback(async () => {
     if (!user) return null;
 
@@ -39,7 +65,7 @@ export const useChat = () => {
         .from('chat_conversations')
         .select('*')
         .eq('user_id', user.id)
-        .order('last_message_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -62,7 +88,7 @@ export const useChat = () => {
         return existing as Conversation;
       }
 
-      // Create new conversation
+      // Create new conversation only when actually needed (sending a message)
       const { data: newConv, error: createError } = await supabase
         .from('chat_conversations')
         .insert({ user_id: user.id })
@@ -310,14 +336,14 @@ export const useChat = () => {
     };
   }, [conversation?.id]);
 
-  // Initialize conversation and load messages
+  // Initialize: only find existing conversation, don't create one
   useEffect(() => {
     if (user) {
-      getOrCreateConversation().then(conv => {
+      findExistingConversation().then(conv => {
         if (conv) loadMessages(conv.id);
       });
     }
-  }, [user, getOrCreateConversation, loadMessages]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     conversation,

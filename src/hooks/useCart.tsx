@@ -291,7 +291,7 @@ export const useCart = () => {
       return;
     }
 
-    let retryTimeout: NodeJS.Timeout;
+    let retryTimeout: ReturnType<typeof setTimeout>;
     
     const setupSubscription = () => {
       const channel = supabase

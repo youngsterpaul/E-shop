@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Zap, ChevronRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
+import OptimizedImage from '@/components/OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 const FlashSaleBanner = () => {
@@ -13,7 +14,7 @@ const FlashSaleBanner = () => {
     seconds: number;
   } | null>(null);
 
-  const pageSize = isMobile ? 6 : 12;
+  const pageSize = isMobile ? 5 : 12;
   const { data: productsData, isLoading } = useAllActiveFlashSaleProducts(pageSize);
 
   useEffect(() => {
@@ -99,13 +100,39 @@ const FlashSaleBanner = () => {
         </Link>
       </div>
 
-      {/* Products Grid */}
-      <div className={`bg-card ${isMobile ? 'p-2' : 'p-4'}`}>
-        <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3'}`}>
-          {transformedProducts.map((product, index) => (
-            <ProductCard key={`${product.id}-${index}`} product={product} />
-          ))}
-        </div>
+      {/* Products */}
+      <div className={`bg-card ${isMobile ? 'px-2 py-2' : 'p-4'}`}>
+        {isMobile ? (
+          <div className="flex overflow-x-auto scrollbar-none gap-2 snap-x snap-mandatory">
+            {transformedProducts.map((product, index) => (
+              <Link
+                key={`${product.id}-${index}`}
+                to={`/product/${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}/${product.id}`}
+                className="flex-shrink-0 w-[24%] snap-start flex flex-col items-center"
+              >
+                <div className="w-full aspect-square rounded-md overflow-hidden bg-muted/30">
+                  <OptimizedImage
+                    src={product.image}
+                    alt={product.name}
+                    width={120}
+                    height={120}
+                    aspectRatio="square"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs font-bold text-primary mt-1">
+                  {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(product.price)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {transformedProducts.map((product, index) => (
+              <ProductCard key={`${product.id}-${index}`} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

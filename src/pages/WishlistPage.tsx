@@ -69,7 +69,7 @@ const WishlistPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className={`${!isMobile ? 'max-w-[1400px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-4'}`}>
+        <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

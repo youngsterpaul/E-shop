@@ -44,7 +44,7 @@ const PrivacyPage = () => {
             className="mb-6"
           />
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold text-foreground tracking-tight mb-6">Privacy Policy</h1>
             
             <div className="bg-card rounded-xl border border-border/50 shadow-sm p-6 md:p-8 prose prose-neutral dark:prose-invert max-w-none">

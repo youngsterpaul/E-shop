@@ -9,8 +9,8 @@ const WARNING_BEFORE_MS = 2 * 60 * 1000; // 2 minutes before timeout
 export const useSessionTimeout = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   const clearTimers = useCallback(() => {

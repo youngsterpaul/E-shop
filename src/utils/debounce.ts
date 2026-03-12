@@ -6,7 +6,7 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   return function debounced(...args: Parameters<T>) {
     if (timeoutId) {
@@ -27,7 +27,7 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-  let timeoutId: NodeJS.Timeout | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let pendingPromise: Promise<ReturnType<T>> | null = null;
 
   return function debounced(...args: Parameters<T>): Promise<ReturnType<T>> {

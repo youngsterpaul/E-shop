@@ -36,7 +36,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   const [isRemoving, setIsRemoving] = useState(false);
   const [localQuantity, setLocalQuantity] = useState(item.quantity);
   
-  const updateTimeoutRef = useRef<NodeJS.Timeout>();
+  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const mountedRef = useRef(true);
 
   const isMobile = isMobileUserAgent();

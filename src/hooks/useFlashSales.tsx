@@ -105,7 +105,15 @@ export const useProductFlashSale = (productId: string) => {
         return sale && sale.is_active === true && sale.start_date <= now && sale.end_date >= now;
       });
 
-      return activeFlashSale ? activeFlashSale.flash_sales : null;
+      if (!activeFlashSale) return null;
+
+      // Per-product discount overrides the global flash sale discount
+      const sale = activeFlashSale.flash_sales;
+      return {
+        ...sale,
+        discount_type: activeFlashSale.discount_type || sale.discount_type,
+        discount_value: activeFlashSale.discount_value ?? sale.discount_value,
+      };
     },
     staleTime: 60 * 1000,
   });

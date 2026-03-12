@@ -13,8 +13,8 @@ export const VersionManager = () => {
   const [pendingUpdate, setPendingUpdate] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState(5);
   const [isInSensitivePath, setIsInSensitivePath] = useState(false);
-  const countdownIntervalRef = useRef<NodeJS.Timeout>();
-  const updateTimeoutRef = useRef<NodeJS.Timeout>();
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval>>();
+  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const handleUpdateAvailable = useCallback(() => {
     // Check if user is in a sensitive path

@@ -19,7 +19,7 @@ const ReturnsPage = () => {
           className="mb-6"
         />
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-foreground tracking-tight mb-6">Returns Policy</h1>
           
           <Card className="border-border/50 shadow-sm mb-8">

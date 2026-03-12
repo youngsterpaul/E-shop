@@ -1,22 +1,13 @@
-
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import ProductCard from '@/components/ProductCard';
 import ProductSort from '@/components/products/ProductSort';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
+import { SpecConfig } from '@/utils/specConfig';
 import SmartPagination from '@/components/ui/pagination';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-
-interface Product {
-  product_id: string;
-  name: string;
-  price: number;
-  image_urls?: string[];
-  rating?: number;
-  reviews_count?: number;
-  categories?: string;
-}
+import { Product } from '@/queries/productQueries';
 
 interface ProductListProps {
   products: Product[];
@@ -35,6 +26,7 @@ interface ProductListProps {
   searchQuery?: string;
   emptyStateMessage?: string;
   emptyStateAction?: React.ReactNode;
+  specConfig?: SpecConfig[];
 }
 
 export const ProductList = ({
@@ -54,14 +46,22 @@ export const ProductList = ({
   searchQuery,
   emptyStateMessage = 'No products found.',
   emptyStateAction,
+  specConfig,
 }: ProductListProps) => {
   const isMobile = isMobileUserAgent();
   const gridCols = isMobile ? 'grid-cols-2' : 'grid-cols-4';
 
-  // Apply filters
+  // Check if any filters are actively applied
+  const hasActiveFilters = useMemo(() => {
+    const hasSpecFilters = Object.values(filters.specifications).some(v => v.length > 0);
+    const hasRatingFilters = filters.ratings.length > 0;
+    const hasPriceFilters = filters.priceRange[0] > 0 || filters.priceRange[1] < 200000;
+    return hasSpecFilters || hasRatingFilters || hasPriceFilters;
+  }, [filters]);
+
+  // Client-side filtering — only runs when filters are active
   const filteredProducts = useProductFiltering(products, filters);
 
-  // Apply search if provided
   const searchedProducts = useMemo(() => {
     if (!searchQuery) return filteredProducts;
     return filteredProducts.filter(p =>
@@ -69,11 +69,10 @@ export const ProductList = ({
     );
   }, [filteredProducts, searchQuery]);
 
-  // Sort products
   const sortedProducts = useMemo(() => {
     if (!searchedProducts?.length) return [];
-    
-    const productsWithRating = searchedProducts.map((p) => ({
+
+    const withRating = searchedProducts.map(p => ({
       ...p,
       calculatedRating: p.rating || 4.5,
       calculatedPrice: p.price,
@@ -81,23 +80,15 @@ export const ProductList = ({
 
     switch (sortOption) {
       case 'price-low-high':
-        return [...productsWithRating].sort(
-          (a, b) => a.calculatedPrice - b.calculatedPrice
-        );
+        return [...withRating].sort((a, b) => a.calculatedPrice - b.calculatedPrice);
       case 'price-high-low':
-        return [...productsWithRating].sort(
-          (a, b) => b.calculatedPrice - a.calculatedPrice
-        );
+        return [...withRating].sort((a, b) => b.calculatedPrice - a.calculatedPrice);
       case 'rating':
-        return [...productsWithRating].sort(
-          (a, b) => b.calculatedRating - a.calculatedRating
-        );
+        return [...withRating].sort((a, b) => b.calculatedRating - a.calculatedRating);
       case 'newest':
-        return [...productsWithRating].sort((a, b) =>
-          b.product_id.localeCompare(a.product_id)
-        );
+        return [...withRating].sort((a, b) => b.product_id.localeCompare(a.product_id));
       default:
-        return productsWithRating;
+        return withRating;
     }
   }, [searchedProducts, sortOption]);
 
@@ -108,10 +99,20 @@ export const ProductList = ({
     [filters]
   );
 
+  const handlePageChange = useCallback((page: number) => {
+    onPageChange?.(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [onPageChange]);
+
+  // When filters are active show the filtered count, otherwise show server total
+  const displayCount = hasActiveFilters
+    ? sortedProducts.length
+    : (totalCount ?? searchedProducts.length);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin h-8 w-8 border-2 border-green-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin h-8 w-8 border-2 border-green-500 border-t-transparent rounded-full" />
         <span className="ml-3 text-gray-600">Loading products...</span>
       </div>
     );
@@ -127,9 +128,22 @@ export const ProductList = ({
 
   if (sortedProducts.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-lg">
-        <p className="text-gray-600 text-lg">{emptyStateMessage}</p>
-        {emptyStateAction}
+      <div className="flex gap-6">
+        {/* Keep filters visible even when no results */}
+        {!isMobile && products.length > 0 && (
+          <div className="w-72 flex-shrink-0">
+            <SearchFilters
+              products={products}
+              value={filters}
+              onFiltersChange={onFiltersChange}
+              specConfig={specConfig}
+            />
+          </div>
+        )}
+        <div className="flex-1 text-center py-16 bg-white rounded-lg">
+          <p className="text-gray-600 text-lg">{emptyStateMessage}</p>
+          {emptyStateAction}
+        </div>
       </div>
     );
   }
@@ -139,17 +153,27 @@ export const ProductList = ({
       {/* Desktop Filters */}
       {!isMobile && products.length > 0 && (
         <div className="w-72 flex-shrink-0">
-          <SearchFilters products={products} value={filters} onFiltersChange={onFiltersChange} />
+          <SearchFilters
+            products={products}
+            value={filters}
+            onFiltersChange={onFiltersChange}
+            specConfig={specConfig}
+          />
         </div>
       )}
 
       <div className="flex-1 min-w-0">
         {/* Products Header */}
-        <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2 bg-white'}`}>
-          <p className={`text-gray-600 text-lg ${!isMobile ? '' : 'hidden'}`}>
-            <span className="font-semibold text-gray-900">{sortedProducts.length}</span> product
-            {sortedProducts.length !== 1 && 's'} found
-          </p>
+        <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2'}`}>
+          {!isMobile && (
+            <p className="text-gray-600 text-lg">
+              <span className="font-semibold text-gray-900">{displayCount}</span>{' '}
+              product{displayCount !== 1 ? 's' : ''} found
+              {hasActiveFilters && (
+                <span className="text-sm text-gray-400 ml-2">(filtered)</span>
+              )}
+            </p>
+          )}
           <div className="flex justify-between items-center gap-4">
             <ProductSort sortOption={sortOption} onSortChange={onSortChange} />
             {isMobile && (
@@ -183,17 +207,15 @@ export const ProductList = ({
           ))}
         </div>
 
-        {/* Pagination */}
-        {!isMobile && totalPages && totalPages > 1 && onPageChange && onPageSizeChange && (
+        {/* Pagination — hide when filters are active since we're showing filtered subset */}
+        {!isMobile && !hasActiveFilters && totalPages && totalPages > 1 && (
           <SmartPagination
             currentPage={currentPage!}
             totalPages={totalPages}
             totalItems={totalCount!}
             itemsPerPage={itemsPerPage!}
-            onPageChange={onPageChange}
-            onPageSizeChange={onPageSizeChange}
-            pageSizeOptions={[12, 24, 48, 96]}
-            className="bg-white p-4 mt-2"
+            onPageChange={handlePageChange}
+            className="bg-white mt-2"
           />
         )}
       </div>

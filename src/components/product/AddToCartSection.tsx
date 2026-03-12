@@ -279,7 +279,6 @@ const AddToCartSection = ({
           }`}
         >
           <Heart className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} />
-          {isInWishlistState ? 'Wishlisted' : 'Add to Wishlist'}
         </Button>
         
         <Button
