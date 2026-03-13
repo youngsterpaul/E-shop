@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
@@ -12,461 +12,370 @@ interface EnhancedProductImageGalleryProps {
     video?: string;
   };
   selectedImageUrl?: string;
-  variantImages?: Array<{ url: string; label: string }>; // Color variant images
+  variantImages?: Array<{ url: string; label: string }>;
 }
 
+const MAIN_SIZE = 450;
+const ZOOM_FACTOR = 3;
+const LENS_SIZE = 150;
+const ZOOM_PANEL_SIZE = MAIN_SIZE;
+const LARGE_SIZE = MAIN_SIZE * ZOOM_FACTOR;
+
 const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages = [] }: EnhancedProductImageGalleryProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [backgroundPos, setBackgroundPos] = useState({ x: 0, y: 0 }); // MouseX/Y relative to main image (0 to 400)
-  const [showLens, setShowLens] = useState(false);
-  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [dragOffset, setDragOffset] = useState(0); // Real-time drag offset in pixels
-  const [isDragging, setIsDragging] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [showPlayButton, setShowPlayButton] = useState(true);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const mainRef = useRef<HTMLDivElement>(null);
-  const thumbsRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const videoContainerRef = useRef<HTMLDivElement>(null);
-
   const isMobile = isMobileUserAgent();
-  const minSwipe = 50;
-
-  // Zoom configuration
-  const lensSize = 220;
-  const zoomLevel = 2.5; // Magnification factor
-  const mainImageSize = 400; // Fixed size of the main image container
-
-  /** Check if URL is a video file */
+  
+  // Base Media setup
   const isVideo = useCallback((url: string) => {
     if (!url) return false;
-    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
-    const lowerUrl = url.toLowerCase();
-    return videoExtensions.some(ext => lowerUrl.includes(ext)) || url === product.video;
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.m4v'];
+    return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url === product.video;
   }, [product.video]);
 
-  /** Combine product media - videos first */
-  const allMedia = useMemo(() => {
-    const imgs = [product.image];
-    
-    product.images?.forEach(img => {
-      if (img !== product.image && !imgs.includes(img)) {
-        imgs.push(img);
+  const rawMedia = useMemo(() => {
+    const imgs = [product.image, ...(product.images || []), ...variantImages.map(v => v.url)];
+    const uniqueImgs = Array.from(new Set(imgs)).filter(Boolean);
+    const finalMedia = product.video ? [...uniqueImgs, product.video] : uniqueImgs;
+
+    return finalMedia.sort((a, b) => {
+      const aIsV = isVideo(a);
+      const bIsV = isVideo(b);
+      return aIsV === bIsV ? 0 : aIsV ? -1 : 1;
+    });
+  }, [product, variantImages, isVideo]);
+
+  const mobileMedia = useMemo(() => {
+    if (rawMedia.length <= 1) return rawMedia;
+    return [rawMedia[rawMedia.length - 1], ...rawMedia, rawMedia[0]];
+  }, [rawMedia]);
+
+  // States
+  const [currentIndex, setCurrentIndex] = useState(isMobile ? 1 : 0); 
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showLens, setShowLens] = useState(false);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [zoomTranslate, setZoomTranslate] = useState({ x: 0, y: 0 });
+  const [zoomPanelSide, setZoomPanelSide] = useState<"right" | "left">("right");
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  
+  // Mobile Swipe States
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startTime = useRef<number>(0);
+
+  const mainRef = useRef<HTMLDivElement>(null);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const thumbnailStripRef = useRef<HTMLDivElement>(null);
+
+  // Handle Play/Pause when slide changes
+  useEffect(() => {
+    videoRefs.current.forEach((video, idx) => {
+      if (idx === currentIndex) {
+        video.play().catch(() => {});
+        setIsPlaying(true);
+      } else {
+        video.pause();
       }
     });
-    
-    if (variantImages.length > 0) {
-      variantImages.forEach(variant => {
-        if (variant.url && !imgs.includes(variant.url)) {
-          imgs.push(variant.url);
-        }
-      });
-    }
-    
-    const finalMedia = product.video && !imgs.includes(product.video) ? [...imgs, product.video] : imgs;
-    
-    // Sort: videos first, then images
-    return finalMedia.sort((a, b) => {
-      const aIsVideo = isVideo(a);
-      const bIsVideo = isVideo(b);
-      if (aIsVideo && !bIsVideo) return -1;
-      if (!aIsVideo && bIsVideo) return 1;
-      return 0;
-    });
-  }, [product.image, product.images, product.video, variantImages, isVideo]);
+  }, [currentIndex]);
 
-  // If a selected image is provided (e.g., from color variant), switch to it
+  // Scroll active thumbnail into view
   useEffect(() => {
-    if (!selectedImageUrl) return;
-    const idx = allMedia.findIndex((m) => m === selectedImageUrl);
-    if (idx >= 0) {
-      setCurrentIndex(idx);
-      setTimeout(() => {
-        thumbsRef.current?.children[idx]?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        });
-      }, 100);
+    if (!thumbnailStripRef.current) return;
+    const strip = thumbnailStripRef.current;
+    const activeThumb = strip.children[currentIndex] as HTMLElement;
+    if (activeThumb) {
+      activeThumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
-  }, [selectedImageUrl, allMedia]);
+  }, [currentIndex]);
 
-  /** Change image */
-  const changeImage = useCallback(
-    (idx: number) => {
-      if (idx === currentIndex) return;
-      setCurrentIndex(idx);
-      setTimeout(() => {
-        thumbsRef.current?.children[idx]?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        });
-      }, 50);
-    },
-    [currentIndex]
-  );
+  const togglePlay = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    const currentVideo = videoRefs.current.get(currentIndex);
+    if (currentVideo) {
+      if (currentVideo.paused) {
+        currentVideo.play();
+        setIsPlaying(true);
+      } else {
+        currentVideo.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
 
-  const next = useCallback(() => changeImage((currentIndex + 1) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
-  const prev = useCallback(() => changeImage((currentIndex - 1 + allMedia.length) % allMedia.length), [currentIndex, allMedia.length, changeImage]);
-
-  /** Keyboard navigation */
+  /* =================== INFINITE LOOP REPAIR =================== */
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev]);
+    if (!isMobile || isDragging) return;
+    if (currentIndex === 0) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentIndex(mobileMedia.length - 2);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    if (currentIndex === mobileMedia.length - 1) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentIndex(1);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, isMobile, isDragging, mobileMedia.length]);
 
-  /** Touch swipe (mobile) - Kilimall style with real-time drag */
+  useEffect(() => {
+    if (selectedImageUrl) {
+      const idx = rawMedia.indexOf(selectedImageUrl);
+      if (idx !== -1) setCurrentIndex(isMobile ? idx + 1 : idx);
+    }
+  }, [selectedImageUrl, rawMedia, isMobile]);
+
+  /* =================== MOBILE SWIPE LOGIC =================== */
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
+    startTime.current = Date.now();
     setIsDragging(true);
-    setDragOffset(0);
+    setIsTransitioning(false);
   };
-  
+
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX === null || !mainRef.current) return;
-    const currentX = e.targetTouches[0].clientX;
-    const diff = currentX - touchStartX;
-    setDragOffset(diff);
-  };
-  
-  const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX === null) return;
-    const dist = touchStartX - e.changedTouches[0].clientX;
-    
+    const currentX = e.targetTouches[0].clientX;
+    setDragOffset(currentX - touchStartX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null) return;
+    const duration = Date.now() - startTime.current;
+    const velocity = Math.abs(dragOffset) / duration;
     setIsDragging(false);
-    setDragOffset(0);
-    
-    if (dist > minSwipe) {
-      // Stop video if playing before swiping
-      if (videoRef.current && isVideoPlaying) {
-        videoRef.current.pause();
-      }
-      next();
-    } else if (dist < -minSwipe) {
-      // Stop video if playing before swiping
-      if (videoRef.current && isVideoPlaying) {
-        videoRef.current.pause();
-      }
-      prev();
+    setIsTransitioning(true);
+
+    if (Math.abs(dragOffset) > 50 || velocity > 0.5) {
+      setCurrentIndex(prev => dragOffset < 0 ? prev + 1 : prev - 1);
+      if (window.navigator.vibrate) window.navigator.vibrate(5);
     }
-    
+    setDragOffset(0);
     setTouchStartX(null);
   };
 
-  // Autoplay video on scroll (mobile) using Intersection Observer
-  useEffect(() => {
-    if (!isMobile || !videoContainerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && videoRef.current) {
-            videoRef.current.play().catch(() => {
-              // Autoplay failed, show play button
-              setShowPlayButton(true);
-            });
-          } else if (!entry.isIntersecting && videoRef.current) {
-            videoRef.current.pause();
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(videoContainerRef.current);
-    return () => observer.disconnect();
-  }, [isMobile, currentIndex, allMedia]);
-
-  /** Kilimall-style Magnifier (desktop) */
+  /* =================== DESKTOP ZOOM LOGIC =================== */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mainRef.current || isVideo(allMedia[currentIndex])) return;
-    const { left, top, width, height } = mainRef.current.getBoundingClientRect();
+    if (!mainRef.current || isVideo(rawMedia[currentIndex])) return;
 
-    // Mouse position relative to image container (0 to 400)
+    const { left, top, width, height } = mainRef.current.getBoundingClientRect();
     const mouseX = e.clientX - left;
     const mouseY = e.clientY - top;
 
-    // Check bounds
-    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
-      setShowLens(false);
-      return;
-    }
+    // Clamp lens so it never exits the image boundary
+    const clampedLensX = Math.max(0, Math.min(mouseX - LENS_SIZE / 2, width - LENS_SIZE));
+    const clampedLensY = Math.max(0, Math.min(mouseY - LENS_SIZE / 2, height - LENS_SIZE));
+    setLensPos({ x: clampedLensX, y: clampedLensY });
 
-    // Lens position (centered on cursor, bounded within image)
-    const lensX = Math.max(0, Math.min(mouseX - lensSize / 2, width - lensSize));
-    const lensY = Math.max(0, Math.min(mouseY - lensSize / 2, height - lensSize));
+    // Compute the ideal zoom translate (centers the hovered pixel in the zoom panel)
+    const rawTx = ZOOM_PANEL_SIZE / 2 - mouseX * ZOOM_FACTOR;
+    const rawTy = ZOOM_PANEL_SIZE / 2 - mouseY * ZOOM_FACTOR;
 
-    requestAnimationFrame(() => {
-      setLensPos({ x: lensX, y: lensY });
-      // Store mouse position for translation calculation in the magnified panel
-      setBackgroundPos({ x: mouseX, y: mouseY });
-      setShowLens(true);
-    });
+    // Clamp so the large image never shows empty space inside the zoom panel
+    const minTx = ZOOM_PANEL_SIZE - LARGE_SIZE; // e.g. 450 - 1350 = -900
+    const minTy = ZOOM_PANEL_SIZE - LARGE_SIZE;
+    const clampedTx = Math.min(0, Math.max(minTx, rawTx));
+    const clampedTy = Math.min(0, Math.max(minTy, rawTy));
+    setZoomTranslate({ x: clampedTx, y: clampedTy });
+
+    // Decide panel side: flip to left if not enough space on the right
+    const spaceOnRight = window.innerWidth - (e.clientX - mouseX + width);
+    setZoomPanelSide(spaceOnRight >= ZOOM_PANEL_SIZE + 24 ? "right" : "left");
+
+    setShowLens(true);
   };
 
-  const handleMouseLeave = () => setShowLens(false);
-
-  /* =================== MOBILE VIEW =================== */
+  /* =================== RENDER MOBILE =================== */
   if (isMobile) {
-    // Calculate the container width for drag offset percentage
-    const containerWidth = mainRef.current?.offsetWidth || 1;
-    const dragPercentage = (dragOffset / containerWidth) * (100 / allMedia.length);
-    
     return (
-      <div className="space-y-3 w-full">
-        <div
-          ref={mainRef}
-          className="relative aspect-square w-full bg-white overflow-hidden"
+      <div className="w-full bg-white overflow-hidden">
+        <div 
+          className="relative aspect-square touch-none"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div
-            className={`flex h-full items-start ${isDragging ? '' : 'transition-transform duration-300 ease-out'}`}
-            style={{
-              width: `${allMedia.length * 100}%`,
-              transform: `translateX(calc(-${currentIndex * (100 / allMedia.length)}% + ${dragOffset}px))`
-            }}
+          <div 
+            className={`flex h-full w-full ${isTransitioning ? 'transition-transform duration-300 ease-out' : ''}`}
+            style={{ transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))` }}
           >
-            {allMedia.map((media, i) => (
-              <div 
-                key={i} 
-                className="flex-shrink-0 flex items-start relative"
-                style={{ width: `${100 / allMedia.length}%` }} 
-              >
+            {mobileMedia.map((media, i) => (
+              <div key={`${media}-${i}`} className="w-full h-full flex-shrink-0 relative bg-black">
                 {isVideo(media) ? (
-                  <div 
-                    ref={i === currentIndex ? videoContainerRef : null}
-                    className="relative w-full h-full"
-                  >
-                    <video
-                      ref={i === currentIndex ? videoRef : null}
-                      src={media}
-                      className="w-full h-full object-cover object-top"
-                      poster={product.image}
-                      preload="metadata"
-                      playsInline
-                      loop
-                      onPlay={() => {
-                        setIsVideoPlaying(true);
-                        setShowPlayButton(false);
-                      }}
-                      onPause={() => {
-                        setIsVideoPlaying(false);
-                        setShowPlayButton(true);
-                      }}
-                      onEnded={() => {
-                        setIsVideoPlaying(false);
-                        setShowPlayButton(true);
-                        setVideoProgress(0);
-                      }}
-                      onTimeUpdate={(e) => {
-                        const video = e.currentTarget;
-                        if (video.duration) {
-                          setVideoProgress((video.currentTime / video.duration) * 100);
-                        }
-                      }}
+                  <div className="relative w-full h-full" onClick={togglePlay}>
+                    <video 
+                      ref={el => { if(el) videoRefs.current.set(i, el) }}
+                      src={media} 
+                      className="w-full h-full object-contain" 
+                      playsInline loop muted={isMuted}
                     />
-                    {/* Video progress bar */}
-                    {isVideoPlaying && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-                        <div 
-                          className="h-full bg-primary transition-all duration-100 ease-linear"
-                          style={{ width: `${videoProgress}%` }}
-                        />
-                      </div>
-                    )}
-                    {/* Play/Pause button overlay */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (videoRef.current) {
-                          if (isVideoPlaying) {
-                            videoRef.current.pause();
-                          } else {
-                            videoRef.current.play();
-                          }
-                        }
-                      }}
-                      className="absolute inset-0 flex items-center justify-center transition-opacity"
-                      aria-label={isVideoPlaying ? "Pause video" : "Play video"}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                       {!isPlaying && <div className="p-4 bg-black/40 rounded-full backdrop-blur-sm"><Play className="text-white w-8 h-8 fill-current" /></div>}
+                    </div>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                        className="absolute bottom-16 right-4 p-2 bg-black/50 rounded-full text-white"
                     >
-                      <div className={`w-14 h-14 rounded-full bg-black/50 flex items-center justify-center transition-opacity duration-200 ${isVideoPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
-                        {isVideoPlaying ? (
-                          <Pause className="w-7 h-7 text-white" />
-                        ) : (
-                          <Play className="w-7 h-7 text-white ml-0.5" />
-                        )}
-                      </div>
+                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                     </button>
                   </div>
                 ) : (
-                  <OptimizedImage
-                    src={media}
-                    alt={product.name}
-                    width={800}
-                    height={800}
-                    className="w-full h-full object-cover object-top"
-                    priority={i === currentIndex}
-                  />
+                  <OptimizedImage src={media} alt={product.name} className="w-full h-full object-cover" />
                 )}
               </div>
             ))}
           </div>
-          
-          {allMedia.length > 1 && (
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-2 p-2 z-10">
-              {allMedia.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => changeImage(i)}
-                  className={`h-2 rounded-full transition-colors duration-300 flex-shrink-0 ${
-                      i === currentIndex ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/70 w-2'
-                  }`}
-                  aria-label={`Go to image ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-black/20 backdrop-blur-md rounded-full">
+            {rawMedia.map((_, i) => {
+              let activeDot = currentIndex - 1;
+              if (currentIndex === 0) activeDot = rawMedia.length - 1;
+              if (currentIndex === mobileMedia.length - 1) activeDot = 0;
+              return (
+                <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeDot ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   }
 
+  /* =================== RENDER DESKTOP =================== */
   return (
-    <div className="flex flex-row gap-6 items-start w-full max-w-5xl mx-auto p-4 bg-white shadow-lg">
-      {/* 1. Thumbnails on the left */}
-      {allMedia.length > 1 && (
-        <div
-          ref={thumbsRef}
-          className="flex flex-col gap-2 overflow-y-auto max-h-[500px] scrollbar-hide flex-shrink-0"
-        >
-          {allMedia.map((media, i) => (
-            <button
-              key={i}
-              onClick={() => changeImage(i)}
-              className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                  currentIndex === i
-                    ? "border-green-500 ring-2 ring-green-200 shadow-md"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              aria-label={`View image ${i + 1}`}
-            >
-              {isVideo(media) ? (
-                <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                  <OptimizedImage
-                    src={product.image}
-                    alt="Video thumbnail"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Play icon overlay centered on thumbnail */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center">
-                      <Play className="w-4 h-4 text-white ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <OptimizedImage
-                  src={media}
-                  alt={`thumb-${i}`}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 2. Main Image Container */}
-      <div className="relative flex justify-center items-start flex-grow">
-        {/* Main Image Wrapper (Fixed Size) */}
+    <div className="flex flex-col gap-3 w-full select-none items-center" style={{ width: MAIN_SIZE }}>
+      {/* Main image */}
+      <div className="relative group" style={{ width: MAIN_SIZE, height: MAIN_SIZE }}>
         <div
           ref={mainRef}
-          className="relative bg-white overflow-hidden rounded-lg shadow-xl cursor-zoom-in w-[400px] h-[400px]"
+          className="w-full h-full border rounded-xl bg-white overflow-hidden relative cursor-crosshair"
           onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+          onMouseLeave={() => setShowLens(false)}
         >
-          {isVideo(allMedia[currentIndex]) ? (
-            <video
-              src={allMedia[currentIndex]}
-              controls
-              className="w-full h-full object-contain"
-              poster={product.image}
-              preload="metadata"
-            />
+          {isVideo(rawMedia[currentIndex]) ? (
+            <div className="relative w-full h-full group/video bg-black">
+                <video 
+                    ref={el => { if(el) videoRefs.current.set(currentIndex, el) }}
+                    src={rawMedia[currentIndex]} 
+                    className="w-full h-full object-contain"
+                    controlsList="nodownload"
+                    onClick={togglePlay}
+                    loop
+                />
+                <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
+                    <button onClick={togglePlay} className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80">
+                        {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" />}
+                    </button>
+                </div>
+            </div>
           ) : (
-            <OptimizedImage
-              src={allMedia[currentIndex]}
-              alt={product.name}
-              width={800}
-              height={800}
-              className="w-full h-full object-contain"
-              priority={currentIndex === 0}
-            />
+            <img src={rawMedia[currentIndex]} className="w-full h-full object-contain" alt={product.name} />
           )}
-          
-          {/* Lens Overlay (follows cursor) */}
-          {showLens && !isVideo(allMedia[currentIndex]) && (
+
+          {/* Lens overlay */}
+          {showLens && !isVideo(rawMedia[currentIndex]) && (
             <div
-              className="absolute border-2 border-gray-900 bg-black/50 rounded-lg shadow-2xl pointer-events-none transition-opacity duration-100"
+              className="absolute pointer-events-none rounded-md border-2 border-primary/60 bg-primary/5 shadow-inner"
               style={{
-                width: lensSize,
-                height: lensSize,
-                transform: `translate(${lensPos.x}px, ${lensPos.y}px)`,
-                opacity: showLens ? 1 : 0,
+                width: LENS_SIZE,
+                height: LENS_SIZE,
+                left: lensPos.x,
+                top: lensPos.y,
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.4) inset",
               }}
             />
           )}
-        </div> 
+        </div>
 
-        {/* 3. Magnified View Panel - FIX APPLIED HERE */}
-        {showLens && !isVideo(allMedia[currentIndex]) && (
+        {/* Zoom panel — always fully filled, never shows white edges */}
+        {showLens && !isVideo(rawMedia[currentIndex]) && (
           <div
-            className="absolute left-full top-0 ml-6 w-[400px] h-[400px] bg-white rounded-lg shadow-2xl overflow-hidden border border-gray-200 z-50"
+            className="absolute top-0 z-[100] border bg-white shadow-2xl rounded-xl overflow-hidden pointer-events-none"
+            style={{
+              width: ZOOM_PANEL_SIZE,
+              height: ZOOM_PANEL_SIZE,
+              ...(zoomPanelSide === "right"
+                ? { left: `calc(100% + 16px)` }
+                : { right: `calc(100% + 16px)` }),
+            }}
           >
-            {/* Inner wrapper for the zoom transform */}
+            {/* The large image div is clamped so it always fills the panel */}
             <div
-              className="relative transition-transform duration-50 ease-out"
               style={{
-                // Set the size of the container to the MAGNIFIED size
-                width: `${mainImageSize * zoomLevel}px`,
-                height: `${mainImageSize * zoomLevel}px`,
-                // Translate the magnified image container to center the focused area
-                transform: `translate(
-                    ${mainImageSize / 2 - backgroundPos.x * zoomLevel}px,
-                    ${mainImageSize / 2 - backgroundPos.y * zoomLevel}px
-                )`,
+                width: LARGE_SIZE,
+                height: LARGE_SIZE,
+                transform: `translate(${zoomTranslate.x}px, ${zoomTranslate.y}px)`,
+                willChange: "transform",
               }}
             >
-              {/* 🛑 CHANGE: Switched to standard <img> tag */}
               <img
-                src={allMedia[currentIndex]}
-                alt={product.name + " - Magnified"}
-                // Important: Use full width/height and object-cover
-                className="w-full h-full absolute top-0 left-0"
-                style={{
-                  objectFit: 'cover' 
-                }}
+                src={rawMedia[currentIndex]}
+                className="w-full h-full object-contain"
+                alt="Zoomed"
+                draggable={false}
               />
             </div>
           </div>
         )}
-      </div> {/* End of Main Image Container Group */}
-    </div> /* End of desktop container */
+      </div>
+
+      {/* Horizontal thumbnail strip */}
+      {rawMedia.length > 1 && (
+        <div
+          ref={thumbnailStripRef}
+          className="flex gap-2 overflow-x-auto pb-1 w-full"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <style>{`.thumb-strip::-webkit-scrollbar { display: none; }`}</style>
+          {rawMedia.map((media, i) => (
+            <button
+              key={i}
+              onMouseEnter={() => setCurrentIndex(i)}
+              onClick={() => setCurrentIndex(i)}
+              className={`
+                relative flex-shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden
+                transition-all duration-200 ease-out outline-none
+                ${currentIndex === i
+                  ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-105 shadow-md"
+                  : "ring-1 ring-transparent opacity-55 hover:opacity-90 hover:scale-102 hover:ring-gray-200 hover:ring-offset-1"
+                }
+              `}
+              aria-label={`View image ${i + 1}`}
+            >
+              {/* Video badge */}
+              {isVideo(media) && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
+                    <Play className="w-3 h-3 text-white fill-current" />
+                  </div>
+                </div>
+              )}
+              <img
+                src={isVideo(media) ? product.image : media}
+                className="w-full h-full object-cover"
+                alt={`Thumbnail ${i + 1}`}
+                draggable={false}
+              />
+              {/* Active bottom bar */}
+              <div
+                className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-left ${
+                  currentIndex === i ? "scale-x-100" : "scale-x-0"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
-}
+};
 
 export default EnhancedProductImageGallery;

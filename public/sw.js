@@ -15,7 +15,6 @@ const CACHE_DURATION = {
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
-  '/offline.html',
   '/smartkenya-logo.png',
   '/apple-touch-icon.png',
   '/android-chrome-192x192.png',

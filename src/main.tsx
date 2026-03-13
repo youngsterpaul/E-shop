@@ -1,5 +1,4 @@
 import { StrictMode } from 'react';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,8 +12,6 @@ import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { FlashSaleProvider } from '@/contexts/FlashSaleContext';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
-//import { CookieConsent } from '@/components/CookieConsent';
-//import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { OfflineCacheManager } from '@/components/OfflineCacheManager';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
@@ -24,11 +21,8 @@ import { VersionManager } from '@/components/VersionManager';
 import SecurityHeaders from '@/components/SecurityHeaders';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
 import CriticalCSS from '@/components/performance/CriticalCSS';
-//import { UpdateNotification } from '@/components/UpdateNotification';
-// import { CacheManager } from '@/components/CacheManager';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { Analytics } from "@vercel/analytics/next"
 import { EnhancedSEO } from '@/components/EnhancedSEO';
 import { ABTestProvider } from '@/components/ABTestProvider';
 import App from './App.tsx';
@@ -52,7 +46,6 @@ const AppWithAnalytics = () => {
       <VersionManager />
       <App />
       <ProductionAnalytics />
-      {/* <UpdateNotification /> */}
     </>
   );
 };
@@ -85,10 +78,7 @@ createRoot(document.getElementById('root')!).render(
                           <CheckoutProvider>
                           <AccessibilitySkipLink />
                           <AppWithAnalytics />
-                        {/* <CookieConsent /> */}
-                        <SpeedInsights />
-                        {/* <Analytics />*/}
-                        {/* <PWAInstallPrompt /> */}
+                          <SpeedInsights />
                           <OfflineIndicator />
                           <OfflineCacheManager />
                           </CheckoutProvider>

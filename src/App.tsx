@@ -12,7 +12,6 @@ import SecurityHeaders from './components/SecurityHeaders';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import ChatWidget from './components/chat/ChatWidget';
 import { OfflineDataPreloader } from './components/OfflineDataPreloader';
-import { useSwipeBack } from './hooks/useSwipeBack';
 import { useUserBehaviorTracking } from './hooks/useUserBehaviorTracking';
 import { useMobileHeaderProps } from './hooks/useMobileHeaderProps';
 import AppRoutes from './routes/AppRoutes';

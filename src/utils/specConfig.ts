@@ -27,7 +27,6 @@ export interface SpecConfig {
 // Reuse these across similar categories instead of duplicating entries.
 
 const BRAND:         SpecConfig = { key: 'brand',          label: 'Brand' };
-const COLOR:         SpecConfig = { key: 'color',          label: 'Color' };
 const MATERIAL:      SpecConfig = { key: 'material',       label: 'Material' };
 const WEIGHT:        SpecConfig = { key: 'weight',         label: 'Weight' };
 const CONNECTIVITY:  SpecConfig = { key: 'connectivity',   label: 'Connectivity' };
@@ -65,12 +64,12 @@ const DIMENSIONS:    SpecConfig = { key: 'dimensions',     label: 'Dimensions' }
 
 // ─── Fallback (used when category has no specific config) ─────────────────────
 export const FALLBACK_SPEC_CONFIG: SpecConfig[] = [
-  BRAND, CONNECTIVITY, INTERFACE, COLOR, MATERIAL, WEIGHT,
+  BRAND, CONNECTIVITY, INTERFACE, MATERIAL, WEIGHT,
 ];
 
 // ─── Default (used on the search page across all categories) ──────────────────
 export const DEFAULT_SPEC_CONFIG: SpecConfig[] = [
-  BRAND, STORAGE, RAM, PROCESSOR, COLOR, SCREEN_SIZE,
+  BRAND, STORAGE, RAM, PROCESSOR, SCREEN_SIZE,
   CONNECTIVITY, INTERFACE, MATERIAL, WEIGHT,
 ];
 
@@ -79,21 +78,21 @@ export const DEFAULT_SPEC_CONFIG: SpecConfig[] = [
 const SPEC_CONFIG_MAP: Record<string, SpecConfig[]> = {
 
   // Laptops & Computers
-  'laptops': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, GPU, OS, COLOR, BATTERY],
-  'gaming-laptops': [BRAND, PROCESSOR, GPU, RAM, STORAGE, SCREEN_SIZE, REFRESH_RATE, COLOR],
+  'laptops': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, GPU, OS, BATTERY],
+  'gaming-laptops': [BRAND, PROCESSOR, GPU, RAM, STORAGE, SCREEN_SIZE, REFRESH_RATE],
   'desktops': [BRAND, PROCESSOR, RAM, STORAGE, GPU, OS, FORM_FACTOR],
-  'all-in-one-computers': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, OS, COLOR],
+  'all-in-one-computers': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, OS],
   'chromebooks': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, BATTERY],
 
   // Monitors & Displays
-  'monitors': [BRAND, SCREEN_SIZE, PANEL_TYPE, RESOLUTION, REFRESH_RATE, CONNECTIVITY, COLOR],
+  'monitors': [BRAND, SCREEN_SIZE, PANEL_TYPE, RESOLUTION, REFRESH_RATE, CONNECTIVITY],
   'gaming-monitors': [BRAND, SCREEN_SIZE, PANEL_TYPE, REFRESH_RATE, RESOLUTION, CONNECTIVITY],
   'portable-monitors': [BRAND, SCREEN_SIZE, RESOLUTION, CONNECTIVITY, WEIGHT],
 
   // Storage
   'hard-drives': [BRAND, CAPACITY, SPEED, INTERFACE, FORM_FACTOR],
   'ssds': [BRAND, CAPACITY, SPEED, INTERFACE, FORM_FACTOR],
-  'usb-flash-drives': [BRAND, CAPACITY, INTERFACE, COLOR],
+  'usb-flash-drives': [BRAND, CAPACITY, INTERFACE],
   'memory-cards': [BRAND, CAPACITY, SPEED],
   'nas-storage': [BRAND, CAPACITY, CONNECTIVITY, FORM_FACTOR],
 
@@ -107,27 +106,27 @@ const SPEC_CONFIG_MAP: Record<string, SpecConfig[]> = {
   'network-cables': [BRAND, SPEED, { key: 'length', label: 'Length' }],
 
   // Input Devices
-  'keyboards': [BRAND, SWITCH_TYPE, LAYOUT, CONNECTIVITY, COLOR, COMPATIBILITY],
+  'keyboards': [BRAND, SWITCH_TYPE, LAYOUT, CONNECTIVITY, COMPATIBILITY],
   'gaming-keyboards': [BRAND, SWITCH_TYPE, LAYOUT, CONNECTIVITY, { key: 'rgb', label: 'RGB Lighting' }],
-  'mice': [BRAND, DPI, SENSOR, CONNECTIVITY, COLOR, COMPATIBILITY],
+  'mice': [BRAND, DPI, SENSOR, CONNECTIVITY, COMPATIBILITY],
   'gaming-mice': [BRAND, DPI, SENSOR, CONNECTIVITY, { key: 'rgb', label: 'RGB Lighting' }],
   'webcams': [BRAND, RESOLUTION, { key: 'fps', label: 'Frame Rate' }, CONNECTIVITY],
   'graphics-tablets': [BRAND, { key: 'active_area', label: 'Active Area' }, CONNECTIVITY],
 
   // Audio
-  'headphones': [BRAND, CONNECTIVITY, NOISE_CANCEL, DRIVER_SIZE, FREQUENCY, COLOR],
+  'headphones': [BRAND, CONNECTIVITY, NOISE_CANCEL, DRIVER_SIZE, FREQUENCY],
   'gaming-headsets': [BRAND, CONNECTIVITY, { key: 'surround_sound', label: 'Surround Sound' }, COMPATIBILITY],
-  'earbuds': [BRAND, CONNECTIVITY, NOISE_CANCEL, { key: 'battery_life', label: 'Battery Life' }, COLOR],
-  'speakers': [BRAND, CONNECTIVITY, WATTAGE, COLOR],
+  'earbuds': [BRAND, CONNECTIVITY, NOISE_CANCEL, { key: 'battery_life', label: 'Battery Life' }],
+  'speakers': [BRAND, CONNECTIVITY, WATTAGE],
   'microphones': [BRAND, { key: 'polar_pattern', label: 'Polar Pattern' }, CONNECTIVITY, INTERFACE],
 
   // Peripherals & Accessories
-  'usb-hubs': [BRAND, PORTS, INTERFACE, COLOR],
+  'usb-hubs': [BRAND, PORTS, INTERFACE],
   'docking-stations': [BRAND, PORTS, CONNECTIVITY, COMPATIBILITY],
-  'laptop-bags': [BRAND, { key: 'size_compatibility', label: 'Size Compatibility' }, MATERIAL, COLOR],
-  'laptop-stands': [BRAND, MATERIAL, COMPATIBILITY, COLOR],
-  'cable-management': [BRAND, MATERIAL, COLOR],
-  'mouse-pads': [BRAND, { key: 'size', label: 'Size' }, MATERIAL, COLOR],
+  'laptop-bags': [BRAND, { key: 'size_compatibility', label: 'Size Compatibility' }, MATERIAL],
+  'laptop-stands': [BRAND, MATERIAL, COMPATIBILITY],
+  'cable-management': [BRAND, MATERIAL],
+  'mouse-pads': [BRAND, { key: 'size', label: 'Size' }, MATERIAL],
 
   // Power
   'power-banks': [BRAND, CAPACITY, { key: 'output_ports', label: 'Output Ports' }, { key: 'fast_charge', label: 'Fast Charge' }],
@@ -136,39 +135,39 @@ const SPEC_CONFIG_MAP: Record<string, SpecConfig[]> = {
   'chargers': [BRAND, WATTAGE, CONNECTIVITY, COMPATIBILITY],
 
   // Printers & Scanners
-  'printers': [BRAND, PRINT_TECH, INK_TYPE, PRINT_SPEED, CONNECTIVITY, COLOR],
+  'printers': [BRAND, PRINT_TECH, INK_TYPE, PRINT_SPEED, CONNECTIVITY],
   'scanners': [BRAND, RESOLUTION, CONNECTIVITY, { key: 'scan_speed', label: 'Scan Speed' }],
-  'ink-toner': [BRAND, { key: 'page_yield', label: 'Page Yield' }, COLOR, COMPATIBILITY],
+  'ink-toner': [BRAND, { key: 'page_yield', label: 'Page Yield' }, COMPATIBILITY],
 
   // Phones & Tablets
-  'smartphones': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, CAMERA_MP, OS, COLOR, BATTERY],
-  'tablets': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, OS, CONNECTIVITY, COLOR],
-  'phone-cases': [BRAND, MATERIAL, COLOR, COMPATIBILITY],
+  'smartphones': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, CAMERA_MP, OS, BATTERY],
+  'tablets': [BRAND, PROCESSOR, RAM, STORAGE, SCREEN_SIZE, OS, CONNECTIVITY],
+  'phone-cases': [BRAND, MATERIAL, COMPATIBILITY],
   'screen-protectors': [BRAND, MATERIAL, COMPATIBILITY],
 
   // Cameras
-  'cameras': [BRAND, CAMERA_MP, ZOOM, { key: 'sensor_size', label: 'Sensor Size' }, COLOR],
+  'cameras': [BRAND, CAMERA_MP, ZOOM, { key: 'sensor_size', label: 'Sensor Size' }],
   'camera-lenses': [BRAND, { key: 'focal_length', label: 'Focal Length' }, COMPATIBILITY],
-  'camera-accessories': [BRAND, COMPATIBILITY, COLOR],
+  'camera-accessories': [BRAND, COMPATIBILITY],
 
   // Smart Home & IoT
-  'smart-speakers': [BRAND, CONNECTIVITY, COLOR],
-  'smart-displays': [BRAND, SCREEN_SIZE, CONNECTIVITY, COLOR],
+  'smart-speakers': [BRAND, CONNECTIVITY],
+  'smart-displays': [BRAND, SCREEN_SIZE, CONNECTIVITY],
   'security-cameras': [BRAND, RESOLUTION, CONNECTIVITY, { key: 'night_vision', label: 'Night Vision' }],
 
   // Gaming
-  'gaming-consoles': [BRAND, { key: 'storage', label: 'Storage' }, COLOR],
-  'gaming-controllers': [BRAND, CONNECTIVITY, COMPATIBILITY, COLOR],
-  'gaming-chairs': [BRAND, MATERIAL, COLOR, { key: 'max_weight', label: 'Max Weight' }],
-  'gaming-desks': [BRAND, MATERIAL, COLOR, DIMENSIONS],
+  'gaming-consoles': [BRAND, { key: 'storage', label: 'Storage' }],
+  'gaming-controllers': [BRAND, CONNECTIVITY, COMPATIBILITY],
+  'gaming-chairs': [BRAND, MATERIAL, { key: 'max_weight', label: 'Max Weight' }],
+  'gaming-desks': [BRAND, MATERIAL, DIMENSIONS],
 
   // Components
   'processors-cpus': [BRAND, { key: 'cores', label: 'Cores' }, SPEED, SOCKET_TYPE, COMPATIBILITY],
   'graphics-cards': [BRAND, GPU, { key: 'vram', label: 'VRAM' }, CONNECTIVITY],
   'motherboards': [BRAND, FORM_FACTOR, SOCKET_TYPE, { key: 'chipset', label: 'Chipset' }, COMPATIBILITY],
   'power-supplies': [BRAND, WATTAGE, { key: 'efficiency', label: 'Efficiency Rating' }, FORM_FACTOR],
-  'pc-cases': [BRAND, FORM_FACTOR, MATERIAL, COLOR],
-  'cpu-coolers': [BRAND, { key: 'cooling_type', label: 'Cooling Type' }, COMPATIBILITY, COLOR],
+  'pc-cases': [BRAND, FORM_FACTOR, MATERIAL],
+  'cpu-coolers': [BRAND, { key: 'cooling_type', label: 'Cooling Type' }, COMPATIBILITY],
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────

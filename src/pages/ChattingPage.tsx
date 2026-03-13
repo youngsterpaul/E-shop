@@ -1,59 +1,102 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Headphones, Loader2, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { useChat } from '@/hooks/useChat';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserUnreadChat } from '@/hooks/useUserUnreadChat';
-import { cn } from '@/lib/utils';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import { Send, User, Bot, Headphones, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserUnreadChat } from "@/hooks/useUserUnreadChat";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const ChattingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { messages, isLoading, isStreaming, sendMessage, requestAdmin, conversation } = useChat();
   const { markAsRead } = useUserUnreadChat();
-  const [inputValue, setInputValue] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Mark messages as read when entering chat
+  const [inputValue, setInputValue] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /* -----------------------------
+     Dynamic viewport height fix
+     ----------------------------- */
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      const viewportHeight =
+        window.visualViewport?.height || window.innerHeight;
+
+      document.documentElement.style.setProperty(
+        "--viewport-height",
+        `${viewportHeight}px`
+      );
+    };
+
+    updateViewportHeight();
+
+    window.visualViewport?.addEventListener("resize", updateViewportHeight);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateViewportHeight);
+    };
+  }, []);
+
+  /* -----------------------------
+     Mark messages as read
+     ----------------------------- */
   useEffect(() => {
     markAsRead();
   }, [markAsRead, messages]);
 
-  // Scroll to bottom on new messages
+  /* -----------------------------
+     Auto scroll to latest message
+     ----------------------------- */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isStreaming]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
+
     const message = inputValue;
-    setInputValue('');
+    setInputValue("");
+
     await sendMessage(message);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
+  /* -----------------------------
+     If user not logged in
+     ----------------------------- */
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-        <Bot className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Sign in to Chat</h2>
-        <p className="text-muted-foreground text-center mb-4">
-          Please sign in to access our customer support chat.
+      <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
+        <div className="bg-muted rounded-full p-6 mb-4">
+          <Bot className="h-10 w-10 text-muted-foreground" />
+        </div>
+
+        <h2 className="text-lg font-semibold tracking-tight">
+          Sign in to Chat
+        </h2>
+
+        <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-[250px]">
+          Access our 24/7 support by signing into your account.
         </p>
-        <Button onClick={() => navigate('/auth', { state: { redirectAfterAuth: '/chat' } })}>
+
+        <Button
+          size="sm"
+          onClick={() =>
+            navigate("/auth", { state: { redirectAfterAuth: "/chat" } })
+          }
+        >
           Sign In
         </Button>
       </div>
@@ -61,147 +104,170 @@ const ChattingPage = () => {
   }
 
   return (
-    <div className="flex flex-col max-w-3xl mx-auto">
-      {/* Chat Header */}
-      <div className="bg-primary text-primary-foreground p-4 /rounded-t-lg md:mt-4 flex items-center gap-3">
-        <div className="h-12 w-12 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-          <Bot className="h-6 w-6" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-md">SmartKenya Assistant</h3>
-          <p className="text-sm opacity-80">
-            {conversation?.status === 'pending_admin' 
-              ? 'Waiting for admin response...' 
-              : 'AI-powered support • Available 24/7'}
-          </p>
-        </div>
-        {conversation?.status === 'pending_admin' && (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
-            <Headphones className="h-3 w-3 mr-1" />
-            Admin Requested
-          </Badge>
-        )}
-      </div>
+    <div className="flex flex-col h-[calc(var(--viewport-height)-2rem)] max-w-2xl mx-auto bg-background border rounded-xl overflow-hidden shadow-sm mb-4">
 
-      {/* Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 p-4 bg-background border-x">
-        <div className="space-y-4">
+      {/* -----------------------------
+          Messages Area
+      ----------------------------- */}
+      <ScrollArea className="flex-1 pt-20 p-4 pb-2 bg-slate-50/30">
+        <div className="space-y-6">
+
           {messages.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
-              <Bot className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">How can we help you?</h3>
-              <p className="text-sm max-w-sm mx-auto">
-                Ask me anything about products, orders, returns, or any other questions you have.
+            <div className="text-center py-10">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-4">
+                <Bot className="h-6 w-6 text-primary/60" />
+              </div>
+
+              <h3 className="text-sm font-medium">
+                Start a conversation
+              </h3>
+
+              <p className="text-[12px] text-muted-foreground mt-1">
+                Ask about orders, products, or returns.
               </p>
             </div>
           )}
-          
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex gap-3",
-                message.sender_type === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
-              {message.sender_type !== 'user' && (
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarFallback className={cn(
-                    message.sender_type === 'admin' 
-                      ? 'bg-green-100 text-green-600' 
-                      : 'bg-primary/10 text-primary'
-                  )}>
-                    {message.sender_type === 'admin' ? <Headphones className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
-              <div className={cn(
-                "max-w-[80%] rounded-2xl px-4 py-3",
-                message.sender_type === 'user' 
-                  ? 'bg-primary text-primary-foreground rounded-br-md' 
-                  : 'bg-muted rounded-bl-md'
-              )}>
-                {message.sender_type === 'admin' && (
-                  <Badge variant="secondary" className="mb-2 text-xs">Support Agent</Badge>
-                )}
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                <p className={cn(
-                  "text-[11px] mt-2",
-                  message.sender_type === 'user' ? 'text-primary-foreground/60' : 'text-muted-foreground'
-                )}>
-                  {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
 
-              {message.sender_type === 'user' && (
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarFallback className="bg-secondary">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))}
+          {messages.map((message) => {
+            const isUser = message.sender_type === "user";
+
+            return (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex gap-2.5",
+                  isUser ? "justify-end" : "justify-start"
+                )}
+              >
+                {!isUser && (
+                  <Avatar className="h-7 w-7 mt-0.5 border">
+                    <AvatarFallback
+                      className={cn(
+                        "text-[10px]",
+                        message.sender_type === "admin"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-blue-50 text-blue-600"
+                      )}
+                    >
+                      {message.sender_type === "admin" ? (
+                        <Headphones className="h-3.5 w-3.5" />
+                      ) : (
+                        <Bot className="h-3.5 w-3.5" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+
+                <div
+                  className={cn(
+                    "flex flex-col gap-1.5 max-w-[85%]",
+                    isUser ? "items-end" : "items-start"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "px-3.5 py-2 shadow-sm text-[13px] leading-relaxed",
+                      isUser
+                        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none"
+                        : "bg-white border rounded-2xl rounded-tl-none text-slate-700"
+                    )}
+                  >
+                    {message.sender_type === "admin" && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <Badge
+                          variant="outline"
+                          className="text-[9px] px-1.5 py-0 uppercase bg-emerald-50/50 text-emerald-700 border-emerald-100"
+                        >
+                          Agent
+                        </Badge>
+                      </div>
+                    )}
+
+                    <p className="whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                  </div>
+
+                  <span className="text-[10px] text-muted-foreground px-1">
+                    {new Date(message.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                {isUser && (
+                  <Avatar className="h-7 w-7 mt-0.5 border">
+                    <AvatarFallback className="bg-slate-100 text-slate-500 text-[10px]">
+                      <User className="h-3.5 w-3.5" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            );
+          })}
 
           {isStreaming && (
-            <div className="flex gap-3 justify-start">
-              <Avatar className="h-9 w-9 shrink-0">
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  <Bot className="h-4 w-4" />
+            <div className="flex gap-2.5 justify-start">
+              <Avatar className="h-7 w-7 border">
+                <AvatarFallback className="bg-blue-50 text-blue-600">
+                  <Bot className="h-3.5 w-3.5" />
                 </AvatarFallback>
               </Avatar>
-              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex gap-1.5">
-                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
+
+              <div className="bg-white border rounded-2xl rounded-tl-none px-4 py-3 flex gap-1">
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" />
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
               </div>
             </div>
           )}
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
-      {/* Request Admin Button */}
-      {conversation?.status === 'active' && messages.length > 2 && (
-        <div className="px-4 py-2 bg-background border-x">
+      {/* -----------------------------
+          Footer Input
+      ----------------------------- */}
+      <div className="p-3 bg-background border-t">
+
+        {conversation?.status === "active" && messages.length > 2 && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={requestAdmin}
-            className="w-full"
+            className="w-full h-8 text-[11px] font-medium text-primary hover:bg-primary/5 mb-3"
           >
-            <Headphones className="h-4 w-4 mr-2" />
-            Talk to a human agent
+            <Headphones className="h-3 w-3 mr-2" />
+            Connect with a human agent
           </Button>
-        </div>
-      )}
+        )}
 
-      {/* Input */}
-      <div className="p-4 border bottom-4 right-0 left-0 fixed rounded-b-lg bg-background">
-        <div className="flex gap-2">
+        <div className="flex gap-2 fixed bottom-0 left-0 right-0 p-2 bg-white border-t items-center">
+
           <Input
-            ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder="Write a message..."
             disabled={isLoading}
-            className="flex-1"
+            className="border-0 bg-transparent focus-visible:ring-0 text-[13px] h-9"
           />
+
           <Button
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading}
-            size="icon"
+            size="sm"
+            className="h-8 w-8 rounded-lg shrink-0"
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-3.5 w-3.5" />
             )}
           </Button>
+
         </div>
       </div>
     </div>

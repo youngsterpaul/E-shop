@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useRef, useCallback } from 'react';
+import { useState, useEffect, memo, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, ShoppingBag, Grid3X3 } from 'lucide-react';
 import LazyImage from '@/components/LazyImage';
@@ -172,6 +172,48 @@ const EnhancedHeroSection = memo(() => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
+
+  // ── Mobile swipe state ──
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const swipeStartTime = useRef<number>(0);
+
+  // Cloned slide array for infinite loop: [last, ...slides, first]
+  const mobileSlides = useMemo(() => {
+    if (heroSlides.length <= 1) return heroSlides;
+    return [heroSlides[heroSlides.length - 1], ...heroSlides, heroSlides[0]];
+  }, [heroSlides]);
+
+  // mobileIndex starts at 1 (first real slide, after the leading clone)
+  const [mobileIndex, setMobileIndex] = useState(1);
+
+  useEffect(() => { setMobileIndex(1); }, [heroSlides.length]);
+
+  // Infinite-loop: silently jump from clone back to real slide after transition
+  useEffect(() => {
+    if (!isMobile || isDragging || heroSlides.length <= 1) return;
+    if (mobileIndex === 0) {
+      const t = setTimeout(() => { setIsTransitioning(false); setMobileIndex(mobileSlides.length - 2); }, 300);
+      return () => clearTimeout(t);
+    }
+    if (mobileIndex === mobileSlides.length - 1) {
+      const t = setTimeout(() => { setIsTransitioning(false); setMobileIndex(1); }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [mobileIndex, isMobile, isDragging, mobileSlides.length, heroSlides.length]);
+
+  // Mobile auto-play: advances mobileIndex on the same 5s interval
+  useEffect(() => {
+    if (!isMobile || !isAutoPlaying || heroSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setIsTransitioning(true);
+      setMobileIndex(prev => prev + 1);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isMobile, isAutoPlaying, heroSlides.length]);
+
   useEffect(() => {
     const CACHE_KEY = 'heroSlides';
     const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -217,12 +259,13 @@ const EnhancedHeroSection = memo(() => {
   }, []);
 
   useEffect(() => {
-    if (!isAutoPlaying || heroSlides.length <= 1) return;
+    if (isMobile || !isAutoPlaying || heroSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [isAutoPlaying, heroSlides.length]);
+  }, [isAutoPlaying, heroSlides.length, isMobile]);
+
   const goToSlide = useCallback((index: number) => {
     if (index === currentSlide) return;
     setCurrentSlide(index);
@@ -239,7 +282,9 @@ const EnhancedHeroSection = memo(() => {
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   }, [heroSlides.length]);
+
   const handleSlideClick = () => {
+    if (Math.abs(dragOffset) > 5) return; // ignore swipe-release taps
     const currentSlideData = heroSlides[currentSlide];
     if (currentSlideData?.link) {
       if (currentSlideData.link.startsWith('http')) {
@@ -249,6 +294,43 @@ const EnhancedHeroSection = memo(() => {
       }
     }
   };
+
+  // ── Mobile touch handlers ──
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+    swipeStartTime.current = Date.now();
+    setIsDragging(true);
+    setIsTransitioning(false);
+    setIsAutoPlaying(false); // pause auto-play while dragging
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    setDragOffset(e.targetTouches[0].clientX - touchStartX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null) return;
+    const duration = Date.now() - swipeStartTime.current;
+    const velocity = Math.abs(dragOffset) / duration;
+    setIsDragging(false);
+    setIsTransitioning(true);
+
+    if (Math.abs(dragOffset) > 50 || velocity > 0.5) {
+      setMobileIndex(prev => dragOffset < 0 ? prev + 1 : prev - 1);
+      if (window.navigator.vibrate) window.navigator.vibrate(5);
+    }
+    setDragOffset(0);
+    setTouchStartX(null);
+    setTimeout(() => setIsAutoPlaying(true), 10000); // resume auto-play after 10s
+  };
+
+  // Active dot index accounting for clones
+  const activeDotIndex = useMemo(() => {
+    if (mobileIndex === 0) return heroSlides.length - 1;
+    if (mobileIndex === mobileSlides.length - 1) return 0;
+    return mobileIndex - 1;
+  }, [mobileIndex, mobileSlides.length, heroSlides.length]);
 
   /*
    * Hero Image Guidelines:
@@ -289,6 +371,68 @@ const EnhancedHeroSection = memo(() => {
       </section>
     );
   }
+
+  /* ══════════════════════ MOBILE RENDER ══════════════════════ */
+  if (isMobile) {
+    return (
+      <section
+        className="relative aspect-[2.68/1] mx-2 my-2 rounded-xl overflow-hidden"
+        aria-label="Featured promotions"
+        role="region"
+      >
+        <div
+          className="relative w-full h-full touch-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleSlideClick}
+        >
+          {/* Sliding strip with live drag offset */}
+          <div
+            className={cn("flex h-full w-full", isTransitioning && "transition-transform duration-300 ease-out")}
+            style={{ transform: `translateX(calc(-${mobileIndex * 100}% + ${dragOffset}px))` }}
+          >
+            {mobileSlides.map((slide, i) => (
+              <div key={`${slide.id}-${i}`} className="w-full h-full flex-shrink-0 relative">
+                <LazyImage
+                  src={slide.image_url}
+                  alt={slide.title || `Promotional banner ${i}`}
+                  priority={i === 1}
+                  width={750}
+                  height={280}
+                  aspectRatio="fill"
+                  className="object-cover w-full h-full"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" aria-hidden="true" />
+              </div>
+            ))}
+          </div>
+
+          {/* Original dot style — no background pill */}
+          {heroSlides.length > 1 && (
+            <div
+              className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-20"
+              role="tablist"
+              aria-label="Slide navigation"
+            >
+              {heroSlides.map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "rounded-full transition-all duration-500 shadow-sm",
+                    i === activeDotIndex
+                      ? "w-0.5 h-0.5 bg-primary"
+                      : "w-0.5 h-0.5 bg-background/70"
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section 
       className={cn("relative overflow-hidden", isMobile ? "aspect-[2.68/1] mx-2 my-2 rounded-xl" : "aspect-[2.8/1] max-h-[520px]")}

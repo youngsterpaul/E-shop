@@ -18,10 +18,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MobileBottomActions from '@/components/product/MobileBottomActions';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
-import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
-import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
-import SocialShare from '@/components/SocialShare';
-import TrustBadges from '@/components/TrustBadges';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
 import { useProductTracking } from '@/hooks/useUserBehaviorTracking';
@@ -63,7 +59,6 @@ const ProductDetailsPage: React.FC = () => {
   const { shippingFee, freeShippingThreshold } = useShippingSettings();
   const { calculations } = useSelectiveCart();
   const { data: flashSale } = useProductFlashSale(id || '');
-  const { addToRecentlyViewed } = useRecentlyViewed();
 
   // Fetch category data with parent for breadcrumb link
   const { data: categoryData } = useQuery({
@@ -105,12 +100,6 @@ const ProductDetailsPage: React.FC = () => {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
 
-  // Track recently viewed products
-  useEffect(() => {
-    if (product) {
-      addToRecentlyViewed(product);
-    }
-  }, [product?.product_id]);
 
   // Track product view for personalization (AI-powered recommendations)
   useProductTracking(
@@ -413,14 +402,14 @@ const productForTabs = useMemo(() => {
         <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1200px] mx-auto px-4 lg:px-6 py-6'}`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-8 ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'} gap-8 items-start ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
             <EnhancedProductImageGallery 
               product={productWithImages} 
               selectedImageUrl={selectedColorImageUrl}
               variantImages={variantImages}
             />
 
-            <div className={`space-y-4 ${isMobile ? 'px-2' : 'px-4'}`}>
+            <div className={`space-y-4 px-2 ${isMobile ? '' : 'self-start'}`}>
               <ProductInfo 
                 name={product.name}
                 rating={product.rating}
@@ -465,38 +454,11 @@ const productForTabs = useMemo(() => {
                   <p>✓ Secure payment options</p>
                 </div>
               )}
-
-              {/* Social Share */}
-              {/*
-              {!isMobile && (
-                <div className="pt-4 border-t border-border/50">
-                  <SocialShare 
-                    title={product.name} 
-                    description={product.description || ''} 
-                    variant="compact"
-                  />
-                </div>
-              )} 
-              */}
             </div>
           </div>
 
           {productForTabs && <ProductTabs product={productForTabs} />}
 
-          {/* Trust Badges */}
-          {!isMobile && (
-            <div className="my-8">
-              <TrustBadges variant="compact" />
-            </div>
-          )}
-
-          {/* Recently Viewed 
-          {!isMobile && (
-            <div className={isMobile ? 'px-4' : ''}>
-              <RecentlyViewedProducts excludeProductId={product.product_id} maxItems={6} />
-            </div>
-         )}
-        */}
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}
           />

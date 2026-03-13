@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Share2, Check, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ShoppingCart, Heart, Share2, Check, Zap, Minus, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
@@ -23,9 +21,9 @@ interface AddToCartSectionProps {
   className?: string;
 }
 
-const AddToCartSection = ({ 
-  product, 
-  selectedVariants, 
+const AddToCartSection = ({
+  product,
+  selectedVariants,
   requiredVariants,
   quantity,
   onQuantityChange,
@@ -47,7 +45,6 @@ const AddToCartSection = ({
     const missingVariants = requiredVariants.filter(
       variantType => !selectedVariants[variantType]
     );
-    
     if (missingVariants.length > 0) {
       toast({
         title: "Please select all options",
@@ -60,75 +57,31 @@ const AddToCartSection = ({
   };
 
   const handleAddToCart = async () => {
-    if (!inStock) {
-      toast({
-        title: "Out of Stock",
-        description: "This item is currently out of stock",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validateVariantSelection()) {
-      return;
-    }
-
+    if (!inStock) return toast({ title: "Out of Stock", description: "This item is currently out of stock", variant: "destructive" });
+    if (!validateVariantSelection()) return;
     setIsAddingToCart(true);
-    
     try {
       await addToCart(product.product_id, selectedVariants, quantity);
-      
-      // Show success state
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
-      
-      toast({
-        title: "Added to cart!",
-        description: `${product.name.split('(')[0].trim()} has been added to your cart`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add item to cart",
-        variant: "destructive"
-      });
+      toast({ title: "Added to cart!", description: `${product.name.split('(')[0].trim()} has been added to your cart` });
+    } catch {
+      toast({ title: "Error", description: "Failed to add item to cart", variant: "destructive" });
     } finally {
       setIsAddingToCart(false);
     }
   };
 
   const handleBuyNow = async () => {
-    if (!inStock) {
-      toast({
-        title: "Out of Stock",
-        description: "This item is currently out of stock",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validateVariantSelection()) {
-      return;
-    }
-
+    if (!inStock) return toast({ title: "Out of Stock", description: "This item is currently out of stock", variant: "destructive" });
+    if (!validateVariantSelection()) return;
     setIsBuyingNow(true);
-    
     try {
       await addToCart(product.product_id, selectedVariants, quantity);
-      
-      if (user) {
-        navigate('/checkout');
-      } else {
-        // Store return URL and redirect to auth
-        sessionStorage.setItem('redirectAfterAuth', '/checkout');
-        navigate('/auth');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to proceed to checkout",
-        variant: "destructive"
-      });
+      if (user) navigate('/checkout');
+      else { sessionStorage.setItem('redirectAfterAuth', '/checkout'); navigate('/auth'); }
+    } catch {
+      toast({ title: "Error", description: "Failed to proceed to checkout", variant: "destructive" });
       setIsBuyingNow(false);
     }
   };
@@ -137,43 +90,22 @@ const AddToCartSection = ({
     try {
       if (isInWishlistState) {
         await removeFromWishlist(product.product_id);
-        toast({
-          title: "Removed from wishlist",
-          description: "Item has been removed from your wishlist"
-        });
+        toast({ title: "Removed from wishlist", description: "Item has been removed from your wishlist" });
       } else {
         await addToWishlist(product.product_id);
-        toast({
-          title: "Added to wishlist",
-          description: "Item has been added to your wishlist"
-        });
+        toast({ title: "Added to wishlist", description: "Item has been added to your wishlist" });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update wishlist",
-        variant: "destructive"
-      });
+    } catch {
+      toast({ title: "Error", description: "Failed to update wishlist", variant: "destructive" });
     }
   };
 
   const handleShare = async () => {
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product.name,
-          url: window.location.href,
-        });
-      } catch (error) {
-        // User cancelled sharing
-      }
+      try { await navigator.share({ title: product.name, url: window.location.href }); } catch {}
     } else {
-      // Fallback to clipboard
       await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied!",
-        description: "Product link has been copied to clipboard"
-      });
+      toast({ title: "Link copied!", description: "Product link has been copied to clipboard" });
     }
   };
 
@@ -194,101 +126,105 @@ const AddToCartSection = ({
       {/* Quantity Selector */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium text-gray-900">Quantity</h3>
-        <div className="flex items-center border rounded-md w-fit">
-          <Button
-            variant="ghost"
-            size="sm"
+        <div className="inline-flex items-center rounded-xl bg-gray-50 ring-1 ring-gray-200 overflow-hidden">
+          <button
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
-            className="h-10 w-10 p-0 hover:bg-gray-100"
             disabled={quantity <= 1}
+            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            -
-          </Button>
-          <span className="h-10 px-4 flex items-center justify-center border-x min-w-[3rem]">
+            <Minus size={14} strokeWidth={2.5} />
+          </button>
+          <span className="w-12 h-10 text-center text-sm font-bold text-gray-900 tabular-nums flex items-center justify-center border-x border-gray-200">
             {quantity}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={() => onQuantityChange(quantity + 1)}
-            className="h-10 w-10 p-0 hover:bg-gray-100"
             disabled={product.stock ? quantity >= product.stock : false}
+            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            +
-          </Button>
+            <Plus size={14} strokeWidth={2.5} />
+          </button>
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons — all in one row */}
       <div className="flex flex-wrap gap-3">
-        <Button
+
+        {/* Add to Cart */}
+        <button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
-          className={`h-12 text-base font-semibold transition-all duration-200 ${
-            showSuccess 
-              ? 'bg-green-500 hover:bg-green-600' 
-              : 'bg-orange-500 hover:bg-orange-600'
-          }`}
-          size="lg"
+          className={`
+            relative h-12 px-6 rounded-xl font-semibold text-sm
+            flex items-center justify-center gap-2 overflow-hidden group
+            transition-all duration-200 active:scale-[0.98] select-none
+            disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100
+            ${showSuccess
+              ? 'bg-emerald-500 text-white shadow-[0_4px_14px_rgba(16,185,129,0.4)]'
+              : 'bg-orange-500 text-white shadow-[0_4px_14px_rgba(249,115,22,0.35)] hover:bg-orange-600 hover:shadow-[0_6px_20px_rgba(249,115,22,0.45)]'
+            }
+          `}
         >
+          {/* shine sweep */}
+          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
           {showSuccess ? (
-            <>
-              <Check className="mr-2 h-5 w-5" />
-              Added!
-            </>
+            <><Check size={16} strokeWidth={2.5} /> Added!</>
           ) : isAddingToCart ? (
-            <>
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Adding...
-            </>
+            <><span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" /> Adding...</>
           ) : (
-            <>
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
-            </>
+            <><ShoppingCart size={16} strokeWidth={2} /> Add to Cart</>
           )}
-        </Button>
+        </button>
 
-        <Button
+        {/* Buy Now */}
+        <button
           onClick={handleBuyNow}
           disabled={!inStock || isBuyingNow}
-          className="h-12 text-base font-semibold bg-primary hover:bg-primary/90"
-          size="lg"
+          className="
+            relative h-12 px-6 rounded-xl font-semibold text-sm
+            flex items-center justify-center gap-2 overflow-hidden group
+            bg-gray-900 text-white
+            shadow-[0_4px_14px_rgba(0,0,0,0.22)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.32)] hover:bg-gray-800
+            transition-all duration-200 active:scale-[0.98] select-none
+            disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100
+          "
         >
+          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
           {isBuyingNow ? (
-            <>
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Processing...
-            </>
+            <><span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" /> Processing...</>
           ) : (
-            <>
-              <Zap className="mr-2 h-5 w-5" />
-              Buy Now
-            </>
+            <><Zap size={16} strokeWidth={2} className="fill-current" /> Buy Now</>
           )}
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="lg"
+        </button>
+
+        {/* Wishlist — icon only */}
+        <button
           onClick={handleWishlist}
-          className={`h-12 w-auto px-4 flex items-center gap-2 ${
-            isInWishlistState 
-              ? 'text-red-500 border-red-500 bg-red-50 hover:bg-red-100' 
-              : 'hover:text-red-500 hover:border-red-500'
-          }`}
+          className={`
+            h-12 w-12 rounded-xl flex items-center justify-center
+            ring-1 transition-all duration-200 active:scale-[0.98] select-none
+            ${isInWishlistState
+              ? 'bg-red-50 text-red-500 ring-red-200 hover:bg-red-100 hover:ring-red-300'
+              : 'bg-white text-gray-500 ring-gray-200 hover:bg-gray-50 hover:text-red-500 hover:ring-red-200'
+            }
+          `}
         >
-          <Heart className={`h-5 w-5 ${isInWishlistState ? 'fill-current' : ''}`} />
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="lg"
+          <Heart size={18} strokeWidth={2} className={isInWishlistState ? 'fill-current' : ''} />
+        </button>
+
+        {/* Share — icon only */}
+        <button
           onClick={handleShare}
-          className="h-12 w-12 p-0"
+          className="
+            h-12 w-12 rounded-xl flex items-center justify-center
+            bg-white text-gray-500 ring-1 ring-gray-200
+            hover:bg-gray-50 hover:ring-gray-300 hover:text-gray-900
+            transition-all duration-200 active:scale-[0.98] select-none
+          "
         >
-          <Share2 className="h-5 w-5" />
-        </Button>
+          <Share2 size={18} strokeWidth={2} />
+        </button>
+
       </div>
     </div>
   );
