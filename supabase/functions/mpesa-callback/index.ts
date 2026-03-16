@@ -51,7 +51,7 @@ async function isIPWhitelisted(ip: string, environment: string): Promise<boolean
 
 async function sendPaymentConfirmationEmail(orderId: string) {
   try {
-    // Get order details
+    // ── Fetch order (items are stored as JSONB directly on the orders row) ──
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
@@ -63,81 +63,334 @@ async function sendPaymentConfirmationEmail(orderId: string) {
       return;
     }
 
-    // Validate required fields
     if (!order.email || !order.amount) {
       console.error('Missing required fields for email:', {
         hasEmail: !!order.email,
-        hasAmount: !!order.amount
+        hasAmount: !!order.amount,
       });
       return;
     }
 
     console.log('Sending payment confirmation email to:', order.email);
 
-    // Send email directly using Resend
-    const emailResponse = await resend.emails.send({
-      from: "SMARTKENYA ONLINE SHOPPING <info@smartkenya.co.ke>",
-      to: [order.email],
-      subject: `Payment Successful`,
-      html: `
-        <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Payment Successful!</h1>
-          </div>
-          
-          <div style="background: #fff; padding: 30px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 18px; margin-bottom: 20px;">
-              Hello ${order.username || 'Valued Customer'},
-            </p>
-            
-            <p style="font-size: 16px; margin-bottom: 25px;">
-              Thank you for your payment! We have successfully received your M-Pesa payment and your order is now being processed.
-            </p>
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
-              <h3 style="color: #f97316; margin-top: 0;">Payment Details</h3>
-              <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
-              <p style="margin: 8px 0;"><strong>Amount Paid:</strong> Ksh ${order.amount.toLocaleString()}</p>
-              <p style="margin: 8px 0;"><strong>Payment Method:</strong> M-Pesa</p>
-              <p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #22c55e; font-weight: bold;">Confirmed</span></p>
-            </div>
-            
-            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
-              <h4 style="color: #92400e; margin-top: 0;">What's Next?</h4>
-              <ul style="color: #92400e; margin: 0; padding-left: 20px;">
-                <li>Your order will be processed within 24 hours</li>
-                <li>You'll receive a shipping confirmation email once your order is dispatched</li>
-                <li>Track your order status in your account dashboard</li>
-              </ul>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="https://smartkenya.co.ke/orders" 
-                 style="background: linear-gradient(135deg, #22c55e 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                View Order Status
-              </a>
-            </div>
-            
-            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;">
-            
-            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
-              Need help? Contact our customer support:
-            </p>
-            <p style="font-size: 14px; color: #666; margin: 5px 0;">
-              📧 Email: support@smartkenya.co.ke<br>
-              📞 Phone: +254 798 229 783<br>
-              💬 WhatsApp: +254 798 229 783
-            </p>
-            
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
-              <p style="font-size: 14px; color: #999; margin: 0;">
-                Thank you for shopping with SmartKenya!<br>
-                <a href="https://smartkenya.co.ke" style="color: #f97316;">www.smartkenya.co.ke</a>
+    // ── Config ─────────────────────────────────────────────────────────────
+    const accentHex = '#22c55e';
+    const accentRgb = '34,197,94';
+    const gradient  = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+    const badgeBg   = '#f0fdf4';
+    const year      = new Date().getFullYear();
+
+    const customerName = order.username || 'Valued Customer';
+    const shortId      = orderId.slice(0, 8).toUpperCase();
+    const fullId       = orderId.toUpperCase();
+    const amount       = (order.amount as number).toLocaleString();
+    const mpesaRef     = order.mpesa_receipt_number || order.mpesa_code || '';
+
+    const orderDate = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      timeZone: 'Africa/Nairobi',
+    }).format(new Date(order.created_at || new Date()));
+
+    // ── Items rows with product image ──────────────────────────────────────
+    const items: any[] = Array.isArray(order.items) ? order.items : [];
+
+    const itemsHtml = items.length > 0 ? `
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-top: 8px;">
+        <tr>
+          <td colspan="3" style="padding-bottom: 10px;">
+            <p style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
+                       text-transform: uppercase; color: #94a3b8;">Items Ordered</p>
+          </td>
+        </tr>
+        ${items.map((item: any) => {
+          const qty   = item.quantity  || 1;
+          const price = item.product?.price ?? item.price ?? 0;
+          const name  = item.product?.name  ?? item.name  ?? 'Product';
+          const image = item.product?.image ?? item.product?.images?.[0] ?? item.image ?? '';
+          const total = qty * price;
+
+          return `
+        <tr>
+          <td style="padding: 12px 0; border-top: 1px solid #f1f5f9; vertical-align: top;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <!-- Product image -->
+                <td width="56" style="vertical-align: top; padding-right: 14px;">
+                  ${image
+                    ? `<img src="${image}" alt="${name}"
+                          width="56" height="56"
+                          style="display: block; width: 56px; height: 56px; object-fit: cover;
+                                 border-radius: 10px; border: 1px solid #e2e8f0;">`
+                    : `<div style="width: 56px; height: 56px; background: #f1f5f9;
+                                   border-radius: 10px; text-align: center;
+                                   line-height: 56px; font-size: 24px;">📦</div>`
+                  }
+                </td>
+                <!-- Product details -->
+                <td style="vertical-align: top;">
+                  <p style="margin: 0 0 4px; font-size: 15px; font-weight: 600;
+                             color: #0f172a; line-height: 1.4;">${name}</p>
+                  <p style="margin: 0; font-size: 13px; color: #64748b;">
+                    Qty: ${qty} &nbsp;·&nbsp; KES ${price.toLocaleString()} each
+                  </p>
+                </td>
+                <!-- Line total -->
+                <td style="vertical-align: top; text-align: right;
+                            white-space: nowrap; padding-left: 12px;">
+                  <p style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">
+                    KES ${total.toLocaleString()}
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+        }).join('')}
+      </table>` : '';
+
+    // ── Full HTML ──────────────────────────────────────────────────────────
+    const html = `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful — Order #${shortId}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f0f4f8;
+             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+             'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <!-- Hidden preheader -->
+  <span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Your M-Pesa payment of KES ${amount} has been confirmed — SmartKenya &#8203;&zwj;&zwnj;&nbsp;&zwnj;&zwj;
+  </span>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 36px 16px 48px;">
+
+<!-- Brand header -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin-bottom: 20px;">
+          <tr>
+            <td align="center">
+              <img src="https://www.smartkenya.co.ke/assets/images/smartkenya-logo-BcDCofys.png"
+                   alt="SmartKenya"
+                   width="180"
+                   style="display: block; width: 180px; height: auto; margin: 0 auto;">
+              <p style="margin: 6px 0 0; font-size: 12px; letter-spacing: 3px;
+                         text-transform: uppercase; color: #94a3b8;">Online Shopping</p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Main card -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="max-width: 600px; background: #ffffff; border-radius: 20px;
+                      overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.08),
+                      0 4px 16px rgba(0,0,0,0.04);">
+
+          <!-- Hero banner -->
+          <tr>
+            <td style="background: ${gradient}; padding: 44px 40px; text-align: center;">
+              <div style="display: inline-block; width: 72px; height: 72px;
+                           background: rgba(255,255,255,0.2); border-radius: 50%;
+                           line-height: 72px; font-size: 34px; margin-bottom: 20px;">✅</div>
+              <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #ffffff;
+                          letter-spacing: -0.5px; line-height: 1.2;">Payment Confirmed!</h1>
+              <p style="margin: 10px 0 0; font-size: 16px; color: rgba(255,255,255,0.85);
+                         letter-spacing: 0.3px;">
+                Order #${shortId} is now being processed
               </p>
-            </div>
-          </div>
-        </div>
-      `
+              <div style="margin: 22px auto 0; width: 40px; height: 2px;
+                           background: rgba(255,255,255,0.4); border-radius: 2px;"></div>
+            </td>
+          </tr>
+
+          <!-- Body message -->
+          <tr>
+            <td style="padding: 36px 40px 0 40px;">
+              <p style="margin: 0; font-size: 17px; color: #334155; line-height: 1.8;">
+                Hi <strong>${customerName}</strong>,<br><br>
+                Thank you! We've successfully received your M-Pesa payment and your order
+                is now being processed. We'll send you another update once your items are packed
+                and on their way.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Order details card -->
+          <tr>
+            <td style="padding: 28px 40px 0 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 22px 24px;">
+                    <p style="margin: 0 0 18px; font-size: 13px; font-weight: 700;
+                               letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8;">
+                      Payment &amp; Order Details
+                    </p>
+
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding: 8px 0; font-size: 15px; color: #64748b;">Order Number</td>
+                        <td style="padding: 8px 0; font-size: 15px; font-weight: 700; color: #0f172a;
+                                   text-align: right; font-family: 'Courier New', monospace;
+                                   letter-spacing: 0.5px;">#${fullId}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #64748b;">Order Date</td>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #0f172a; text-align: right;">${orderDate}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #64748b;">Payment Method</td>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #0f172a; text-align: right;">M-Pesa</td>
+                      </tr>
+                      ${mpesaRef ? `
+                      <tr>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #64748b;">M-Pesa Receipt</td>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; font-weight: 700; color: #0f172a;
+                                   text-align: right; font-family: 'Courier New', monospace;
+                                   letter-spacing: 1px;">${mpesaRef}</td>
+                      </tr>` : ''}
+                      <tr>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #64748b;">Status</td>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9; text-align: right;">
+                          <span style="display: inline-block; background: ${badgeBg};
+                                       color: ${accentHex}; padding: 4px 14px; border-radius: 20px;
+                                       font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+                                       text-transform: uppercase;">Confirmed</span>
+                        </td>
+                      </tr>
+                      ${order.shipping_address ? `
+                      <tr>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #64748b; vertical-align: top;">Ship To</td>
+                        <td style="padding: 8px 0; border-top: 1px solid #f1f5f9;
+                                   font-size: 15px; color: #0f172a; text-align: right;">
+                          ${order.shipping_address}
+                        </td>
+                      </tr>` : ''}
+                    </table>
+
+                    ${itemsHtml}
+
+                    <!-- Grand total -->
+                    <table width="100%" cellpadding="0" cellspacing="0"
+                           style="margin-top: 14px; border-top: 2px solid #e2e8f0;">
+                      <tr>
+                        <td style="padding-top: 14px; font-size: 18px; font-weight: 800;
+                                   color: #0f172a;">Total Paid</td>
+                        <td style="padding-top: 14px; text-align: right; font-size: 24px;
+                                   font-weight: 800; color: ${accentHex};">KES ${amount}</td>
+                      </tr>
+                    </table>
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- What's next info strip -->
+          <tr>
+            <td style="padding: 24px 40px 0 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0"
+                     style="background: #fffbeb; border-radius: 10px; border-left: 3px solid #f59e0b;">
+                <tr>
+                  <td style="padding: 16px 18px;">
+                    <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700;
+                               color: #b45309; letter-spacing: 1px; text-transform: uppercase;">
+                      What Happens Next?
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: #78350f; line-height: 1.8;">
+                      • Your order will be processed within 24 hours<br>
+                      • You'll receive a shipping confirmation once dispatched<br>
+                      • Track your order status in your account dashboard
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA button -->
+          <tr>
+            <td style="padding: 32px 40px 0 40px; text-align: center;">
+              <a href="https://smartkenya.co.ke/orders?status=processing"
+                 style="display: inline-block; background: ${gradient}; color: #ffffff;
+                        padding: 15px 36px; text-decoration: none; border-radius: 50px;
+                        font-weight: 700; font-size: 16px; letter-spacing: 0.3px;
+                        box-shadow: 0 8px 24px rgba(${accentRgb}, 0.35);">
+                View Order Status &rarr;
+              </a>
+            </td>
+          </tr>
+
+          <!-- Help strip -->
+          <tr>
+            <td style="padding: 36px 40px 28px 40px; background: #f8fafc;
+                       text-align: center; border-top: 1px solid #f1f5f9; margin-top: 36px;">
+              <p style="margin: 0 0 6px; font-size: 15px; color: #94a3b8;">
+                Questions about your order?
+              </p>
+              <p style="margin: 0;">
+                <a href="mailto:support@smartkenya.co.ke"
+                   style="color: ${accentHex}; text-decoration: none;
+                          font-weight: 600; font-size: 16px;">
+                  support@smartkenya.co.ke
+                </a>
+                <span style="color: #cbd5e1; margin: 0 10px;">|</span>
+                <a href="tel:+254798229783"
+                   style="color: ${accentHex}; text-decoration: none;
+                          font-weight: 600; font-size: 16px;">
+                  +254 798 229 783
+                </a>
+              </p>
+            </td>
+          </tr>
+
+        </table><!-- /main card -->
+
+        <!-- Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="max-width: 600px; margin-top: 28px;">
+          <tr>
+            <td align="center" style="padding: 0 20px 20px;">
+              <p style="margin: 0 0 6px; font-size: 11px; color: #94a3b8;">
+                © ${year} SmartKenya. All rights reserved.
+              </p>
+              <p style="margin: 0 0 10px; font-size: 11px; color: #cbd5e1;">
+                This email was sent to ${order.email}
+              </p>
+              <p style="margin: 0;">
+                <a href="https://smartkenya.co.ke/privacy"
+                   style="font-size: 11px; color: #94a3b8; text-decoration: none;">Privacy Policy</a>
+                <span style="color: #cbd5e1; margin: 0 6px;">•</span>
+                <a href="https://smartkenya.co.ke/terms"
+                   style="font-size: 11px; color: #94a3b8; text-decoration: none;">Terms of Service</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const emailResponse = await resend.emails.send({
+      from:    "SmartKenya Orders <orders@smartkenya.co.ke>",
+      to:      [order.email],
+      subject: `✅ Payment Confirmed — Order #${shortId}`,
+      html,
     });
 
     console.log("Payment confirmation email sent successfully:", emailResponse);
