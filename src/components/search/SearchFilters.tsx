@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -32,7 +31,6 @@ export interface FilterState {
  */
 export const DEFAULT_SPEC_CONFIG: SpecConfig[] = [
   { key: 'brand',         label: 'Brand' },
-  { key: 'color',         label: 'Color' },
   { key: 'storage',       label: 'Storage' },
   { key: 'ram',           label: 'RAM' },
   { key: 'processor',     label: 'Processor' },
@@ -212,9 +210,8 @@ const SearchFilters = ({
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
             <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
               <h4 className="font-medium text-gray-900">Price</h4>
-              {openSections.price ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-3">
+            <div className="mt-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
@@ -240,7 +237,7 @@ const SearchFilters = ({
                   Apply
                 </Button>
               )}
-            </CollapsibleContent>
+            </div>
           </Collapsible>
 
           <Separator />
@@ -253,9 +250,8 @@ const SearchFilters = ({
                 <Collapsible open={isOpen} onOpenChange={() => toggleSection(`spec_${key}`)}>
                   <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
                     <h4 className="font-medium text-gray-900">{label}</h4>
-                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3 space-y-2">
+                  <div className="mt-3 space-y-2">
                     {values.map(val => (
                       <FilterOption
                         key={`${key}-${val}`}
@@ -265,7 +261,7 @@ const SearchFilters = ({
                         onToggle={() => toggleSpec(key, val)}
                       />
                     ))}
-                  </CollapsibleContent>
+                  </div>
                 </Collapsible>
                 <Separator className="my-4" />
               </div>
