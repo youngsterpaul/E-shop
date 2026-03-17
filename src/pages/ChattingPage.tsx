@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send, User, Bot, Headphones, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,26 +19,37 @@ const ChattingPage = () => {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  // ✅ NEW: ref to measure where this container starts on the page
   const containerRef = useRef<HTMLDivElement>(null);
+  // ✅ FIX 2: ref to keep focus on input so keyboard never dismisses on send
+  const inputRef = useRef<HTMLInputElement>(null);
 
   /* -----------------------------
      Dynamic viewport height fix
-     ✅ KEY FIX: subtract the container's own offsetTop so the bottom edge
-     always aligns with the top of the software keyboard — no white gap.
+     ✅ FIX 1: Also track visualViewport.offsetTop (changes when user scrolls
+     up while keyboard is open) so the container never has a gap at the bottom.
+
+     Formula:
+       containerTopInVisualVP = containerRef.offsetTop − visualViewport.offsetTop
+       --chat-vh = visualViewport.height − containerTopInVisualVP
      ----------------------------- */
   useEffect(() => {
     const updateViewportHeight = () => {
-      const vh = window.visualViewport?.height ?? window.innerHeight;
+      const vv = window.visualViewport;
+      const vh = vv?.height ?? window.innerHeight;
 
-      // How far from the top of the document does this container start?
-      // (i.e. navbar height + any page padding above the chat)
-      const offsetTop = containerRef.current?.offsetTop ?? 0;
+      // How far down the PAGE does this container start (e.g. navbar height)
+      const containerPageTop = containerRef.current?.offsetTop ?? 0;
 
-      // Available height = visual viewport height − the space above the container
+      // How far down the PAGE has the visual viewport scrolled
+      // (non-zero when user scrolls up while keyboard is open)
+      const vvPageTop = vv?.offsetTop ?? 0;
+
+      // Where the container top sits INSIDE the current visual viewport
+      const containerTopInVV = Math.max(0, containerPageTop - vvPageTop);
+
       document.documentElement.style.setProperty(
         "--chat-vh",
-        `${vh - offsetTop}px`
+        `${vh - containerTopInVV}px`
       );
     };
 
@@ -46,7 +57,6 @@ const ChattingPage = () => {
 
     window.visualViewport?.addEventListener("resize", updateViewportHeight);
     window.visualViewport?.addEventListener("scroll", updateViewportHeight);
-    // Also re-measure if the window itself resizes (e.g. orientation change)
     window.addEventListener("resize", updateViewportHeight);
 
     return () => {
@@ -65,19 +75,34 @@ const ChattingPage = () => {
 
   /* -----------------------------
      Auto scroll to latest message
+     ✅ FIX 3: Use requestAnimationFrame so scroll fires AFTER the new message
+     has been painted into the DOM — not before. Without this, the scroll
+     runs on the old DOM height and undershoots.
      ----------------------------- */
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-    container.scrollTop = container.scrollHeight;
+
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
   }, [messages, isStreaming]);
 
-  const handleSend = async () => {
+  /* -----------------------------
+     Send handler
+     ✅ FIX 2: Re-focus the input immediately after clearing it so the
+     software keyboard never dismisses between sends.
+     ----------------------------- */
+  const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isLoading) return;
     const message = inputValue;
     setInputValue("");
+
+    // Keep keyboard open — focus before the async call
+    inputRef.current?.focus();
+
     await sendMessage(message);
-  };
+  }, [inputValue, isLoading, sendMessage]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -110,12 +135,6 @@ const ChattingPage = () => {
   }
 
   return (
-    /*
-     * ✅ FIXED: containerRef lets us read this element's offsetTop so the
-     * --chat-vh CSS variable always equals exactly the space between the
-     * bottom of the navbar and the top of the software keyboard.
-     * Result: zero white-space gap, input pinned right above the keyboard.
-     */
     <div
       ref={containerRef}
       className="flex flex-col max-w-2xl mx-auto bg-background border rounded-xl overflow-hidden shadow-sm mb-4"
@@ -253,6 +272,7 @@ const ChattingPage = () => {
 
         <div className="flex gap-2 items-center bg-slate-100 rounded-xl px-3 py-1">
           <Input
+            ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyPress}
