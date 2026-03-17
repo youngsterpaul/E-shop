@@ -19,26 +19,40 @@ const ChattingPage = () => {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // ✅ NEW: ref to measure where this container starts on the page
+  const containerRef = useRef<HTMLDivElement>(null);
 
   /* -----------------------------
      Dynamic viewport height fix
-     Tracks the VISUAL viewport (shrinks when keyboard opens on mobile)
+     ✅ KEY FIX: subtract the container's own offsetTop so the bottom edge
+     always aligns with the top of the software keyboard — no white gap.
      ----------------------------- */
   useEffect(() => {
     const updateViewportHeight = () => {
       const vh = window.visualViewport?.height ?? window.innerHeight;
-      document.documentElement.style.setProperty("--chat-vh", `${vh}px`);
+
+      // How far from the top of the document does this container start?
+      // (i.e. navbar height + any page padding above the chat)
+      const offsetTop = containerRef.current?.offsetTop ?? 0;
+
+      // Available height = visual viewport height − the space above the container
+      document.documentElement.style.setProperty(
+        "--chat-vh",
+        `${vh - offsetTop}px`
+      );
     };
 
     updateViewportHeight();
 
-    // visualViewport fires when keyboard appears/disappears
     window.visualViewport?.addEventListener("resize", updateViewportHeight);
     window.visualViewport?.addEventListener("scroll", updateViewportHeight);
+    // Also re-measure if the window itself resizes (e.g. orientation change)
+    window.addEventListener("resize", updateViewportHeight);
 
     return () => {
       window.visualViewport?.removeEventListener("resize", updateViewportHeight);
       window.visualViewport?.removeEventListener("scroll", updateViewportHeight);
+      window.removeEventListener("resize", updateViewportHeight);
     };
   }, []);
 
@@ -51,7 +65,6 @@ const ChattingPage = () => {
 
   /* -----------------------------
      Auto scroll to latest message
-     — uses the inner scrollable div, not window
      ----------------------------- */
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -98,23 +111,18 @@ const ChattingPage = () => {
 
   return (
     /*
-     * KEY FIX: The outer container uses --chat-vh (visual viewport height).
-     * It is a flex column. The messages area is flex-1 + overflow-y-auto so it
-     * fills the remaining space and scrolls internally. The input bar is a
-     * normal (non-fixed) element at the bottom of the flex column.
-     *
-     * When the keyboard opens, --chat-vh shrinks → the whole container shrinks
-     * → messages area scrolls within the reduced space → input stays pinned
-     * at the bottom, right above the keyboard. Exactly like WhatsApp.
+     * ✅ FIXED: containerRef lets us read this element's offsetTop so the
+     * --chat-vh CSS variable always equals exactly the space between the
+     * bottom of the navbar and the top of the software keyboard.
+     * Result: zero white-space gap, input pinned right above the keyboard.
      */
     <div
+      ref={containerRef}
       className="flex flex-col max-w-2xl mx-auto bg-background border rounded-xl overflow-hidden shadow-sm mb-4"
       style={{ height: "var(--chat-vh, 100dvh)" }}
     >
 
-      {/* -----------------------------
-          Messages Area — flex-1 + overflow-y-auto = self-scrolling
-      ----------------------------- */}
+      {/* Messages Area */}
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto overscroll-contain pt-20 px-4 pb-2 bg-slate-50/30"
@@ -224,15 +232,11 @@ const ChattingPage = () => {
             </div>
           )}
 
-          {/* Scroll anchor */}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* -----------------------------
-          Footer Input — part of flex flow, NOT fixed
-          Stays pinned at bottom automatically as the container shrinks
-      ----------------------------- */}
+      {/* Footer Input */}
       <div className="shrink-0 p-3 bg-background border-t">
 
         {conversation?.status === "active" && messages.length > 2 && (
