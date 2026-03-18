@@ -44,7 +44,7 @@ function App() {
         <Suspense fallback={<LoadingSpinner overlay text="Please wait..." />}>
           <main
             id="main-content"
-            className={`flex-grow ${isMobile && !isAdminRoute ? 'pt-12' : ''} ${isMobile ? 'overflow-y-auto':''}`}
+            className={`flex-grow ${isMobile && !isAdminRoute ? 'pt-14' : ''} ${isMobile ? 'overflow-y-auto':''}`}
           >
             <AppRoutes />
           </main>
