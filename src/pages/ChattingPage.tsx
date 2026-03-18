@@ -17,52 +17,40 @@ const ChattingPage = () => {
   const { markAsRead } = useUserUnreadChat();
 
   const [inputValue, setInputValue] = useState("");
-  const [footerBottom, setFooterBottom] = useState(0);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [vpTop, setVpTop] = useState(0);
+  const [vpHeight, setVpHeight] = useState("100dvh");
+
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   /* -----------------------------
-     Dynamic viewport height fix + sticky footer above keyboard
+     Pin the ENTIRE container to the visual viewport.
+
+     Instead of fixing just the footer, we fix the whole chat container
+     to exactly track visualViewport.top + visualViewport.height.
+
+     Result:
+       - Keyboard opens  → container shrinks to fit visible area → footer
+         naturally rides at the bottom (shrink-0, in normal flow).
+       - User scrolls    → container top follows vv.offsetTop → no gap.
+       - No fixed footer → no white empty space between messages & input.
      ----------------------------- */
   useEffect(() => {
-    const updateViewportHeight = () => {
+    const update = () => {
       const vv = window.visualViewport;
-      const vh = vv?.height ?? window.innerHeight;
-
-      // How far down the PAGE does this container start (e.g. navbar height)
-      const containerPageTop = containerRef.current?.offsetTop ?? 0;
-
-      // How far down the PAGE has the visual viewport scrolled
-      const vvPageTop = vv?.offsetTop ?? 0;
-
-      // Where the container top sits INSIDE the current visual viewport
-      const containerTopInVV = Math.max(0, containerPageTop - vvPageTop);
-
-      document.documentElement.style.setProperty(
-        "--chat-vh",
-        `${vh - containerTopInVV}px`
-      );
-
-      // Distance between the bottom of the visual viewport and the bottom of
-      // the layout viewport — this equals the keyboard height on mobile.
-      const distanceFromBottom =
-        window.innerHeight - (vv?.offsetTop ?? 0) - (vv?.height ?? window.innerHeight);
-
-      setFooterBottom(Math.max(0, distanceFromBottom));
+      setVpTop(vv?.offsetTop ?? 0);
+      setVpHeight(`${vv?.height ?? window.innerHeight}px`);
     };
 
-    updateViewportHeight();
-
-    window.visualViewport?.addEventListener("resize", updateViewportHeight);
-    window.visualViewport?.addEventListener("scroll", updateViewportHeight);
-    window.addEventListener("resize", updateViewportHeight);
+    update();
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", updateViewportHeight);
-      window.visualViewport?.removeEventListener("scroll", updateViewportHeight);
-      window.removeEventListener("resize", updateViewportHeight);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -79,7 +67,6 @@ const ChattingPage = () => {
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-
     requestAnimationFrame(() => {
       container.scrollTop = container.scrollHeight;
     });
@@ -92,10 +79,7 @@ const ChattingPage = () => {
     if (!inputValue.trim() || isLoading) return;
     const message = inputValue;
     setInputValue("");
-
-    // Keep keyboard open — focus before the async call
     inputRef.current?.focus();
-
     await sendMessage(message);
   }, [inputValue, isLoading, sendMessage]);
 
@@ -130,18 +114,26 @@ const ChattingPage = () => {
   }
 
   return (
+    /*
+     * ✅ APPROACH: Fix the WHOLE container to the visual viewport.
+     *
+     *   position: fixed
+     *   left: 0 / right: 0  →  full width, max-w-2xl + mx-auto centers it
+     *   top: vv.offsetTop    →  tracks viewport scroll (keyboard open + user scrolls)
+     *   height: vv.height    →  shrinks/grows as keyboard appears/disappears
+     *
+     * Footer is back to `shrink-0` inside the flex column — it always
+     * sits flush at the bottom with zero empty space above it.
+     */
     <div
-      ref={containerRef}
-      className="flex flex-col max-w-2xl mx-auto bg-background border rounded-xl shadow-sm mb-4"
-      // ✅ removed overflow-hidden so the fixed footer isn't clipped
-      style={{ height: "var(--chat-vh, 100dvh)" }}
+      className="fixed left-0 right-0 max-w-2xl mx-auto flex flex-col bg-background border rounded-xl shadow-sm overflow-hidden"
+      style={{ top: vpTop, height: vpHeight }}
     >
 
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto overscroll-contain pt-20 px-4 pb-28 bg-slate-50/30"
-        // ✅ pb-28 instead of pb-2 — leaves room for the fixed footer
+        className="flex-1 overflow-y-auto overscroll-contain pt-20 px-4 pb-2 bg-slate-50/30"
       >
         <div className="space-y-6">
 
@@ -248,15 +240,14 @@ const ChattingPage = () => {
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div />
         </div>
       </div>
 
-      {/* ✅ Footer — fixed to the visual viewport, always sitting just above the keyboard */}
-      <div
-        className="fixed left-0 right-0 z-50 p-3 bg-background border-t"
-        style={{ bottom: footerBottom }}
-      >
+      {/* ✅ Footer — shrink-0 in normal flow, always flush at container bottom.
+           No position:fixed, no white gaps, no empty space above it. */}
+      <div className="shrink-0 p-3 bg-background border-t">
+
         {conversation?.status === "active" && messages.length > 2 && (
           <Button
             variant="ghost"
@@ -293,8 +284,8 @@ const ChattingPage = () => {
             )}
           </Button>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 };
