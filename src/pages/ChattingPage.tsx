@@ -17,20 +17,14 @@ const ChattingPage = () => {
   const { markAsRead } = useUserUnreadChat();
 
   const [inputValue, setInputValue] = useState("");
+  const [footerBottom, setFooterBottom] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // ✅ FIX 2: ref to keep focus on input so keyboard never dismisses on send
   const inputRef = useRef<HTMLInputElement>(null);
 
   /* -----------------------------
-     Dynamic viewport height fix
-     ✅ FIX 1: Also track visualViewport.offsetTop (changes when user scrolls
-     up while keyboard is open) so the container never has a gap at the bottom.
-
-     Formula:
-       containerTopInVisualVP = containerRef.offsetTop − visualViewport.offsetTop
-       --chat-vh = visualViewport.height − containerTopInVisualVP
+     Dynamic viewport height fix + sticky footer above keyboard
      ----------------------------- */
   useEffect(() => {
     const updateViewportHeight = () => {
@@ -41,7 +35,6 @@ const ChattingPage = () => {
       const containerPageTop = containerRef.current?.offsetTop ?? 0;
 
       // How far down the PAGE has the visual viewport scrolled
-      // (non-zero when user scrolls up while keyboard is open)
       const vvPageTop = vv?.offsetTop ?? 0;
 
       // Where the container top sits INSIDE the current visual viewport
@@ -51,6 +44,13 @@ const ChattingPage = () => {
         "--chat-vh",
         `${vh - containerTopInVV}px`
       );
+
+      // Distance between the bottom of the visual viewport and the bottom of
+      // the layout viewport — this equals the keyboard height on mobile.
+      const distanceFromBottom =
+        window.innerHeight - (vv?.offsetTop ?? 0) - (vv?.height ?? window.innerHeight);
+
+      setFooterBottom(Math.max(0, distanceFromBottom));
     };
 
     updateViewportHeight();
@@ -75,9 +75,6 @@ const ChattingPage = () => {
 
   /* -----------------------------
      Auto scroll to latest message
-     ✅ FIX 3: Use requestAnimationFrame so scroll fires AFTER the new message
-     has been painted into the DOM — not before. Without this, the scroll
-     runs on the old DOM height and undershoots.
      ----------------------------- */
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -90,8 +87,6 @@ const ChattingPage = () => {
 
   /* -----------------------------
      Send handler
-     ✅ FIX 2: Re-focus the input immediately after clearing it so the
-     software keyboard never dismisses between sends.
      ----------------------------- */
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -137,14 +132,16 @@ const ChattingPage = () => {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col max-w-2xl mx-auto bg-background border rounded-xl overflow-hidden shadow-sm mb-4"
+      className="flex flex-col max-w-2xl mx-auto bg-background border rounded-xl shadow-sm mb-4"
+      // ✅ removed overflow-hidden so the fixed footer isn't clipped
       style={{ height: "var(--chat-vh, 100dvh)" }}
     >
 
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto overscroll-contain pt-20 px-4 pb-2 bg-slate-50/30"
+        className="flex-1 overflow-y-auto overscroll-contain pt-20 px-4 pb-28 bg-slate-50/30"
+        // ✅ pb-28 instead of pb-2 — leaves room for the fixed footer
       >
         <div className="space-y-6">
 
@@ -255,9 +252,11 @@ const ChattingPage = () => {
         </div>
       </div>
 
-      {/* Footer Input */}
-      <div className="shrink-0 p-3 bg-background border-t">
-
+      {/* ✅ Footer — fixed to the visual viewport, always sitting just above the keyboard */}
+      <div
+        className="fixed left-0 right-0 z-50 p-3 bg-background border-t"
+        style={{ bottom: footerBottom }}
+      >
         {conversation?.status === "active" && messages.length > 2 && (
           <Button
             variant="ghost"
@@ -294,8 +293,8 @@ const ChattingPage = () => {
             )}
           </Button>
         </div>
-
       </div>
+
     </div>
   );
 };
