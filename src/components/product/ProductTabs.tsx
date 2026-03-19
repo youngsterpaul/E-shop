@@ -141,7 +141,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         )}
         style={isSticky ? { top: HEADER_OFFSET } : {}}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center h-11 md:h-12">
 
             {/* Tab buttons */}

@@ -8,7 +8,6 @@ import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import TrustBadges from '@/components/TrustBadges';
-import RecentlyViewedProducts from '@/components/RecentlyViewedProducts';
 import NewsletterSubscription from '@/components/NewsletterSubscription';
 import Testimonials from '@/components/Testimonials';
 import { WebsiteStructuredData, LocalBusinessStructuredData } from '@/components/seo/StructuredData';
@@ -49,7 +48,7 @@ const Index = () => {
         name="SmartKenya"
         url="https://www.smartkenya.co.ke"
         logo="https://www.smartkenya.co.ke/apple-touch-icon.png"
-        telephone="+254700000000"
+        telephone="+254798229783"
         email="info@smartkenya.co.ke"
         address={{
           street: "Nairobi",

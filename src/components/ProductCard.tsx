@@ -103,27 +103,6 @@ const ProductCard = ({ product, flashSaleOverride }: ProductCardProps) => {
         {/* Subtle depth gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
         
-        {/* Badges */}
-        <div className={`absolute ${isMobile ? 'top-1.5 left-1.5' : 'top-2.5 left-2.5'} flex flex-col gap-1`}>
-          {flashSale && (
-            <span
-              className={`inline-flex items-center gap-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white ${badgeClass} rounded-lg font-bold shadow-lg shadow-red-500/30`}
-              aria-label="Flash sale item"
-            >
-              <Zap size={isMobile ? 10 : 12} className="fill-current" aria-hidden="true" />
-              <span>Flash</span>
-            </span>
-          )}
-          {!flashSale && product.discount && product.discount > 0 && (
-            <span
-              className={`bg-red-500 text-white ${badgeClass} rounded-lg font-bold shadow-lg shadow-red-500/30`}
-              aria-label={`${product.discount}% discount`}
-            >
-              -{product.discount}%
-            </span>
-          )}
-        </div>
-        
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}

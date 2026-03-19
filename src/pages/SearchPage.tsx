@@ -115,7 +115,7 @@ const SearchPage = () => {
         placeholder="Search for products..."
       />
 
-      <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
+      <main className={`bg-white ${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
         {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
         <ProductList
           products={allProducts}

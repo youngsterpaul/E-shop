@@ -144,7 +144,7 @@ const Header = () => {
         )}
 
         <div
-          className={`${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 xl:px-28 py-4 transition-all duration-300'}`}
+          className={`bg-background ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 xl:px-28 py-4 transition-all duration-300'}`}
           style={isMobile ? {
             top: 0,
             paddingTop: 'calc(10px + env(safe-area-inset-top))',

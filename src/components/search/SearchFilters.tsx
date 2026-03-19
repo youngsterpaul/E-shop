@@ -202,14 +202,14 @@ const SearchFilters = ({
   }, [filters, localMin, localMax, onFiltersChange, onApply]);
 
   return (
-    <div className={`bg-white border border-gray-200 flex flex-col ${isMobile ? 'rounded-lg h-full' : ''} ${className}`}>
+    <div className={`bg-background border border-gray-200 flex flex-col ${isMobile ? 'rounded-lg h-full' : ''} ${className}`}>
       <ScrollArea className={`flex-1 ${isMobile ? 'max-h-[calc(100vh-150px)]' : 'h-[calc(100vh-280px)]'}`}>
         <div className="p-4 space-y-4 pr-4">
 
           {/* Price Range */}
           <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
             <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
-              <h4 className="font-medium text-gray-900">Price</h4>
+              <h4 className="font-medium">Price</h4>
             </CollapsibleTrigger>
             <div className="mt-3 space-y-3">
               <div className="flex items-center gap-2">
@@ -249,7 +249,7 @@ const SearchFilters = ({
               <div key={key}>
                 <Collapsible open={isOpen} onOpenChange={() => toggleSection(`spec_${key}`)}>
                   <CollapsibleTrigger className="flex w-full items-center justify-between p-0">
-                    <h4 className="font-medium text-gray-900">{label}</h4>
+                    <h4 className="font-medium">{label}</h4>
                   </CollapsibleTrigger>
                   <div className="mt-3 space-y-2">
                     {values.map(val => (
@@ -273,7 +273,7 @@ const SearchFilters = ({
 
       {/* Mobile Actions */}
       {isMobile && (
-        <div className="mt-auto border-t border-gray-200 p-3 bg-white sticky bottom-0">
+        <div className="mt-auto border-t border-gray-200 p-3 bg-background sticky mb-20 bottom-0">
           <div className="flex gap-2 w-full">
             <Button variant="outline" onClick={resetFilters} className="flex-1 h-10">
               Reset
