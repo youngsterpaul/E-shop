@@ -125,7 +125,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const tabsHeight = tabsRef.current?.offsetHeight ?? 44;
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-background">
 
       {/* ── STICKY PLACEHOLDER ─────────────────────────────────────────────── */}
       {isSticky && <div style={{ height: tabsHeight }} />}
@@ -134,7 +134,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       <div
         ref={tabsRef}
         className={cn(
-          'z-40 bg-white transition-shadow duration-200',
+          'z-40 transition-shadow duration-200 bg-background',
           isSticky
             ? 'fixed left-0 right-0 border-b border-gray-200 shadow-sm'
             : 'border-b border-gray-200'
@@ -209,7 +209,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                       key={key}
                       className={cn(
                         'grid grid-cols-[110px_1fr] md:grid-cols-[200px_1fr] border-b border-gray-50 last:border-0 transition-colors hover:bg-blue-50/30',
-                        i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'
+                        i % 2 === 0 ? 'bg-background' : 'bg-gray-50/40'
                       )}
                     >
                       <dt className="px-3 py-2.5 md:px-4 md:py-3 text-[10.5px] md:text-[11.5px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-100 self-start leading-relaxed">
@@ -266,7 +266,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                     key={i}
                     className={cn(
                       'flex items-stretch border-b border-gray-50 last:border-0 hover:bg-blue-50/30 transition-colors',
-                      i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'
+                      i % 2 === 0 ? 'bg-background' : 'bg-gray-50/40'
                     )}
                   >
                     {/* Row number */}

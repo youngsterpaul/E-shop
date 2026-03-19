@@ -65,7 +65,7 @@ const RealtimeChat = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       <div className="container mx-auto py-4 px-2">
         <div className="grid grid-cols-1 gap-2 mb-2">
           {contactItems.map((item) => (

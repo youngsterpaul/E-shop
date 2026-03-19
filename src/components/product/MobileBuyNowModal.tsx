@@ -202,7 +202,7 @@ const MobileBuyNowModal = ({
           showAnimation ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden">
+        <div className="bg-background rounded-t-3xl shadow-2xl min-h-[75vh] overflow-hidden">
           {/* Drag Handle */}
           <div className="flex justify-center py-2">
             <div className="w-10 h-1 bg-gray-300 rounded-full" />
@@ -219,10 +219,10 @@ const MobileBuyNowModal = ({
           {/* Scrollable Content */}
           <div className="overflow-y-auto max-h-[calc(85vh-160px)]">
             {/* Product Summary */}
-            <div className="p-5 bg-gray-50 border-b border-gray-100">
+            <div className="p-5 bg-background border-b border-gray-100">
               <div className="flex items-start gap-3">
                 <div 
-                  className={`w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center overflow-hidden ${
+                  className={`w-16 h-16 bg-background rounded-lg shadow-sm flex items-center justify-center overflow-hidden ${
                     hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''
                   }`}
                   onClick={handleImageClick}
@@ -239,7 +239,7 @@ const MobileBuyNowModal = ({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 text-xs leading-tight mb-1 line-clamp-2">
+                  <h3 className="font-medium text-xs leading-tight mb-1 line-clamp-2">
                     {product.name}
                   </h3>
 
@@ -397,7 +397,7 @@ const MobileBuyNowModal = ({
           </div>
 
           {/* Bottom Action */}
-          <div className="border-t border-gray-100 p-5 bg-white">
+          <div className="border-t border-gray-100 p-5 bg-background bottom-0 fixed left-0 right-0">
             <button
               onClick={handleBuyNow}
               disabled={!product.inStock || isBuyingNow}

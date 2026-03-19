@@ -40,7 +40,7 @@ const MobileBottomActions = ({
     <>
       {/* Fixed bottom action bar */}
       <div 
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 z-40 shadow-lg"
+        className="fixed bottom-0 left-0 right-0 bg-background border-t border-gray-200 p-2 z-40 shadow-lg"
         style={{
           paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
         }}

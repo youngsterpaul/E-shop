@@ -140,7 +140,7 @@ export const ProductList = ({
             />
           </div>
         )}
-        <div className="flex-1 text-center py-16 bg-white rounded-lg">
+        <div className="flex-1 text-center py-16 bg-background rounded-lg">
           <p className="text-gray-600 text-lg">{emptyStateMessage}</p>
           {emptyStateAction}
         </div>
@@ -164,7 +164,7 @@ export const ProductList = ({
 
       <div className="flex-1 min-w-0">
         {/* Products Header */}
-        <div className={`bg-white ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2'}`}>
+        <div className={`bg-background ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2'}`}>
           {!isMobile && (
             <p className="text-gray-600 text-lg">
               <span className="font-semibold text-gray-900">{displayCount}</span>{' '}
@@ -188,7 +188,7 @@ export const ProductList = ({
         </div>
 
         {/* Products Grid */}
-        <div className={`${isMobile ? 'px-2' : 'bg-white p-6 shadow-sm'} grid ${gridCols} gap-4`}>
+        <div className={`${isMobile ? 'px-2' : 'bg-background p-6 shadow-sm'} grid ${gridCols} gap-4`}>
           {sortedProducts.map((p) => (
             <ProductCard
               key={p.product_id}
@@ -215,7 +215,7 @@ export const ProductList = ({
             totalItems={totalCount!}
             itemsPerPage={itemsPerPage!}
             onPageChange={handlePageChange}
-            className="bg-white mt-2"
+            className="bg-background mt-2"
           />
         )}
       </div>
