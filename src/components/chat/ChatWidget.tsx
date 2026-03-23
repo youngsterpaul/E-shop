@@ -293,19 +293,6 @@ const ChatWidget = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* ── Request Human Button ── */}
-              {conversation?.status === 'active' && messages.length > 2 && (
-                <div className="shrink-0 px-4 pt-2 pb-1 bg-background">
-                  <button
-                    onClick={requestAdmin}
-                    className="w-full text-[11px] font-medium text-primary hover:bg-primary/5 border border-primary/20 rounded-lg py-1.5 flex items-center justify-center gap-1.5 transition-colors"
-                  >
-                    <Headphones className="h-3 w-3" />
-                    Connect with a human agent
-                  </button>
-                </div>
-              )}
-
               {/* ── Input ── */}
               <div className="shrink-0 px-3 py-3 bg-background border-t border-border/60">
                 <div className="flex items-center gap-2 bg-muted/50 border border-border/60 rounded-xl px-1 py-1 focus-within:border-primary/40 focus-within:bg-background transition-colors">

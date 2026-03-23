@@ -248,18 +248,6 @@ const ChattingPage = () => {
            No position:fixed, no white gaps, no empty space above it. */}
       <div className="shrink-0 p-3 bg-background border-t">
 
-        {conversation?.status === "active" && messages.length > 2 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={requestAdmin}
-            className="w-full h-8 text-[11px] font-medium text-primary hover:bg-primary/5 mb-3"
-          >
-            <Headphones className="h-3 w-3 mr-2" />
-            Connect with a human agent
-          </Button>
-        )}
-
         <div className="flex gap-2 items-center bg-slate-100 rounded-xl px-3 py-1">
           <Input
             ref={inputRef}
@@ -268,7 +256,7 @@ const ChattingPage = () => {
             onKeyDown={handleKeyPress}
             placeholder="Write a message..."
             disabled={isLoading}
-            className="border-0 bg-transparent focus-visible:ring-0 text-[13px] h-9 px-0"
+            className="border-0 bg-transparent focus-visible:ring-0 text-[13px] h-9 px-2    "
           />
 
           <Button

@@ -16,7 +16,8 @@ const RealtimeChat = () => {
   };
 
   const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=Hello, I need support with my account`;
+    const message = encodeURIComponent("Hello! I’d like some help regarding your products.");
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=${message}`;
     window.open(whatsappUrl, '_blank');
   };
 
