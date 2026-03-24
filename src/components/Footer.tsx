@@ -106,29 +106,10 @@ const Footer = ({ className }: FooterProps) => {
       </script>
 
       <footer className={cn('bg-background border-t border-border/40', !isMobile && 'min-w-max min-w-[1200px]', className)}>
-        {/* About Section */}
-        {!shouldHideFooter && (
-          <div className="bg-muted/30 py-12">
-            <div className="container max-w-6xl lg:max-w-7xl">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-foreground">SmartKenya Online Shopping - Kenya</h3>
-                <div className="prose prose-sm max-w-none text-muted-foreground space-y-3" style={{ textAlign: 'justify' }}>
-                  <p className="leading-relaxed">
-                    SmartKenya is Kenya's leading online shopping platform, launched in 2025 with the mission to make high-quality electronics, gadgets, and accessories accessible to every Kenyan. Our journey began with a simple yet powerful vision: to provide a seamless online shopping experience that offers convenience, variety, and competitive prices.
-                  </p>
-                  <p className="leading-relaxed">
-                    As we continue to grow, we remain dedicated to enriching the lives of our customers by providing them with top-tier products, exceptional customer service and a shopping experience that is second to none. Our platform supports secure M-Pesa payment options, ensuring convenience and flexibility.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Main Footer */}
         <div className="py-12 bg-background">
-          <div className="container max-w-6xl lg:max-w-7xl">
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
+          <div className="container max-w-7xl">
+            <div className="grid grid-cols-6 gap-8">
               {/* Footer Links */}
               {footerSections.map((section) => (
                 <div key={section.title} className="space-y-4">
@@ -189,9 +170,6 @@ const Footer = ({ className }: FooterProps) => {
             <div className="flex flex-col /md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} SmartKenya. All rights reserved.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Designed for Kenya, Built with ❤️
               </p>
             </div>
           </div>

@@ -12,7 +12,6 @@ import { CheckoutProvider } from '@/contexts/CheckoutContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { FlashSaleProvider } from '@/contexts/FlashSaleContext';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
-import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { OfflineCacheManager } from '@/components/OfflineCacheManager';
 import { AccessibilitySkipLink } from '@/components/AccessibilitySkipLink';
 import { ProductionAnalytics } from '@/components/ProductionAnalytics';
@@ -79,7 +78,6 @@ createRoot(document.getElementById('root')!).render(
                           <AccessibilitySkipLink />
                           <AppWithAnalytics />
                           <SpeedInsights />
-                          <OfflineIndicator />
                           <OfflineCacheManager />
                           </CheckoutProvider>
                         </SelectiveCartProvider>

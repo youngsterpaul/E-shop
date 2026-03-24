@@ -59,7 +59,7 @@ const Index = () => {
         openingHours={["Mo-Su 08:00-20:00"]}
       />
       
-      <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
+      <div className={`min-h-screen ${!isMobile ? 'min-w-max bg-gray-100' : 'bg-background'}`}>
         <PerformanceMonitor />
         {isMobile && <Header />}
 
@@ -76,7 +76,7 @@ const Index = () => {
           
           {/* Category Icons - Desktop Only */}
           {!isMobile && (
-            <section className="mt-6 bg-card rounded-xl .p-6 shadow-sm">
+            <section className="mt-6 bg-card /rounded-xl .p-6 shadow-sm">
               <CategoryIcons showAll={false} />
             </section>
           )}

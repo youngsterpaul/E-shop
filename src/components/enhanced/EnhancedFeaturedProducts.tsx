@@ -5,7 +5,6 @@ import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
 import { useFeaturedProducts, PAGINATION_CONFIG } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { Badge } from '@/components/ui/badge';
 
 const EnhancedFeaturedProducts = memo(() => {
   const isMobile = isMobileUserAgent();
@@ -32,6 +31,8 @@ const EnhancedFeaturedProducts = memo(() => {
     products.some(p => (p as any).relevance_score > 0),
     [products]
   );
+
+  const isCartRoute = window.location.pathname === '/cart';
   
   // Optimized scroll handler
   const handleScroll = useCallback(() => {
@@ -157,24 +158,23 @@ const EnhancedFeaturedProducts = memo(() => {
   
   return (
     <LazySection fallback={loadingSkeleton}>
-      <div className={`bg-card rounded-xl ${isMobile ? 'rounded-none' : 'shadow-sm'}`}>
+      <div className={`bg-card /rounded-xl ${isMobile ? 'rounded-none' : 'shadow-sm'}`}>
         {/* Section Header */}
-        <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-5 border-b border-border'}`}>
-          <div className="flex items-center gap-2">
-            <div className={`${isMobile ? 'p-1' : 'p-1.5'} bg-primary/10 rounded-lg`}>
-              <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
+        {!isCartRoute && 
+          <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-5 border-b border-border'}`}>
+            <div className="flex items-center gap-2">
+              <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
+                Hot Deals
+              </h2>
             </div>
-            <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
-              {isPersonalized ? 'Hot Deals' : 'Hot Deals'}
-            </h2>
+            {!isMobile && hasNextPage && (
+              <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
+                View All
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            )}
           </div>
-          {!isMobile && hasNextPage && (
-            <Button variant="ghost" size="sm" onClick={handleLoadMore} className="text-primary hover:text-primary/80">
-              View All
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        }
         
         {/* Products Grid */}
         <div className={`${isMobile ? 'px-2 pb-4' : 'p-6'}`}>

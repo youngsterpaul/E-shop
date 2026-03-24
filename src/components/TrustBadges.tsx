@@ -84,7 +84,7 @@ export const TrustBadges = ({ variant = 'default', className = '' }: TrustBadges
   return (
     <div className={`bg-muted/30 border-y border-border/50 py-4 md:py-6 ${className}`}>
       <div className="container mx-auto px-3 md:px-4">
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 lg:gap-6">
+        <div className="grid grid-cols-6 gap-2 md:gap-4 lg:gap-6">
           {badges.slice(0, 6).map((badge, index) => (
             <div 
               key={index} 

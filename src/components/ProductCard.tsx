@@ -81,7 +81,7 @@ const ProductCard = ({ product, flashSaleOverride }: ProductCardProps) => {
   return (
     <Link 
       to={`/product/${productSlug}/${product.id}`}
-      className={`group relative bg-card rounded-2xl overflow-hidden transition-all duration-300 border border-border/40 ${
+      className={`group relative bg-card hover:rounded-2xl overflow-hidden transition-all duration-300 /border /border-border/40 ${
         isMobile
           ? 'shadow-sm active:scale-[0.98]'
           : 'shadow-sm hover:shadow-xl hover:-translate-y-1.5 hover:border-border/80'

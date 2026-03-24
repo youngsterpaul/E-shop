@@ -36,7 +36,7 @@ const EmptyCart = () => {
         </div>
         {/* Featured Products Section */}
       <div className={`mx-auto ${!isMobile ? '.p-8':''}`}>
-          <h2 className={`text-2xl font-bold text-gray-900 mx-2 my-4 ${isMobile ? 'p-2 border-b':''}`}>You might also like</h2>
+          <h2 className={`text-2xl font-bold text-gray-900 p-4 bg-white  ${isMobile ? 'p-2 border-b':''}`}>You might also like</h2>
           {isLoading ? (
             <div className={`grid ${gridCols} gap-2 p-2 shadow-sm`}>
               {Array(4).fill(null).map((_, index) => (

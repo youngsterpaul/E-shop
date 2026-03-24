@@ -117,23 +117,16 @@ const Header = () => {
         })}
       </script>
 
-      <header className={`bg-background border-b border-border/40 top-0 z-50 ${!isMobile ? 'min-w-[1200px]' : 'sticky'}`}>
-        {/* Main navigation for desktop */}
+      <header className={`bg-background top-0 z-50 ${isMobile ? 'sticky' : ''}`}>
+
+        {/* Nav stays constrained */}
         {!isMobile && (
-          <nav 
-            className={`py-2 bg-muted/30 border-b border-border/30 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} 
-            role="navigation" 
-            aria-label="Main Navigation"
-          >
-            <div className="container mx-auto px-4 lg:px-8">
+          <nav className={`py-2 bg-muted/30 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+            <div className="min-w-[1200px] container mx-auto px-4 xl:px-28">
               <ul className="flex items-center justify-center gap-8">
                 {mainNavItems.map(item => (
                   <li key={item.href}>
-                    <Link 
-                      to={item.href} 
-                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200" 
-                      title={item.description}
-                    >
+                    <Link to={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200" title={item.description}>
                       {item.label}
                     </Link>
                   </li>
@@ -143,14 +136,15 @@ const Header = () => {
           </nav>
         )}
 
-        <div
-          className={`bg-background ${isMobile ? 'fixed top-0 left-0 right-0 py-4 px-3' : 'container mx-auto px-4 xl:px-28 py-4 transition-all duration-300'}`}
+        {/* border-y is full width, content inside is constrained */}
+        <div className={`bg-background w-full ${!isMobile ? 'border-y py-4 transition-all duration-300' : 'fixed top-0 left-0 right-0 py-4 px-3'}`}
           style={isMobile ? {
             top: 0,
             paddingTop: 'calc(10px + env(safe-area-inset-top))',
             height: 'calc(56px + env(safe-area-inset-top))',
           } : undefined}
         >
+        <div className={`${!isMobile ? 'min-w-[1200px] container mx-auto px-4 xl:px-28' : ''}`}>
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group" aria-label="SmartKenya Home">
@@ -286,6 +280,7 @@ const Header = () => {
                 <Search className="h-4.5 w-4.5 text-muted-foreground" />
               </Link>
             )}
+          </div>
           </div>
         </div>
       </header>
