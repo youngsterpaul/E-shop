@@ -15,16 +15,16 @@ export interface ContactSettings {
 }
 
 const defaultSettings: ContactSettings = {
-  phone: '+254 758 475 467',
-  email: 'support@smartkenya.co.ke',
+  phone: '+254 798 229 783',
+  email: 'info@smartkenya.co.ke',
   address: 'SmartKenya, Murang\'a, Kenya',
-  business_hours: 'Mon-Fri from 8am to 5pm',
-  facebook_url: 'https://facebook.com/smartkenya',
-  twitter_url: 'https://twitter.com/smartkenya',
-  instagram_url: 'https://instagram.com/smartkenya',
-  youtube_url: 'https://youtube.com/smartkenya',
-  whatsapp_number: '+254758475467',
-  tiktok_url: '',
+  business_hours: 'Mon-Sun from 8am to 5pm',
+  facebook_url: 'https://www.facebook.com/profile.php?id=61583170510108',
+  twitter_url: 'https://x.com/smartkenyake',
+  instagram_url: 'https://www.instagram.com/smartkenyaonlineshopping',
+  youtube_url: 'https://www.youtube.com/channel/UC8-7EadN0H4YTATZ0v2C75w',
+  whatsapp_number: '+254798229783',
+  tiktok_url: 'http://tiktok.com/@smartkenyaonlineshopping',
 };
 
 export const useContactSettings = () => {

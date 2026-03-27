@@ -81,15 +81,18 @@ export function generateOrganizationSchema() {
     },
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+254-700-000000',
+      telephone: '+254-798-229783',
       contactType: 'Customer Service',
       areaServed: 'KE',
       availableLanguage: ['English', 'Swahili']
     },
     sameAs: [
-      'https://twitter.com/Smartkenya_Online_Shopping',
-      'https://facebook.com/smartkenya',
-      'https://instagram.com/smartkenya'
+      'https://x.com/smartkenyake',
+      'https://www.facebook.com/profile.php?id=61583170510108',
+      'https://www.instagram.com/smartkenyaonlineshopping',
+      'https://www.youtube.com/channel/UC8-7EadN0H4YTATZ0v2C75w',
+      'http://tiktok.com/@smartkenyaonlineshopping'
+
     ]
   };
 }
@@ -141,7 +144,7 @@ export function generateLocalBusinessSchema() {
     image: 'https://www.smartkenya.co.ke/smartkenya-logo.png',
     '@id': 'https://www.smartkenya.co.ke',
     url: 'https://www.smartkenya.co.ke',
-    telephone: '+254-700-000000',
+    telephone: '+254-798-229783',
     priceRange: 'KES 500 - KES 500,000',
     address: {
       '@type': 'PostalAddress',
@@ -169,8 +172,12 @@ export function generateLocalBusinessSchema() {
       closes: '18:00'
     },
     sameAs: [
-      'https://twitter.com/Smartkenya_Online_Shopping',
-      'https://facebook.com/smartkenya'
+      'https://x.com/smartkenyake',
+      'https://www.facebook.com/profile.php?id=61583170510108',
+      'https://www.youtube.com/channel/UC8-7EadN0H4YTATZ0v2C75w',
+      'https://www.youtube.com/channel/UC8-7EadN0H4YTATZ0v2C75w',
+      'http://tiktok.com/@smartkenyaonlineshopping'
+
     ]
   };
 }

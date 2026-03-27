@@ -52,7 +52,7 @@ export const SEOHelmet = ({
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@Smartkenya_Online_Shopping" />
+      <meta name="twitter:site" content="@smartkenyake" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />

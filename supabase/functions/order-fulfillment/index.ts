@@ -683,9 +683,9 @@ function generatePremiumEmail(order: any, status: string, trackingNumber?: strin
               <p style="margin: 0 0 14px; font-size: 12px; color: #94a3b8;">Follow us</p>
               <table cellpadding="0" cellspacing="0" style="margin: 0 auto 20px;">
                 <tr>
-                  <td style="padding: 0 6px;"><a href="https://facebook.com/smartkenya" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">📘</a></td>
-                  <td style="padding: 0 6px;"><a href="https://instagram.com/smartkenya" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">📷</a></td>
-                  <td style="padding: 0 6px;"><a href="https://twitter.com/smartkenya" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">🐦</a></td>
+                  <td style="padding: 0 6px;"><a href="https://www.facebook.com/profile.php?id=61583170510108" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">📘</a></td>
+                  <td style="padding: 0 6px;"><a href="https://www.instagram.com/smartkenyaonlineshopping" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">📷</a></td>
+                  <td style="padding: 0 6px;"><a href="https://x.com/smartkenyake" style="display:inline-block; width:32px; height:32px; background:#e2e8f0; border-radius:50%; text-align:center; line-height:32px; text-decoration:none; font-size:15px;">🐦</a></td>
                 </tr>
               </table>
               <p style="margin: 0 0 6px; font-size: 11px; color: #94a3b8;">© ${year} SmartKenya. All rights reserved.</p>

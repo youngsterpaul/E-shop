@@ -94,7 +94,9 @@ const SearchPage = () => {
     setCurrentPage(1);
   }, []);
   const handleFiltersChange = useCallback((newFilters: FilterState) => setFilters(newFilters), []);
-  const handleBack = useCallback(() => navigate(-1), [navigate]);
+  const handleBack = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
 
   useEffect(() => {
     setFilters({ priceRange: [0, 200000], specifications: {}, ratings: [] });
