@@ -1,288 +1,225 @@
 import { Product } from "@/queries/productQueries";
 
 /**
- * Search Relevance Scorer
- * 
- * Prioritizes products by how closely they match the search term,
- * using category/subcategory as the strongest signal since product
- * names often don't contain the generic search term.
- * 
- * Example: searching "laptops" → products in "Brand New Laptops" category
- * rank above "Laptop Charger" even if named "HP Pavilion 15".
- * 
- * Scoring tiers:
- * 1. Category/subcategory contains the search term (100pts)
- * 2. Exact name match (90pts)
- * 3. Name is core search term with extras (70pts)
- * 4. Name starts with search term (55pts)
- * 5. Search term is a standalone word in name (35pts / 20pts for accessories)
- * 6. Name contains search term as substring (15pts)
- * 7. Description match only (3pts)
+ * Search Relevance Scorer (Bucket-based)
+ *
+ * Strategy:
+ *   1. Classify each product into a HARD TIER based on whether it's a primary
+ *      product for the search term or an accessory/part for it.
+ *   2. Sort buckets in fixed order — every primary product appears before
+ *      every accessory, no matter the secondary score.
+ *   3. Within each bucket, rank by a relevance score (name match strength +
+ *      category match + quality signals).
+ *
+ * Example: searching "laptops"
+ *   Bucket 0 (PRIMARY):    HP Pavilion 15, Lenovo ThinkPad, Dell XPS …
+ *   Bucket 1 (ACCESSORY):  Laptop Battery, Laptop Charger, Laptop Stand …
+ *   Bucket 2 (OTHER):      anything matched only by description
  */
-export const scoreSearchRelevance = (
-  product: Product,
-  searchTerm: string
-): number => {
-  if (!searchTerm?.trim()) return 0;
 
-  const term = searchTerm.trim().toLowerCase();
+// ─── BUCKETS ────────────────────────────────────────────────────────────────
+// Lower bucket = higher priority. Admin-curated keyword matches always win.
+const BUCKET_KEYWORD_MATCH = 0; // Admin tagged this product for the search term
+const BUCKET_PRIMARY = 1;
+const BUCKET_ACCESSORY = 2;
+const BUCKET_OTHER = 3;
+const BUCKET_NONE = 4;
+
+// ─── ACCESSORY KEYWORDS ─────────────────────────────────────────────────────
+/** Words that, when present in the product name, signal an accessory/part. */
+const ACCESSORY_KEYWORDS = new Set([
+  "charger", "charging", "battery", "case", "cover", "screen", "protector",
+  "stand", "holder", "cable", "cord", "adapter", "mount", "sleeve", "bag",
+  "skin", "dock", "hub", "cooler", "cooling", "pad", "mat", "stylus", "pen",
+  "strap", "band", "replacement", "spare", "part", "repair", "tool", "kit",
+  "accessory", "accessories", "fan", "hinge", "key", "keys", "keycap",
+  "ribbon", "flex", "module", "panel", "lcd", "bezel", "palmrest", "trackpad",
+  "touchpad", "speaker", "speakers", "webcam", "camera",
+  // Generic add-ons that aren't the device itself
+  "headset", "headphones", "earbuds", "earphones",
+]);
+
+/** Words that count as the "device itself" — kept separate from accessories. */
+const DEVICE_NOUNS = new Set([
+  "laptop", "laptops", "notebook", "notebooks", "ultrabook", "ultrabooks",
+  "computer", "computers", "pc", "desktop", "desktops",
+  "phone", "phones", "smartphone", "smartphones", "mobile",
+  "tablet", "tablets", "ipad",
+  "tv", "television", "televisions", "monitor", "monitors",
+  "camera", "cameras", "printer", "printers",
+  "watch", "watches", "smartwatch",
+]);
+
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const tokenize = (s: string) => s.toLowerCase().split(/[\s\-_/.,()]+/).filter(Boolean);
+const hasWholeWord = (text: string, word: string) =>
+  !!word && new RegExp(`\\b${escapeRegex(word)}s?\\b`, "i").test(text);
+
+function expandTerm(term: string): string[] {
+  const t = term.trim().toLowerCase();
+  if (!t) return [];
+  const variants = new Set<string>([t]);
+  if (t.endsWith("s")) variants.add(t.slice(0, -1));
+  else variants.add(t + "s");
+  return [...variants];
+}
+
+/** Does the product NAME contain an accessory keyword (anywhere)? */
+function nameHasAccessoryWord(nameTokens: string[]): boolean {
+  return nameTokens.some((w) => ACCESSORY_KEYWORDS.has(w));
+}
+
+/**
+ * Does any category segment match the search term as a whole word?
+ * Categories are stored as "Parent > Child".
+ */
+function categoryMatches(categories: string, terms: string[]): boolean {
+  if (!categories) return false;
+  const segments = categories.split(/\s*>\s*/);
+  return segments.some((seg) => terms.some((t) => hasWholeWord(seg, t)));
+}
+
+/**
+ * Does the product NAME contain the search term as a whole word?
+ * (Plurals already covered by hasWholeWord's trailing s?.)
+ */
+function nameContainsTerm(name: string, terms: string[]): boolean {
+  return terms.some((t) => hasWholeWord(name, t));
+}
+
+// ─── CLASSIFICATION ─────────────────────────────────────────────────────────
+/**
+ * Decide which bucket a product belongs to for the given search term.
+ *
+ * PRIMARY: looks like the actual searched device.
+ *   - Name contains the search term AS A WHOLE WORD AND
+ *     name has no accessory keyword → clearly the device itself.
+ *   - OR category matches AND name has no accessory keyword.
+ *
+ * ACCESSORY: relates to the searched device but is a part/add-on.
+ *   - Name has an accessory keyword AND
+ *     (name OR category contains the search term).
+ *
+ * OTHER: matched only by description / weak signals.
+ * NONE:  no match at all (filtered out by the search query upstream, but safe).
+ */
+function classify(product: Product, terms: string[]): number {
   const name = (product.name || "").toLowerCase();
   const categories = (product.categories || "").toLowerCase();
   const description = (product.description || "").toLowerCase();
+  const nameTokens = tokenize(name);
 
-  // Normalize plurals: "laptops" → "laptop"
-  const singularTerm = term.endsWith("s") ? term.slice(0, -1) : term;
-  const pluralTerm = term.endsWith("s") ? term : term + "s";
+  // Highest priority: admin-curated search_keywords match
+  const keywords = (product.search_keywords || [])
+    .filter(Boolean)
+    .map((k) => String(k).trim().toLowerCase());
+  if (keywords.length > 0) {
+    const keywordHit = keywords.some((kw) =>
+      terms.some((t) => kw === t || kw.includes(t) || t.includes(kw))
+    );
+    if (keywordHit) return BUCKET_KEYWORD_MATCH;
+  }
 
+  const nameHit = nameContainsTerm(name, terms);
+  const catHit = categoryMatches(categories, terms);
+  const descHit = terms.some((t) => description.includes(t));
+  const accessoryWord = nameHasAccessoryWord(nameTokens);
+
+  if (!nameHit && !catHit && !descHit) return BUCKET_NONE;
+
+  // Accessory if it has an accessory keyword in the name AND relates to the term
+  if (accessoryWord && (nameHit || catHit)) {
+    return BUCKET_ACCESSORY;
+  }
+
+  // Primary: device itself
+  if ((nameHit || catHit) && !accessoryWord) {
+    return BUCKET_PRIMARY;
+  }
+
+  // Edge case: accessory keyword present but no name/category hit → other
+  return BUCKET_OTHER;
+}
+
+// ─── INTRA-BUCKET SCORING ───────────────────────────────────────────────────
+/**
+ * Score within a bucket — used only to order items inside the same tier.
+ * Higher = better.
+ */
+function intraBucketScore(product: Product, terms: string[]): number {
+  const name = (product.name || "").toLowerCase();
+  const categories = (product.categories || "").toLowerCase();
+  const nameTokens = tokenize(name);
   let score = 0;
 
-  // --- CATEGORY/SUBCATEGORY MATCHING (highest priority) ---
-  // Products whose category matches the search term are the most relevant.
-  // e.g., searching "laptops" → products in "Brand New Laptops" category = 100pts
-  const categoryMatch = matchesCategory(categories, term, singularTerm, pluralTerm);
-  if (categoryMatch) {
-    score += 100;
-  }
+  // Exact name match
+  if (terms.some((t) => name === t)) score += 100;
 
-  // --- NAME MATCHING ---
+  // Name starts with term
+  else if (terms.some((t) => name.startsWith(t))) score += 60;
 
-  // Tier 2: Exact name match (name IS the search term)
-  if (name === term || name === singularTerm || name === pluralTerm) {
-    score += 90;
-  }
-  // Tier 3: Name is essentially the search term with minor additions
-  else if (isCoreName(name, term) || isCoreName(name, singularTerm)) {
-    score += 70;
-  }
-  // Tier 4: Name starts with the search term
-  else if (
-    name.startsWith(term) ||
-    name.startsWith(singularTerm) ||
-    name.startsWith(pluralTerm)
-  ) {
-    score += 55;
-  }
-  // Tier 5: Search term appears as a complete word in the name
-  else if (
-    hasWholeWord(name, term) ||
-    hasWholeWord(name, singularTerm)
-  ) {
-    // Distinguish "Laptop" (standalone product) from "Laptop Charger" (accessory)
-    if (isAccessoryOrPart(name, term, singularTerm)) {
-      score += 20; // It's an accessory/part — lower priority
-    } else {
-      score += 35;
-    }
-  }
-  // Tier 6: Search term is a substring in the name
-  else if (
-    name.includes(term) ||
-    name.includes(singularTerm)
-  ) {
-    score += 15;
-  }
+  // Term is one of the first 2 tokens of the name
+  else if (nameTokens.slice(0, 2).some((tok) => terms.includes(tok))) score += 45;
 
-  // --- DESCRIPTION MATCHING ---
-  if (
-    description.includes(term) ||
-    description.includes(singularTerm)
-  ) {
-    score += 3;
-  }
+  // Term is a whole word anywhere in name
+  else if (terms.some((t) => hasWholeWord(name, t))) score += 30;
 
-  // --- QUALITY SIGNALS (tiebreakers) ---
-  score += Math.min((product.rating || 0) * 1.5, 7);
-  score += Math.min((product.reviews_count || 0) * 0.05, 5);
+  // Term appears as substring in name
+  else if (terms.some((t) => name.includes(t))) score += 15;
 
-  if (product.featured) {
-    score += 3;
-  }
+  // Category match bonus
+  if (categoryMatches(categories, terms)) score += 20;
 
-  return Math.round(score * 100) / 100;
+  // Quality signals (tiebreakers)
+  score += Math.min((product.rating || 0) * 2, 10);
+  score += Math.min((product.reviews_count || 0) * 0.1, 8);
+  if (product.featured) score += 5;
+  if ((product.stock || 0) > 0) score += 2;
+
+  return score;
+}
+
+// ─── PUBLIC API ─────────────────────────────────────────────────────────────
+export const scoreSearchRelevance = (product: Product, searchTerm: string): number => {
+  const terms = expandTerm(searchTerm);
+  if (!terms.length) return 0;
+  const bucket = classify(product, terms);
+  // Encode bucket + score so callers can sort by a single number.
+  // Lower bucket dominates; intra-bucket score is the fractional/secondary part.
+  return (BUCKET_NONE - bucket) * 1000 + intraBucketScore(product, terms);
 };
 
 /**
- * Check if the product's category string contains the search term.
- * Categories are stored as "Parent > Child" (e.g., "Computers & Accessories > Brand New Laptops").
- * We check each segment independently for a whole-word match.
- */
-function matchesCategory(
-  categories: string,
-  term: string,
-  singularTerm: string,
-  pluralTerm: string
-): boolean {
-  if (!categories) return false;
-
-  // Split by " > " to get individual category segments
-  const segments = categories.split(/\s*>\s*/);
-
-  for (const segment of segments) {
-    const seg = segment.trim().toLowerCase();
-    // Check if the segment contains the search term as a whole word
-    if (
-      hasWholeWord(seg, term) ||
-      hasWholeWord(seg, singularTerm) ||
-      hasWholeWord(seg, pluralTerm)
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Check if the product name's "core" is the search term.
- * e.g., "HP Laptop 15-inch" → core concept is "Laptop"
- * vs "Laptop Charger USB-C" → core concept is "Charger"
- */
-function isCoreName(name: string, term: string): boolean {
-  if (!term) return false;
-  const words = name.split(/\s+/);
-
-  // If the term is one of the first 2 significant words and the name
-  // doesn't have an accessory word right after it
-  for (let i = 0; i < Math.min(words.length, 3); i++) {
-    const word = words[i];
-    if (
-      word === term ||
-      word === term + "s" ||
-      word + "s" === term
-    ) {
-      // Check if next word is an accessory indicator
-      const nextWord = words[i + 1] || "";
-      if (!ACCESSORY_KEYWORDS.has(nextWord)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/**
- * Check if a word appears as a whole word in text
- */
-function hasWholeWord(text: string, word: string): boolean {
-  if (!word) return false;
-  const regex = new RegExp(`\\b${escapeRegex(word)}s?\\b`, "i");
-  return regex.test(text);
-}
-
-/**
- * Detect if the product is an accessory/part for the searched item
- * e.g., "Laptop Charger", "Laptop Battery", "Laptop Stand"
- */
-function isAccessoryOrPart(
-  name: string,
-  term: string,
-  singularTerm: string
-): boolean {
-  const words = name.split(/\s+/);
-  const termIndex = words.findIndex(
-    (w) =>
-      w === term ||
-      w === singularTerm ||
-      w === term + "s" ||
-      w === singularTerm + "s"
-  );
-
-  if (termIndex === -1) return false;
-
-  // Check words after the search term for accessory indicators
-  for (let i = termIndex + 1; i < words.length; i++) {
-    if (ACCESSORY_KEYWORDS.has(words[i])) {
-      return true;
-    }
-  }
-
-  // Check words before the search term for accessory indicators  
-  for (let i = 0; i < termIndex; i++) {
-    if (ACCESSORY_KEYWORDS.has(words[i])) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Common words that indicate an accessory or component */
-const ACCESSORY_KEYWORDS = new Set([
-  "charger",
-  "charging",
-  "battery",
-  "case",
-  "cover",
-  "screen",
-  "protector",
-  "stand",
-  "holder",
-  "cable",
-  "cord",
-  "adapter",
-  "mount",
-  "sleeve",
-  "bag",
-  "skin",
-  "dock",
-  "hub",
-  "cooler",
-  "cooling",
-  "pad",
-  "mat",
-  "keyboard",
-  "mouse",
-  "headset",
-  "earbuds",
-  "speaker",
-  "stylus",
-  "pen",
-  "strap",
-  "band",
-  "replacement",
-  "spare",
-  "part",
-  "repair",
-  "tool",
-  "kit",
-  "accessory",
-  "accessories",
-  "compatible",
-  "for",
-]);
-
-/**
- * Sort products by search relevance
- * This is the main entry point - call after fetching search results
+ * Sort products: primary devices first, then accessories, then weak matches.
+ * Within each bucket, sort by relevance + quality.
  */
 export const sortBySearchRelevance = (
   products: Product[],
   searchTerm: string
 ): Product[] => {
-  if (!searchTerm?.trim() || products.length === 0) return products;
+  const terms = expandTerm(searchTerm);
+  if (!terms.length || products.length === 0) return products;
 
-  return [...products]
-    .map((p) => ({
-      ...p,
-      _searchScore: scoreSearchRelevance(p, searchTerm),
-    }))
-    .sort((a, b) => {
-      // Primary: search relevance
-      if (b._searchScore !== a._searchScore) {
-        return b._searchScore - a._searchScore;
-      }
-      // Secondary: featured products
-      if (a.featured !== b.featured) {
-        return a.featured ? -1 : 1;
-      }
-      // Tertiary: newer first
-      return (
-        new Date(b.created_at || 0).getTime() -
-        new Date(a.created_at || 0).getTime()
-      );
-    })
-    .map(({ _searchScore, ...product }) => product);
+  const decorated = products.map((p) => ({
+    p,
+    bucket: classify(p, terms),
+    score: intraBucketScore(p, terms),
+  }));
+
+  decorated.sort((a, b) => {
+    // 1. Bucket order (primary < accessory < other)
+    if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+    // 2. Intra-bucket score
+    if (b.score !== a.score) return b.score - a.score;
+    // 3. Featured tiebreaker
+    if (!!a.p.featured !== !!b.p.featured) return a.p.featured ? -1 : 1;
+    // 4. Newer first
+    return (
+      new Date(b.p.created_at || 0).getTime() -
+      new Date(a.p.created_at || 0).getTime()
+    );
+  });
+
+  return decorated.map((d) => d.p);
 };

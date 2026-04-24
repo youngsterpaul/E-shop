@@ -24,6 +24,7 @@ interface ProductFormData {
   featured: boolean;
   features: string;
   specification: string;
+  search_keywords: string;
 }
 
 interface ExistingImage {
@@ -48,6 +49,7 @@ const AdminProductEdit = () => {
       featured: false,
       features: '',
       specification: '',
+      search_keywords: '',
     },
   });
 
@@ -113,7 +115,15 @@ const AdminProductEdit = () => {
         form.setValue('store', data.store || '');
         form.setValue('categories', data.categories || '');
         form.setValue('featured', data.featured || false);
-        
+
+        // Handle search_keywords (text[] from DB)
+        const sk = (data as any).search_keywords;
+        if (Array.isArray(sk)) {
+          form.setValue('search_keywords', sk.join(', '));
+        } else if (typeof sk === 'string') {
+          form.setValue('search_keywords', sk);
+        }
+
         // Handle features
         if (data.features) {
           if (Array.isArray(data.features)) {
@@ -305,6 +315,12 @@ const AdminProductEdit = () => {
         ...videoUrls
       ];
       
+      // Parse search keywords (comma-separated string -> trimmed lowercase array)
+      const searchKeywordsToStore = (data.search_keywords || '')
+        .split(',')
+        .map((k) => k.trim().toLowerCase())
+        .filter(Boolean);
+
       const updateData = {
         name: data.name,
         price: data.price,
@@ -315,6 +331,7 @@ const AdminProductEdit = () => {
         featured: data.featured,
         features: featuresToStore as unknown as null,
         specification: specificationToStore as unknown as null,
+        search_keywords: searchKeywordsToStore,
         image_urls: finalMediaUrls,
         updated_at: new Date().toISOString()
       };

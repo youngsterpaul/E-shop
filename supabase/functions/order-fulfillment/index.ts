@@ -719,10 +719,55 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+    // ── Authenticate caller (require valid JWT) ──────────────────────────
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: missing token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: invalid token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Service-role client for privileged DB operations (bypasses RLS for role lookup + order updates)
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // ── Authorize caller: must have admin or superadmin role ─────────────
+    const { data: roles, error: rolesErr } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id);
+
+    if (rolesErr) {
+      console.error("Failed to load user roles:", rolesErr);
+      return new Response(
+        JSON.stringify({ error: "Authorization check failed" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const allowed = (roles ?? []).some((r: { role: string }) =>
+      r.role === "admin" || r.role === "superadmin"
     );
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: admin role required" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     const { orderId, status, trackingNumber, notes }: OrderStatusUpdate = await req.json();
     console.log("Processing order fulfillment:", { orderId, status, trackingNumber });

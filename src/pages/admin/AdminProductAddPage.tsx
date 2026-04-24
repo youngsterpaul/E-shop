@@ -24,6 +24,7 @@ interface ProductFormData {
   featured: boolean;
   features: string;
   specification: string;
+  search_keywords: string;
 }
 
 const AdminProductAdd = () => {
@@ -41,6 +42,7 @@ const AdminProductAdd = () => {
       featured: false,
       features: '',
       specification: '',
+      search_keywords: '',
     },
   });
 
@@ -164,7 +166,13 @@ const AdminProductAdd = () => {
       
       // Combine image and video URLs
       const allMediaUrls = [...imageUrls, ...videoUrls];
-      
+
+      // Parse search keywords (comma-separated string -> trimmed lowercase array)
+      const searchKeywordsToStore = (data.search_keywords || '')
+        .split(',')
+        .map((k) => k.trim().toLowerCase())
+        .filter(Boolean);
+
       const productData = {
         name: data.name,
         price: data.price,
@@ -175,6 +183,7 @@ const AdminProductAdd = () => {
         featured: data.featured,
         features: featuresToStore as unknown as null,
         specification: specificationToStore as unknown as null,
+        search_keywords: searchKeywordsToStore,
         image_urls: allMediaUrls
       };
       

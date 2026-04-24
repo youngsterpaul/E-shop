@@ -21,6 +21,7 @@ import { cacheProducts, getCachedProducts, getCachedProduct } from '@/utils/offl
 import { getUserIntent } from "@/utils/userIntent";
 import { smartSortFallback } from "@/utils/smartSortFallback";
 import { sortBySearchRelevance } from "@/utils/searchRelevance";
+import { getPurchaseHistoryCache } from "@/hooks/useUserPurchaseHistory";
 
 
 // ============================================================================
@@ -48,6 +49,8 @@ export type Product = {
   features?: string | string[];
   display_order?: number;
   created_at?: string;
+  // Admin-curated keywords that boost this product to the top for matching searches
+  search_keywords?: string[] | null;
   // AI-enhanced smart sort properties
   relevance_score?: number;
   ai_boost?: number;
@@ -135,6 +138,7 @@ const triggerBackgroundAISort = async (
   currentResult: PaginatedProducts
 ): Promise<void> => {
   try {
+    const purchaseHistory = getPurchaseHistoryCache();
     const { data: sortedData, error } = await supabase.functions.invoke('smart-sort-products', {
       body: {
         products,
@@ -143,6 +147,8 @@ const triggerBackgroundAISort = async (
           timeOfDay: new Date().getHours().toString(),
           deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
         },
+        purchasedProductIds: purchaseHistory.productIds,
+        purchasedCategories: purchaseHistory.categories,
         useAI: true,
       },
     });
@@ -203,7 +209,11 @@ async function fetchPage(
 
     // FAST client-side smart sort (no AI call - instant)
     const intent = getUserIntent();
-    const smartProducts = smartSortFallback(products, intent);
+    const purchaseHistory = getPurchaseHistoryCache();
+    const smartProducts = smartSortFallback(products, intent, {
+      purchasedProductIds: purchaseHistory.productIds,
+      purchasedCategories: purchaseHistory.categories,
+    });
 
     // Cache products for offline use
     cacheProductsForOffline(smartProducts);
@@ -336,7 +346,11 @@ export const productFetchers = {
 
       // Apply FAST client-side smart sort immediately (no waiting for AI)
       const intent = getUserIntent();
-      const fastSortedProducts = smartSortFallback(products, intent);
+      const purchaseHistory = getPurchaseHistoryCache();
+      const fastSortedProducts = smartSortFallback(products, intent, {
+        purchasedProductIds: purchaseHistory.productIds,
+        purchasedCategories: purchaseHistory.categories,
+      });
 
       // Cache products for offline use
       cacheProductsForOffline(fastSortedProducts);
@@ -467,11 +481,14 @@ export const productFetchers = {
 
   /** Search products with relevance-based sorting */
   searchProducts: async (term: string, opts?: { pageParam?: number; pageSize?: number }): Promise<PaginatedProducts> => {
+    const safeTerm = term.replace(/[%_,()]/g, '');
     const result = await fetchPage(
       supabase
         .from('products')
         .select('*', { count: 'exact' })
-        .or(`name.ilike.%${term}%,description.ilike.%${term}%,categories.ilike.%${term}%`),
+        .or(
+          `name.ilike.%${safeTerm}%,description.ilike.%${safeTerm}%,categories.ilike.%${safeTerm}%,search_keywords.cs.{${safeTerm}}`
+        ),
       opts
     );
 

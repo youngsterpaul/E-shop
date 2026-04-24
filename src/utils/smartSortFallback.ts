@@ -7,11 +7,36 @@ import { UserIntent } from "./userIntent";
  */
 export const smartSortFallback = (
   products: Product[],
-  intent: UserIntent
+  intent: UserIntent,
+  options?: { purchasedProductIds?: string[]; purchasedCategories?: string[] }
 ): Product[] => {
+  const purchasedIds = new Set(options?.purchasedProductIds || []);
+  const purchasedCats = (options?.purchasedCategories || intent.purchasedCategories || []).map(c =>
+    c.toLowerCase()
+  );
+
+  // Build over-viewed set: products viewed >5 times without action (cart/wishlist)
+  const viewCounts = new Map<string, number>();
+  (intent.viewedProducts || []).forEach(id => {
+    viewCounts.set(id, (viewCounts.get(id) || 0) + 1);
+  });
+
   return [...products]
     .map((p) => {
       let score = 0;
+
+      // ---- Penalties (logged-in personalization) ----
+      if (purchasedIds.has(p.product_id)) {
+        score -= 100; // already owned
+      }
+      const vc = viewCounts.get(p.product_id) || 0;
+      const engaged =
+        intent.cartProductIds?.includes(p.product_id) ||
+        intent.wishlistProductIds?.includes(p.product_id) ||
+        intent.clickedProducts?.includes(p.product_id);
+      if (vc > 5 && !engaged) {
+        score -= 30; // over-viewed but not converted
+      }
 
       // Wishlist items - highest priority
       if (intent.wishlistProductIds?.includes(p.product_id)) {
@@ -36,6 +61,18 @@ export const smartSortFallback = (
         (c) => p.categories?.toLowerCase().includes(c.toLowerCase())
       )) {
         score += 35;
+      }
+
+      // Collaborative-filtering proxy: products in user's purchased categories
+      // with strong social proof (reviews_count) -> "what similar users bought"
+      if (
+        purchasedCats.length > 0 &&
+        !purchasedIds.has(p.product_id) &&
+        purchasedCats.some(c => p.categories?.toLowerCase().includes(c))
+      ) {
+        const reviews = p.reviews_count || 0;
+        if (reviews >= 20) score += 25;
+        else if (reviews >= 5) score += 15;
       }
 
       // Recently viewed products

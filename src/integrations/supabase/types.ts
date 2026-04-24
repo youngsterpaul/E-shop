@@ -1296,6 +1296,35 @@ export type Database = {
         }
         Relationships: []
       }
+      order_secrets: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          webhook_secret: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          webhook_secret: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          webhook_secret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_secrets_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           change_reason: string | null
@@ -1353,7 +1382,6 @@ export type Database = {
           updated_at: string
           user_id: string | null
           username: string | null
-          webhook_secret: string | null
         }
         Insert: {
           amount?: number | null
@@ -1370,7 +1398,6 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           username?: string | null
-          webhook_secret?: string | null
         }
         Update: {
           amount?: number | null
@@ -1387,7 +1414,6 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           username?: string | null
-          webhook_secret?: string | null
         }
         Relationships: []
       }
@@ -1485,6 +1511,7 @@ export type Database = {
           rating: number | null
           reorder_point: number | null
           reviews_count: number
+          search_keywords: string[] | null
           sku: number | null
           specification: Json | null
           stock: number | null
@@ -1513,6 +1540,7 @@ export type Database = {
           rating?: number | null
           reorder_point?: number | null
           reviews_count?: number
+          search_keywords?: string[] | null
           sku?: number | null
           specification?: Json | null
           stock?: number | null
@@ -1541,6 +1569,7 @@ export type Database = {
           rating?: number | null
           reorder_point?: number | null
           reviews_count?: number
+          search_keywords?: string[] | null
           sku?: number | null
           specification?: Json | null
           stock?: number | null

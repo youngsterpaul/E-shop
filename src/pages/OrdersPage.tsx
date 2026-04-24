@@ -1,5 +1,5 @@
 import { useEffect, useState, memo, useRef } from 'react';
-import OrderTrackingTimeline from '@/components/order/OrderTrackingTimeline';
+import OrderDetailsModal from '@/components/order/OrderDetailsModal';
 import PendingOrderCountdown from '@/components/order/PendingOrderCountdown';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -88,6 +88,9 @@ const OrdersPage = memo(() => {
     status: string;
     message: string;
   }>({ status: 'idle', message: '' });
+
+  // Order details modal state
+  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -342,8 +345,17 @@ const OrdersPage = memo(() => {
                       </div>
                     ))}
 
-                    {/* Order Tracking Timeline */}
-                    <OrderTrackingTimeline status={order.status} createdAt={order.created_at} />
+                    {/* View Details button — shows tracking timeline + smart message in modal/overlay */}
+                    {['pending', 'processing', 'packed', 'shipped', 'cancelled'].includes(order.status) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setDetailsOrder(order)}
+                      >
+                        View details
+                      </Button>
+                    )}
 
                     <div className="border-t pt-3 space-y-2">
                       {order.discount_amount && order.discount_amount > 0 && (
@@ -467,6 +479,17 @@ const OrdersPage = memo(() => {
           )}
         </div>
       </ResponsiveModal>
+
+      {/* Order details modal — tracking timeline + smart real-time message */}
+      {detailsOrder && (
+        <OrderDetailsModal
+          open={!!detailsOrder}
+          onOpenChange={(open) => !open && setDetailsOrder(null)}
+          orderId={detailsOrder.order_id}
+          status={detailsOrder.status}
+          createdAt={detailsOrder.created_at}
+        />
+      )}
     </div>
   );
 });

@@ -329,7 +329,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { products, intent, useAI = true } = await req.json();
+    const { products, intent, useAI = true, purchasedProductIds = [], purchasedCategories = [] } = await req.json();
 
     if (!Array.isArray(products)) {
       return new Response(
@@ -338,12 +338,22 @@ serve(async (req: Request) => {
       );
     }
 
+    const purchasedIdSet = new Set<string>(purchasedProductIds || []);
+    const purchasedCatList: string[] = (purchasedCategories || []).map((c: string) => c.toLowerCase());
+
+    // Compute over-viewed set (viewed >5 times without engagement)
+    const viewCounts = new Map<string, number>();
+    (intent?.viewedProducts || []).forEach((id: string) => {
+      viewCounts.set(id, (viewCounts.get(id) || 0) + 1);
+    });
+
     console.log(`Smart sort processing ${products.length} products with intent:`, {
       viewedCategories: intent?.viewedCategories?.length || 0,
       viewedProducts: intent?.viewedProducts?.length || 0,
       searchedTerms: intent?.searchedTerms?.length || 0,
       cartItems: intent?.cartProductIds?.length || 0,
       wishlistItems: intent?.wishlistProductIds?.length || 0,
+      purchased: purchasedIdSet.size,
     });
 
     // Get time-based category boosts
@@ -382,6 +392,34 @@ serve(async (req: Request) => {
         const daysSinceCreated = (Date.now() - new Date(product.created_at).getTime()) / (1000 * 60 * 60 * 24);
         if (daysSinceCreated < 7) score += 10;
         else if (daysSinceCreated < 30) score += 5;
+      }
+
+      // 6. Penalty: already purchased
+      if (purchasedIdSet.has(product.product_id)) {
+        score -= 100;
+      }
+
+      // 7. Penalty: over-viewed without engagement
+      const vc = viewCounts.get(product.product_id) || 0;
+      const engaged =
+        intent?.cartProductIds?.includes(product.product_id) ||
+        intent?.wishlistProductIds?.includes(product.product_id) ||
+        intent?.clickedProducts?.includes(product.product_id);
+      if (vc > 5 && !engaged) {
+        score -= 30;
+      }
+
+      // 8. Collaborative-filtering proxy: same category as past purchases
+      // and strong social proof (reviews_count) — "what similar users bought"
+      const productCategoryLower = product.categories?.toLowerCase() || '';
+      if (
+        purchasedCatList.length > 0 &&
+        !purchasedIdSet.has(product.product_id) &&
+        purchasedCatList.some((c) => productCategoryLower.includes(c))
+      ) {
+        const reviews = product.reviews_count || 0;
+        if (reviews >= 20) score += 25;
+        else if (reviews >= 5) score += 15;
       }
 
       return {

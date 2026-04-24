@@ -28,6 +28,7 @@ interface ProductFormData {
   featured: boolean;
   features: string;
   specification: string;
+  search_keywords: string;
 }
 
 interface ProductCategorySelectProps {

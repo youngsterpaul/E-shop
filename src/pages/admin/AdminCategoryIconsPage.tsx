@@ -535,8 +535,6 @@ const AdminCategoryIconsPage = () => {
               totalItems={localIcons.length}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
-              showQuickJumper={false}
-              showSizeChanger={false}
             />
           )}
         </CardContent>

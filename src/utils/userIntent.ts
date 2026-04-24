@@ -36,6 +36,19 @@ export const getUserIntent = (): UserIntent => {
   }
 };
 
+/**
+ * Replace the entire stored intent (used by the cross-device sync layer
+ * after merging local + remote behavior on login).
+ */
+export const setUserIntent = (intent: UserIntent) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(intent));
+  } catch (err) {
+    console.warn('Failed to set user intent:', err);
+  }
+};
+
 export const updateUserIntent = (
   patch: Partial<UserIntent>
 ) => {

@@ -6,6 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Table, 
   TableBody, 
@@ -34,7 +37,8 @@ import {
   DollarSign,
   Eye,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -69,8 +73,38 @@ export default function AdminReturnsPage() {
   const [refundMethod, setRefundMethod] = useState('original_payment');
   const [adminNotes, setAdminNotes] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [singleDeleteId, setSingleDeleteId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+
+  const deleteReturnsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from('returns').delete().in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-returns'] });
+      toast.success(`${ids.length} return${ids.length > 1 ? 's' : ''} deleted`);
+      setSelectedIds([]);
+      setIsDeleteDialogOpen(false);
+      setSingleDeleteId(null);
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete: ${error.message}`);
+    },
+  });
+
+  const toggleRow = (id: string) => {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const confirmDelete = () => {
+    const ids = singleDeleteId ? [singleDeleteId] : selectedIds;
+    if (ids.length === 0) return;
+    deleteReturnsMutation.mutate(ids);
+  };
 
   // Fetch returns with order and user details
   const { data: returns = [], isLoading } = useQuery({
@@ -326,6 +360,14 @@ export default function AdminReturnsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={returns.length > 0 && selectedIds.length === returns.length}
+                      onCheckedChange={(checked) => {
+                        setSelectedIds(checked ? returns.map(r => r.id) : []);
+                      }}
+                    />
+                  </TableHead>
                   <TableHead>Return #</TableHead>
                   <TableHead>Order ID</TableHead>
                   <TableHead>Customer</TableHead>
@@ -339,19 +381,25 @@ export default function AdminReturnsPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       Loading returns...
                     </TableCell>
                   </TableRow>
                 ) : returns.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No returns found
                     </TableCell>
                   </TableRow>
                 ) : (
                   returns.map((returnItem) => (
-                    <TableRow key={returnItem.id}>
+                    <TableRow key={returnItem.id} data-state={selectedIds.includes(returnItem.id) ? 'selected' : undefined}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(returnItem.id)}
+                          onCheckedChange={() => toggleRow(returnItem.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {returnItem.return_number}
                       </TableCell>
@@ -424,6 +472,16 @@ export default function AdminReturnsPage() {
                               <DollarSign className="h-4 w-4 text-blue-600" />
                             </Button>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSingleDeleteId(returnItem.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -585,6 +643,47 @@ export default function AdminReturnsPage() {
               </Button>
             </ResponsiveModalFooter>
         </ResponsiveModal>
+
+        {/* Bulk actions bar */}
+        <BulkActionsBar
+          selectedCount={selectedIds.length}
+          totalCount={returns.length}
+          onSelectAll={() => setSelectedIds(returns.map(r => r.id))}
+          onDeselectAll={() => setSelectedIds([])}
+          onDelete={() => {
+            setSingleDeleteId(null);
+            setIsDeleteDialogOpen(true);
+          }}
+        />
+
+        {/* Delete confirmation */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) setSingleDeleteId(null);
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete return{singleDeleteId ? '' : 's'}?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. {singleDeleteId
+                  ? 'This return record will be permanently deleted.'
+                  : `${selectedIds.length} return record${selectedIds.length > 1 ? 's' : ''} will be permanently deleted.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={deleteReturnsMutation.isPending}
+              >
+                {deleteReturnsMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
