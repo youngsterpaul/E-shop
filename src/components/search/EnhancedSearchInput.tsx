@@ -116,7 +116,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
           ref={inputRef} 
           type="search" 
           placeholder={placeholder} 
-          className={`h-10 text-base bg-muted/40 rounded-full ${isMobile ? 'pl-4 pr-4' : 'pl-12 pr-28'}`} 
+          className={`h-12 text-base bg-muted/40 border-border/50 rounded-full transition-all duration-200 focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 ${isMobile ? 'pl-4 pr-4' : 'pl-12 pr-28'}`} 
           value={value} 
           onChange={e => onChange(e.target.value)} 
           onFocus={() => {

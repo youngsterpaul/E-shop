@@ -12,13 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  ResponsiveModal,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from '@/components/ui/responsive-modal';
 import { CheckCircle, XCircle, ChevronDown, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -365,99 +364,95 @@ const AdminLoginAuditPage = () => {
       </Card>
 
       {/* Detail dialog */}
-      <Dialog open={!!detailGroup} onOpenChange={(open) => !open && setDetailGroup(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {detailGroup?.success ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              ) : (
-                <XCircle className="h-5 w-5 text-red-600" />
-              )}
-              {detailGroup?.email}
-            </DialogTitle>
-            <DialogDescription>
-              {detailGroup?.attempts} attempt(s) · {detailGroup?.success ? 'Successful' : 'Failed'}
-            </DialogDescription>
-          </DialogHeader>
+      <ResponsiveModal open={!!detailGroup} onOpenChange={(open) => !open && setDetailGroup(null)} className="max-w-2xl">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle className="flex items-center gap-2">
+            {detailGroup?.success ? (
+              <CheckCircle className="h-5 w-5 text-foreground" />
+            ) : (
+              <XCircle className="h-5 w-5 text-destructive" />
+            )}
+            {detailGroup?.email}
+          </ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            {detailGroup?.attempts} attempt(s) · {detailGroup?.success ? 'Successful' : 'Failed'}
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
-          {detailGroup && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-muted-foreground text-xs">IP Address</p>
-                  <p className="font-medium">{detailGroup.ip_address || 'Unknown'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Failure Reason</p>
-                  <p className="font-medium">
-                    {detailGroup.failure_reason || (detailGroup.success ? '—' : 'Unknown')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">First Attempt</p>
-                  <p className="font-medium">{format(new Date(detailGroup.earliest_at), 'PPpp')}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Last Attempt</p>
-                  <p className="font-medium">{format(new Date(detailGroup.latest_at), 'PPpp')}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-muted-foreground text-xs">User Agent</p>
-                  <p className="font-medium text-xs break-all">{detailGroup.user_agent || 'Unknown'}</p>
+        {detailGroup && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-muted-foreground text-xs">IP Address</p>
+                <p className="font-medium break-all">{detailGroup.ip_address || 'Unknown'}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Failure Reason</p>
+                <p className="font-medium">
+                  {detailGroup.failure_reason || (detailGroup.success ? '—' : 'Unknown')}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">First Attempt</p>
+                <p className="font-medium">{format(new Date(detailGroup.earliest_at), 'PPpp')}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Last Attempt</p>
+                <p className="font-medium">{format(new Date(detailGroup.latest_at), 'PPpp')}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-muted-foreground text-xs">User Agent</p>
+                <p className="font-medium text-xs break-all">{detailGroup.user_agent || 'Unknown'}</p>
+              </div>
+            </div>
+
+            {detailGroup.all_attempts.length > 1 && (
+              <div>
+                <p className="text-sm font-semibold mb-2">All Attempts ({detailGroup.all_attempts.length})</p>
+                <div className="border rounded-md max-h-64 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Timestamp</TableHead>
+                        <TableHead>Reason</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {detailGroup.all_attempts.map((a, i) => (
+                        <TableRow key={a.id}>
+                          <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                          <TableCell className="text-xs">{format(new Date(a.created_at), 'PPpp')}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {a.failure_reason || (a.success ? '—' : 'Unknown')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
+            )}
+          </div>
+        )}
 
-              {detailGroup.all_attempts.length > 1 && (
-                <div>
-                  <p className="text-sm font-semibold mb-2">All Attempts ({detailGroup.all_attempts.length})</p>
-                  <div className="border rounded-md max-h-64 overflow-y-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>#</TableHead>
-                          <TableHead>Timestamp</TableHead>
-                          <TableHead>Reason</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {detailGroup.all_attempts.map((a, i) => (
-                          <TableRow key={a.id}>
-                            <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                            <TableCell className="text-xs">{format(new Date(a.created_at), 'PPpp')}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
-                              {a.failure_reason || (a.success ? '—' : 'Unknown')}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+        <ResponsiveModalFooter>
+          <Button variant="outline" onClick={() => setDetailGroup(null)}>Close</Button>
+        </ResponsiveModalFooter>
+      </ResponsiveModal>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailGroup(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Audit Logs</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {selectedGroups.length} unique entry(ies)? All underlying attempts will be removed. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleBulkDelete}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ResponsiveModal open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Delete Audit Logs</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            Are you sure you want to delete {selectedGroups.length} unique entry(ies)? All underlying attempts will be removed. This action cannot be undone.
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
+        <ResponsiveModalFooter>
+          <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={handleBulkDelete}>Delete</Button>
+        </ResponsiveModalFooter>
+      </ResponsiveModal>
     </AdminLayout>
   );
 };

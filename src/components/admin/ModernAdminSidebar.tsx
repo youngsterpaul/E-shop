@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -75,14 +76,52 @@ export function ModernAdminSidebar() {
   const { canAccessRoute, isLoading: permissionsLoading } = useUserRoutePermissions(user?.id);
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const loading = rolesLoading || permissionsLoading;
+
+  const restoreSidebarScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const saved = sessionStorage.getItem('adminSidebarScroll');
+    if (!saved) return;
+    const top = parseInt(saved, 10) || 0;
+    el.scrollTop = top;
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = top;
+      }
+    });
+    window.setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = top;
+      }
+    }, 120);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    restoreSidebarScroll();
+
+    const onScroll = () => {
+      sessionStorage.setItem('adminSidebarScroll', String(el.scrollTop));
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    restoreSidebarScroll();
+  }, [location.pathname, loading]);
+
   // Real-time badge counts
   const securityAlertsCount = useSecurityAlertsCount();
   const pendingOrdersCount = usePendingOrdersCount();
   const pendingReturnsCount = usePendingReturnsCount();
   const unreadChatCount = useUnreadChatCount();
-
-  const loading = rolesLoading || permissionsLoading;
 
   const mainMenuItems: MenuItem[] = [
     {
@@ -387,6 +426,11 @@ export function ModernAdminSidebar() {
                 >
                   <NavLink
                     to={item.path}
+                    onClick={() => {
+                      if (scrollRef.current) {
+                        sessionStorage.setItem('adminSidebarScroll', String(scrollRef.current.scrollTop));
+                      }
+                    }}
                     className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all"
                     activeClassName="bg-primary text-primary-foreground"
                   >
@@ -426,7 +470,7 @@ export function ModernAdminSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent>
+      <SidebarContent ref={scrollRef}>
         {renderMenuGroup(mainMenuItems, 'Overview')}
         <Separator className="my-2" />
         {renderMenuGroup(catalogMenuItems, 'Catalog', true)}
