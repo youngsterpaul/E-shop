@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment as FragmentRows } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { QuickActionsBar } from '@/components/admin/QuickActionsBar';
 import { ExportButton } from '@/components/admin/ExportButton';
@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ResponsiveModal, ResponsiveModalHeader, ResponsiveModalFooter, ResponsiveModalTitle, ResponsiveModalDescription } from "@/components/ui/responsive-modal";
 import { toast } from "@/hooks/use-toast";
-import { Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown } from 'lucide-react';
+import { Eye, Truck, Package, CheckCircle, XCircle, Download, Trash2, ChevronDown, ChevronRight, Users, Bell, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { downloadReceipt } from '@/utils/receiptGenerator';
@@ -71,6 +71,16 @@ const AdminOrdersPage = () => {
     open: false,
     order: null,
   });
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -110,6 +120,44 @@ const AdminOrdersPage = () => {
 
   const displayedOrders = filteredOrders.slice(0, displayedItemsCount);
   const hasMoreOrders = filteredOrders.length > displayedItemsCount;
+
+  // Status that requires admin attention (needs to be updated/fulfilled)
+  const needsAttention = (status: string) =>
+    status === 'pending' || status === 'processing' || status === 'packed';
+
+  // Group displayed orders by customer email (fallback to user_id or order_id)
+  const groupedOrders = displayedOrders.reduce<Array<{ key: string; email: string; name: string; orders: Order[]; attentionCount: number; latestAt: string }>>((acc, order) => {
+    const key = (order.email || order.user_id || order.order_id).toLowerCase();
+    const existing = acc.find(g => g.key === key);
+    const isAttention = needsAttention(order.status);
+    if (existing) {
+      existing.orders.push(order);
+      if (isAttention) existing.attentionCount += 1;
+      if (order.created_at > existing.latestAt) existing.latestAt = order.created_at;
+    } else {
+      acc.push({
+        key,
+        email: order.email || '—',
+        name: order.username || order.email || 'Guest',
+        orders: [order],
+        attentionCount: isAttention ? 1 : 0,
+        latestAt: order.created_at,
+      });
+    }
+    return acc;
+  }, []);
+
+  // Sort groups: those needing attention first, then by most recent order
+  groupedOrders.sort((a, b) => {
+    if ((b.attentionCount > 0 ? 1 : 0) !== (a.attentionCount > 0 ? 1 : 0)) {
+      return (b.attentionCount > 0 ? 1 : 0) - (a.attentionCount > 0 ? 1 : 0);
+    }
+    return b.latestAt.localeCompare(a.latestAt);
+  });
+
+  // Summary metrics
+  const totalAttention = filteredOrders.filter(o => needsAttention(o.status)).length;
+  const totalCustomers = new Set(filteredOrders.map(o => (o.email || o.user_id || o.order_id).toLowerCase())).size;
 
   useEffect(() => {
     setDisplayedItemsCount(itemsPerPage);
@@ -284,6 +332,37 @@ const AdminOrdersPage = () => {
 
       <Card>
         <CardContent className="p-6">
+          {/* Summary stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Total Orders</p>
+              <p className="text-2xl font-bold">{filteredOrders.length}</p>
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Customers</p>
+              <p className="text-2xl font-bold">{totalCustomers}</p>
+            </div>
+            <div className={`rounded-lg border p-3 relative ${totalAttention > 0 ? 'border-destructive/40 bg-destructive/5' : 'bg-card'}`}>
+              <div className="flex items-center gap-1.5">
+                <Bell className={`h-3.5 w-3.5 ${totalAttention > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <p className="text-xs text-muted-foreground">Needs Update</p>
+              </div>
+              <p className={`text-2xl font-bold ${totalAttention > 0 ? 'text-destructive' : ''}`}>{totalAttention}</p>
+              {totalAttention > 0 && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+                </span>
+              )}
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Delivered</p>
+              <p className="text-2xl font-bold text-primary">
+                {filteredOrders.filter(o => o.status === 'delivered').length}
+              </p>
+            </div>
+          </div>
+
           <div className="mb-6 flex flex-col sm:flex-row gap-3">
             <DebouncedSearchInput
               value={searchQuery}
@@ -303,6 +382,17 @@ const AdminOrdersPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {totalAttention > 0 && (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => setStatusFilter('pending')}
+                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Show Pending ({totalAttention})
+              </Button>
+            )}
           </div>
 
           {loading ? (
@@ -345,106 +435,164 @@ const AdminOrdersPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayedOrders.map((order) => {
-                      const StatusIcon = getStatusIcon(order.status);
+                    {groupedOrders.map((group) => {
+                      const isExpanded = expandedGroups.has(group.key);
+                      const totalAmount = group.orders.reduce((sum, o) => sum + (o.amount || 0), 0);
+                      const isSingle = group.orders.length === 1;
+                      const hasAttention = group.attentionCount > 0;
+
                       return (
-                        <TableRow key={order.order_id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedOrders.includes(order.order_id)}
-                              onCheckedChange={() => handleSelectOrder(order.order_id)}
-                            />
-                          </TableCell>
-                          <TableCell className="font-mono">
-                            #{order.order_id.slice(0, 8)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {order.username || order.email}
-                              </span>
-                              {order.username && order.email && (
-                                <span className="text-xs text-muted-foreground">
-                                  {order.email}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              {order.items && order.items.length > 0 ? (
-                                <>
-                                  <span className="text-xs font-medium">
-                                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground line-clamp-1">
-                                    {order.items.map(item => item.product.name).join(', ')}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">No items</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            KSH {order.amount?.toLocaleString() || '0'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusColor(order.status)} className="gap-1">
-                              <StatusIcon className="h-3 w-3" />
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {order.mpesa_receipt_number ? (
-                              <span className="text-xs font-mono text-primary">
-                                {order.mpesa_receipt_number}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {order.tracking_number ? (
-                              <span className="text-xs font-mono text-muted-foreground">
-                                {order.tracking_number}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(order.created_at), 'MMM dd, yyyy')}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownloadReceipt(order)}
-                                title="Download Receipt"
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setFulfillmentModal({ open: true, order })}
-                              >
-                                <Truck className="h-4 w-4 mr-1" />
-                                Fulfill
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => setViewOrderModal({ open: true, order })}
-                                title="View Order Details"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <FragmentRows key={`group-${group.key}`}>
+                          <TableRow
+                            className={`cursor-pointer ${hasAttention ? 'bg-destructive/5 hover:bg-destructive/10 border-l-4 border-l-destructive' : 'bg-muted/40 hover:bg-muted/60'}`}
+                            onClick={() => toggleGroup(group.key)}
+                          >
+                            <TableCell>
+                              {isExpanded
+                                ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            </TableCell>
+                            <TableCell colSpan={2}>
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <Users className={`h-4 w-4 ${hasAttention ? 'text-destructive' : 'text-muted-foreground'}`} />
+                                  {hasAttention && (
+                                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="font-semibold">{group.name}</span>
+                                  <span className="text-xs text-muted-foreground">{group.email}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary">
+                                  {group.orders.length} order{group.orders.length !== 1 ? 's' : ''}
+                                </Badge>
+                                {hasAttention && (
+                                  <Badge variant="destructive" className="gap-1">
+                                    <Bell className="h-3 w-3" />
+                                    {group.attentionCount} pending
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              KSH {totalAmount.toLocaleString()}
+                            </TableCell>
+                            <TableCell colSpan={5} className="text-right text-xs text-muted-foreground">
+                              {isExpanded ? 'Click to collapse' : `Click to expand${isSingle ? '' : ` ${group.orders.length} orders`}`}
+                            </TableCell>
+                          </TableRow>
+
+                          {isExpanded && group.orders.map((order) => {
+                            const StatusIcon = getStatusIcon(order.status);
+                            return (
+                              <TableRow key={order.order_id}>
+                                <TableCell>
+                                  <Checkbox
+                                    checked={selectedOrders.includes(order.order_id)}
+                                    onCheckedChange={() => handleSelectOrder(order.order_id)}
+                                  />
+                                </TableCell>
+                                <TableCell className="font-mono">
+                                  #{order.order_id.slice(0, 8)}
+                                </TableCell>
+                                <TableCell>
+                                  <div className={`flex flex-col ${isSingle ? '' : 'pl-4'}`}>
+                                    <span className="font-medium">
+                                      {order.username || order.email}
+                                    </span>
+                                    {order.username && order.email && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {order.email}
+                                      </span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col gap-1">
+                                    {order.items && order.items.length > 0 ? (
+                                      <>
+                                        <span className="text-xs font-medium">
+                                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground line-clamp-1">
+                                          {order.items.map(item => item.product.name).join(', ')}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">No items</span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  KSH {order.amount?.toLocaleString() || '0'}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={getStatusColor(order.status)} className="gap-1">
+                                    <StatusIcon className="h-3 w-3" />
+                                    {order.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {order.mpesa_receipt_number ? (
+                                    <span className="text-xs font-mono text-primary">
+                                      {order.mpesa_receipt_number}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {order.tracking_number ? (
+                                    <span className="text-xs font-mono text-muted-foreground">
+                                      {order.tracking_number}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(order.created_at), 'MMM dd, yyyy')}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDownloadReceipt(order)}
+                                      title="Download Receipt"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setFulfillmentModal({ open: true, order })}
+                                    >
+                                      <Truck className="h-4 w-4 mr-1" />
+                                      Fulfill
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => setViewOrderModal({ open: true, order })}
+                                      title="View Order Details"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </FragmentRows>
                       );
                     })}
                   </TableBody>
