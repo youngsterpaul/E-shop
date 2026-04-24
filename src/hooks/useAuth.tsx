@@ -17,19 +17,17 @@ interface AuthContextType {
   validatePassword: (password: string) => string[]; // Add to interface
 }
 
-interface FailedAttempt {
-  email: string;
-  timestamp: number;
-  attempts: number;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Security constants
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 const ACTIVITY_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+// NOTE: Login attempt rate limiting is enforced server-side by Supabase Auth.
+// Do NOT store lockout state in localStorage — it can be trivially cleared by
+// attackers and provides a false sense of security. For stronger protection,
+// enable Captcha (hCaptcha/Turnstile) in the Supabase dashboard under
+// Authentication → Settings.
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -39,37 +37,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [lastActivity, setLastActivity] = useState(Date.now());
   const { toast } = useToast();
 
-  // Security: Track failed login attempts
-  const getFailedAttempts = (email: string): FailedAttempt | null => {
-    const stored = localStorage.getItem(`failed_attempts_${email}`);
-    if (!stored) return null;
-    
-    const attempt = JSON.parse(stored) as FailedAttempt;
-    // Clear old attempts
-    if (Date.now() - attempt.timestamp > LOCKOUT_DURATION) {
-      localStorage.removeItem(`failed_attempts_${email}`);
-      return null;
+  // Cleanup any legacy localStorage lockout entries from prior versions.
+  // These were a security anti-pattern (client-controlled), so we purge them.
+  const purgeLegacyFailedAttempts = () => {
+    try {
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith('failed_attempts_'))
+        .forEach((key) => localStorage.removeItem(key));
+    } catch {
+      // ignore
     }
-    return attempt;
-  };
-
-  const recordFailedAttempt = (email: string) => {
-    const existing = getFailedAttempts(email);
-    const newAttempt: FailedAttempt = {
-      email,
-      timestamp: Date.now(),
-      attempts: existing ? existing.attempts + 1 : 1
-    };
-    localStorage.setItem(`failed_attempts_${email}`, JSON.stringify(newAttempt));
-  };
-
-  const clearFailedAttempts = (email: string) => {
-    localStorage.removeItem(`failed_attempts_${email}`);
-  };
-
-  const isAccountLocked = (email: string): boolean => {
-    const attempts = getFailedAttempts(email);
-    return attempts ? attempts.attempts >= MAX_FAILED_ATTEMPTS : false;
   };
 
   // Security: Input sanitization
@@ -260,18 +237,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       setLoading(true);
-      
+
       // Security: Sanitize input
       const sanitizedEmail = sanitizeInput(email);
-      
-      // Security: Check if account is locked
-      if (isAccountLocked(sanitizedEmail)) {
-        const attempts = getFailedAttempts(sanitizedEmail);
-        const timeRemaining = Math.ceil((LOCKOUT_DURATION - (Date.now() - attempts!.timestamp)) / 60000);
-        failureReason = `Account locked. ${timeRemaining} minutes remaining.`;
-        throw new Error(failureReason);
-      }
-      
+
+      // Purge any legacy client-side lockout markers (no longer used).
+      purgeLegacyFailedAttempts();
+
       cleanupAuthState();
       
       try {
@@ -286,29 +258,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) {
-        //console.error('Sign in error:', error);
-        recordFailedAttempt(sanitizedEmail);
         failureReason = error.message;
-        
-        // Create security alert for failed login
-        const remainingAttempts = MAX_FAILED_ATTEMPTS - (getFailedAttempts(sanitizedEmail)?.attempts || 0);
-        if (remainingAttempts <= 2) {
+
+        // Log a security alert server-side for visibility/auditing.
+        // Server-side aggregation in security_alerts is the source of truth;
+        // Supabase Auth handles actual rate limiting.
+        try {
           await supabase.from('security_alerts').insert({
             alert_type: 'failed_login',
-            severity: remainingAttempts === 0 ? 'high' : 'medium',
+            severity: 'medium',
             identifier: sanitizedEmail,
             details: {
-              attempts: getFailedAttempts(sanitizedEmail)?.attempts || 0,
-              timestamp: new Date().toISOString()
-            }
+              reason: error.message,
+              timestamp: new Date().toISOString(),
+            },
           });
+        } catch {
+          // best-effort; do not block the login flow on logging failures
         }
-        
+
         throw error;
       }
-      
+
       if (data.user) {
-        clearFailedAttempts(sanitizedEmail);
         updateActivity();
         auditSuccess = true;
         userId = data.user.id;
@@ -325,24 +297,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       //console.error('Login error:', error);
       throw error;
     } finally {
-      // Log all login attempts to audit table
+      // Log all login attempts via secure server-side edge function.
+      // Direct client inserts to login_audit are no longer permitted by RLS,
+      // preventing log pollution by anonymous users.
       try {
-        await supabase.from('login_audit').insert({
-          email: email,
-          success: auditSuccess,
-          user_id: userId,
-          user_agent: navigator.userAgent,
-          device_info: {
-            platform: navigator.platform,
-            language: navigator.language,
-            screen: `${screen.width}x${screen.height}`,
+        await supabase.functions.invoke('log-login-attempt', {
+          body: {
+            email: email,
+            success: auditSuccess,
+            user_agent: navigator.userAgent,
+            device_info: {
+              platform: navigator.platform,
+              language: navigator.language,
+              screen: `${screen.width}x${screen.height}`,
+            },
+            failure_reason: auditSuccess ? null : failureReason,
           },
-          failure_reason: auditSuccess ? null : failureReason,
         });
       } catch (auditError) {
         console.error('Failed to log audit:', auditError);
       }
-      
+
       setLoading(false);
     }
   };
@@ -429,12 +404,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       cleanupAuthState();
       localStorage.removeItem('lastActivity');
       localStorage.removeItem('rememberMe');
-      
-      // Clear failed attempt records for current user
-      if (user?.email) {
-        clearFailedAttempts(user.email);
-      }
-      
+      purgeLegacyFailedAttempts();
+
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
