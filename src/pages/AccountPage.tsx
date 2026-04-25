@@ -182,7 +182,7 @@ const AccountPage = () => {
               { icon: ShoppingCart, label: 'Unpaid', href: '/orders?status=pending', badge: orderCounts?.unpaid || null },
               { icon: Package, label: 'Processing', href: '/orders?status=processing', badge: orderCounts?.processing || null },
               { icon: Truck, label: 'Shipped', href: '/orders?status=shipped', badge: orderCounts?.shipped || null },
-              { icon: Star, label: 'Review', href: '/orders?status=delivered', badge: orderCounts?.review || null },
+              { icon: Star, label: 'Review', href: '/reviews', badge: orderCounts?.review || null },
               { icon: RotateCcw, label: 'Returns', href: '/my-returns', badge: null },
             ].map(({ icon: Icon, label, href, badge }) => (
               <Link key={href} to={href}>
