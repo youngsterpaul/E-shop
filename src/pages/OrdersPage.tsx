@@ -1,3 +1,4 @@
+
 import { useEffect, useState, memo, useRef } from 'react';
 import OrderDetailsModal from '@/components/order/OrderDetailsModal';
 import PendingOrderCountdown from '@/components/order/PendingOrderCountdown';
@@ -228,55 +229,42 @@ const OrdersPage = memo(() => {
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-      <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-8' : 'px-4 pb-24 pt-4'}`}>
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">My Orders</h1>
-            <p className="text-sm text-muted-foreground">Track and manage your orders</p>
+      <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-4' : 'px-4 pb-24 pt-2'}`}>
+        {/* Desktop-only action buttons */}
+        {!isMobile && (
+          <div className="flex justify-end gap-2 mb-3">
+            <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
+              <PackageX className="h-4 w-4 mr-1" /> Returns
+            </Button>
+            <Button variant="outline" onClick={fetchOrders} size="sm">
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
           </div>
-          {!isMobile && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => navigate('/my-returns')} size="sm">
-                <PackageX className="h-4 w-4 mr-1" /> Returns
-              </Button>
-              <Button variant="outline" onClick={fetchOrders} size="sm">
-                <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-              </Button>
-            </div>
-          )}
-        </div>
+        )}
 
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search orders..."
-            className="pl-10 h-11"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        {/* Status Tabs */}
-        <div className="flex overflow-x-auto gap-2 pb-1 mb-6 scrollbar-hide">
-          {Object.entries(statusConfig).map(([key, cfg]) => {
-            const active = activeStatus === key;
-            const Icon = cfg.icon;
-            return (
-              <Button
-                key={key}
-                variant={active ? 'default' : 'outline'}
-                size="sm"
-                className={`flex-shrink-0 gap-1.5 px-4 ${active ? 'font-medium' : ''}`}
-                onClick={() => setActiveStatus(key)}
-              >
-                <Icon className={`h-4 w-4 ${active ? '' : cfg.color}`} />
-                {cfg.label}
-              </Button>
-            );
-          })}
+        {/* Status Tabs - underlined style */}
+        <div className="border-b mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {Object.entries(statusConfig).map(([key, cfg]) => {
+              const active = activeStatus === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveStatus(key)}
+                  className={`flex-shrink-0 px-4 sm:px-6 py-3 text-sm whitespace-nowrap relative transition-colors ${
+                    active
+                      ? 'text-foreground font-semibold'
+                      : 'text-muted-foreground font-normal hover:text-foreground'
+                  }`}
+                >
+                  {cfg.label}
+                  {active && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-8 bg-destructive rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Orders List */}
