@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, Search, Grid3X3, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronDown, Search, Grid3X3, Sparkles, ArrowRight } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import SiteBreadcrumb from '@/components/Breadcrumb';
 import { SEOHelmet } from '@/components/SEOHelmet';
@@ -175,6 +175,7 @@ const MobileCategoryPage = () => {
   const { data: categories, isLoading, error } = useCategoryHierarchy();
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
   const toggleCategory = (categoryId: number) => {
     setExpandedCategories(prev => {
@@ -206,15 +207,42 @@ const MobileCategoryPage = () => {
   };
 
   // Filter categories based on search
-  const filteredCategories = categories?.filter(category => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const categoryMatch = category.name.toLowerCase().includes(query);
-    const subcategoryMatch = category.subcategories?.some(sub =>
-      sub.name.toLowerCase().includes(query)
+  const filteredCategories = useMemo(() => {
+    return categories?.filter(category => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      const categoryMatch = category.name.toLowerCase().includes(query);
+      const subcategoryMatch = category.subcategories?.some(sub =>
+        sub.name.toLowerCase().includes(query)
+      );
+      return categoryMatch || subcategoryMatch;
+    }) || [];
+  }, [categories, searchQuery]);
+
+  // Keep an active category selected for the right pane
+  useEffect(() => {
+    if (filteredCategories.length === 0) {
+      setActiveCategoryId(null);
+      return;
+    }
+    if (activeCategoryId === null || !filteredCategories.some(c => c.id === activeCategoryId)) {
+      setActiveCategoryId(filteredCategories[0].id);
+    }
+  }, [filteredCategories, activeCategoryId]);
+
+  const activeCategory = filteredCategories.find(c => c.id === activeCategoryId) || null;
+
+  // For search: filter subcategories shown in the right pane
+  const visibleSubcategories = useMemo(() => {
+    if (!activeCategory) return [];
+    if (!searchQuery) return activeCategory.subcategories || [];
+    const q = searchQuery.toLowerCase();
+    const matchingSubs = (activeCategory.subcategories || []).filter(s =>
+      s.name.toLowerCase().includes(q)
     );
-    return categoryMatch || subcategoryMatch;
-  }) || [];
+    // If parent matched but no subs match, show all subs
+    return matchingSubs.length > 0 ? matchingSubs : (activeCategory.subcategories || []);
+  }, [activeCategory, searchQuery]);
 
   return (
     <>
@@ -226,7 +254,7 @@ const MobileCategoryPage = () => {
       />
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
-        <main className="flex-grow pb-20">
+        <main className={`flex-grow ${isMobile ? '' : 'pb-20'}`}>
           {/* Breadcrumb - Desktop Only */}
           {!isMobile && (
             <div className="max-w-[1400px] mx-auto px-4 lg:px-6 pt-6">
@@ -240,28 +268,8 @@ const MobileCategoryPage = () => {
             </div>
           )}
 
-          {/* Mobile Header */}
-          {isMobile ? (
-            <div className="px-4 pt-3 pb-2 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h1 className="text-lg font-bold text-foreground">Categories</h1>
-                <span className="text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
-                  {filteredCategories.length} categories
-                </span>
-              </div>
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 text-[13px] bg-muted/30 border-border/40 rounded-lg"
-                />
-              </div>
-            </div>
-          ) : (
+          {/* Desktop Header */}
+          {!isMobile && (
             <div className="max-w-[1400px] mx-auto px-4 lg:px-6 mb-6">
               <h1 className="text-2xl font-bold text-foreground">All Categories</h1>
               <p className="text-muted-foreground mt-1">Browse products by category</p>
@@ -269,9 +277,11 @@ const MobileCategoryPage = () => {
           )}
 
           {/* Category List */}
-          <div className={isMobile ? 'px-3' : 'max-w-[1400px] mx-auto px-4 lg:px-6'}>
+          <div className={isMobile ? '' : 'max-w-[1400px] mx-auto px-4 lg:px-6'}>
             {isLoading ? (
-              <CategorySkeleton />
+              <div className={isMobile ? 'px-3' : ''}>
+                <CategorySkeleton />
+              </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="text-destructive text-sm mb-1">Failed to load categories</div>
@@ -291,18 +301,111 @@ const MobileCategoryPage = () => {
                 )}
               </div>
             ) : isMobile ? (
-              /* Mobile - Compact Accordion */
-              <div className="space-y-1 pb-4">
-                {filteredCategories.map((category) => (
-                  <CategoryCard
-                    key={category.id}
-                    category={category}
-                    isExpanded={expandedCategories.has(category.id)}
-                    onToggle={() => toggleCategory(category.id)}
-                    onNavigateToCategory={() => navigateToCategory(category)}
-                    onNavigateToSubcategory={(sub) => navigateToSubcategory(category, sub)}
-                  />
-                ))}
+              /* Mobile - Two-pane drill-down with independent scroll */
+              <div
+                className="flex border-t border-border/40 overflow-hidden"
+                style={{ height: 'calc(100vh - 120px)' }}
+              >
+                {/* Left rail: categories (independently scrollable) */}
+                <nav className="w-[96px] shrink-0 bg-muted/20 border-r border-border/40 overflow-y-auto overscroll-contain py-2 scrollbar-thin">
+                  {filteredCategories.map((category) => {
+                    const IconComponent = category.icon || LucideIcons.ShoppingBag;
+                    const isActive = category.id === activeCategoryId;
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => setActiveCategoryId(category.id)}
+                        className={`w-full px-1.5 py-2 mx-1 my-0.5 rounded-lg flex flex-col items-center gap-1 relative transition-colors ${
+                          isActive
+                            ? 'bg-card ring-1 ring-primary/20 shadow-sm'
+                            : 'hover:bg-muted/40'
+                        }`}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary rounded-r-full" />
+                        )}
+                        <div className={`size-9 rounded-lg overflow-hidden flex items-center justify-center ring-1 ${
+                          isActive ? 'ring-primary/20 bg-primary/8' : 'ring-border/50 bg-muted/40'
+                        }`}>
+                          <IconComponent
+                            size={18}
+                            className={isActive ? 'text-primary' : 'text-muted-foreground'}
+                          />
+                        </div>
+                        <span className={`text-[10.5px] leading-tight text-center line-clamp-2 ${
+                          isActive ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'
+                        }`}>
+                          {category.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                {/* Right pane: subcategory grid (independently scrollable) */}
+                <section className="flex-1 overflow-y-auto overscroll-contain px-2.5 pt-2.5 pb-8">
+                  {activeCategory && (
+                    <>
+                      <div className="flex items-baseline justify-between mb-2.5 px-1">
+                        <h2 className="text-[14px] font-bold text-foreground tracking-tight truncate">
+                          {activeCategory.name}
+                        </h2>
+                        <button
+                          onClick={() => navigateToCategory(activeCategory)}
+                          className="flex items-center gap-1 text-[10.5px] font-semibold text-primary uppercase tracking-wider shrink-0"
+                        >
+                          View all <ArrowRight size={10} />
+                        </button>
+                      </div>
+
+                      {visibleSubcategories.length === 0 ? (
+                        <button
+                          onClick={() => navigateToCategory(activeCategory)}
+                          className="w-full bg-primary/5 border border-primary/20 rounded-xl p-4 flex flex-col items-center gap-2 active:bg-primary/10"
+                        >
+                          <Grid3X3 size={20} className="text-primary" />
+                          <span className="text-[12px] font-semibold text-primary">
+                            Browse all {activeCategory.name}
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {visibleSubcategories.map((sub) => {
+                            const SubIcon =
+                              (LucideIcons as any)[sub.iconName || 'Tag'] || LucideIcons.Tag;
+                            return (
+                              <button
+                                key={sub.id}
+                                onClick={() => navigateToSubcategory(activeCategory, sub)}
+                                className="group bg-card border border-border/50 rounded-xl overflow-hidden text-left active:bg-muted/40 transition-colors"
+                              >
+                                <div className="aspect-square bg-muted/30 overflow-hidden relative">
+                                  {sub.productImage ? (
+                                    <OptimizedImage
+                                      src={sub.productImage.replace(/^http:\/\//, 'https://')}
+                                      alt={sub.name}
+                                      className="w-full h-full object-cover"
+                                      aspectRatio="square"
+                                    />
+                                  ) : (
+                                    <div className={`w-full h-full flex items-center justify-center ${sub.color || 'bg-primary/10'}`}>
+                                      <SubIcon size={18} className="text-primary" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="px-1.5 py-1.5">
+                                  <h3 className="text-[10.5px] font-medium text-foreground leading-tight line-clamp-2 text-center">
+                                    {sub.name}
+                                  </h3>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </section>
               </div>
             ) : (
               /* Desktop - Grid */
