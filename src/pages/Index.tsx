@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import CategoryIcons from '@/components/CategoryIcons';
 import EnhancedHeroSection from '@/components/enhanced/EnhancedHeroSection';
+import MobileHeroSearchBar from '@/components/home/MobileHeroSearchBar';
 import EnhancedFeaturedProducts from '@/components/enhanced/EnhancedFeaturedProducts';
 import FlashSaleBanner from '@/components/FlashSaleBanner';
 import PerformanceMonitor from '@/components/PerformanceMonitor';
@@ -64,6 +65,9 @@ const Index = () => {
         {isMobile && <Header />}
 
         <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6' : ''}`}>
+          {/* Mobile search + categories pill rail (above hero) */}
+          {isMobile && <MobileHeroSearchBar />}
+
           {/* Hero Section */}
           <section className={isMobile ? '' : 'py-4'}>
             <EnhancedHeroSection />
