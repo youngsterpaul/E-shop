@@ -5,9 +5,9 @@ import {
   ResponsiveModalTitle,
   ResponsiveModalDescription,
 } from '@/components/ui/responsive-modal';
-import OrderTrackingTimeline from './OrderTrackingTimeline';
-import { Clock, Sparkles, Truck } from 'lucide-react';
-import { format, formatDistanceToNow, addHours } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { ClipboardList, Loader2 } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 
 interface OrderDetailsModalProps {
   open: boolean;
@@ -18,54 +18,60 @@ interface OrderDetailsModalProps {
   updatedAt?: string;
 }
 
-const getSmartMessage = (status: string, createdAt: string, updatedAt?: string) => {
-  const baseDate = new Date(updatedAt || createdAt);
-  const eta = addHours(baseDate, 3);
-  const etaStr = format(eta, 'h:mm a');
-  const etaDay = format(eta, 'MMM d');
+interface StatusEvent {
+  status: string;
+  at: string;
+  reason?: string | null;
+}
 
+// Default warehouse / sorting location used when no metadata is provided
+const DEFAULT_LOCATION = 'Nairobi, Kenya';
+
+// Build a rich, descriptive message per status — mirrors AliExpress / J&T style timelines
+const buildEventDetails = (status: string, isLatest: boolean) => {
   switch (status) {
     case 'pending':
       return {
-        icon: Clock,
-        tone: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-        title: 'Awaiting payment',
-        message: `Complete your M-Pesa payment to confirm this order. Placed ${formatDistanceToNow(baseDate, { addSuffix: true })}.`,
+        title: 'Order placed',
+        description:
+          'Your order has been received. Awaiting payment confirmation before warehouse processing begins.',
       };
     case 'processing':
       return {
-        icon: Sparkles,
-        tone: 'bg-purple-50 text-purple-800 border-purple-200',
-        title: 'We\'re preparing your order',
-        message: `Your items are being picked from our warehouse. Expected to be packed by ${etaStr} today.`,
+        title: '[Nairobi Warehouse NO.1] has started the warehouse processing',
+        description: isLatest
+          ? 'Our team is locating and picking your items from the warehouse shelves.'
+          : 'Warehouse staff began preparing your order for packaging.',
       };
     case 'packed':
       return {
-        icon: Sparkles,
-        tone: 'bg-blue-50 text-blue-800 border-blue-200',
-        title: 'Packed and ready to ship',
-        message: `Your order is packed and waiting for the courier. Expected dispatch around ${etaStr}.`,
+        title: 'Your order has been packed at Nairobi Warehouse NO.1',
+        description:
+          'Items have been securely packaged and labelled. Awaiting handover to the courier for dispatch.',
       };
     case 'shipped':
       return {
-        icon: Truck,
-        tone: 'bg-indigo-50 text-indigo-800 border-indigo-200',
-        title: 'On the way',
-        message: `Your order is out for delivery. Estimated arrival ${etaStr} (${etaDay}).`,
+        title: 'Package received at Nairobi Sorting Center',
+        description: isLatest
+          ? 'Your package arrived at the sorting center and is awaiting dispatch for delivery.'
+          : 'Package was scanned at the sorting center and queued for last-mile delivery.',
+      };
+    case 'delivered':
+      return {
+        title: 'Delivered',
+        description:
+          'Your package has been successfully delivered. Thanks for shopping with us!',
       };
     case 'cancelled':
       return {
-        icon: Clock,
-        tone: 'bg-red-50 text-red-800 border-red-200',
         title: 'Order cancelled',
-        message: `This order was cancelled ${formatDistanceToNow(baseDate, { addSuffix: true })}. Contact support if this was a mistake.`,
+        description:
+          'This order was cancelled. If this was unexpected, please contact our support team.',
       };
     default:
       return {
-        icon: Clock,
-        tone: 'bg-muted text-foreground border-border',
         title: 'Order update',
-        message: `Last updated ${formatDistanceToNow(baseDate, { addSuffix: true })}.`,
+        description: 'Status updated.',
       };
   }
 };
@@ -76,18 +82,45 @@ export const OrderDetailsModal = ({
   orderId,
   status,
   createdAt,
-  updatedAt,
 }: OrderDetailsModalProps) => {
-  const [now, setNow] = useState(Date.now());
+  const [events, setEvents] = useState<StatusEvent[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    const id = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, [open]);
+    let cancelled = false;
 
-  const smart = getSmartMessage(status, createdAt, updatedAt);
-  const Icon = smart.icon;
+    const load = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('order_status_history')
+        .select('new_status, changed_at, change_reason')
+        .eq('order_id', orderId)
+        .order('changed_at', { ascending: false });
+
+      if (cancelled) return;
+
+      const history: StatusEvent[] = (data || []).map((row) => ({
+        status: row.new_status,
+        at: row.changed_at,
+        reason: row.change_reason,
+      }));
+
+      // Always ensure we have the original "Ordered" event at the bottom
+      const hasPending = history.some((e) => e.status === 'pending');
+      if (!hasPending) {
+        history.push({ status: 'pending', at: createdAt });
+      }
+
+      setEvents(history);
+      setLoading(false);
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, orderId, createdAt]);
 
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange} className="sm:max-w-lg">
@@ -98,19 +131,69 @@ export const OrderDetailsModal = ({
         </ResponsiveModalDescription>
       </ResponsiveModalHeader>
 
-      <div className="px-4 pb-4 space-y-4">
-        <div className={`flex gap-3 p-3 rounded-lg border ${smart.tone}`} key={now}>
-          <Icon className="h-5 w-5 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="text-sm font-semibold">{smart.title}</p>
-            <p className="text-xs leading-relaxed">{smart.message}</p>
+      <div className="px-4 pb-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-        </div>
+        ) : (
+          <div className="relative pl-2">
+            {/* Vertical line */}
+            <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
 
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">Tracking progress</p>
-          <OrderTrackingTimeline status={status} createdAt={createdAt} />
-        </div>
+            <div className="space-y-6">
+              {events.map((event, idx) => {
+                const isLatest = idx === 0;
+                const isOrdered = event.status === 'pending' && idx === events.length - 1;
+                const details = buildEventDetails(event.status, isLatest);
+                const date = new Date(event.at);
+
+                return (
+                  <div key={`${event.status}-${event.at}`} className="relative flex gap-4">
+                    {/* Dot / icon */}
+                    <div className="relative z-10 shrink-0">
+                      {isOrdered ? (
+                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center ring-4 ring-background">
+                          <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-3 h-3 rounded-full mt-1.5 ml-1.5 ring-4 ring-background ${
+                            isLatest ? 'bg-primary' : 'bg-muted-foreground/40'
+                          }`}
+                        />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 pb-1">
+                      {isOrdered ? (
+                        <p className="text-sm font-semibold text-foreground mb-1">Ordered</p>
+                      ) : null}
+                      <p
+                        className={`text-sm leading-snug ${
+                          isLatest ? 'text-foreground font-medium' : 'text-foreground'
+                        }`}
+                      >
+                        {details.title}
+                      </p>
+                      {details.description && (
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          {details.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        {format(date, 'MMM d, yyyy')} at {format(date, 'HH:mm')}
+                        {'  '}
+                        <span className="ml-1">{DEFAULT_LOCATION}</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </ResponsiveModal>
   );
