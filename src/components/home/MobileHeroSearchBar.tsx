@@ -32,60 +32,65 @@ const MobileHeroSearchBar = () => {
   };
 
   return (
-    <div className="px-3 pt-2 pb-1 bg-background">
-      {/* Category pills rail */}
-      <div className="relative -mx-3">
-        <div
-          ref={railRef}
-          className="flex items-end gap-1 overflow-x-auto scrollbar-hide px-3 pb-1.5"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {/* ALL pill */}
-          <button
-            ref={(el) => (itemRefs.current['all'] = el)}
-            onClick={() => {
-              setActiveId('all');
-              navigate('/categories');
-            }}
-            className={cn(
-              'relative shrink-0 px-3 py-2 text-[14px] tracking-wide transition-colors',
-              activeId === 'all'
-                ? 'text-foreground font-bold'
-                : 'text-muted-foreground font-medium'
-            )}
+    <>
+      {/* Fixed category pills rail */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background">
+        <div className="relative">
+          <div
+            ref={railRef}
+            className="flex items-end gap-1 overflow-x-auto scrollbar-hide px-3 pb-1.5 pt-2"
+            style={{ scrollbarWidth: 'none' }}
           >
-            ALL
-            {activeId === 'all' && (
-              <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
-            )}
-          </button>
+            {/* ALL pill */}
+            <button
+              ref={(el) => (itemRefs.current['all'] = el)}
+              onClick={() => {
+                setActiveId('all');
+                navigate('/categories');
+              }}
+              className={cn(
+                'relative shrink-0 px-3 py-2 text-[14px] tracking-wide transition-colors',
+                activeId === 'all'
+                  ? 'text-foreground font-bold'
+                  : 'text-muted-foreground font-medium'
+              )}
+            >
+              ALL
+              {activeId === 'all' && (
+                <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
+              )}
+            </button>
 
-          {(categories || []).map((cat) => {
-            const isActive = activeId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                ref={(el) => (itemRefs.current[String(cat.id)] = el)}
-                onClick={() => handleCategoryClick(cat)}
-                className={cn(
-                  'relative shrink-0 px-3 py-2 text-[14px] whitespace-nowrap transition-colors',
-                  isActive
-                    ? 'text-foreground font-bold'
-                    : 'text-muted-foreground font-medium hover:text-foreground'
-                )}
-              >
-                {cat.name}
-                {isActive && (
-                  <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
-                )}
-              </button>
-            );
-          })}
+            {(categories || []).map((cat) => {
+              const isActive = activeId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  ref={(el) => (itemRefs.current[String(cat.id)] = el)}
+                  onClick={() => handleCategoryClick(cat)}
+                  className={cn(
+                    'relative shrink-0 px-3 py-2 text-[14px] whitespace-nowrap transition-colors',
+                    isActive
+                      ? 'text-foreground font-bold'
+                      : 'text-muted-foreground font-medium hover:text-foreground'
+                  )}
+                >
+                  {cat.name}
+                  {isActive && (
+                    <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {/* Subtle bottom divider line */}
+          <div className="absolute left-0 right-0 bottom-0 h-px bg-border/60" />
         </div>
-        {/* Subtle bottom divider line */}
-        <div className="absolute left-0 right-0 bottom-0 h-px bg-border/60" />
       </div>
-    </div>
+
+      {/* Spacer to prevent content from hiding behind the fixed bar */}
+      <div className="h-12" />
+    </>
   );
 };
 
