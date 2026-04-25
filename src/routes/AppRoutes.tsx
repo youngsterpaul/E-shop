@@ -20,6 +20,7 @@ const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
 const SearchPage = lazy(() => import("@/pages/SearchPage"));
 const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
 const WriteReviewPage = lazy(() => import("@/pages/WriteReviewPage"));
+const ReviewsPage = lazy(() => import("@/pages/ReviewsPage"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
 const FAQPage = lazy(() => import("@/pages/FAQPage"));
@@ -102,6 +103,7 @@ const AppRoutes = () => (
     <Route path="/category" element={<MobileCategoryPage />} />
     <Route path="/product/:productName/:id" element={<ProductDetailsPage />} />
     <Route path="/products/:productId/review" element={<WriteReviewPage />} />
+    <Route path="/reviews" element={<ReviewsPage />} />
     <Route path="/cart" element={<CartPage />} />
     <Route path="/checkout" element={<CheckoutPage />} />
     <Route path="/wishlist" element={<WishlistPage />} />
