@@ -21,6 +21,14 @@ interface OrderItem {
   image?: string;
   quantity?: number;
   price?: number;
+  product?: {
+    id?: string;
+    product_id?: string;
+    name?: string;
+    image?: string;
+    image_url?: string;
+    image_urls?: string[];
+  };
 }
 
 interface PendingReviewProduct {
@@ -70,12 +78,27 @@ const ReviewsPage = () => {
       (orders || []).forEach((order) => {
         const items = (order.items as OrderItem[] | null) || [];
         items.forEach((item) => {
-          const pid = item.product_id || item.productId || item.id;
+          // Real product info is usually nested under item.product
+          const nested = item.product || {};
+          const pid =
+            nested.product_id ||
+            nested.id ||
+            item.product_id ||
+            item.productId;
           if (!pid || productMap.has(pid)) return;
+          const name =
+            nested.name || item.name || item.product_name || 'Product';
+          const image =
+            nested.image ||
+            nested.image_url ||
+            (Array.isArray(nested.image_urls) ? nested.image_urls[0] : null) ||
+            item.image_url ||
+            item.image ||
+            null;
           productMap.set(pid, {
             product_id: pid,
-            name: item.name || item.product_name || 'Product',
-            image: item.image_url || item.image || null,
+            name,
+            image,
             order_id: order.order_id,
             delivered_at: order.updated_at,
           });
