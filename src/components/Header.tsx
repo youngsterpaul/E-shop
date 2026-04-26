@@ -274,10 +274,17 @@ const Header = () => {
               </div>
             )}
 
-            {/* Mobile Actions */}
+            {/* Mobile Actions - Search pill that navigates to /search */}
             {isMobile && (
-              <Link to="/search" aria-label="Search">
-                <Search className="h-4.5 w-4.5 text-muted-foreground" />
+              <Link
+                to="/search"
+                aria-label="Search products"
+                className="flex items-center gap-2 px-4 h-9 rounded-full bg-muted/60 hover:bg-muted transition-colors border border-border/40 shadow-sm min-w-[140px] max-w-[180px]"
+              >
+                <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground font-medium truncate">
+                  Search
+                </span>
               </Link>
             )}
           </div>
