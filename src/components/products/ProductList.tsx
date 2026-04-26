@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import ProductCard from '@/components/ProductCard';
 import ProductSort from '@/components/products/ProductSort';
+import MobileSortDropdown from '@/components/products/MobileSortDropdown';
 import MobileFilterSheet from '@/components/search/MobileFilterSheet';
 import SearchFilters, { FilterState } from '@/components/search/SearchFilters';
 import { SpecConfig } from '@/utils/specConfig';
@@ -163,8 +164,19 @@ export const ProductList = ({
       )}
 
       <div className="flex-1 min-w-0">
-        {/* Products Header */}
-        <div className={`bg-background ${!isMobile ? 'flex justify-between p-4 mb-2' : 'my-4 px-2 py-2'}`}>
+        {/* Products Header — fixed on mobile */}
+        <div
+          className={
+            !isMobile
+              ? 'bg-background flex justify-between p-4 mb-2'
+              : 'fixed left-0 right-0 z-30 bg-background border-b border-border px-3 py-2 shadow-sm'
+          }
+          style={
+            isMobile
+              ? { top: 'calc(56px + env(safe-area-inset-top))' }
+              : undefined
+          }
+        >
           {!isMobile && (
             <p className="text-gray-600 text-lg">
               <span className="font-semibold text-gray-900">{displayCount}</span>{' '}
@@ -174,8 +186,12 @@ export const ProductList = ({
               )}
             </p>
           )}
-          <div className="flex justify-between items-center gap-4">
-            <ProductSort sortOption={sortOption} onSortChange={onSortChange} />
+          <div className="flex justify-between items-center gap-3">
+            {isMobile ? (
+              <MobileSortDropdown sortOption={sortOption} onSortChange={onSortChange} />
+            ) : (
+              <ProductSort sortOption={sortOption} onSortChange={onSortChange} />
+            )}
             {isMobile && (
               <MobileFilterSheet
                 products={products}
@@ -186,6 +202,9 @@ export const ProductList = ({
             )}
           </div>
         </div>
+
+        {/* Spacer to offset fixed mobile header */}
+        {isMobile && <div aria-hidden="true" className="h-14" />}
 
         {/* Products Grid */}
         <div className={`${isMobile ? 'px-2' : 'bg-background p-6 shadow-sm'} grid ${gridCols} gap-4`}>
