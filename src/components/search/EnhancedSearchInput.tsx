@@ -14,13 +14,15 @@ interface EnhancedSearchInputProps {
   onSearch: (query: string) => void;
   placeholder?: string;
   className?: string;
+  autoFocus?: boolean;
 }
 const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
   value,
   onChange,
   onSearch,
   placeholder = "Search for products...",
-  className = ""
+  className = "",
+  autoFocus = false,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -46,6 +48,16 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
     setIsFocused(false);
     setSelectedIndex(-1);
   }, [location.pathname]);
+
+  // Autofocus on mount when requested (e.g., dedicated search page)
+  useEffect(() => {
+    if (!autoFocus) return;
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+      setIsFocused(true);
+    }, 50);
+    return () => clearTimeout(t);
+  }, [autoFocus]);
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -116,7 +128,7 @@ const EnhancedSearchInput: React.FC<EnhancedSearchInputProps> = ({
           ref={inputRef} 
           type="search" 
           placeholder={placeholder} 
-          className={`h-12 text-base bg-muted/40 border-border/50 rounded-full transition-all duration-200 focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 ${isMobile ? 'pl-4 pr-4' : 'pl-12 pr-28'}`} 
+          className={`h-10 text-base bg-muted/40 rounded-full ${isMobile ? 'pl-4 pr-4' : 'pl-12 pr-28'}`} 
           value={value} 
           onChange={e => onChange(e.target.value)} 
           onFocus={() => {
