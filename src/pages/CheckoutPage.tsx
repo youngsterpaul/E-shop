@@ -28,6 +28,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, User, Mail, Phone, MapPin, CheckCircle, Loader2, X, Download, ShoppingBag } from 'lucide-react';
 import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
+import { LocationSearchInput } from '@/components/checkout/LocationSearchInput';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
@@ -90,6 +91,7 @@ const CheckoutPage = () => {
     address: '',
     city: '',
     county: '',
+    deliveryInstructions: '',
     deliveryMethod: 'standard'
   });
   type ErrorsType = {
@@ -125,6 +127,7 @@ const CheckoutPage = () => {
         address: defaultAddress.street_address,
         city: defaultAddress.city,
         county: defaultAddress.county,
+        deliveryInstructions: '',
         deliveryMethod: 'standard'
       });
       setSelectedAddressId(defaultAddress.id);
@@ -134,6 +137,7 @@ const CheckoutPage = () => {
         address: profile?.address || '',
         city: profile?.city || '',
         county: profile?.county || '',
+        deliveryInstructions: '',
         deliveryMethod: 'standard'
       });
     }
@@ -142,12 +146,13 @@ const CheckoutPage = () => {
     const address = addresses.find(addr => addr.id === addressId);
     if (address) {
       setSelectedAddressId(addressId);
-      setDeliveryData({
+      setDeliveryData(prev => ({
+        ...prev,
         address: address.street_address,
         city: address.city,
         county: address.county,
         deliveryMethod: 'standard'
-      });
+      }));
       setCustomerData(prev => ({
         ...prev,
         userName: address.full_name,
@@ -637,41 +642,31 @@ const CheckoutPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="county">County</Label>
-              <Select value={deliveryData.county || undefined} onValueChange={value => handleDeliveryChange('county', value)}>
-                <SelectTrigger className={errors.county ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select county" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getCountyOptions().map(county => <SelectItem key={county.value} value={county.value}>
-                      {county.label}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {errors.county && <p className="text-red-500 text-sm mt-1">{errors.county}</p>}
-            </div>
-            
-            <div>
-              <Label htmlFor="city">City/Town</Label>
-              <Select value={deliveryData.city || undefined} onValueChange={value => handleDeliveryChange('city', value)} disabled={!deliveryData.county}>
-                <SelectTrigger className={errors.city ? 'border-red-500' : ''}>
-                  <SelectValue placeholder={deliveryData.county ? "Select city" : "Select county first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailableCities().map(city => <SelectItem key={city.value} value={city.value}>
-                      {city.label}
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-            </div>
+          <div>
+            <Label htmlFor="location">Delivery location</Label>
+            <LocationSearchInput
+              countyValue={deliveryData.county}
+              cityValue={deliveryData.city}
+              onSelect={(county, city) => {
+                setDeliveryData(prev => ({ ...prev, county, city }));
+                if (errors.county || errors.city) {
+                  setErrors(prev => ({ ...prev, county: '', city: '' }));
+                }
+                updateProfileDeliveryInfo({ county, city });
+              }}
+              error={errors.county || errors.city}
+              placeholder="Type a town, city or county (e.g. Embu)"
+            />
           </div>
 
           <div>
-            <Label htmlFor="address">Street Address</Label>
-            <Input value={deliveryData.address} onChange={e => handleDeliveryChange('address', e.target.value)} placeholder="Enter your full street address" className={errors.address ? 'border-red-500' : ''} />
+            <Label htmlFor="address">Delivery instructions</Label>
+            <Textarea
+              value={deliveryData.address}
+              onChange={e => handleDeliveryChange('address', e.target.value)}
+              placeholder="Estate, building, house or shop number, nearest landmark, road, gate instructions, preferred delivery time, and anything else the rider should know"
+              className={`min-h-[110px] resize-none ${errors.address ? 'border-red-500' : ''}`}
+            />
             {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
         </CardContent>
