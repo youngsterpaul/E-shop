@@ -115,6 +115,7 @@ const SearchPage = () => {
         onSearch={handleSearch}
         onBack={handleBack}
         placeholder="Search for products..."
+        autoFocusSearch
       />
 
       <main className={`bg-white ${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 pb-8 pt-6' : 'px-0 pb-24'}`}>
