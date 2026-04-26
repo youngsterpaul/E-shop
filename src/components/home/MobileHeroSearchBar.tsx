@@ -34,7 +34,7 @@ const MobileHeroSearchBar = () => {
   return (
     <>
       {/* Fixed category pills rail */}
-      <div className="fixed top-10 left-0 right-0 z-50 bg-background">
+      <div className="fixed top-12 left-0 right-0 z-50 bg-background">
         <div className="relative">
           <div
             ref={railRef}
