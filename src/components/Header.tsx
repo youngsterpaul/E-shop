@@ -171,7 +171,7 @@ const Header = () => {
             )}
 
             {/* Spacer for mobile */}
-            {isMobile && <div className="flex-1" />}
+            {isMobile && <div className="w-3" />}
 
             {/* Desktop Actions */}
             {!isMobile && (
@@ -279,7 +279,7 @@ const Header = () => {
               <Link
                 to="/search"
                 aria-label="Search products"
-                className="flex items-center gap-2 px-4 h-9 rounded-full bg-muted/60 hover:bg-muted transition-colors border border-border/40 shadow-sm min-w-[140px] max-w-[180px]"
+                className="flex-1 flex items-center gap-2.5 px-4 h-10 rounded-full bg-muted/60 hover:bg-muted transition-colors border border-border/40 shadow-sm"
               >
                 <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm text-muted-foreground font-medium truncate">
