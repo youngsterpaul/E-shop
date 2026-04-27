@@ -1296,33 +1296,6 @@ export type Database = {
         }
         Relationships: []
       }
-      order_email_log: {
-        Row: {
-          email_type: string
-          id: string
-          metadata: Json | null
-          order_id: string
-          recipient: string | null
-          sent_at: string
-        }
-        Insert: {
-          email_type: string
-          id?: string
-          metadata?: Json | null
-          order_id: string
-          recipient?: string | null
-          sent_at?: string
-        }
-        Update: {
-          email_type?: string
-          id?: string
-          metadata?: Json | null
-          order_id?: string
-          recipient?: string | null
-          sent_at?: string
-        }
-        Relationships: []
-      }
       order_secrets: {
         Row: {
           created_at: string | null
