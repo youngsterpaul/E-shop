@@ -100,7 +100,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
       className={cn(
         "z-50 overscroll-contain",
         isMobile
-          ? "fixed inset-x-0 top-[78px] bottom-0 bg-background overflow-y-auto"
+          ? "fixed inset-x-0 top-12 bottom-0 bg-background overflow-y-auto"
           : [
               "absolute top-full left-0 right-0 mt-2",
               "max-h-[500px] overflow-y-auto overflow-x-hidden",
