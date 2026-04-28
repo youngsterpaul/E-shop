@@ -114,7 +114,7 @@ const CartSummary = () => {
         </div>
 
         {/* Checkout Button */}
-        <Button onClick={handleCheckout} disabled={isNavigating} className="w-full h-12 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold transition-all duration-200" size="lg">
+        <Button onClick={handleCheckout} disabled={isNavigating} className="w-full flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-none">
           {isNavigating ? <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Processing...

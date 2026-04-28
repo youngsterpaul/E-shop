@@ -279,7 +279,7 @@ const Header = () => {
               <Link
                 to="/search"
                 aria-label="Search products"
-                className="flex-1 flex items-center gap-2.5 px-4 h-10 rounded-full bg-muted/60 hover:bg-muted transition-colors border border-border/40 shadow-sm"
+                className="flex-1 flex items-center gap-2.5 px-4 h-8 rounded-full bg-muted/60 hover:bg-muted transition-colors border border-border/40 shadow-sm"
               >
                 <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm text-muted-foreground font-medium truncate">

@@ -46,10 +46,10 @@ const MobileHeroSearchBar = () => {
               ref={(el) => (itemRefs.current['all'] = el)}
               onClick={() => {
                 setActiveId('all');
-                navigate('/categories');
+                navigate('/');
               }}
               className={cn(
-                'relative shrink-0 px-3 py-2 text-[14px] tracking-wide transition-colors',
+                'relative shrink-0 px-2 py-2 text-[14px] tracking-wide transition-colors',
                 activeId === 'all'
                   ? 'text-foreground font-bold'
                   : 'text-muted-foreground font-medium'

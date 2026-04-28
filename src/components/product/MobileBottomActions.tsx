@@ -45,27 +45,25 @@ const MobileBottomActions = ({
           paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
         }}
       >
-        <div className="flex items-center gap-3">
-          {/* Action buttons */}
-          <div className="flex gap-3 flex-1">
-            <Button
-              onClick={() => setIsAddToCartModalOpen(true)}
-              disabled={!product.inStock}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold shadow-lg disabled:shadow-none"
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
-            </Button>
+        <div className="flex gap-3 flex-1">
+          <Button
+            onClick={() => setIsAddToCartModalOpen(true)}
+            disabled={!product.inStock}
+            variant="outline"
+            className="flex-1 border-gray-300 text-gray-800 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Add to Cart
+          </Button>
 
-            <Button
-              onClick={() => setIsBuyNowModalOpen(true)}
-              disabled={!product.inStock}
-              className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-gray-300 text-white font-semibold shadow-lg disabled:shadow-none"
-            >
-              <Zap className="mr-2 h-5 w-5" />
-              Buy Now
-            </Button>
-          </div>
+          <Button
+            onClick={() => setIsBuyNowModalOpen(true)}
+            disabled={!product.inStock}
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-none"
+          >
+            <Zap className="mr-2 h-4 w-4" />
+            Buy Now
+          </Button>
         </div>
       </div>
 

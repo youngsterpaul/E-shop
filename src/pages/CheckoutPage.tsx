@@ -965,11 +965,11 @@ return <div>
                   paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
                 }}
               >
-                <div className="flex justify-between max-w-md mx-auto">
-                  <Button variant="outline" onClick={handleBack} className="flex-1 mr-2">
+                <div className="flex gap-3 flex-1">
+                  <Button variant="outline" onClick={handleBack} className="flex-1 border-gray-300 text-gray-800 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     {currentStep === 1 ? 'Back to Cart' : 'Back'}
                   </Button>
-                  <Button onClick={handleNext} className="flex-1 bg-orange-500 hover:bg-orange-600">
+                  <Button onClick={handleNext} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-none">
                     {currentStep === 2 ? 'Proceed to Payment' : 'Continue'}
                   </Button>
                 </div>

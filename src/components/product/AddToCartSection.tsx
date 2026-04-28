@@ -42,9 +42,7 @@ const AddToCartSection = ({
   const isInWishlistState = isInWishlist(product.product_id);
 
   const validateVariantSelection = () => {
-    const missingVariants = requiredVariants.filter(
-      variantType => !selectedVariants[variantType]
-    );
+    const missingVariants = requiredVariants.filter(v => !selectedVariants[v]);
     if (missingVariants.length > 0) {
       toast({
         title: "Please select all options",
@@ -64,7 +62,7 @@ const AddToCartSection = ({
       await addToCart(product.product_id, selectedVariants, quantity);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
-      toast({ title: "Added to cart!", description: `${product.name.split('(')[0].trim()} has been added to your cart` });
+      toast({ title: "Added to cart!", description: `${product.name.split('(')[0].trim()} added to your cart` });
     } catch {
       toast({ title: "Error", description: "Failed to add item to cart", variant: "destructive" });
     } finally {
@@ -90,10 +88,10 @@ const AddToCartSection = ({
     try {
       if (isInWishlistState) {
         await removeFromWishlist(product.product_id);
-        toast({ title: "Removed from wishlist", description: "Item has been removed from your wishlist" });
+        toast({ title: "Removed from wishlist" });
       } else {
         await addToWishlist(product.product_id);
-        toast({ title: "Added to wishlist", description: "Item has been added to your wishlist" });
+        toast({ title: "Added to wishlist" });
       }
     } catch {
       toast({ title: "Error", description: "Failed to update wishlist", variant: "destructive" });
@@ -105,74 +103,73 @@ const AddToCartSection = ({
       try { await navigator.share({ title: product.name, url: window.location.href }); } catch {}
     } else {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copied!", description: "Product link has been copied to clipboard" });
+      toast({ title: "Link copied!", description: "Product link copied to clipboard" });
     }
   };
 
   return (
     <div className={`space-y-6 ${className}`}>
+
       {/* Stock Status */}
       <div className="flex items-center gap-2">
         <Badge variant={inStock ? "default" : "destructive"}>
           {inStock ? "In Stock" : "Out of Stock"}
         </Badge>
         {product.stock && product.stock <= 10 && inStock && (
-          <Badge variant="outline" className="text-orange-600 border-orange-300">
+          <Badge variant="outline" className="text-amber-600 border-amber-200">
             Only {product.stock} left
           </Badge>
         )}
       </div>
 
       {/* Quantity Selector */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-gray-900">Quantity</h3>
-        <div className="inline-flex items-center rounded-xl bg-gray-50 ring-1 ring-gray-200 overflow-hidden">
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-gray-700">Quantity</p>
+        <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden">
           <button
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
             disabled={quantity <= 1}
-            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <Minus size={14} strokeWidth={2.5} />
           </button>
-          <span className="w-12 h-10 text-center text-sm font-bold text-gray-900 tabular-nums flex items-center justify-center border-x border-gray-200">
+          <span className="w-10 h-10 flex items-center justify-center text-sm font-semibold text-gray-900 border-x border-gray-200 tabular-nums">
             {quantity}
           </span>
           <button
             onClick={() => onQuantityChange(quantity + 1)}
             disabled={product.stock ? quantity >= product.stock : false}
-            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <Plus size={14} strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
-      {/* Action Buttons — all in one row */}
-      <div className="flex flex-wrap gap-3">
+      {/* Action Buttons */}
+      <div className="flex gap-2">
 
         {/* Add to Cart */}
         <button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
           className={`
-            relative h-12 px-6 rounded-xl font-semibold text-sm
-            flex items-center justify-center gap-2 overflow-hidden group
-            transition-all duration-200 active:scale-[0.98] select-none
-            disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100
+            flex-1 h-11 px-5 rounded-lg text-sm font-medium
+            flex items-center justify-center gap-2
+            border transition-colors duration-150 active:scale-[0.99] select-none
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
             ${showSuccess
-              ? 'bg-emerald-500 text-white shadow-[0_4px_14px_rgba(16,185,129,0.4)]'
-              : 'bg-orange-500 text-white shadow-[0_4px_14px_rgba(249,115,22,0.35)] hover:bg-orange-600 hover:shadow-[0_6px_20px_rgba(249,115,22,0.45)]'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              : 'bg-white border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400'
             }
           `}
         >
-          {/* shine sweep */}
-          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
           {showSuccess ? (
-            <><Check size={16} strokeWidth={2.5} /> Added!</>
+            <><Check size={15} strokeWidth={2.5} /> Added</>
           ) : isAddingToCart ? (
-            <><span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" /> Adding...</>
+            <><span className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" /> Adding...</>
           ) : (
-            <><ShoppingCart size={16} strokeWidth={2} /> Add to Cart</>
+            <><ShoppingCart size={15} strokeWidth={2} /> Add to Cart</>
           )}
         </button>
 
@@ -181,48 +178,47 @@ const AddToCartSection = ({
           onClick={handleBuyNow}
           disabled={!inStock || isBuyingNow}
           className="
-            relative h-12 px-6 rounded-xl font-semibold text-sm
-            flex items-center justify-center gap-2 overflow-hidden group
+            flex-1 h-11 px-5 rounded-lg text-sm font-medium
+            flex items-center justify-center gap-2
             bg-gray-900 text-white
-            shadow-[0_4px_14px_rgba(0,0,0,0.22)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.32)] hover:bg-gray-800
-            transition-all duration-200 active:scale-[0.98] select-none
-            disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100
+            hover:bg-gray-800 transition-colors duration-150
+            active:scale-[0.99] select-none
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
           "
         >
-          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
           {isBuyingNow ? (
-            <><span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" /> Processing...</>
+            <><span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Processing...</>
           ) : (
-            <><Zap size={16} strokeWidth={2} className="fill-current" /> Buy Now</>
+            <><Zap size={15} strokeWidth={2} /> Buy Now</>
           )}
         </button>
 
-        {/* Wishlist — icon only */}
+        {/* Wishlist */}
         <button
           onClick={handleWishlist}
           className={`
-            h-12 w-12 rounded-xl flex items-center justify-center
-            ring-1 transition-all duration-200 active:scale-[0.98] select-none
+            h-11 w-11 rounded-lg flex items-center justify-center shrink-0
+            border transition-colors duration-150 active:scale-[0.99] select-none
             ${isInWishlistState
-              ? 'bg-red-50 text-red-500 ring-red-200 hover:bg-red-100 hover:ring-red-300'
-              : 'bg-white text-gray-500 ring-gray-200 hover:bg-gray-50 hover:text-red-500 hover:ring-red-200'
+              ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+              : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-red-400'
             }
           `}
         >
-          <Heart size={18} strokeWidth={2} className={isInWishlistState ? 'fill-current' : ''} />
+          <Heart size={17} strokeWidth={2} className={isInWishlistState ? 'fill-current' : ''} />
         </button>
 
-        {/* Share — icon only */}
+        {/* Share */}
         <button
           onClick={handleShare}
           className="
-            h-12 w-12 rounded-xl flex items-center justify-center
-            bg-white text-gray-500 ring-1 ring-gray-200
-            hover:bg-gray-50 hover:ring-gray-300 hover:text-gray-900
-            transition-all duration-200 active:scale-[0.98] select-none
+            h-11 w-11 rounded-lg flex items-center justify-center shrink-0
+            bg-white border border-gray-200 text-gray-400
+            hover:border-gray-300 hover:text-gray-600
+            transition-colors duration-150 active:scale-[0.99] select-none
           "
         >
-          <Share2 size={18} strokeWidth={2} />
+          <Share2 size={17} strokeWidth={2} />
         </button>
 
       </div>

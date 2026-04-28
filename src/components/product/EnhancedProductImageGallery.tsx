@@ -21,35 +21,65 @@ const LENS_SIZE = 150;
 const ZOOM_PANEL_SIZE = MAIN_SIZE;
 const LARGE_SIZE = MAIN_SIZE * ZOOM_FACTOR;
 
-const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages = [] }: EnhancedProductImageGalleryProps) => {
+const EnhancedProductImageGallery = ({
+  product,
+  selectedImageUrl,
+  variantImages = [],
+}: EnhancedProductImageGalleryProps) => {
   const isMobile = isMobileUserAgent();
-  
-  // Base Media setup
-  const isVideo = useCallback((url: string) => {
-    if (!url) return false;
-    const videoExtensions = ['.mp4', '.webm', '.mov', '.m4v'];
-    return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url === product.video;
-  }, [product.video]);
 
-  const rawMedia = useMemo(() => {
-    const imgs = [product.image, ...(product.images || []), ...variantImages.map(v => v.url)];
-    const uniqueImgs = Array.from(new Set(imgs)).filter(Boolean);
-    const finalMedia = product.video ? [...uniqueImgs, product.video] : uniqueImgs;
+  const isVideo = useCallback(
+    (url: string) => {
+      if (!url) return false;
+      const videoExtensions = [".mp4", ".webm", ".mov", ".m4v"];
+      return (
+        videoExtensions.some((ext) => url.toLowerCase().includes(ext)) ||
+        url === product.video
+      );
+    },
+    [product.video]
+  );
 
-    return finalMedia.sort((a, b) => {
-      const aIsV = isVideo(a);
-      const bIsV = isVideo(b);
-      return aIsV === bIsV ? 0 : aIsV ? -1 : 1;
+  // Desktop includes variant images; mobile does NOT
+  const desktopRawMedia = useMemo(() => {
+    const imgs = [
+      product.image,
+      ...(product.images || []),
+      ...variantImages.map((v) => v.url),
+    ];
+    const unique = Array.from(new Set(imgs)).filter(Boolean);
+    const final = product.video ? [...unique, product.video] : unique;
+    return final.sort((a, b) => {
+      const av = isVideo(a), bv = isVideo(b);
+      return av === bv ? 0 : av ? -1 : 1;
     });
   }, [product, variantImages, isVideo]);
 
-  const mobileMedia = useMemo(() => {
-    if (rawMedia.length <= 1) return rawMedia;
-    return [rawMedia[rawMedia.length - 1], ...rawMedia, rawMedia[0]];
-  }, [rawMedia]);
+  const mobileRawMedia = useMemo(() => {
+    const imgs = [product.image, ...(product.images || [])];
+    const unique = Array.from(new Set(imgs)).filter(Boolean);
+    const final = product.video ? [...unique, product.video] : unique;
+    return final.sort((a, b) => {
+      const av = isVideo(a), bv = isVideo(b);
+      return av === bv ? 0 : av ? -1 : 1;
+    });
+  }, [product, isVideo]);
 
-  // States
-  const [currentIndex, setCurrentIndex] = useState(isMobile ? 1 : 0); 
+  const rawMedia = isMobile ? mobileRawMedia : desktopRawMedia;
+
+  const mobileMedia = useMemo(() => {
+    if (mobileRawMedia.length <= 1) return mobileRawMedia;
+    return [
+      mobileRawMedia[mobileRawMedia.length - 1],
+      ...mobileRawMedia,
+      mobileRawMedia[0],
+    ];
+  }, [mobileRawMedia]);
+
+  // ── States ──
+  const [currentIndex, setCurrentIndex] = useState(
+    isMobile ? (mobileRawMedia.length > 1 ? 1 : 0) : 0
+  );
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showLens, setShowLens] = useState(false);
   const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
@@ -57,8 +87,8 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const [zoomPanelSide, setZoomPanelSide] = useState<"right" | "left">("right");
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  
-  // Mobile Swipe States
+
+  // Mobile swipe state
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -68,7 +98,31 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  // Handle Play/Pause when slide changes
+  // Track the last selectedImageUrl we acted on, so we only
+  // jump to the variant image when the variant actually changes —
+  // not when the user manually clicks a thumbnail
+  const lastAppliedVariantUrl = useRef<string | undefined>(undefined);
+
+  // ── selectedImageUrl: only jump when variant prop actually changes ──
+  useEffect(() => {
+    if (isMobile) return;
+    if (!selectedImageUrl) return;
+    if (selectedImageUrl === lastAppliedVariantUrl.current) return;
+
+    lastAppliedVariantUrl.current = selectedImageUrl;
+    const idx = desktopRawMedia.indexOf(selectedImageUrl);
+    if (idx !== -1) setCurrentIndex(idx);
+  }, [selectedImageUrl, desktopRawMedia, isMobile]);
+
+  // If the variant list shrinks and currentIndex is now out of bounds, clamp it
+  useEffect(() => {
+    if (isMobile) return;
+    setCurrentIndex((prev) =>
+      prev >= desktopRawMedia.length ? Math.max(0, desktopRawMedia.length - 1) : prev
+    );
+  }, [desktopRawMedia.length, isMobile]);
+
+  // Play/pause on slide change
   useEffect(() => {
     videoRefs.current.forEach((video, idx) => {
       if (idx === currentIndex) {
@@ -80,57 +134,53 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     });
   }, [currentIndex]);
 
-  // Scroll active thumbnail into view
+  // Scroll active thumbnail into view (desktop)
   useEffect(() => {
-    if (!thumbnailStripRef.current) return;
+    if (isMobile || !thumbnailStripRef.current) return;
     const strip = thumbnailStripRef.current;
     const activeThumb = strip.children[currentIndex] as HTMLElement;
     if (activeThumb) {
-      activeThumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      activeThumb.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
     }
-  }, [currentIndex]);
+  }, [currentIndex, isMobile]);
 
   const togglePlay = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     const currentVideo = videoRefs.current.get(currentIndex);
-    if (currentVideo) {
-      if (currentVideo.paused) {
-        currentVideo.play();
-        setIsPlaying(true);
-      } else {
-        currentVideo.pause();
-        setIsPlaying(false);
-      }
+    if (!currentVideo) return;
+    if (currentVideo.paused) {
+      currentVideo.play();
+      setIsPlaying(true);
+    } else {
+      currentVideo.pause();
+      setIsPlaying(false);
     }
   };
 
-  /* =================== INFINITE LOOP REPAIR =================== */
+  /* ── Infinite-loop jump repair (mobile only) ── */
   useEffect(() => {
     if (!isMobile || isDragging) return;
     if (currentIndex === 0) {
-      const timer = setTimeout(() => {
+      const t = setTimeout(() => {
         setIsTransitioning(false);
         setCurrentIndex(mobileMedia.length - 2);
       }, 300);
-      return () => clearTimeout(timer);
+      return () => clearTimeout(t);
     }
     if (currentIndex === mobileMedia.length - 1) {
-      const timer = setTimeout(() => {
+      const t = setTimeout(() => {
         setIsTransitioning(false);
         setCurrentIndex(1);
       }, 300);
-      return () => clearTimeout(timer);
+      return () => clearTimeout(t);
     }
   }, [currentIndex, isMobile, isDragging, mobileMedia.length]);
 
-  useEffect(() => {
-    if (selectedImageUrl) {
-      const idx = rawMedia.indexOf(selectedImageUrl);
-      if (idx !== -1) setCurrentIndex(isMobile ? idx + 1 : idx);
-    }
-  }, [selectedImageUrl, rawMedia, isMobile]);
-
-  /* =================== MOBILE SWIPE LOGIC =================== */
+  /* ── Mobile swipe handlers ── */
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
     startTime.current = Date.now();
@@ -140,8 +190,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX === null) return;
-    const currentX = e.targetTouches[0].clientX;
-    setDragOffset(currentX - touchStartX);
+    setDragOffset(e.targetTouches[0].clientX - touchStartX);
   };
 
   const handleTouchEnd = () => {
@@ -150,105 +199,129 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
     const velocity = Math.abs(dragOffset) / duration;
     setIsDragging(false);
     setIsTransitioning(true);
-
     if (Math.abs(dragOffset) > 50 || velocity > 0.5) {
-      setCurrentIndex(prev => dragOffset < 0 ? prev + 1 : prev - 1);
+      setCurrentIndex((prev) => (dragOffset < 0 ? prev + 1 : prev - 1));
       if (window.navigator.vibrate) window.navigator.vibrate(5);
     }
     setDragOffset(0);
     setTouchStartX(null);
   };
 
-  /* =================== DESKTOP ZOOM LOGIC =================== */
+  /* ── Desktop zoom handlers ── */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!mainRef.current || isVideo(rawMedia[currentIndex])) return;
-
-    const { left, top, width, height } = mainRef.current.getBoundingClientRect();
+    const { left, top, width, height } =
+      mainRef.current.getBoundingClientRect();
     const mouseX = e.clientX - left;
     const mouseY = e.clientY - top;
 
-    // Clamp lens so it never exits the image boundary
     const clampedLensX = Math.max(0, Math.min(mouseX - LENS_SIZE / 2, width - LENS_SIZE));
     const clampedLensY = Math.max(0, Math.min(mouseY - LENS_SIZE / 2, height - LENS_SIZE));
     setLensPos({ x: clampedLensX, y: clampedLensY });
 
-    // Compute the ideal zoom translate (centers the hovered pixel in the zoom panel)
     const rawTx = ZOOM_PANEL_SIZE / 2 - mouseX * ZOOM_FACTOR;
     const rawTy = ZOOM_PANEL_SIZE / 2 - mouseY * ZOOM_FACTOR;
-
-    // Clamp so the large image never shows empty space inside the zoom panel
-    const minTx = ZOOM_PANEL_SIZE - LARGE_SIZE; // e.g. 450 - 1350 = -900
+    const minTx = ZOOM_PANEL_SIZE - LARGE_SIZE;
     const minTy = ZOOM_PANEL_SIZE - LARGE_SIZE;
-    const clampedTx = Math.min(0, Math.max(minTx, rawTx));
-    const clampedTy = Math.min(0, Math.max(minTy, rawTy));
-    setZoomTranslate({ x: clampedTx, y: clampedTy });
+    setZoomTranslate({
+      x: Math.min(0, Math.max(minTx, rawTx)),
+      y: Math.min(0, Math.max(minTy, rawTy)),
+    });
 
-    // Decide panel side: flip to left if not enough space on the right
     const spaceOnRight = window.innerWidth - (e.clientX - mouseX + width);
     setZoomPanelSide(spaceOnRight >= ZOOM_PANEL_SIZE + 24 ? "right" : "left");
-
     setShowLens(true);
   };
 
-  /* =================== RENDER MOBILE =================== */
+  /* ═══════════════════════════════════════════
+     RENDER — MOBILE
+  ═══════════════════════════════════════════ */
   if (isMobile) {
+    const activeDotIndex = (() => {
+      if (currentIndex === 0) return mobileRawMedia.length - 1;
+      if (currentIndex === mobileMedia.length - 1) return 0;
+      return currentIndex - 1;
+    })();
+
     return (
       <div className="w-full bg-white overflow-hidden">
-        <div 
+        <div
           className="relative aspect-square touch-none"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div 
-            className={`flex h-full w-full ${isTransitioning ? 'transition-transform duration-300 ease-out' : ''}`}
-            style={{ transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))` }}
+          <div
+            className={`flex h-full w-full ${
+              isTransitioning ? "transition-transform duration-300 ease-out" : ""
+            }`}
+            style={{
+              transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+            }}
           >
             {mobileMedia.map((media, i) => (
-              <div key={`${media}-${i}`} className="w-full h-full flex-shrink-0 relative bg-black">
+              <div
+                key={`${media}-${i}`}
+                className="w-full h-full flex-shrink-0 relative bg-black"
+              >
                 {isVideo(media) ? (
                   <div className="relative w-full h-full" onClick={togglePlay}>
-                    <video 
-                      ref={el => { if(el) videoRefs.current.set(i, el) }}
-                      src={media} 
-                      className="w-full h-full object-contain" 
-                      playsInline loop muted={isMuted}
+                    <video
+                      ref={(el) => { if (el) videoRefs.current.set(i, el); }}
+                      src={media}
+                      className="w-full h-full object-contain"
+                      playsInline
+                      loop
+                      muted={isMuted}
                     />
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                       {!isPlaying && <div className="p-4 bg-black/40 rounded-full backdrop-blur-sm"><Play className="text-white w-8 h-8 fill-current" /></div>}
+                      {!isPlaying && (
+                        <div className="p-4 bg-black/40 rounded-full backdrop-blur-sm">
+                          <Play className="text-white w-8 h-8 fill-current" />
+                        </div>
+                      )}
                     </div>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
-                        className="absolute bottom-16 right-4 p-2 bg-black/50 rounded-full text-white"
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                      className="absolute bottom-16 right-4 p-2 bg-black/50 rounded-full text-white"
                     >
-                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                      {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                     </button>
                   </div>
                 ) : (
-                  <OptimizedImage src={media} alt={product.name} className="w-full h-full object-cover" />
+                  <OptimizedImage
+                    src={media}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
             ))}
           </div>
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-black/20 backdrop-blur-md rounded-full">
-            {rawMedia.map((_, i) => {
-              let activeDot = currentIndex - 1;
-              if (currentIndex === 0) activeDot = rawMedia.length - 1;
-              if (currentIndex === mobileMedia.length - 1) activeDot = 0;
-              return (
-                <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === activeDot ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
-              );
-            })}
+            {mobileRawMedia.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === activeDotIndex ? "w-4 bg-white" : "w-1.5 bg-white/50"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  /* =================== RENDER DESKTOP =================== */
+  /* ═══════════════════════════════════════════
+     RENDER — DESKTOP
+  ═══════════════════════════════════════════ */
   return (
-    <div className="flex flex-col gap-3 w-full select-none items-center" style={{ width: MAIN_SIZE }}>
+    <div
+      className="flex flex-col gap-3 w-full select-none items-center"
+      style={{ width: MAIN_SIZE }}
+    >
       {/* Main image */}
       <div className="relative group" style={{ width: MAIN_SIZE, height: MAIN_SIZE }}>
         <div
@@ -259,22 +332,29 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         >
           {isVideo(rawMedia[currentIndex]) ? (
             <div className="relative w-full h-full group/video bg-black">
-                <video 
-                    ref={el => { if(el) videoRefs.current.set(currentIndex, el) }}
-                    src={rawMedia[currentIndex]} 
-                    className="w-full h-full object-contain"
-                    controlsList="nodownload"
-                    onClick={togglePlay}
-                    loop
-                />
-                <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
-                    <button onClick={togglePlay} className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80">
-                        {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" />}
-                    </button>
-                </div>
+              <video
+                ref={(el) => { if (el) videoRefs.current.set(currentIndex, el); }}
+                src={rawMedia[currentIndex]}
+                className="w-full h-full object-contain"
+                controlsList="nodownload"
+                onClick={togglePlay}
+                loop
+              />
+              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
+                <button
+                  onClick={togglePlay}
+                  className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80"
+                >
+                  {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" />}
+                </button>
+              </div>
             </div>
           ) : (
-            <img src={rawMedia[currentIndex]} className="w-full h-full object-contain" alt={product.name} />
+            <img
+              src={rawMedia[currentIndex]}
+              className="w-full h-full object-contain"
+              alt={product.name}
+            />
           )}
 
           {/* Lens overlay */}
@@ -292,7 +372,7 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
           )}
         </div>
 
-        {/* Zoom panel — always fully filled, never shows white edges */}
+        {/* Zoom panel */}
         {showLens && !isVideo(rawMedia[currentIndex]) && (
           <div
             className="absolute top-0 z-[100] border bg-white shadow-2xl rounded-xl overflow-hidden pointer-events-none"
@@ -304,7 +384,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                 : { right: `calc(100% + 16px)` }),
             }}
           >
-            {/* The large image div is clamped so it always fills the panel */}
             <div
               style={{
                 width: LARGE_SIZE,
@@ -324,33 +403,28 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
         )}
       </div>
 
-      {/* Horizontal thumbnail strip */}
+      {/* Thumbnail strip — click only, no hover switching */}
       {rawMedia.length > 1 && (
         <div
           ref={thumbnailStripRef}
           className="flex gap-2 overflow-x-auto pb-1 w-full"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <style>{`.thumb-strip::-webkit-scrollbar { display: none; }`}</style>
           {rawMedia.map((media, i) => (
             <button
-              key={i}
-              onMouseEnter={() => setCurrentIndex(i)}
+              key={`${media}-${i}`}
               onClick={() => setCurrentIndex(i)}
               className={`
                 relative flex-shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden
                 transition-all duration-200 ease-out outline-none
-                ${currentIndex === i
-                  ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-105 shadow-md"
-                  : "ring-1 ring-transparent opacity-55 hover:opacity-90 hover:scale-102 hover:ring-gray-200 hover:ring-offset-1"
+                ${
+                  currentIndex === i
+                    ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-105 shadow-md"
+                    : "ring-1 ring-transparent opacity-55 hover:opacity-90 hover:ring-gray-200 hover:ring-offset-1"
                 }
               `}
               aria-label={`View image ${i + 1}`}
             >
-              {/* Video badge */}
               {isVideo(media) && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
@@ -364,7 +438,6 @@ const EnhancedProductImageGallery = ({ product, selectedImageUrl, variantImages 
                 alt={`Thumbnail ${i + 1}`}
                 draggable={false}
               />
-              {/* Active bottom bar */}
               <div
                 className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-left ${
                   currentIndex === i ? "scale-x-100" : "scale-x-0"

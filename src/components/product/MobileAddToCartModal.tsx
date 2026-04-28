@@ -386,7 +386,7 @@ const MobileAddToCartModal = ({
             <button
               onClick={handleAddToCart}
               disabled={!product.inStock || isAddingToCart}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 
               disabled:from-gray-300 disabled:to-gray-400 text-white font-medium py-2.5 px-4 rounded-lg 
               transition-all duration-200 flex items-center justify-center gap-1.5 text-sm shadow-md disabled:shadow-none"
             >
