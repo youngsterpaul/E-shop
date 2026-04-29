@@ -9,6 +9,7 @@ interface PageHeaderProps {
   onSearch: (query: string) => void;
   onBack: () => void;
   placeholder?: string;
+  autoFocusSearch?: boolean;
 }
 
 export const PageHeader = ({
@@ -17,6 +18,7 @@ export const PageHeader = ({
   onSearch,
   onBack,
   placeholder = 'Search for products...',
+  autoFocusSearch = false,
 }: PageHeaderProps) => {
   const isMobile = isMobileUserAgent();
 
@@ -41,6 +43,7 @@ export const PageHeader = ({
           onSearch={onSearch}
           placeholder={placeholder}
           className="w-full"
+          autoFocus={autoFocusSearch}
         />
         <Button
           type="button"

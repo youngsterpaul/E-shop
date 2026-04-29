@@ -125,7 +125,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const tabsHeight = tabsRef.current?.offsetHeight ?? 44;
 
   return (
-    <div className="w-full bg-background">
+    <div className="w-full bg-card.">
 
       {/* ── STICKY PLACEHOLDER ─────────────────────────────────────────────── */}
       {isSticky && <div style={{ height: tabsHeight }} />}
@@ -134,7 +134,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       <div
         ref={tabsRef}
         className={cn(
-          'z-40 transition-shadow duration-200 bg-background',
+          'bg-white z-40 transition-shadow duration-200',
           isSticky
             ? 'fixed left-0 right-0 border-b border-gray-200 shadow-sm'
             : 'border-b border-gray-200'

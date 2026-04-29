@@ -18,12 +18,15 @@ import { Product } from "@/queries/productQueries";
  */
 
 // ─── BUCKETS ────────────────────────────────────────────────────────────────
-// Lower bucket = higher priority. Admin-curated keyword matches always win.
-const BUCKET_KEYWORD_MATCH = 0; // Admin tagged this product for the search term
-const BUCKET_PRIMARY = 1;
-const BUCKET_ACCESSORY = 2;
-const BUCKET_OTHER = 3;
-const BUCKET_NONE = 4;
+// Lower bucket = higher priority. Admin-curated keyword matches always win,
+// but a keyword-tagged DEVICE still beats a keyword-tagged ACCESSORY so that
+// searching "laptop" surfaces actual laptops before "laptop battery".
+const BUCKET_KEYWORD_PRIMARY = 0;   // Admin-tagged AND not an accessory
+const BUCKET_KEYWORD_ACCESSORY = 1; // Admin-tagged but accessory keyword in name
+const BUCKET_PRIMARY = 2;
+const BUCKET_ACCESSORY = 3;
+const BUCKET_OTHER = 4;
+const BUCKET_NONE = 5;
 
 // ─── ACCESSORY KEYWORDS ─────────────────────────────────────────────────────
 /** Words that, when present in the product name, signal an accessory/part. */
@@ -110,7 +113,10 @@ function classify(product: Product, terms: string[]): number {
   const description = (product.description || "").toLowerCase();
   const nameTokens = tokenize(name);
 
-  // Highest priority: admin-curated search_keywords match
+  // Highest priority: admin-curated search_keywords match.
+  // We still split into KEYWORD_PRIMARY vs KEYWORD_ACCESSORY so a tagged
+  // "laptop" outranks a tagged "laptop battery" when searching "laptop".
+  const accessoryWordEarly = nameHasAccessoryWord(nameTokens);
   const keywords = (product.search_keywords || [])
     .filter(Boolean)
     .map((k) => String(k).trim().toLowerCase());
@@ -118,7 +124,9 @@ function classify(product: Product, terms: string[]): number {
     const keywordHit = keywords.some((kw) =>
       terms.some((t) => kw === t || kw.includes(t) || t.includes(kw))
     );
-    if (keywordHit) return BUCKET_KEYWORD_MATCH;
+    if (keywordHit) {
+      return accessoryWordEarly ? BUCKET_KEYWORD_ACCESSORY : BUCKET_KEYWORD_PRIMARY;
+    }
   }
 
   const nameHit = nameContainsTerm(name, terms);
@@ -171,11 +179,15 @@ function intraBucketScore(product: Product, terms: string[]): number {
   // Category match bonus
   if (categoryMatches(categories, terms)) score += 20;
 
-  // Quality signals (tiebreakers)
-  score += Math.min((product.rating || 0) * 2, 10);
-  score += Math.min((product.reviews_count || 0) * 0.1, 8);
-  if (product.featured) score += 5;
-  if ((product.stock || 0) > 0) score += 2;
+  // Quality / popularity signals. Reviews count is the strongest social proof,
+  // so it's weighted heavily — the most-reviewed laptop should beat a lesser
+  // one even if both match the term equally well.
+  score += Math.min((product.rating || 0) * 4, 20);
+  // log-scaled review count: 10 reviews ≈ 10pts, 100 ≈ 20pts, 1000 ≈ 30pts.
+  const reviews = product.reviews_count || 0;
+  if (reviews > 0) score += Math.min(Math.log10(reviews + 1) * 10, 30);
+  if (product.featured) score += 8;
+  if ((product.stock || 0) > 0) score += 3;
 
   return score;
 }

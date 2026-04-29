@@ -262,23 +262,42 @@ const productForTabs = useMemo(() => {
 
 
   // ✅ EFFECTS (after all hooks and memos)
+  // Reset selected variants when navigating to a different product
+  useEffect(() => {
+    setSelectedVariants({});
+  }, [product?.product_id]);
+
+  // Auto-select first available value for each variant type
   useEffect(() => {
     if (!transformedVariants?.length) return;
 
     setSelectedVariants((prev) => {
-      const updated = { ...prev };
+      const updated: Record<string, string> = {};
+      let changed = false;
 
       transformedVariants.forEach((variant) => {
-        const alreadySelected = updated[variant.id];
-        if (!alreadySelected && variant.values.length > 0) {
-          const firstAvailable = variant.values.find(v => v.available);
+        const current = prev[variant.id];
+        const isValid = current && variant.values.some((v: any) => v.id === current);
+
+        if (isValid) {
+          updated[variant.id] = current;
+        } else if (variant.values.length > 0) {
+          const firstAvailable =
+            variant.values.find((v: any) => v.available) || variant.values[0];
           if (firstAvailable) {
             updated[variant.id] = firstAvailable.id;
+            changed = true;
           }
         }
       });
 
-      return updated;
+      // Drop stale keys not present in current variants
+      if (Object.keys(prev).length !== Object.keys(updated).length) changed = true;
+      for (const k of Object.keys(prev)) {
+        if (prev[k] !== updated[k]) changed = true;
+      }
+
+      return changed ? updated : prev;
     });
   }, [transformedVariants]);
 
@@ -456,8 +475,10 @@ const productForTabs = useMemo(() => {
               )}
             </div>
           </div>
-
-          {productForTabs && <ProductTabs product={productForTabs} />}
+          
+          <div className='bg-card'>
+            {productForTabs && <ProductTabs product={productForTabs} />}
+          </div>
 
           <RelatedProductsCarousel
             currentProduct={{ id: product.product_id, category: product.categories || 'general' }}

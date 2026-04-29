@@ -38,13 +38,13 @@ export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   // Use refs to prevent multiple operations and track state
   const subscriptionRef = useRef<any>(null);
   const isSubscribedRef = useRef(false);
-  const isInitializedRef = useRef(false);
+  const lastInitKeyRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false);
 
   // Stable session ID generation
@@ -429,6 +429,38 @@ export const useCart = () => {
       return;
     }
 
+    // Optimistic update — bump badge & cart instantly for both mobile and desktop
+    const variantKey = JSON.stringify(variantSelections || {});
+    const optimisticId = `optimistic-${productId}-${variantKey}`;
+    setCartItems(prev => {
+      const existingIdx = prev.findIndex(
+        i => i.product_id === productId && JSON.stringify(i.variant_selections || {}) === variantKey
+      );
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = { ...next[existingIdx], quantity: next[existingIdx].quantity + quantity };
+        return next;
+      }
+      return [
+        ...prev,
+        {
+          id: optimisticId,
+          cart_id: cart?.id || '',
+          product_id: productId,
+          product: {
+            id: productId,
+            name: '',
+            price: 0,
+            originalPrice: 0,
+            hasFlashSale: false,
+            image: '/placeholder.svg',
+          },
+          variant_selections: variantSelections,
+          quantity,
+        } as CartItem,
+      ];
+    });
+
     try {
       // Get existing cart or create new one only when adding items
       let cartId = cart?.id;
@@ -440,6 +472,8 @@ export const useCart = () => {
             description: "Failed to create cart",
             variant: "destructive"
           });
+          // Revert optimistic
+          setCartItems(prev => prev.filter(i => i.id !== optimisticId));
           return;
         }
         cartId = newCartId;
@@ -477,9 +511,11 @@ export const useCart = () => {
 
       if (result.error) throw result.error;
 
-      // If this was the first item and we didn't have a cart, refetch to get the new cart
+      // Refetch to replace optimistic entry with real data (correct id, price, image)
       if (!cart?.id) {
         await fetchCart();
+      } else {
+        await fetchCartItems(cart.id);
       }
       
       // Track cart addition for personalization (AI recommendations)
@@ -491,13 +527,19 @@ export const useCart = () => {
       });
     } catch (error: any) {
       console.error('Error adding to cart:', error);
+      // Revert optimistic on error
+      if (cart?.id) {
+        await fetchCartItems(cart.id);
+      } else {
+        setCartItems(prev => prev.filter(i => i.id !== optimisticId));
+      }
       toast({
         title: "Error",
         description: "Failed to add item to cart",
         variant: "destructive"
       });
     }
-  }, [user, getSessionId, createCartForItem, cart?.id, fetchCart, toast]);
+  }, [user, getSessionId, createCartForItem, cart?.id, fetchCart, fetchCartItems, toast]);
 
   const clearCart = useCallback(async () => {
     if (!cart) return;
@@ -543,16 +585,18 @@ export const useCart = () => {
     }
   }, [cart]);
 
-  // Initial fetch and auth migration - FIXED VERSION
+  // Initial fetch and auth migration - re-runs when auth state changes
   useEffect(() => {
-    // Prevent multiple initializations
-    if (isInitializedRef.current) {
-      return;
-    }
-    
-    isInitializedRef.current = true;
-    
+    // Wait for auth to finish loading so we know whether the user is signed in
+    if (authLoading) return;
+
+    // Re-init whenever the identity changes (sign in / sign out / different user)
+    const initKey = user?.id || `guest:${getSessionId()}`;
+    if (lastInitKeyRef.current === initKey) return;
+    lastInitKeyRef.current = initKey;
+
     const initializeCart = async () => {
+      setLoading(true);
       // Auto-migrate guest cart when user is authenticated
       if (user && getSessionId()) {
         try {
@@ -577,7 +621,7 @@ export const useCart = () => {
     };
 
     initializeCart();
-  }, [user, fetchCart, getSessionId]);
+  }, [user?.id, authLoading, fetchCart, getSessionId]);
 
   const totalItems = useMemo(() => 
     cartItems.reduce((total, item) => total + item.quantity, 0),
