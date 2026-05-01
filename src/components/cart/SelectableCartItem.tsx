@@ -63,9 +63,10 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
       clearTimeout(updateTimeoutRef.current);
     }
 
+    // Short debounce so rapid clicks batch, but totals still feel instant
     updateTimeoutRef.current = setTimeout(async () => {
       if (!mountedRef.current) return;
-      
+
       setIsUpdating(true);
       try {
         await updateQuantity(itemId, quantity);
@@ -82,7 +83,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           setIsUpdating(false);
         }
       }
-    }, 500);
+    }, 120);
   }, [updateQuantity, item.quantity, forceRecalculate]);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
@@ -181,112 +182,112 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
   }
 
   return (
-    <div className={`bg-white border border-gray-200 shadow-sm transition-all duration-200 ${
-      isSelected ? 'bg-red/10 border border-red/30 shadow-[0_0_0_2px_rgba(239,68,68,0.2)]' : ''
+    <div className={`transition-all duration-200 ${
+      !isMobile
+        ? `bg-white border border-gray-200 shadow-sm ${isSelected ? 'bg-red/10 border-red/30 shadow-[0_0_0_2px_rgba(239,68,68,0.2)]' : ''}`
+        : ''
     } ${isRemoving ? 'opacity-50' : ''} ${className}`}>
-      
-      {/* Mobile Layout */}
+
+      {/* Mobile Layout — redesigned green theme */}
       {isMobile && (
-        <div className="block">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-3 space-x-2">
+        <div className={`bg-card rounded-2xl border ${isSelected ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border/60'} overflow-hidden shadow-sm`}>
+          {/* Top: image + name + price + remove */}
+          <div className="p-3 flex gap-3">
+            <div className="flex flex-col items-center gap-2 pt-1">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={handleToggleSelect}
-                className="flex-shrink-0"
+                className="flex-shrink-0 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 disabled={isRemoving || isUpdating}
               />
-
-              <div className="w-16 h-16 flex-shrink-0 flex gap-3 mb-3">
-                <OptimizedImage
-                  src={item.product.image}
-                  alt={item.product.name}
-                  className="w-full h-full object-cover rounded-md bg-gray-100"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1 line-clamp-2 min-h-[32px]">
-                  {item.product.name}
-                </h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {item.product.hasFlashSale ? (
-                    <>
-                      <span className="text-xs font-semibold text-red-500">{formattedPrice}</span>
-                      {formattedOriginalPrice && (
-                        <span className="text-xs text-gray-400 line-through">{formattedOriginalPrice}</span>
-                      )}
-                      <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] px-1 py-0">
-                        <Zap className="h-2 w-2 mr-0.5" />
-                        Sale
-                      </Badge>
-                    </>
-                  ) : (
-                    <span className="text-xs text-gray-600">{formattedPrice} each</span>
-                  )}
-                </div>
-                {variantDisplay}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRemove}
-                disabled={isRemoving || isUpdating}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
-                title="Remove item"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-              <div className="flex items-center border rounded-md bg-white">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDecrement}
-                  disabled={isUpdating || localQuantity <= 1 || isRemoving}
-                  className="h-8 w-8 p-0 hover:bg-gray-100"
-                  title="Decrease quantity"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                
-                <div className="w-10 text-center">
-                  <span className={`font-medium text-sm ${isUpdating ? 'opacity-50' : ''}`}>
-                    {localQuantity}
+            <div className="w-[88px] h-[88px] flex-shrink-0 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-center overflow-hidden">
+              <OptimizedImage
+                src={item.product.image}
+                alt={item.product.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-bold text-foreground text-[15px] leading-tight line-clamp-2 pr-1">
+                  {item.product.name}
+                </h3>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className="text-[15px] font-extrabold text-primary leading-none">
+                    {formattedPrice}
                   </span>
-                  {isUpdating && (
-                    <div className="text-xs text-blue-500 leading-none">...</div>
+                  {formattedOriginalPrice && (
+                    <span className="text-[11px] text-muted-foreground line-through leading-none">
+                      {formattedOriginalPrice}
+                    </span>
+                  )}
+                  {item.product.hasFlashSale && item.product.originalPrice && (
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/15 text-[10px] px-1.5 py-0.5 font-semibold border-0">
+                      <Zap className="h-2.5 w-2.5 mr-0.5" />
+                      {Math.round((1 - item.product.price / item.product.originalPrice) * 100)}% OFF
+                    </Badge>
                   )}
                 </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleIncrement}
-                  disabled={isUpdating || isRemoving}
-                  className="h-8 w-8 p-0 hover:bg-gray-100"
-                  title="Increase quantity"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
               </div>
+              {variantDisplay && (
+                <div className="mt-1.5 text-[12px] text-muted-foreground">
+                  {Object.entries(item.variant_selections || {}).map(([type, value], idx, arr) => (
+                    <span key={`${type}-${value}`} className="inline-flex items-center">
+                      {type.toLowerCase() === 'color' && (
+                        <span className="inline-block w-3 h-3 rounded-full bg-primary mr-1 border border-border" />
+                      )}
+                      <span className="capitalize">{value}</span>
+                      {idx < arr.length - 1 && <span className="mx-1">·</span>}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
-              <div className="text-right">
-                {item.product.hasFlashSale && totalOriginalPrice ? (
-                  <div>
-                    <p className="text-xs text-gray-400 line-through">{totalOriginalPrice}</p>
-                    <p className="text-xs font-semibold text-red-500">
-                      <span className="text-gray-500 text-xs">Subtotal:</span> {totalPrice}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs font-semibold text-red-500">
-                    <span className="text-gray-500 text-xs">Subtotal:</span> {totalPrice}
-                  </p>
-                )}
+          {/* Subtotal row */}
+          <div className="px-3 pb-2 -mt-1 flex items-center justify-end">
+            <span className="text-[12px] text-muted-foreground mr-2">Item subtotal:</span>
+            <span className="text-[14px] font-bold text-foreground">{totalPrice}</span>
+          </div>
+
+          {/* Bottom: Remove + Quantity pill */}
+          <div className="px-3 py-2.5 bg-primary/5 border-t border-primary/10 flex items-center justify-between">
+            <button
+              onClick={handleRemove}
+              disabled={isRemoving}
+              className="text-[13px] font-semibold text-destructive hover:text-destructive/80 flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              Remove
+            </button>
+
+            <div className="flex items-center bg-card rounded-full border border-primary/30 overflow-hidden h-9 shadow-sm">
+              <button
+                onClick={handleDecrement}
+                disabled={isUpdating || localQuantity <= 1 || isRemoving}
+                className="h-9 w-9 flex items-center justify-center text-foreground hover:bg-primary/5 disabled:opacity-40"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <div className="w-9 text-center">
+                <span className={`font-bold text-[15px] ${isUpdating ? 'opacity-50' : ''}`}>
+                  {localQuantity}
+                </span>
               </div>
+              <button
+                onClick={handleIncrement}
+                disabled={isUpdating || isRemoving}
+                className="h-9 w-9 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+                aria-label="Increase quantity"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </div>
