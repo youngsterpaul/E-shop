@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCheckout } from '@/contexts/CheckoutContext';
 import { useSelectiveCart } from '@/contexts/SelectiveCartContext';
 import { useMpesaPayment } from '@/hooks/useMpesaPayment';
 import { useCartContext } from '@/contexts/CartContext';
@@ -16,311 +15,185 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Icons
-import { ArrowLeft, User, Mail, Phone, MapPin, CheckCircle, Loader2, X, Download, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle, Loader2, X, ChevronRight, CreditCard, ShoppingBag } from 'lucide-react';
 import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
-import { LocationSearchInput } from '@/components/checkout/LocationSearchInput';
+import { LocationPickerSheet } from '@/components/checkout/LocationPickerSheet';
+import { cn } from '@/lib/utils';
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-  const {
-    user,
-    profile
-  } = useAuth();
-  const {
-    calculations,
-    getSelectedItems,
-    appliedCoupons
-  } = useSelectiveCart();
-  const {
-    clearCart
-  } = useCartContext();
-  const {
-    initiatePayment,
-    checkPaymentStatus,
-    isProcessing
-  } = useMpesaPayment();
-  const {
-    addresses,
-    loading: addressesLoading,
-    getDefaultAddress,
-    addAddress
-  } = useDeliveryAddresses();
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [showAddressForm, setShowAddressForm] = useState(false);
+  const { user, profile } = useAuth();
+  const { calculations, getSelectedItems, appliedCoupons } = useSelectiveCart();
+  const { clearCart } = useCartContext();
+  const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
+  const { addresses, loading: addressesLoading, getDefaultAddress } = useDeliveryAddresses();
+  const { getCountyOptions, getCityOptions, isLoading: locationsLoading } = useLocations();
 
-  // State management
-  const [currentStep, setCurrentStep] = useState(1);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<{
     status: string;
     message: string;
     checkoutRequestId: string | null;
-  }>({
-    status: 'idle',
-    message: '',
-    checkoutRequestId: null
-  });
+  }>({ status: 'idle', message: '', checkoutRequestId: null });
   const paymentStatusRef = useRef(paymentStatus);
   const [orderId, setOrderId] = useState('');
 
-  // Form data states
   const [customerData, setCustomerData] = useState({
     firstName: '',
     lastName: '',
-    userName: '',
     user_id: '',
     email: '',
-    phone: ''
+    phone: '',
   });
-  const {
-    getCountyOptions,
-    getCityOptions,
-    isLoading: locationsLoading
-  } = useLocations();
   const [deliveryData, setDeliveryData] = useState({
     address: '',
     city: '',
     county: '',
-    deliveryInstructions: '',
-    deliveryMethod: 'standard'
+    deliveryMethod: 'standard',
   });
+
   type ErrorsType = {
-    userName?: string;
     firstName?: string;
     lastName?: string;
-    email?: string;
     phone?: string;
+    location?: string;
     address?: string;
-    city?: string;
-    county?: string;
   };
   const [errors, setErrors] = useState<ErrorsType>({});
-  const freeDeliveryThreshold = 10000;
-  const PAYMENT_TIMEOUT = 90000; // 90 seconds
-  const isEligibleForFreeDelivery = calculations.subtotal >= freeDeliveryThreshold;
+  const PAYMENT_TIMEOUT = 90000;
+  const isEligibleForFreeDelivery = calculations.subtotal >= 10000;
 
-  // Initialize form data
+  // Initialize from profile / default address
   useEffect(() => {
     setCustomerData({
       firstName: profile?.first_name || '',
       lastName: profile?.last_name || '',
-      userName: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || '',
       email: user?.email || '',
       user_id: profile?.user_id || '',
-      phone: profile?.phone || ''
+      phone: profile?.phone || '',
     });
 
-    // Load default address if available
     const defaultAddress = getDefaultAddress();
-    if (defaultAddress && !selectedAddressId) {
+    if (defaultAddress) {
       setDeliveryData({
         address: defaultAddress.street_address,
         city: defaultAddress.city,
         county: defaultAddress.county,
-        deliveryInstructions: '',
-        deliveryMethod: 'standard'
+        deliveryMethod: 'standard',
       });
-      setSelectedAddressId(defaultAddress.id);
-    } else if (profile && !defaultAddress) {
-      // Fallback to profile data if no saved addresses
+    } else if (profile) {
       setDeliveryData({
         address: profile?.address || '',
         city: profile?.city || '',
         county: profile?.county || '',
-        deliveryInstructions: '',
-        deliveryMethod: 'standard'
+        deliveryMethod: 'standard',
       });
     }
   }, [profile, user, addresses]);
-  const handleAddressSelect = (addressId: string) => {
-    const address = addresses.find(addr => addr.id === addressId);
-    if (address) {
-      setSelectedAddressId(addressId);
-      setDeliveryData(prev => ({
-        ...prev,
-        address: address.street_address,
-        city: address.city,
-        county: address.county,
-        deliveryMethod: 'standard'
-      }));
-      setCustomerData(prev => ({
-        ...prev,
-        userName: address.full_name,
-        phone: address.phone
-      }));
-    }
-  };
-  const handleSaveNewAddress = async () => {
-    try {
-      await addAddress({
-        address_name: 'Custom Address',
-        full_name: `${customerData.firstName} ${customerData.lastName}`.trim(),
-        phone: customerData.phone,
-        street_address: deliveryData.address,
-        city: deliveryData.city,
-        county: deliveryData.county,
-        is_default: addresses.length === 0 // Set as default if it's the first address
-      });
-      setShowAddressForm(false);
-    } catch (error) {
-      console.error('Error saving address:', error);
-    }
-  };
 
-  // Check if user has items to checkout
+  // Redirect if no items
   useEffect(() => {
     if (calculations.selectedItemsCount === 0) {
       navigate('/cart');
     }
   }, [calculations.selectedItemsCount, navigate]);
-  const steps = [{
-    id: 1,
-    title: 'Customer Details',
-    description: 'Personal information'
-  }, {
-    id: 2,
-    title: 'Review',
-    description: 'Order summary'
-  }];
 
-  // Validation functions
-  const validateStep1 = () => {
+  const selectedItems = getSelectedItems();
+  const finalTotal = calculations.total;
+
+  const countyLabel = useMemo(
+    () => getCountyOptions().find((c) => c.value === deliveryData.county)?.label || '',
+    [deliveryData.county, getCountyOptions]
+  );
+  const cityLabel = useMemo(
+    () =>
+      getCityOptions(deliveryData.county).find((c) => c.value === deliveryData.city)?.label || '',
+    [deliveryData.city, deliveryData.county, getCityOptions]
+  );
+
+  const updateProfileDeliveryInfo = async (updates: Record<string, string>) => {
+    if (!user?.id) return;
+    try {
+      await supabase
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+    } catch {}
+  };
+
+  const handleCustomerChange = (field: keyof typeof customerData, value: string) => {
+    setCustomerData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field as keyof ErrorsType]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleLocationConfirm = (county: string, city: string) => {
+    setDeliveryData((prev) => ({ ...prev, county, city }));
+    setErrors((prev) => ({ ...prev, location: '' }));
+    updateProfileDeliveryInfo({ county, city });
+  };
+
+  const validate = () => {
     const newErrors: ErrorsType = {};
-    if (!customerData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    if (!customerData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
+    if (!customerData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!customerData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!customerData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^(\+254|254|0)[17]\d{8}$/.test(customerData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Please enter a valid Kenyan phone number';
+      newErrors.phone = 'Enter a valid Kenyan phone number';
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  const validateStep2 = () => {
-    const newErrors: ErrorsType = {};
+    if (!deliveryData.county || !deliveryData.city) {
+      newErrors.location = 'Please select a delivery location';
+    }
     if (!deliveryData.address.trim()) {
-      newErrors.address = 'Address is required';
-    }
-    if (!deliveryData.city.trim()) {
-      newErrors.city = 'City is required';
-    }
-    if (!deliveryData.county.trim()) {
-      newErrors.county = 'County is required';
+      newErrors.address = 'Delivery instructions are required';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Navigation functions
-  const handleNext = () => {
-    if (currentStep === 1) {
-      if (validateStep1() && validateStep2()) {
-        // Save all data to profile before moving to step 2
-        updateProfileDeliveryInfo({
-          first_name: customerData.firstName,
-          last_name: customerData.lastName,
-          phone: customerData.phone,
-          address: deliveryData.address,
-          city: deliveryData.city,
-          county: deliveryData.county
-        });
-        setCurrentStep(2);
-      }
-    } else if (currentStep === 2) {
-      setShowPaymentModal(true);
+  const handleProceedToPayment = () => {
+    if (!validate()) {
+      const firstErrorEl = document.querySelector('[data-error="true"]');
+      firstErrorEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
-  };
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      navigate('/cart');
-    }
-  };
-
-  // Input change handlers
-  const handleCustomerChange = (field, value) => {
-    const trimmedValue = value.trim();
-    setCustomerData(prev => ({
-      ...prev,
-      [field]: trimmedValue
-    }));
-  };
-  const handleDeliveryChange = (field, value) => {
-    setDeliveryData(prev => ({
-      ...prev,
-      [field]: value,
-      ...(field === 'county' ? {
-        city: ''
-      } : {})
-    }));
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
-
-    // Update profile with new delivery information - fix the typing here
-    const updates: {
-      [key: string]: string;
-    } = {
-      [field]: value
-    };
-
-    // If county changes, also clear city in profile
-    if (field === 'county') {
-      updates.city = '';
-    }
-    updateProfileDeliveryInfo(updates);
-  };
-
-  // Get available cities based on selected county
-  const getAvailableCities = () => {
-    if (!deliveryData.county) return [];
-    return getCityOptions(deliveryData.county);
-  };
-
-  // Payment handling
-  const handleMpesaPayment = async () => {
-    setPaymentStatus({
-      status: 'processing',
-      message: '',
-      checkoutRequestId: null
+    updateProfileDeliveryInfo({
+      first_name: customerData.firstName,
+      last_name: customerData.lastName,
+      phone: customerData.phone,
+      address: deliveryData.address,
+      city: deliveryData.city,
+      county: deliveryData.county,
     });
+    setShowPaymentModal(true);
+  };
+
+  const handleMpesaPayment = async () => {
+    setPaymentStatus({ status: 'processing', message: '', checkoutRequestId: null });
     try {
-      const selectedItemsWithDetails = getSelectedItems();
-      const orderItems = selectedItemsWithDetails.map(item => ({
+      const itemsList = getSelectedItems();
+      const orderItems = itemsList.map((item) => ({
         id: item.id,
         product: {
           id: item.product.id,
           name: item.product.name,
           price: item.product.price,
-          image: item.product.image
+          image: item.product.image,
         },
         variant_selections: item.variant_selections || {},
-        quantity: item.quantity
+        quantity: item.quantity,
       }));
-      const deliveryCost = deliveryData.deliveryMethod === 'express' ? 1200 : 0;
-      const finalTotal = calculations.total + deliveryCost;
-      const countyName = getCountyOptions().find(c => c.value === deliveryData.county)?.label || deliveryData.county;
-      const cityName = getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label || deliveryData.city;
 
-      // Check for existing pending order with same items
       let existingOrderId: string | null = null;
       if (customerData.user_id) {
         const { data: pendingOrders } = await supabase
@@ -329,17 +202,18 @@ const CheckoutPage = () => {
           .eq('user_id', customerData.user_id)
           .eq('status', 'pending')
           .order('created_at', { ascending: false });
-        
+
         if (pendingOrders && pendingOrders.length > 0) {
-          // Check if any pending order has matching items
           for (const pendingOrder of pendingOrders) {
             const existingItems = pendingOrder.items as any[];
             if (existingItems && existingItems.length === orderItems.length) {
-              const itemsMatch = orderItems.every(newItem => 
-                existingItems.some(existingItem => 
-                  existingItem.product?.id === newItem.product.id && 
-                  existingItem.quantity === newItem.quantity &&
-                  JSON.stringify(existingItem.variant_selections || {}) === JSON.stringify(newItem.variant_selections || {})
+              const itemsMatch = orderItems.every((newItem) =>
+                existingItems.some(
+                  (existingItem) =>
+                    existingItem.product?.id === newItem.product.id &&
+                    existingItem.quantity === newItem.quantity &&
+                    JSON.stringify(existingItem.variant_selections || {}) ===
+                      JSON.stringify(newItem.variant_selections || {})
                 )
               );
               if (itemsMatch) {
@@ -352,9 +226,10 @@ const CheckoutPage = () => {
       }
 
       let currentOrderId: string;
-      
+      const shippingAddr = `${countyLabel}, ${cityLabel}, ${deliveryData.address}`;
+      const fullName = `${customerData.firstName} ${customerData.lastName}`.trim();
+
       if (existingOrderId) {
-        // Update existing pending order with latest details
         currentOrderId = existingOrderId;
         const { error: updateError } = await supabase
           .from('orders')
@@ -363,106 +238,92 @@ const CheckoutPage = () => {
             phone_number: customerData.phone,
             amount: finalTotal,
             items: orderItems,
-            shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
-            username: `${customerData.firstName} ${customerData.lastName}`.trim(),
+            shipping_address: shippingAddr,
+            username: fullName,
             discount_amount: calculations.discount,
             delivery_fee: calculations.shipping,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('order_id', existingOrderId);
-        
-        if (updateError) {
-          throw new Error('Failed to update order. Please try again.');
-        }
+        if (updateError) throw new Error('Failed to update order. Please try again.');
       } else {
-        // Create new order
         currentOrderId = `ORD-${Date.now()}`;
-        const { error: orderError } = await supabase.from('orders').insert({
-          order_id: currentOrderId,
-          user_id: customerData.user_id || null,
-          email: customerData.email,
-          phone_number: customerData.phone,
-          status: 'pending',
-          amount: finalTotal,
-          items: orderItems,
-          shipping_address: `${countyName}, ${cityName}, ${deliveryData.address}`,
-          username: `${customerData.firstName} ${customerData.lastName}`.trim(),
-          discount_amount: calculations.discount,
-          delivery_fee: calculations.shipping,
-          tracking_number: currentOrderId.slice(-5).toUpperCase()
-        }).select('order_id').single();
-        
-        if (orderError) {
-          throw new Error('Failed to create order. Please try again.');
-        }
-      }
-      
-      setOrderId(currentOrderId);
-
-      // Notify admin about new order (fire and forget)
-      if (!existingOrderId) {
-        supabase.functions.invoke('notify-admin-new-order', {
-          body: {
-            orderId: currentOrderId,
-            customerName: `${customerData.firstName} ${customerData.lastName}`.trim(),
-            customerEmail: customerData.email,
-            customerPhone: customerData.phone,
+        const { error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            order_id: currentOrderId,
+            user_id: customerData.user_id || null,
+            email: customerData.email,
+            phone_number: customerData.phone,
+            status: 'pending',
             amount: finalTotal,
             items: orderItems,
-            shippingAddress: `${countyName}, ${cityName}, ${deliveryData.address}`,
-          }
-        }).catch((err) => console.error('Admin notification failed:', err));
+            shipping_address: shippingAddr,
+            username: fullName,
+            discount_amount: calculations.discount,
+            delivery_fee: calculations.shipping,
+            tracking_number: currentOrderId.slice(-5).toUpperCase(),
+          })
+          .select('order_id')
+          .single();
+        if (orderError) throw new Error('Failed to create order. Please try again.');
       }
 
-      // Initiate M-Pesa payment
+      setOrderId(currentOrderId);
+
+      if (!existingOrderId) {
+        supabase.functions
+          .invoke('notify-admin-new-order', {
+            body: {
+              orderId: currentOrderId,
+              customerName: fullName,
+              customerEmail: customerData.email,
+              customerPhone: customerData.phone,
+              amount: finalTotal,
+              items: orderItems,
+              shippingAddress: shippingAddr,
+            },
+          })
+          .catch((err) => console.error('Admin notification failed:', err));
+      }
+
       const result = await initiatePayment({
         phone: customerData.phone,
         amount: finalTotal,
-        orderId: currentOrderId
+        orderId: currentOrderId,
       });
-      if (!result.success) {
-        throw new Error(result.error || 'Payment initiation failed');
-      }
+      if (!result.success) throw new Error(result.error || 'Payment initiation failed');
+
       const newStatus = {
         status: 'waiting',
         checkoutRequestId: result.checkoutRequestId ?? null,
-        message: 'Check your phone and enter your M-Pesa PIN'
+        message: 'Check your phone and enter your M-Pesa PIN',
       };
       setPaymentStatus(newStatus);
       paymentStatusRef.current = newStatus;
 
-      // Start polling for payment status
       const pollPayment = setInterval(async () => {
         try {
           if (result.checkoutRequestId) {
             const status = await checkPaymentStatus(result.checkoutRequestId);
             if (status?.status === 'success') {
-              const successStatus = {
-                status: 'success',
-                message: '',
-                checkoutRequestId: null
-              };
+              const successStatus = { status: 'success', message: '', checkoutRequestId: null };
               setPaymentStatus(successStatus);
               paymentStatusRef.current = successStatus;
-              
-              // Record discount usage for applied coupons
+
               if (appliedCoupons.length > 0) {
                 for (const coupon of appliedCoupons) {
-                  // Insert into discount_usage table
                   await supabase.from('discount_usage').insert({
                     discount_id: coupon.id,
                     user_id: customerData.user_id || null,
                     order_id: currentOrderId,
-                    discount_amount: coupon.discount
+                    discount_amount: coupon.discount,
                   });
-                  
-                  // Get current usage_count and increment it
                   const { data: discountData } = await supabase
                     .from('discounts')
                     .select('usage_count')
                     .eq('id', coupon.id)
                     .single();
-                  
                   if (discountData) {
                     await supabase
                       .from('discounts')
@@ -471,16 +332,14 @@ const CheckoutPage = () => {
                   }
                 }
               }
-              
-              // Track purchase for personalization - extract categories from items
-              const selectedItems = getSelectedItems();
-              const purchasedCategories = selectedItems
-                .map(item => item.product?.category || '')
+
+              const purchasedCategories = getSelectedItems()
+                .map((item) => item.product?.category || '')
                 .filter(Boolean);
               if (purchasedCategories.length > 0) {
                 trackPurchase(purchasedCategories);
               }
-              
+
               clearCart();
               clearInterval(pollPayment);
               setTimeout(() => {
@@ -491,497 +350,569 @@ const CheckoutPage = () => {
               const failedStatus = {
                 status: 'failed',
                 message: status.result_desc || 'Payment failed',
-                checkoutRequestId: null
+                checkoutRequestId: null,
               };
               setPaymentStatus(failedStatus);
               paymentStatusRef.current = failedStatus;
               clearInterval(pollPayment);
             }
           }
-        } catch (error) {
-          //console.error('Error checking payment status:', error);
-        }
+        } catch {}
       }, 3000);
 
-      // Set timeout for payment
       setTimeout(() => {
         clearInterval(pollPayment);
-
-        // Always check the current status, not the stale state
         if (paymentStatusRef.current.status === 'waiting') {
           const timeoutStatus = {
             status: 'timeout',
             message: 'Payment request timed out',
-            checkoutRequestId: null
+            checkoutRequestId: null,
           };
           setPaymentStatus(timeoutStatus);
           paymentStatusRef.current = timeoutStatus;
         }
       }, PAYMENT_TIMEOUT);
     } catch (error) {
-      //console.error('Payment error:', error);
       setPaymentStatus({
         status: 'failed',
-        message: typeof error === 'object' && error !== null && 'message' in error ? (error as {
-          message?: string;
-        }).message || 'Payment failed. Please try again.' : 'Payment failed. Please try again.',
-        checkoutRequestId: null
+        message:
+          typeof error === 'object' && error !== null && 'message' in error
+            ? (error as { message?: string }).message || 'Payment failed. Please try again.'
+            : 'Payment failed. Please try again.',
+        checkoutRequestId: null,
       });
     }
   };
+
   const handleRetryPayment = () => {
-    setPaymentStatus({
-      status: 'idle',
-      message: '',
-      checkoutRequestId: null
-    });
+    setPaymentStatus({ status: 'idle', message: '', checkoutRequestId: null });
   };
 
-  // Add this function after your existing handler functions
-  const updateProfileDeliveryInfo = async updates => {
-    if (!user?.id) return;
-    try {
-      const {
-        error
-      } = await supabase.from('profiles').update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      }).eq('user_id', user.id);
-      if (error) {
-        //console.error('Error updating profile delivery info:', error);
-      }
-    } catch (error) {
-      //console.error('Error updating profile delivery info:', error);
+  const handleBack = () => navigate('/cart');
+
+  const hasLocation = !!(deliveryData.county && deliveryData.city);
+
+  // ============== Payment Modal ==============
+  const renderPaymentContent = () => {
+    switch (paymentStatus.status) {
+      case 'processing':
+        return (
+          <div className="text-center py-8">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Initiating Payment...</h3>
+            <p className="text-muted-foreground">Please wait while we process your request.</p>
+          </div>
+        );
+      case 'waiting':
+        return (
+          <div className="text-center py-8">
+            <div className="relative mb-6 mx-auto w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <div className="absolute inset-2 bg-primary/10 rounded-full flex items-center justify-center">
+                <span className="text-2xl">📱</span>
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Waiting for Payment</h3>
+            <p className="text-muted-foreground mb-4 px-4">
+              Check your phone and enter your M-Pesa PIN to complete the payment
+            </p>
+            <div className="bg-muted/50 p-4 rounded-xl mx-4">
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-semibold">KES {finalTotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Phone</span>
+                <span className="font-semibold">{customerData.phone}</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 'success':
+        return (
+          <div className="text-center py-8">
+            <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-green-600 mb-2">Payment Successful!</h3>
+            <p className="text-muted-foreground mb-4">Your order has been confirmed.</p>
+            <div className="flex items-center justify-center text-sm text-green-600">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Redirecting to your orders...
+            </div>
+          </div>
+        );
+      case 'failed':
+      case 'timeout':
+        return (
+          <div className="text-center py-8">
+            <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <X className="h-10 w-10 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-red-600 mb-2">
+              {paymentStatus.status === 'timeout' ? 'Payment Timeout' : 'Payment Failed'}
+            </h3>
+            <p className="text-muted-foreground mb-6 px-4">
+              {paymentStatus.status === 'timeout'
+                ? 'Payment request timed out. Please try again.'
+                : paymentStatus.message || 'Payment could not be processed.'}
+            </p>
+            <Button onClick={handleRetryPayment} className="rounded-full px-8">
+              Try Again
+            </Button>
+          </div>
+        );
+      default:
+        return (
+          <div className="space-y-5 py-2">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                You'll receive an STK Push on{' '}
+                <span className="font-semibold text-foreground">{customerData.phone}</span>
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-900 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-9 bg-green-600 rounded-md flex items-center justify-center shadow-sm">
+                    <span className="text-white font-bold text-[11px]">M-PESA</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Pay with M-Pesa</h4>
+                    <p className="text-xs text-muted-foreground">Secure STK Push</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-base">KES {finalTotal.toLocaleString()}</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleMpesaPayment}
+                disabled={isProcessing}
+                className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Pay KES ${finalTotal.toLocaleString()}`
+                )}
+              </Button>
+            </div>
+          </div>
+        );
     }
   };
 
-  // Calculate totals
-  const deliveryCost = deliveryData.deliveryMethod === 'express' ? 1200 : 0;
-  const finalTotal = calculations.total + deliveryCost;
-  const selectedItems = getSelectedItems();
+  const handleModalClose = () => {
+    if (paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
+      setShowPaymentModal(false);
+    }
+  };
 
-  // Step content renderers
-  const renderStep1 = () => <div className="py-0 my-0">
-  {addresses.length > 0 && <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Saved Addresses
-          </span>
-          <Button variant="outline" size="sm" onClick={() => setShowAddressForm(!showAddressForm)}>
-            {showAddressForm ? 'Cancel' : 'Add New'}
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {addresses.map(address => <div key={address.id} className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === address.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => handleAddressSelect(address.id)}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium">{address.full_name}</p>
-                  {address.is_default && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                      Default
-                    </span>}
-                </div>
-                <p className="text-sm text-gray-600">{address.phone}</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {address.street_address}, {address.city}, {address.county}
-                </p>
-              </div>
-              {selectedAddressId === address.id && <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />}
-            </div>
-          </div>)}
-      </CardContent>
-    </Card>}
-
-    {(showAddressForm || addresses.length === 0) && <div className="space-y-6.">
-      {!isMobile && <div>
-          <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
-          <p className="text-gray-600">
-            Please provide your contact details and delivery address for order updates and delivery.
-          </p>
-        </div>}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Personal Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" value={customerData.firstName} onChange={e => handleCustomerChange('firstName', e.target.value)} placeholder="Enter your first name" className={errors.firstName ? 'border-red-500' : ''} />
-              {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" value={customerData.lastName} onChange={e => handleCustomerChange('lastName', e.target.value)} placeholder="Enter your last name" className={errors.lastName ? 'border-red-500' : ''} />
-              {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-            </div>
-          </div>
-
-
-          <div>
-            <Label htmlFor="phone">Phone Number (M-Pesa)</Label>
-            <Input id="phone" value={customerData.phone} onChange={e => handleCustomerChange('phone', e.target.value)} placeholder="0712345678" className={errors.phone ? 'border-red-500' : ''} />
-            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Delivery Address
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="location">Delivery location</Label>
-            <LocationSearchInput
-              countyValue={deliveryData.county}
-              cityValue={deliveryData.city}
-              onSelect={(county, city) => {
-                setDeliveryData(prev => ({ ...prev, county, city }));
-                if (errors.county || errors.city) {
-                  setErrors(prev => ({ ...prev, county: '', city: '' }));
-                }
-                updateProfileDeliveryInfo({ county, city });
-              }}
-              error={errors.county || errors.city}
-              placeholder="Type a town, city or county (e.g. Embu)"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="address">Delivery instructions</Label>
-            <Textarea
-              value={deliveryData.address}
-              onChange={e => handleDeliveryChange('address', e.target.value)}
-              placeholder="Estate, building, house or shop number, nearest landmark, road, gate instructions, preferred delivery time, and anything else the rider should know"
-              className={`min-h-[110px] resize-none ${errors.address ? 'border-red-500' : ''}`}
-            />
-            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-          </div>
-        </CardContent>
-      </Card>
-    </div>}
-  </div>;
-  const renderStep2 = () => <div className=''>
-      <div className="space-y-6.">
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Review Your Order</h3>
-          {!isMobile && <p className="text-gray-600">
-            Please review your order details before proceeding to payment.
-          </p>}
-        </div>
-
-        {/* Customer Details Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Customer Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className='truncate'><span className="font-medium">Name:</span> {customerData.firstName} {customerData.lastName}</p>
-            <p className='truncate'><span className="font-medium">Email:</span> {customerData.email}</p>
-            <p className='truncate'><span className="font-medium">Phone:</span> {customerData.phone}</p>
-          </CardContent>
-        </Card>
-
-        {/* Delivery Details Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Delivery Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className='truncate'><span className="font-medium">County:</span> {getCountyOptions().find(c => c.value === deliveryData.county)?.label}</p>
-            <p className='truncate'><span className="font-medium">City:</span> {getCityOptions(deliveryData.county).find(c => c.value === deliveryData.city)?.label}</p>
-            <p className='truncate'><span className="font-medium">Address:</span> {deliveryData.address}</p>
-            {/*<p><span className="font-medium">Delivery Method:</span> Standard Delivery (1-3 hours)</p>*/}
-          </CardContent>
-        </Card>
-      </div>
-    
-      {/* Order Summary */}
-      <div className="lg:col-span-1">
-        <Card className="sticky top-6">
-          <CardHeader>
-            <CardTitle className="text-base">Order Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-          {/* Items */}
-          <ScrollArea className="max-h-60">
-            <div className="space-y-3">
-              {selectedItems.map(item => <div key={item.id} className="flex gap-3">
-                  <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-cover rounded border" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium truncate">
-                      {item.product.name}
-                    </p>
-                    
-                    {/* Variant display */}
-                    {item.variant_selections && Object.keys(item.variant_selections).length > 0 && <div className="flex flex-wrap gap-1 mt-1">
-                        {Object.entries(item.variant_selections as Record<string, string>).map(([type, value]) => <span key={`${type}-${value}`} className="text-xs text-gray-500">
-                            <span className="capitalize font-medium">{type}:</span> {value}
-                          </span>)}
-                      </div>}
-
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
-                      <p className="text-sm font-medium">
-                        KES {(item.product.price * item.quantity).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>)}
-            </div>
-          </ScrollArea>
-
-            <Separator />
-
-            {/* Discount Code Input */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">Have a discount code?</p>
-              <DiscountCodeInput />
-            </div>
-
-            <Separator />
-
-            {/* Price Breakdown */}
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">KES {calculations.subtotal.toLocaleString()}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-600">Delivery</span>
-                <span className={`font-medium ${isEligibleForFreeDelivery ? 'text-green-600' : ''}`}>
-                  {calculations.shipping > 0 ? `KES ${calculations.shipping.toLocaleString()}` : isEligibleForFreeDelivery ? 'FREE' : 'KES 0'}
-                </span>
-              </div>
-
-              {calculations.tax > 0 && <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">KES {calculations.tax.toLocaleString()}</span>
-                </div>}
-
-              {calculations.discount > 0 && <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span className="font-medium">-KES {calculations.discount.toLocaleString()}</span>
-                </div>}
-            </div>
-
-            <Separator />
-
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Total</span>
-              <span className="text-orange-600">KES {finalTotal.toLocaleString()}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>;
-
-  // Payment Modal Content
   const renderPaymentModal = () => {
-    const renderPaymentContent = () => {
-      switch (paymentStatus.status) {
-        case 'processing':
-          return <div className="text-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Initiating Payment...</h3>
-              <p className="text-gray-600">Please wait while we process your payment request.</p>
-            </div>;
-        case 'waiting':
-          return <div className="text-center py-8">
-              <div className="relative mb-6">
-                <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">📱</span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Waiting for Payment</h3>
-              <p className="text-gray-600 mb-4">
-                Check your phone and enter your M-Pesa PIN to complete the payment
-              </p>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Amount: KES {finalTotal.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Phone: {customerData.phone}</p>
-              </div>
-            </div>;
-        case 'success':
-          return <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-green-600 mb-2">Payment Successful!</h3>
-              <p className="text-gray-600 mb-4">Your payment has been processed successfully.</p>
-              <div className="flex items-center justify-center">
-                <Loader2 className="h-4 w-4 animate-spin text-green-600 mr-2" />
-                <span className="text-sm text-green-600">Redirecting to order details...</span>
-              </div>
-            </div>;
-        case 'failed':
-        case 'timeout':
-          return <div className="text-center py-8">
-              <X className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-red-600 mb-2">
-                {paymentStatus.status === 'timeout' ? 'Payment Timeout' : 'Payment Failed'}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {paymentStatus.status === 'timeout' ? 'Payment request timed out. Please try again.' : paymentStatus.message || 'Payment could not be processed.'}
-              </p>
-              <Button onClick={handleRetryPayment} className="bg-red-600 hover:bg-red-700">
-                Try Again
-              </Button>
-            </div>;
-        default:
-          return <div className="space-y-6">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Complete Your Payment</h3>
-                <p className="text-gray-600">You'll receive an STK Push notification on {customerData.phone}</p>
-              </div>
-
-              <Card className="border-green-200 bg-green-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-8 bg-green-600 rounded flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">M-PESA</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-green-900">Pay with M-Pesa</h4>
-                        <p className="text-sm text-green-700">Secure STK Push payment</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-900">KES {finalTotal.toLocaleString()}</p>
-                      <p className="text-sm text-green-700">{customerData.phone}</p>
-                    </div>
-                  </div>
-
-                  <Button onClick={handleMpesaPayment} disabled={isProcessing} className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold">
-                    {isProcessing ? <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </> : 'Pay with M-Pesa'}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>;
-      }
-    };
-    const handleModalClose = () => {
-      if (paymentStatus.status !== 'processing' && paymentStatus.status !== 'waiting') {
-        setShowPaymentModal(false);
-      }
-    };
-
     if (isMobile) {
       return (
         <Drawer open={showPaymentModal} onOpenChange={handleModalClose}>
           <DrawerContent className="max-h-[90vh]">
             <DrawerHeader className="text-left">
-              <DrawerTitle>Payment</DrawerTitle>
-              <DrawerDescription>Complete your M-Pesa payment</DrawerDescription>
+              <DrawerTitle>Complete Payment</DrawerTitle>
+              <DrawerDescription>Finalize your order</DrawerDescription>
             </DrawerHeader>
-            <div className="px-4 pb-6 overflow-y-auto">
-              {renderPaymentContent()}
-            </div>
+            <div className="px-4 pb-6 overflow-y-auto">{renderPaymentContent()}</div>
           </DrawerContent>
         </Drawer>
       );
     }
-
     return (
       <Dialog open={showPaymentModal} onOpenChange={handleModalClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Payment</DialogTitle>
-            <DialogDescription>Complete your M-Pesa payment</DialogDescription>
+            <DialogTitle>Complete Payment</DialogTitle>
+            <DialogDescription>Finalize your order</DialogDescription>
           </DialogHeader>
           {renderPaymentContent()}
         </DialogContent>
       </Dialog>
     );
   };
-  const progressValue = currentStep / 2 * 100;
-return <div>
-    {locationsLoading || addressesLoading ? <CheckoutSkeleton /> : <div className={`min-h-screen bg-gray-50 ${!isMobile ? 'min-w-max' : ''}`}>
-        <div className={`py-6 ${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6' : 'pb-32 px-0'}`}>
-          {!isMobile && <div className="mb-6">
-            <Button variant="ghost" onClick={handleBack} className="mb-4 p-0 h-auto text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Cart
-            </Button>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Checkout</h1>
-            <p className="text-gray-600 mt-1">
-              Complete your order in {2 - currentStep + 0} more step{2 - currentStep + 1 !== 1 ? 's' : ''}
-            </p>
-          </div>}
 
-        <div className="grid grid-cols-1 .gap-8 mx-0">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {/* Progress Section */}
-              {!isMobile && <div className="p-6 border-b">
-                <div className="mb-4">
-                  <Progress value={progressValue} className="w-full" />
-                </div>
-                
-                <div className="flex justify-between">
-                  {steps.map(step => <div key={step.id} className={`flex items-center gap-2 ${currentStep >= step.id ? 'text-orange-600' : 'text-gray-400'}`}>
-                      <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center text-xs font-medium ${currentStep >= step.id ? 'border-orange-600 bg-orange-100 text-orange-600' : 'border-gray-300 text-gray-400'}`}>
-                        {currentStep > step.id ? <CheckCircle className="h-4 w-4" /> : step.id}
-                      </div>
-                      <div className="hidden sm:block">
-                        <p className="text-sm font-medium">{step.title}</p>
-                        <p className="text-xs">{step.description}</p>
-                      </div>
-                    </div>)}
-                </div>
-              </div>}
+  if (locationsLoading || addressesLoading) return <CheckoutSkeleton />;
 
-              {/* Step Content */}
-              <div className="p-6">
-                {currentStep === 1 && renderStep1()}
-                {currentStep === 2 && renderStep2()}
-              </div>
+  // ================ RENDER ================
+  return (
+    // FIX: removed overflow-x-hidden; use w-full + box-border to naturally contain content
+    <div className="min-h-screen w-full bg-background box-border">
+      <div
+        className={cn(
+          'w-full box-border',
+          !isMobile
+            ? 'max-w-[1100px] mx-auto px-4 lg:px-6 py-8'
+            : 'px-4 pt-6 pb-40'   // FIX: px-4 (was px-5) keeps inputs inside viewport on small screens
+        )}
+      >
+        {/* Back button - desktop */}
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="mb-4 -ml-3 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Cart
+          </Button>
+        )}
 
-              {/* Navigation */}
-              <div 
-                className={`border-t ${isMobile ? 'fixed bottom-0 left-0 right-0 z-50 shadow-lg p-2 bg-white' : 'p-6'}`}
-                style={{
-                  paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
-                }}
-              >
-                <div className="flex gap-3 flex-1">
-                  <Button variant="outline" onClick={handleBack} className="flex-1 border-gray-300 text-gray-800 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                    {currentStep === 1 ? 'Back to Cart' : 'Back'}
-                  </Button>
-                  <Button onClick={handleNext} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-none">
-                    {currentStep === 2 ? 'Proceed to Payment' : 'Continue'}
-                  </Button>
-                </div>
-              </div>
-            </div>
+        {/* Header */}
+        <div className={cn('mb-6', isMobile && 'mb-4')}>
+          <h1 className={cn(
+            'font-serif font-bold text-foreground tracking-tight',
+            isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'
+          )}>
+            Place Order
+          </h1>
+          <p className={cn(
+            'text-muted-foreground mt-1',
+            isMobile ? 'text-xs' : 'mt-1.5 text-sm md:text-base'
+          )}>
+            Fill in your details below
+          </p>
+          {/* Decorative accent bars */}
+          <div className={cn('flex gap-1.5 max-w-md', isMobile ? 'mt-3' : 'mt-4')}>
+            <div className="h-1 flex-1 rounded-full bg-primary" />
+            <div className="h-1 flex-1 rounded-full bg-primary/80" />
+            <div className="h-1 flex-1 rounded-full bg-primary/30" />
+            <div className="h-1 flex-1 rounded-full bg-primary/15" />
           </div>
+        </div>
+
+        <div className={cn(
+          'grid gap-6',
+          !isMobile && 'lg:grid-cols-[1fr_380px]',
+          isMobile && 'gap-5'
+        )}>
+          {/* LEFT: Form */}
+          {/* FIX: min-w-0 prevents grid children from overflowing their column */}
+          <div className={cn('min-w-0 w-full', isMobile ? 'space-y-6' : 'space-y-8')}>
+
+            {/* Personal Details */}
+            <section className="w-full">
+              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+                Personal Details
+              </h2>
+              <div className="space-y-4 w-full">
+                <div className="flex flex-col gap-4 w-full">
+                  <div data-error={!!errors.firstName} className="w-full">
+                    <Label htmlFor="firstName" className="text-sm text-muted-foreground mb-1.5 block">
+                      First Name
+                    </Label>
+                    <Input
+                      id="firstName"
+                      value={customerData.firstName}
+                      onChange={(e) => handleCustomerChange('firstName', e.target.value)}
+                      placeholder="John"
+                      className={cn(
+                        'h-12 w-full rounded-2xl bg-background border-border text-base',
+                        errors.firstName && 'border-destructive'
+                      )}
+                    />
+                    {errors.firstName && (
+                      <p className="text-destructive text-xs mt-1">{errors.firstName}</p>
+                    )}
+                  </div>
+                  <div data-error={!!errors.lastName} className="w-full">
+                    <Label htmlFor="lastName" className="text-sm text-muted-foreground mb-1.5 block">
+                      Last Name
+                    </Label>
+                    <Input
+                      id="lastName"
+                      value={customerData.lastName}
+                      onChange={(e) => handleCustomerChange('lastName', e.target.value)}
+                      placeholder="Doe"
+                      className={cn(
+                        'h-12 w-full rounded-2xl bg-background border-border text-base',
+                        errors.lastName && 'border-destructive'
+                      )}
+                    />
+                    {errors.lastName && (
+                      <p className="text-destructive text-xs mt-1">{errors.lastName}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div data-error={!!errors.phone} className="w-full">
+                  <Label htmlFor="phone" className="text-sm text-muted-foreground mb-1.5 block">
+                    Phone Number (M-Pesa)
+                  </Label>
+                  <Input
+                    id="phone"
+                    value={customerData.phone}
+                    onChange={(e) => handleCustomerChange('phone', e.target.value)}
+                    placeholder="0712 345 678"
+                    inputMode="tel"
+                    className={cn(
+                      'h-12 w-full rounded-2xl bg-background border-border text-base',
+                      errors.phone && 'border-destructive'
+                    )}
+                  />
+                  {errors.phone && (
+                    <p className="text-destructive text-xs mt-1">{errors.phone}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Delivery Address */}
+            <section className="w-full">
+              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+                Delivery Address
+              </h2>
+              <div className="space-y-4 w-full">
+                {/* Location selector card */}
+                <button
+                  type="button"
+                  onClick={() => setShowLocationPicker(true)}
+                  data-error={!!errors.location}
+                  className={cn(
+                    // FIX: w-full + box-border ensures button never exceeds container width
+                    'w-full box-border text-left rounded-2xl p-4 transition-all active:scale-[0.99] flex items-center gap-3 group',
+                    hasLocation
+                      ? 'bg-primary/5 border-2 border-dashed border-primary/40 hover:border-primary/60'
+                      : 'bg-card border border-border hover:border-primary/40',
+                    errors.location && 'border-destructive border-solid'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105',
+                      hasLocation
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  {/* FIX: min-w-0 + overflow-hidden on text container stops text from widening the button */}
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <p className="text-xs text-muted-foreground mb-0.5">Delivery location</p>
+                    <p
+                      className={cn(
+                        'truncate text-base',
+                        hasLocation ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
+                      {hasLocation ? `${cityLabel}, ${countyLabel} County` : 'Select your location'}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                </button>
+                {errors.location && (
+                  <p className="text-destructive text-xs -mt-2 px-1">{errors.location}</p>
+                )}
+
+                <div data-error={!!errors.address} className="w-full">
+                  <Label htmlFor="address" className="text-sm text-muted-foreground mb-1.5 block">
+                    Delivery Instructions
+                  </Label>
+                  <Textarea
+                    id="address"
+                    value={deliveryData.address}
+                    onChange={(e) => {
+                      setDeliveryData((prev) => ({ ...prev, address: e.target.value }));
+                      if (errors.address) setErrors((prev) => ({ ...prev, address: '' }));
+                    }}
+                    placeholder="Estate, building, house/shop number, nearest landmark, gate instructions..."
+                    className={cn(
+                      'min-h-[110px] w-full resize-none rounded-2xl bg-background border-border text-base p-4',
+                      errors.address && 'border-destructive'
+                    )}
+                  />
+                  {errors.address && (
+                    <p className="text-destructive text-xs mt-1">{errors.address}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Order Summary */}
+            <section className="w-full">
+              <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+                Order Summary
+              </h2>
+              <div className="bg-card rounded-2xl border border-border overflow-hidden w-full">
+                {selectedItems.map((item, idx) => {
+                  const variantText = item.variant_selections
+                    ? Object.values(item.variant_selections as Record<string, string>).join(' · ')
+                    : '';
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        'flex items-center gap-3 p-3',
+                        idx !== selectedItems.length - 1 && 'border-b border-border'
+                      )}
+                    >
+                      <div className="h-14 w-14 rounded-xl bg-muted overflow-hidden flex-shrink-0">
+                        {item.product.image ? (
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center">
+                            <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      {/* FIX: min-w-0 stops long product names from pushing the row wider */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate text-foreground">
+                          {item.product.name}
+                        </p>
+                        {variantText && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {variantText}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-primary font-semibold text-sm flex-shrink-0">
+                        ×{item.quantity}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Discount code */}
+              <div className="mt-4 w-full">
+                <DiscountCodeInput />
+              </div>
+
+              {/* Totals */}
+              <div className="mt-5 space-y-3 w-full">
+                <div className="flex justify-between text-base">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold text-foreground">
+                    KSh {calculations.subtotal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-base">
+                  <span className="text-muted-foreground">
+                    Delivery{countyLabel && ` (${countyLabel})`}
+                  </span>
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      isEligibleForFreeDelivery ? 'text-green-600' : 'text-foreground'
+                    )}
+                  >
+                    {isEligibleForFreeDelivery
+                      ? 'FREE'
+                      : `KSh ${calculations.shipping.toLocaleString()}`}
+                  </span>
+                </div>
+                {calculations.discount > 0 && (
+                  <div className="flex justify-between text-base text-green-600">
+                    <span>Discount</span>
+                    <span className="font-semibold">
+                      -KSh {calculations.discount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between items-baseline">
+                  <span className="text-lg font-medium">Total</span>
+                  <span className="text-2xl font-bold text-primary">
+                    KSh {finalTotal.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Desktop CTA inline */}
+              {!isMobile && (
+                <Button
+                  onClick={handleProceedToPayment}
+                  className="w-full h-14 mt-6 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
+                >
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Proceed to Payment
+                </Button>
+              )}
+            </section>
+          </div>
+
+          {/* RIGHT sidebar: Desktop only - sticky summary */}
+          {!isMobile && (
+            <aside className="hidden lg:block min-w-0">
+              <div className="sticky top-6 bg-card rounded-2xl border border-border p-5 space-y-4">
+                <h3 className="font-serif text-xl font-bold">Your Order</h3>
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                  {selectedItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                        {item.product.image && (
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.product.name}</p>
+                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="text-sm font-semibold flex-shrink-0">
+                        KSh {(item.product.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <Separator />
+                <div className="flex justify-between text-base">
+                  <span className="font-medium">Total</span>
+                  <span className="text-xl font-bold text-primary">
+                    KSh {finalTotal.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </aside>
+          )}
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* Mobile sticky CTA */}
+      {isMobile && (
+        <div
+          className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+          style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}
+        >
+          <Button
+            onClick={handleProceedToPayment}
+            className="w-full h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
+          >
+            <CreditCard className="h-5 w-5 mr-2" />
+            Proceed to Payment
+          </Button>
+        </div>
+      )}
+
+      {/* Location picker */}
+      <LocationPickerSheet
+        open={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        countyValue={deliveryData.county}
+        cityValue={deliveryData.city}
+        onConfirm={handleLocationConfirm}
+      />
+
+      {/* Payment modal */}
       {renderPaymentModal()}
-    </div>}
-    </div>;
+    </div>
+  );
 };
+
 export default CheckoutPage;
