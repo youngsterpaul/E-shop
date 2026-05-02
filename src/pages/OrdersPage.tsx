@@ -81,6 +81,7 @@ const OrdersPage = memo(() => {
   const [activeStatus, setActiveStatus] = useState(searchParams.get('status') || 'pending');
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loadingMore, setLoadingMore] = useState(false);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -100,6 +101,21 @@ const OrdersPage = memo(() => {
   useEffect(() => {
     if (user) fetchOrders();
   }, [user]);
+
+  // Sync active status if URL changes (e.g. when navigating from elsewhere)
+  useEffect(() => {
+    const s = searchParams.get('status');
+    if (s && s !== activeStatus) setActiveStatus(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Auto-scroll the active status tab into view on the horizontal strip
+  useEffect(() => {
+    const el = tabRefs.current[activeStatus];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [activeStatus]);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -250,7 +266,15 @@ const OrdersPage = memo(() => {
               return (
                 <button
                   key={key}
-                  onClick={() => setActiveStatus(key)}
+                  ref={(el) => { tabRefs.current[key] = el; }}
+                  onClick={() => {
+                    setActiveStatus(key);
+                    setSearchParams((prev) => {
+                      const next = new URLSearchParams(prev);
+                      next.set('status', key);
+                      return next;
+                    }, { replace: true });
+                  }}
                   className={`flex-shrink-0 px-4 sm:px-6 py-3 text-sm whitespace-nowrap relative transition-colors ${
                     active
                       ? 'text-foreground font-semibold'
