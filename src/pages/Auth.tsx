@@ -436,7 +436,7 @@ const AuthPage = () => {
           </div>
 
           {/* Form area */}
-          <div className="flex-1 bg-muted/30 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+          <div className="flex-1 bg-card pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
             <div className="px-5 pt-5 animate-fade-in">
               {passwordResetComplete && (
                 <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
