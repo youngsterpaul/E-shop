@@ -8,10 +8,11 @@ import EmptyCart from '@/components/cart/EmptyCart';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import CartSkeleton from '@/components/cart/CartSkeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, ShoppingBag, ShoppingCart, Shield, Truck, Plus } from 'lucide-react';
+import { ArrowRight, Loader2, ShoppingBag, ShoppingCart, Shield, Truck, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
+import { useCartRelatedProducts } from '@/hooks/useCartRelatedProducts';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -30,6 +31,17 @@ const CartPage = () => {
   const isEligibleForFreeDelivery = calculations.subtotal >= (freeShippingThreshold || 0);
   const amountToFreeShipping = Math.max(0, (freeShippingThreshold || 0) - calculations.subtotal);
   const progressPct = Math.min(100, Math.round((calculations.subtotal / Math.max(freeShippingThreshold || 1, 1)) * 100));
+
+  const cartProductIds = cartItems.map((i: any) => i.product_id || i.product?.id).filter(Boolean);
+  const { data: relatedProducts = [], isLoading: relatedLoading } = useCartRelatedProducts(cartProductIds, 12);
+
+  const buildProductSlug = (name: string) =>
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const handleOpenProduct = (p: any) => {
+    const slug = buildProductSlug(p.name || 'product');
+    navigate(`/product/${slug}/${p.product_id}`);
+  };
 
   useEffect(() => {
     if (cartItems.length === 0) {
@@ -105,32 +117,63 @@ const CartPage = () => {
           ))}
         </div>
 
-        {/* Frequently bought together (placeholder static for now) */}
-        <div className="px-3 pt-6">
-          <h2 className="text-[17px] font-extrabold text-foreground mb-3 flex items-center gap-2">
-            ⚡ Frequently bought together
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 snap-x snap-mandatory scrollbar-hide">
-            {[
-              { emoji: '🍳', name: 'Air Fryer Pro', price: 4500 },
-              { emoji: '🧦', name: 'Running Socks 3-Pack', price: 650 },
-              { emoji: '✨', name: 'Shoe Cleaner Kit', price: 850 },
-              { emoji: '🎒', name: 'Sport Backpack', price: 2200 },
-            ].map((sug) => (
-              <div
-                key={sug.name}
-                className="snap-start flex-shrink-0 w-[160px] bg-card rounded-2xl border border-primary/20 p-3 flex flex-col items-center text-center shadow-sm"
-              >
-                <div className="text-5xl my-2">{sug.emoji}</div>
-                <p className="text-[13px] font-semibold text-foreground line-clamp-2 min-h-[34px]">{sug.name}</p>
-                <p className="text-[13px] font-bold text-primary mt-1 mb-2">KES {sug.price.toLocaleString()}</p>
-                <button className="w-full bg-primary text-primary-foreground text-xs font-semibold py-2 rounded-full hover:bg-primary/90 flex items-center justify-center gap-1">
-                  <Plus className="h-3 w-3" /> Add
-                </button>
-              </div>
-            ))}
+        {/* You might also like — real related products */}
+        {(relatedLoading || relatedProducts.length > 0) && (
+          <div className="px-3 pt-6">
+            <h2 className="text-[17px] font-extrabold text-foreground mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              You might also like
+            </h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 snap-x snap-mandatory scrollbar-hide">
+              {relatedLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="snap-start flex-shrink-0 w-[150px] bg-card rounded-2xl border border-border/60 p-2 animate-pulse"
+                    >
+                      <div className="w-full aspect-square bg-muted rounded-xl mb-2" />
+                      <div className="h-3 bg-muted rounded w-3/4 mb-1" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  ))
+                : relatedProducts.map((p: any) => {
+                    const img =
+                      (Array.isArray(p.image_urls) && p.image_urls[0]) ||
+                      '/placeholder.svg';
+                    const displayPrice = p.discount_price ?? p.price;
+                    return (
+                      <button
+                        key={p.product_id}
+                        onClick={() => handleOpenProduct(p)}
+                        className="snap-start flex-shrink-0 w-[150px] bg-card rounded-2xl border border-border/60 p-2 text-left shadow-sm active:scale-[0.97] transition-transform"
+                      >
+                        <div className="w-full aspect-square bg-muted rounded-xl overflow-hidden mb-2">
+                          <img
+                            src={img}
+                            alt={p.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <p className="text-[12.5px] font-semibold text-foreground line-clamp-2 min-h-[34px] leading-snug">
+                          {p.name}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <p className="text-[13px] font-bold text-primary">
+                            KES {Number(displayPrice).toLocaleString()}
+                          </p>
+                          {p.discount_price && p.discount_price < p.price && (
+                            <p className="text-[11px] text-muted-foreground line-through">
+                              {Number(p.price).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Order summary card */}
         <div className="px-3 pt-5">
