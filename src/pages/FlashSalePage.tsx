@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useFlashSaleProductsByTimeRange } from '@/hooks/useFlashSales';
 import { Clock, Zap, AlertCircle, Timer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,9 @@ const FlashSalePage = () => {
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [today, setToday] = useState(() => new Date());
   const currentSlotIdx = getCurrentSlotIndex();
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const didInitialScrollRef = useRef(false);
 
   const selectedSlot = TIME_SLOTS[activeSlotIdx];
   const { start: slotStart, end: slotEnd } = useMemo(
@@ -77,6 +80,25 @@ const FlashSalePage = () => {
     return () => clearInterval(interval);
   }, [currentSlotIdx, today]);
 
+  // On mount, jump to the live (current) slot so users land on it
+  useEffect(() => {
+    if (didInitialScrollRef.current) return;
+    didInitialScrollRef.current = true;
+    setActiveSlotIdx(currentSlotIdx);
+    // smooth-scroll the active tab into view
+    requestAnimationFrame(() => {
+      const el = tabRefs.current[currentSlotIdx];
+      if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Whenever active tab changes, scroll it into view
+  useEffect(() => {
+    const el = tabRefs.current[activeSlotIdx];
+    if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [activeSlotIdx]);
+
   const transformProductData = useCallback((product: any) => ({
     id: product.product_id,
     name: product.name,
@@ -107,16 +129,16 @@ const FlashSalePage = () => {
       {/* Hero Header */}
       <div className="container max-w-[1200px] bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
         <div className={`mx-auto px-4 lg:px-6 ${isMobile ? 'py-3' : 'py-6'}`}>
-          <div className="flex justify-between">
-            <div className="flex gap-2">
-              <div>
-                <h1 className={`${isMobile ? 'text-base' : 'text-2xl'} font-bold`}>Flash Sales</h1>
-                <p className={`${isMobile ? 'text-[10px]' : 'text-sm'} text-white/80`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2 min-w-0 flex-1">
+              <div className="min-w-0">
+                <h1 className={`${isMobile ? 'text-sm' : 'text-2xl'} font-bold leading-tight truncate`}>Flash Sales</h1>
+                <p className={`${isMobile ? 'text-[10px]' : 'text-sm'} text-white/80 truncate`}>
                   {productsData?.totalCount || 0} products • {selectedSlot.label}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {slotStatus === 'ended' ? (
                 <Badge className="bg-white/20 text-white border-0">
                   <Clock className="h-3 w-3 mr-1" /> Ended
@@ -136,7 +158,7 @@ const FlashSalePage = () => {
 
       {/* Time Slot Tabs */}
       <div className="max-w-[1200px] mx-auto bg-card border-b border-border sticky top-0 z-10">
-        <div className={`flex ${isMobile ? 'overflow-x-auto scrollbar-none' : 'overflow-x-auto scrollbar-none'} gap-0`}>
+        <div ref={tabsContainerRef} className={`flex ${isMobile ? 'overflow-x-auto scrollbar-none' : 'overflow-x-auto scrollbar-none'} gap-0`}>
           {TIME_SLOTS.map((slot, idx) => {
             const status = getSlotStatusForToday(idx, currentSlotIdx);
             const isActive = idx === activeSlotIdx;
@@ -144,6 +166,7 @@ const FlashSalePage = () => {
             return (
               <button
                 key={idx}
+                ref={(el) => { tabRefs.current[idx] = el; }}
                 onClick={() => setActiveSlotIdx(idx)}
                 className={`relative flex-shrink-0 ${isMobile ? 'px-2.5 py-2' : 'px-3 py-2.5'} text-center transition-all border-b-2 ${
                   isActive
