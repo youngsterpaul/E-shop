@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import OptimizedImage from '@/components/OptimizedImage';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import { useProductFlashSaleFromContext } from '@/contexts/FlashSaleContext';
 
 const FlashSaleBanner = () => {
   const isMobile = isMobileUserAgent();
@@ -105,25 +106,7 @@ const FlashSaleBanner = () => {
         {isMobile ? (
           <div className="flex overflow-x-auto scrollbar-none gap-2 snap-x snap-mandatory">
             {transformedProducts.map((product, index) => (
-              <Link
-                key={`${product.id}-${index}`}
-                to={`/product/${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}/${product.id}`}
-                className="flex-shrink-0 w-[24%] snap-start flex flex-col items-center"
-              >
-                <div className="w-full aspect-square rounded-md overflow-hidden bg-muted/30">
-                  <OptimizedImage
-                    src={product.image}
-                    alt={product.name}
-                    width={120}
-                    height={120}
-                    aspectRatio="square"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs font-bold text-bg mt-1">
-                  {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(product.price)}
-                </span>
-              </Link>
+              <FlashMobileTile key={`${product.id}-${index}`} product={product} />
             ))}
           </div>
         ) : (
@@ -135,6 +118,44 @@ const FlashSaleBanner = () => {
         )}
       </div>
     </section>
+  );
+};
+
+const FlashMobileTile = ({ product }: { product: any }) => {
+  const { data: flashSale } = useProductFlashSaleFromContext(product.id);
+  const flashPrice = flashSale
+    ? flashSale.discount_type === 'percentage'
+      ? product.price * (1 - flashSale.discount_value / 100)
+      : product.price - flashSale.discount_value
+    : null;
+  const displayPrice = flashPrice ?? product.price;
+  const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const fmt = (p: number) =>
+    new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(p);
+  return (
+    <Link
+      to={`/product/${slug}/${product.id}`}
+      className="flex-shrink-0 w-[24%] snap-start flex flex-col items-center"
+    >
+      <div className="w-full aspect-square rounded-md overflow-hidden bg-muted/30">
+        <OptimizedImage
+          src={product.image}
+          alt={product.name}
+          width={120}
+          height={120}
+          aspectRatio="square"
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <span className={`text-xs font-bold mt-1 ${flashPrice ? 'text-destructive' : 'text-foreground'}`}>
+        {fmt(displayPrice)}
+      </span>
+      {flashPrice && (
+        <span className="text-[9px] text-muted-foreground line-through leading-none">
+          {fmt(product.price)}
+        </span>
+      )}
+    </Link>
   );
 };
 
