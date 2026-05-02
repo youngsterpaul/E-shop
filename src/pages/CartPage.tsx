@@ -71,7 +71,7 @@ const CartPage = () => {
   // ============ MOBILE REDESIGN ============
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-primary/5 pb-44">
+      <div className="min-h-screen bg-gray-50 pb-44">
         {/* Free delivery progress banner */}
         <div className="px-3 pt-3">
           <div className="bg-card rounded-2xl border border-primary/20 p-4 shadow-sm">
@@ -211,10 +211,6 @@ const CartPage = () => {
             </div>
           </div>
 
-          {/* Trusted payment methods */}
-          <p className="text-center text-[11px] text-muted-foreground mt-4 tracking-wide">
-            M-Pesa · Visa · Mastercard · BNPL
-          </p>
         </div>
 
         {/* Fixed bottom checkout - sits above MobileNav */}
