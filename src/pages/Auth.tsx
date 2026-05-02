@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, ChevronLeft, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, ChevronLeft, Shield, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
@@ -391,47 +391,53 @@ const AuthPage = () => {
     <>
       {isMobile ? (
         <div className="fixed inset-0 h-[100dvh] bg-background flex flex-col overflow-y-auto">
-          {/* Decorative gradient header */}
-          <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 pt-[calc(env(safe-area-inset-top)+1rem)] pb-16 px-4 overflow-hidden">
-            {/* Decorative blurred orbs */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-foreground/10 rounded-full blur-3xl" />
-            <div className="absolute top-20 -left-16 w-44 h-44 bg-accent/20 rounded-full blur-3xl" />
-
-            {/* Back button */}
-            <button
-              type="button"
-              onClick={handleHomeNavigation}
-              aria-label="Back to home"
-              className="relative z-10 inline-flex items-center justify-center h-9 w-9 rounded-full bg-primary-foreground/15 backdrop-blur-md text-primary-foreground hover:bg-primary-foreground/25 transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            {/* Logo + title */}
-            <div className="relative z-10 mt-5 flex flex-col items-center text-center">
-              <div className="bg-primary-foreground p-2.5 mb-4">
-                <img
-                  src={smartkenyaLogo}
-                  alt="SmartKenya Logo"
-                  className="h-10 object-contain"
-                />
-              </div>
-              <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">
-                {authMode === 'signup' ? 'Create Account' :
-                  authMode === 'forgot' ? 'Reset Password' :
-                  authMode === 'reset' ? 'Set New Password' : 'Welcome Back'}
-              </h1>
-              <p className="text-sm text-primary-foreground/80 mt-1.5 max-w-xs">
-                {authMode === 'signup' ? 'Join thousands of happy shoppers' :
-                  authMode === 'forgot' ? 'Enter your email to get a reset code' :
-                  authMode === 'reset' ? 'Choose a strong new password' : 'Sign in to continue shopping'}
-              </p>
+          {/* Top brand bar */}
+          <div className="relative bg-card pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 px-4 border-b border-border/60">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleHomeNavigation}
+                aria-label="Back to home"
+                className="inline-flex items-center justify-center h-9 w-9 -ml-2 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <img
+                src={smartkenyaLogo}
+                alt="SmartKenya Logo"
+                className="h-7 object-contain"
+              />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+                <CheckCircle2 className="h-3 w-3" />
+                Trusted
+              </span>
             </div>
           </div>
 
-          {/* Floating glass card */}
-          <div className="flex-1 -mt-10 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
-            <div className="bg-card border-y border-border p-5 animate-fade-in">
+          {/* Hero copy */}
+          <div className="bg-card px-5 pt-6 pb-5 border-b border-border/60">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="h-[3px] w-6 bg-primary rounded-full" />
+              <span className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                Online Shopping Kenya
+              </span>
+            </div>
+            <h1 className="text-[34px] leading-[1.05] font-extrabold text-foreground tracking-tight font-serif">
+              {authMode === 'signup' ? <>Create<br/>Account.</> :
+                authMode === 'forgot' ? <>Reset<br/>Password.</> :
+                authMode === 'reset' ? <>New<br/>Password.</> : <>Welcome<br/>Back.</>}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-3 max-w-sm leading-relaxed">
+              {authMode === 'signup' ? 'Create your account to start shopping in seconds.' :
+                authMode === 'forgot' ? 'Enter your email to receive a 6-digit reset code.' :
+                authMode === 'reset' ? 'Choose a strong new password to secure your account.' :
+                'Sign in to continue your shopping experience.'}
+            </p>
+          </div>
+
+          {/* Form area */}
+          <div className="flex-1 bg-muted/30 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+            <div className="px-5 pt-5 animate-fade-in">
               {passwordResetComplete && (
                 <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl">
                   <div className="flex items-center gap-2">
@@ -750,7 +756,7 @@ const AuthPage = () => {
             </div>
 
             {/* Trust footer */}
-            <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+            <div className="mt-6 px-5 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
               <Shield className="h-3 w-3" />
               <span>Secured with end-to-end encryption</span>
             </div>
