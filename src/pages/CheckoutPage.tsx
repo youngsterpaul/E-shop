@@ -35,7 +35,7 @@ const CheckoutPage = () => {
   const { clearCart } = useCartContext();
   const { initiatePayment, checkPaymentStatus, isProcessing } = useMpesaPayment();
   const { addresses, loading: addressesLoading, getDefaultAddress } = useDeliveryAddresses();
-  const { getCountyOptions, getCityOptions, isLoading: locationsLoading } = useLocations();
+  const { getCountyOptions, getCityOptions, getDeliveryFee, isLoading: locationsLoading } = useLocations();
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -70,7 +70,6 @@ const CheckoutPage = () => {
   };
   const [errors, setErrors] = useState<ErrorsType>({});
   const PAYMENT_TIMEOUT = 90000;
-  const isEligibleForFreeDelivery = calculations.subtotal >= 10000;
 
   // Initialize from profile / default address
   useEffect(() => {
@@ -108,7 +107,6 @@ const CheckoutPage = () => {
   }, [calculations.selectedItemsCount, navigate]);
 
   const selectedItems = getSelectedItems();
-  const finalTotal = calculations.total;
 
   const countyLabel = useMemo(
     () => getCountyOptions().find((c) => c.value === deliveryData.county)?.label || '',
@@ -119,6 +117,21 @@ const CheckoutPage = () => {
       getCityOptions(deliveryData.county).find((c) => c.value === deliveryData.city)?.label || '',
     [deliveryData.city, deliveryData.county, getCityOptions]
   );
+
+  // Location-based delivery fee. Falls back to 0 (free) when no location chosen yet.
+  const locationDeliveryFee = useMemo(
+    () =>
+      deliveryData.county && deliveryData.city
+        ? getDeliveryFee(deliveryData.county, deliveryData.city)
+        : 0,
+    [deliveryData.county, deliveryData.city, getDeliveryFee]
+  );
+  const hasLocationFee = !!(deliveryData.county && deliveryData.city);
+  const isEligibleForFreeDelivery = hasLocationFee && locationDeliveryFee === 0;
+  const effectiveDeliveryFee = locationDeliveryFee;
+  const finalTotalWithLocation =
+    Math.max(0, calculations.subtotal - calculations.discount) + effectiveDeliveryFee;
+  const finalTotal = finalTotalWithLocation;
 
   const updateProfileDeliveryInfo = async (updates: Record<string, string>) => {
     if (!user?.id) return;
@@ -242,7 +255,7 @@ const CheckoutPage = () => {
             shipping_address: shippingAddr,
             username: fullName,
             discount_amount: calculations.discount,
-            delivery_fee: calculations.shipping,
+            delivery_fee: effectiveDeliveryFee,
             updated_at: new Date().toISOString(),
           })
           .eq('order_id', existingOrderId);
@@ -262,7 +275,7 @@ const CheckoutPage = () => {
             shipping_address: shippingAddr,
             username: fullName,
             discount_amount: calculations.discount,
-            delivery_fee: calculations.shipping,
+            delivery_fee: effectiveDeliveryFee,
             tracking_number: currentOrderId.slice(-5).toUpperCase(),
           })
           .select('order_id')
@@ -804,17 +817,23 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex justify-between text-base">
                   <span className="text-muted-foreground">
-                    Delivery{countyLabel && ` (${countyLabel})`}
+                    Delivery{cityLabel && ` (${cityLabel})`}
                   </span>
                   <span
                     className={cn(
                       'font-semibold',
-                      isEligibleForFreeDelivery ? 'text-green-600' : 'text-foreground'
+                      !hasLocationFee
+                        ? 'text-muted-foreground italic'
+                        : isEligibleForFreeDelivery
+                          ? 'text-green-600'
+                          : 'text-foreground'
                     )}
                   >
-                    {isEligibleForFreeDelivery
-                      ? 'FREE'
-                      : `KSh ${calculations.shipping.toLocaleString()}`}
+                    {!hasLocationFee
+                      ? 'Select location'
+                      : isEligibleForFreeDelivery
+                        ? 'FREE'
+                        : `KSh ${effectiveDeliveryFee.toLocaleString()}`}
                   </span>
                 </div>
                 {calculations.discount > 0 && (
