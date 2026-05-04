@@ -12,16 +12,18 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Plus, Edit, Trash } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { isMobileUserAgent } from '@/hooks/use-mobile';
 
 interface County {
   id: string;
   name: string;
   slug: string;
+  delivery_fee?: number;
 }
 
 interface City {
@@ -29,11 +31,51 @@ interface City {
   name: string;
   slug: string;
   county_id: string;
+  delivery_fee?: number;
 }
+
+/** Responsive modal: Drawer on mobile, Dialog on desktop. */
+const ResponsiveModal = ({
+  open,
+  onOpenChange,
+  title,
+  children,
+  isMobile,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  children: React.ReactNode;
+  isMobile: boolean;
+}) => {
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[92vh]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>{title}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-6 overflow-y-auto">{children}</div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const AdminLocationsPage = () => {
   const { toast } = useToast();
-  
+  const isMobile = isMobileUserAgent();
+
   const { data: counties, isLoading: countiesLoading, refetch: refetchCounties } = useQuery({
     queryKey: ['admin-counties'],
     queryFn: async () => {
@@ -52,8 +94,8 @@ const AdminLocationsPage = () => {
     }
   });
 
-  const [countyForm, setCountyForm] = useState({ name: '', slug: '' });
-  const [cityForm, setCityForm] = useState({ name: '', slug: '', county_id: '' });
+  const [countyForm, setCountyForm] = useState({ name: '', slug: '', delivery_fee: 0 });
+  const [cityForm, setCityForm] = useState({ name: '', slug: '', county_id: '', delivery_fee: 0 });
   const [isAddCountyOpen, setIsAddCountyOpen] = useState(false);
   const [isAddCityOpen, setIsAddCityOpen] = useState(false);
   const [isEditCountyOpen, setIsEditCountyOpen] = useState(false);
@@ -68,11 +110,15 @@ const AdminLocationsPage = () => {
   const handleAddCounty = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('counties').insert(countyForm);
+      const { error } = await supabase.from('counties').insert({
+        name: countyForm.name,
+        slug: countyForm.slug,
+        delivery_fee: Number(countyForm.delivery_fee) || 0,
+      });
       if (error) throw error;
       toast({ title: "Success", description: "County added" });
       setIsAddCountyOpen(false);
-      setCountyForm({ name: '', slug: '' });
+      setCountyForm({ name: '', slug: '', delivery_fee: 0 });
       refetchCounties();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -82,11 +128,16 @@ const AdminLocationsPage = () => {
   const handleAddCity = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('cities').insert(cityForm);
+      const { error } = await supabase.from('cities').insert({
+        name: cityForm.name,
+        slug: cityForm.slug,
+        county_id: cityForm.county_id,
+        delivery_fee: Number(cityForm.delivery_fee) || 0,
+      });
       if (error) throw error;
       toast({ title: "Success", description: "City added" });
       setIsAddCityOpen(false);
-      setCityForm({ name: '', slug: '', county_id: '' });
+      setCityForm({ name: '', slug: '', county_id: '', delivery_fee: 0 });
       refetchCities();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -97,7 +148,11 @@ const AdminLocationsPage = () => {
     e.preventDefault();
     if (!editingCounty) return;
     try {
-      const { error } = await supabase.from('counties').update({ name: editingCounty.name, slug: editingCounty.slug }).eq('id', editingCounty.id);
+      const { error } = await supabase.from('counties').update({
+        name: editingCounty.name,
+        slug: editingCounty.slug,
+        delivery_fee: Number(editingCounty.delivery_fee) || 0,
+      }).eq('id', editingCounty.id);
       if (error) throw error;
       toast({ title: "Success", description: "County updated" });
       setIsEditCountyOpen(false);
@@ -112,7 +167,12 @@ const AdminLocationsPage = () => {
     e.preventDefault();
     if (!editingCity) return;
     try {
-      const { error } = await supabase.from('cities').update({ name: editingCity.name, slug: editingCity.slug, county_id: editingCity.county_id }).eq('id', editingCity.id);
+      const { error } = await supabase.from('cities').update({
+        name: editingCity.name,
+        slug: editingCity.slug,
+        county_id: editingCity.county_id,
+        delivery_fee: Number(editingCity.delivery_fee) || 0,
+      }).eq('id', editingCity.id);
       if (error) throw error;
       toast({ title: "Success", description: "City updated" });
       setIsEditCityOpen(false);
@@ -149,6 +209,13 @@ const AdminLocationsPage = () => {
     }
   };
 
+  const formActions = (cancelFn: () => void, submitLabel: string) => (
+    <div className="flex gap-2 justify-end mt-6">
+      <Button type="button" variant="outline" onClick={cancelFn}>Cancel</Button>
+      <Button type="submit">{submitLabel}</Button>
+    </div>
+  );
+
   return (
     <AdminLayout>
       <QuickActionsBar title="Locations" onRefresh={() => { refetchCounties(); refetchCities(); }} />
@@ -161,26 +228,11 @@ const AdminLocationsPage = () => {
 
         <TabsContent value="counties">
           <div className="flex justify-between mb-4">
-            <Dialog open={isAddCountyOpen} onOpenChange={setIsAddCountyOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-2" />Add County</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Add County</DialogTitle></DialogHeader>
-                <form onSubmit={handleAddCounty}>
-                  <div className="space-y-4">
-                    <div><Label>County Name *</Label><Input value={countyForm.name} onChange={(e) => setCountyForm({ name: e.target.value, slug: generateSlug(e.target.value) })} required /></div>
-                    <div><Label>Slug</Label><Input value={countyForm.slug} onChange={(e) => setCountyForm({ ...countyForm, slug: e.target.value })} required /></div>
-                  </div>
-                  <DialogFooter className="mt-6">
-                    <Button type="button" variant="outline" onClick={() => setIsAddCountyOpen(false)}>Cancel</Button>
-                    <Button type="submit">Add</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button size="sm" onClick={() => setIsAddCountyOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />Add County
+            </Button>
             <SuperadminOnly>
-              <ExportButton data={counties || []} filename="counties" headers={[{ key: 'name', label: 'County' }, { key: 'slug', label: 'Slug' }]} />
+              <ExportButton data={counties || []} filename="counties" headers={[{ key: 'name', label: 'County' }, { key: 'slug', label: 'Slug' }, { key: 'delivery_fee', label: 'Delivery Fee' }]} />
             </SuperadminOnly>
           </div>
 
@@ -196,12 +248,13 @@ const AdminLocationsPage = () => {
                 <EmptyState icon={MapPin} title="No counties" description="Add your first county" actionLabel="Add County" onAction={() => setIsAddCountyOpen(true)} />
               ) : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>County Name</TableHead><TableHead>Slug</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>County Name</TableHead><TableHead>Slug</TableHead><TableHead>Delivery Fee</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {counties.map((county) => (
                       <TableRow key={county.id}>
                         <TableCell className="font-medium">{county.name}</TableCell>
                         <TableCell>{county.slug}</TableCell>
+                        <TableCell>KES {Number(county.delivery_fee || 0).toLocaleString()}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button size="sm" variant="ghost" onClick={() => { setEditingCounty(county); setIsEditCountyOpen(true); }}>
@@ -223,27 +276,11 @@ const AdminLocationsPage = () => {
 
         <TabsContent value="cities">
           <div className="flex justify-between mb-4">
-            <Dialog open={isAddCityOpen} onOpenChange={setIsAddCityOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-2" />Add City</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Add City</DialogTitle></DialogHeader>
-                <form onSubmit={handleAddCity}>
-                  <div className="space-y-4">
-                    <div><Label>City Name *</Label><Input value={cityForm.name} onChange={(e) => setCityForm({ ...cityForm, name: e.target.value, slug: generateSlug(e.target.value) })} required /></div>
-                    <div><Label>Slug</Label><Input value={cityForm.slug} onChange={(e) => setCityForm({ ...cityForm, slug: e.target.value })} required /></div>
-                    <div><Label>County *</Label><select className="w-full p-2 border rounded" value={cityForm.county_id} onChange={(e) => setCityForm({ ...cityForm, county_id: e.target.value })} required>{counties?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                  </div>
-                  <DialogFooter className="mt-6">
-                    <Button type="button" variant="outline" onClick={() => setIsAddCityOpen(false)}>Cancel</Button>
-                    <Button type="submit">Add</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button size="sm" onClick={() => setIsAddCityOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />Add City
+            </Button>
             <SuperadminOnly>
-              <ExportButton data={cities || []} filename="cities" headers={[{ key: 'name', label: 'City' }, { key: 'slug', label: 'Slug' }]} />
+              <ExportButton data={cities || []} filename="cities" headers={[{ key: 'name', label: 'City' }, { key: 'slug', label: 'Slug' }, { key: 'delivery_fee', label: 'Delivery Fee' }]} />
             </SuperadminOnly>
           </div>
 
@@ -259,24 +296,29 @@ const AdminLocationsPage = () => {
                 <EmptyState icon={MapPin} title="No cities" description="Add your first city" actionLabel="Add City" onAction={() => setIsAddCityOpen(true)} />
               ) : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>City Name</TableHead><TableHead>Slug</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>City Name</TableHead><TableHead>Slug</TableHead><TableHead>County</TableHead><TableHead>Delivery Fee</TableHead><TableHead className="w-[100px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {cities.map((city) => (
-                      <TableRow key={city.id}>
-                        <TableCell className="font-medium">{city.name}</TableCell>
-                        <TableCell>{city.slug}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="ghost" onClick={() => { setEditingCity(city); setIsEditCityOpen(true); }}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setDeleteCityId(city.id)}>
-                              <Trash className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {cities.map((city) => {
+                      const county = counties?.find(c => c.id === city.county_id);
+                      return (
+                        <TableRow key={city.id}>
+                          <TableCell className="font-medium">{city.name}</TableCell>
+                          <TableCell>{city.slug}</TableCell>
+                          <TableCell className="text-muted-foreground">{county?.name || '—'}</TableCell>
+                          <TableCell>KES {Number(city.delivery_fee || 0).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="ghost" onClick={() => { setEditingCity(city); setIsEditCityOpen(true); }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setDeleteCityId(city.id)}>
+                                <Trash className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}
@@ -285,40 +327,55 @@ const AdminLocationsPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Edit County Dialog */}
-      <Dialog open={isEditCountyOpen} onOpenChange={setIsEditCountyOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit County</DialogTitle></DialogHeader>
-          <form onSubmit={handleEditCounty}>
-            <div className="space-y-4">
-              <div><Label>County Name *</Label><Input value={editingCounty?.name || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
-              <div><Label>Slug</Label><Input value={editingCounty?.slug || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
-            </div>
-            <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => setIsEditCountyOpen(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Add County */}
+      <ResponsiveModal open={isAddCountyOpen} onOpenChange={setIsAddCountyOpen} title="Add County" isMobile={isMobile}>
+        <form onSubmit={handleAddCounty}>
+          <div className="space-y-4">
+            <div><Label>County Name *</Label><Input value={countyForm.name} onChange={(e) => setCountyForm({ ...countyForm, name: e.target.value, slug: generateSlug(e.target.value) })} required /></div>
+            <div><Label>Slug</Label><Input value={countyForm.slug} onChange={(e) => setCountyForm({ ...countyForm, slug: e.target.value })} required /></div>
+            <div><Label>Default Delivery Fee (KES)</Label><Input type="number" min="0" step="1" value={countyForm.delivery_fee} onChange={(e) => setCountyForm({ ...countyForm, delivery_fee: Number(e.target.value) })} placeholder="0" /></div>
+          </div>
+          {formActions(() => setIsAddCountyOpen(false), 'Add')}
+        </form>
+      </ResponsiveModal>
 
-      {/* Edit City Dialog */}
-      <Dialog open={isEditCityOpen} onOpenChange={setIsEditCityOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit City</DialogTitle></DialogHeader>
-          <form onSubmit={handleEditCity}>
-            <div className="space-y-4">
-              <div><Label>City Name *</Label><Input value={editingCity?.name || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
-              <div><Label>Slug</Label><Input value={editingCity?.slug || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
-              <div><Label>County *</Label><select className="w-full p-2 border rounded" value={editingCity?.county_id || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, county_id: e.target.value } : null)} required>{counties?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-            </div>
-            <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => setIsEditCityOpen(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Add City */}
+      <ResponsiveModal open={isAddCityOpen} onOpenChange={setIsAddCityOpen} title="Add City" isMobile={isMobile}>
+        <form onSubmit={handleAddCity}>
+          <div className="space-y-4">
+            <div><Label>City Name *</Label><Input value={cityForm.name} onChange={(e) => setCityForm({ ...cityForm, name: e.target.value, slug: generateSlug(e.target.value) })} required /></div>
+            <div><Label>Slug</Label><Input value={cityForm.slug} onChange={(e) => setCityForm({ ...cityForm, slug: e.target.value })} required /></div>
+            <div><Label>County *</Label><select className="w-full p-2 border rounded bg-background" value={cityForm.county_id} onChange={(e) => setCityForm({ ...cityForm, county_id: e.target.value })} required><option value="">Select county</option>{counties?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+            <div><Label>Delivery Fee (KES) *</Label><Input type="number" min="0" step="1" value={cityForm.delivery_fee} onChange={(e) => setCityForm({ ...cityForm, delivery_fee: Number(e.target.value) })} placeholder="0" /><p className="text-xs text-muted-foreground mt-1">Leave 0 to use the county default.</p></div>
+          </div>
+          {formActions(() => setIsAddCityOpen(false), 'Add')}
+        </form>
+      </ResponsiveModal>
+
+      {/* Edit County */}
+      <ResponsiveModal open={isEditCountyOpen} onOpenChange={setIsEditCountyOpen} title="Edit County" isMobile={isMobile}>
+        <form onSubmit={handleEditCounty}>
+          <div className="space-y-4">
+            <div><Label>County Name *</Label><Input value={editingCounty?.name || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
+            <div><Label>Slug</Label><Input value={editingCounty?.slug || ''} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
+            <div><Label>Default Delivery Fee (KES)</Label><Input type="number" min="0" step="1" value={editingCounty?.delivery_fee ?? 0} onChange={(e) => setEditingCounty(prev => prev ? { ...prev, delivery_fee: Number(e.target.value) } : null)} /></div>
+          </div>
+          {formActions(() => setIsEditCountyOpen(false), 'Save Changes')}
+        </form>
+      </ResponsiveModal>
+
+      {/* Edit City */}
+      <ResponsiveModal open={isEditCityOpen} onOpenChange={setIsEditCityOpen} title="Edit City" isMobile={isMobile}>
+        <form onSubmit={handleEditCity}>
+          <div className="space-y-4">
+            <div><Label>City Name *</Label><Input value={editingCity?.name || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, name: e.target.value, slug: generateSlug(e.target.value) } : null)} required /></div>
+            <div><Label>Slug</Label><Input value={editingCity?.slug || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, slug: e.target.value } : null)} required /></div>
+            <div><Label>County *</Label><select className="w-full p-2 border rounded bg-background" value={editingCity?.county_id || ''} onChange={(e) => setEditingCity(prev => prev ? { ...prev, county_id: e.target.value } : null)} required>{counties?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+            <div><Label>Delivery Fee (KES)</Label><Input type="number" min="0" step="1" value={editingCity?.delivery_fee ?? 0} onChange={(e) => setEditingCity(prev => prev ? { ...prev, delivery_fee: Number(e.target.value) } : null)} /><p className="text-xs text-muted-foreground mt-1">Leave 0 to use the county default.</p></div>
+          </div>
+          {formActions(() => setIsEditCityOpen(false), 'Save Changes')}
+        </form>
+      </ResponsiveModal>
 
       {/* Delete County Confirmation */}
       <AlertDialog open={!!deleteCountyId} onOpenChange={(open) => !open && setDeleteCountyId(null)}>
