@@ -490,6 +490,7 @@ export type Database = {
         Row: {
           county_id: string
           created_at: string | null
+          delivery_fee: number
           id: string
           is_active: boolean | null
           name: string
@@ -499,6 +500,7 @@ export type Database = {
         Insert: {
           county_id: string
           created_at?: string | null
+          delivery_fee?: number
           id?: string
           is_active?: boolean | null
           name: string
@@ -508,6 +510,7 @@ export type Database = {
         Update: {
           county_id?: string
           created_at?: string | null
+          delivery_fee?: number
           id?: string
           is_active?: boolean | null
           name?: string
@@ -554,6 +557,7 @@ export type Database = {
       counties: {
         Row: {
           created_at: string | null
+          delivery_fee: number
           id: string
           is_active: boolean | null
           name: string
@@ -562,6 +566,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          delivery_fee?: number
           id?: string
           is_active?: boolean | null
           name: string
@@ -570,6 +575,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          delivery_fee?: number
           id?: string
           is_active?: boolean | null
           name?: string
