@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
+import OptimizedImage from '@/components/OptimizedImage';
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -391,48 +392,21 @@ const AuthPage = () => {
     <>
       {isMobile ? (
         <div className="fixed inset-0 h-[100dvh] bg-background flex flex-col overflow-y-auto">
-          {/* Top brand bar */}
-          <div className="relative bg-card pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 px-4 border-b border-border/60">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={handleHomeNavigation}
-                aria-label="Back to home"
-                className="inline-flex items-center justify-center h-9 w-9 -ml-2 rounded-full text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <img
-                src={smartkenyaLogo}
-                alt="SmartKenya Logo"
-                className="h-7 object-contain"
-              />
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
-                <CheckCircle2 className="h-3 w-3" />
-                Trusted
-              </span>
-            </div>
-          </div>
 
           {/* Hero copy */}
-          <div className="bg-card px-5 pt-6 pb-5 border-b border-border/60">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="h-[3px] w-6 bg-primary rounded-full" />
-              <span className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                Online Shopping Kenya
-              </span>
+          <div className="bg-card px-5 pt-20 items-center text-center justify-center">
+            <div className="flex items-center text-center justify-center">
+              <OptimizedImage
+                src={smartkenyaLogo}
+                alt="SmartKenya Logo"
+                className="h-12 object-contain"
+              />
             </div>
-            <h1 className="text-[34px] leading-[1.05] font-extrabold text-foreground tracking-tight font-serif">
-              {authMode === 'signup' ? <>Create<br/>Account.</> :
-                authMode === 'forgot' ? <>Reset<br/>Password.</> :
-                authMode === 'reset' ? <>New<br/>Password.</> : <>Welcome<br/>Back.</>}
+            <h1 className="pt-4 text-[18px] leading-[1.05] .font-extrabold text-foreground tracking-tight ,font-serif">
+              {authMode === 'signup' ? <>Create Account.</> :
+                authMode === 'forgot' ? <>Reset Password.</> :
+                authMode === 'reset' ? <>New Password.</> : <>Welcome Back.</>}
             </h1>
-            <p className="text-sm text-muted-foreground mt-3 max-w-sm leading-relaxed">
-              {authMode === 'signup' ? 'Create your account to start shopping in seconds.' :
-                authMode === 'forgot' ? 'Enter your email to receive a 6-digit reset code.' :
-                authMode === 'reset' ? 'Choose a strong new password to secure your account.' :
-                'Sign in to continue your shopping experience.'}
-            </p>
           </div>
 
           {/* Form area */}
@@ -582,7 +556,7 @@ const AuthPage = () => {
                           onClick={() => setAuthMode('forgot')}
                           className="text-xs text-primary font-semibold hover:underline"
                         >
-                          Forgot?
+                          Forgot Password?
                         </button>
                       )}
                     </div>
@@ -753,12 +727,6 @@ const AuthPage = () => {
                   </div>
                 </>
               )}
-            </div>
-
-            {/* Trust footer */}
-            <div className="mt-6 px-5 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-              <Shield className="h-3 w-3" />
-              <span>Secured with end-to-end encryption</span>
             </div>
           </div>
         </div>
