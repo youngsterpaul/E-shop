@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 import { useCartRelatedProducts } from '@/hooks/useCartRelatedProducts';
+import OptimizedImage from '@/components/OptimizedImage';
 
 const CartPage = () => {
   const { cartItems, loading, isCartEmpty, refetch } = useCartContext();
@@ -148,7 +149,7 @@ const CartPage = () => {
                         className="snap-start flex-shrink-0 w-[150px] bg-card rounded-2xl border border-border/60 p-2 text-left shadow-sm active:scale-[0.97] transition-transform"
                       >
                         <div className="w-full aspect-square bg-muted rounded-xl overflow-hidden mb-2">
-                          <img
+                          <OptimizedImage
                             src={img}
                             alt={p.name}
                             loading="lazy"
@@ -159,7 +160,7 @@ const CartPage = () => {
                           {p.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <p className="text-[13px] font-bold text-primary">
+                          <p className="text-[13px] font-bold text-foreground">
                             KES {Number(displayPrice).toLocaleString()}
                           </p>
                           {p.discount_price && p.discount_price < p.price && (
@@ -221,12 +222,12 @@ const CartPage = () => {
           <Button
             onClick={handleCheckout}
             disabled={isNavigating || calculations.selectedItemsCount === 0}
-            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold shadow-md"
+            className="w-full h-10 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold shadow-md"
           >
             {isNavigating ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-2 ">
                 <ShoppingCart className="h-5 w-5" />
                 Proceed to Checkout · KES {calculations.total.toLocaleString()}
               </span>

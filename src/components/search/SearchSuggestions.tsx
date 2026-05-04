@@ -182,10 +182,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                         isMobile ? "text-sm" : "text-sm"
                       )}>
                         {highlightMatch(suggestion.text, query)}
-                      </span>
-                      {suggestion.category === 'popular' && (
-                        <span className="text-[10px] text-primary/70">Trending now</span>
-                      )}
+                      </span>              
                     </div>
                   </div>
                   

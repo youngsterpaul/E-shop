@@ -25,6 +25,7 @@ import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
 import { LocationPickerSheet } from '@/components/checkout/LocationPickerSheet';
 import { cn } from '@/lib/utils';
+import OptimizedImage from '@/components/OptimizedImage';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -544,12 +545,12 @@ const CheckoutPage = () => {
   // ================ RENDER ================
   return (
     // FIX: removed overflow-x-hidden; use w-full + box-border to naturally contain content
-    <div className="min-h-screen w-full bg-background box-border">
+    <div className={`min-h-screen w-full bg-card box-border ${isMobile && 'max-w-max'}`}>
       <div
         className={cn(
           'w-full box-border',
           !isMobile
-            ? 'max-w-[1100px] mx-auto px-4 lg:px-6 py-8'
+            ? 'max-w-[1200px] container mx-auto px-4 lg:px-6 py-8'
             : 'px-4 pt-6 pb-40'   // FIX: px-4 (was px-5) keeps inputs inside viewport on small screens
         )}
       >
@@ -586,11 +587,10 @@ const CheckoutPage = () => {
             <div className="h-1 flex-1 rounded-full bg-primary/30" />
             <div className="h-1 flex-1 rounded-full bg-primary/15" />
           </div>
-        </div>
 
         <div className={cn(
           'grid gap-6',
-          !isMobile && 'lg:grid-cols-[1fr_380px]',
+          !isMobile && '',
           isMobile && 'gap-5'
         )}>
           {/* LEFT: Form */}
@@ -756,7 +756,7 @@ const CheckoutPage = () => {
                     >
                       <div className="h-14 w-14 rounded-xl bg-muted overflow-hidden flex-shrink-0">
                         {item.product.image ? (
-                          <img
+                          <OptimizedImage
                             src={item.product.image}
                             alt={item.product.name}
                             className="h-full w-full object-cover"
@@ -777,6 +777,9 @@ const CheckoutPage = () => {
                             {variantText}
                           </p>
                         )}
+                        <p className="text-[13px] font-bold text-foreground">
+                            KES {Number(item.product.price).toLocaleString()}
+                          </p>
                       </div>
                       <div className="text-primary font-semibold text-sm flex-shrink-0">
                         ×{item.quantity}
@@ -842,45 +845,7 @@ const CheckoutPage = () => {
                 </Button>
               )}
             </section>
-          </div>
-
-          {/* RIGHT sidebar: Desktop only - sticky summary */}
-          {!isMobile && (
-            <aside className="hidden lg:block min-w-0">
-              <div className="sticky top-6 bg-card rounded-2xl border border-border p-5 space-y-4">
-                <h3 className="font-serif text-xl font-bold">Your Order</h3>
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                  {selectedItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                        {item.product.image && (
-                          <img
-                            src={item.product.image}
-                            alt={item.product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.product.name}</p>
-                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                      </div>
-                      <p className="text-sm font-semibold flex-shrink-0">
-                        KSh {(item.product.price * item.quantity).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <Separator />
-                <div className="flex justify-between text-base">
-                  <span className="font-medium">Total</span>
-                  <span className="text-xl font-bold text-primary">
-                    KSh {finalTotal.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </aside>
-          )}
+          </div></div>
         </div>
       </div>
 

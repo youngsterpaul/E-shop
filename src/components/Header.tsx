@@ -117,7 +117,7 @@ const Header = () => {
         })}
       </script>
 
-      <header className={`bg-background top-0 z-50 ${isMobile ? 'sticky' : ''}`}>
+      <header className={`bg-card top-0 z-50 ${isMobile ? 'sticky' : ''}`}>
 
         {/* Nav stays constrained */}
         {!isMobile && (

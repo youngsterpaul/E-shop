@@ -39,7 +39,7 @@ const PriceDisplay: React.FC<PriceDisplayProps> = ({
       )}
 
       <div className="flex items-baseline gap-3 flex-wrap">
-        <span className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold ${hasFlashSale ? 'text-destructive' : 'text-primary'}`}>
+        <span className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold ${hasFlashSale ? 'text-destructive' : 'text-foreground'}`}>
           {formatPrice(displayPrice)}
         </span>
         

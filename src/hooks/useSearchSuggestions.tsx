@@ -39,7 +39,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
         .map(item => ({ text: item, category: 'history' }));
       
       const popularSuggestions: SearchSuggestion[] = popularSearches
-        .slice(0, 5)
+        .slice(0, 14)
         .map(item => ({ text: item, category: 'popular' }));
 
       setSuggestions([...historySuggestions, ...popularSuggestions]);
@@ -72,7 +72,7 @@ export const useSearchSuggestions = (query: string, searchHistory: string[]) => 
       ? (
           // Flatten products from paginated response
           Array.isArray(products.pages)
-            ? products.pages.flatMap(page => page.products).slice(0, 5).map(product => ({
+            ? products.pages.flatMap(page => page.products).slice(0, 10).map(product => ({
                 text: product.name,
                 category: 'product' as const,
                 image: product.image_urls?.[0] || undefined,

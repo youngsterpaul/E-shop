@@ -217,7 +217,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
                   {item.product.name}
                 </h3>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className="text-[15px] font-extrabold text-primary leading-none">
+                  <span className="text-[15px] font-extrabold text-foreground leading-none">
                     {formattedPrice}
                   </span>
                   {formattedOriginalPrice && (
@@ -256,7 +256,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
           </div>
 
           {/* Bottom: Remove + Quantity pill */}
-          <div className="px-3 py-2.5 bg-primary/5 border-t border-primary/10 flex items-center justify-between">
+          <div className="px-3 py-2.5 border-t border-primary/10 flex items-center justify-between">
             <button
               onClick={handleRemove}
               disabled={isRemoving}
@@ -283,7 +283,7 @@ const SelectableCartItem = memo(({ item, className = '' }: SelectableCartItemPro
               <button
                 onClick={handleIncrement}
                 disabled={isUpdating || isRemoving}
-                className="h-9 w-9 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+                className="h-9 w-9 flex items-center justify-center bg-foreground text-primary-foreground hover:bg-foreground/90 disabled:opacity-40"
                 aria-label="Increase quantity"
               >
                 <Plus className="h-3.5 w-3.5" />

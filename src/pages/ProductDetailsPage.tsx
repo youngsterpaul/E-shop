@@ -421,7 +421,7 @@ const productForTabs = useMemo(() => {
         <main className={`${isMobile ? 'pb-20 px-0' : 'max-w-[1200px] mx-auto px-4 lg:px-6 py-6'}`}>
           {!isMobile && <SiteBreadcrumb items={breadcrumbItems} className="mb-6" />}
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'} gap-8 items-start ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
+          <div className={`grid bg-card ${isMobile ? 'grid-cols-1' : 'grid-cols-[auto_1fr]'} gap-8 items-start ${!isMobile ? 'bg-card rounded-xl p-6 shadow-sm' : ''}`}>
             <EnhancedProductImageGallery 
               product={productWithImages} 
               selectedImageUrl={selectedColorImageUrl}
@@ -467,7 +467,7 @@ const productForTabs = useMemo(() => {
               )}
 
               {isMobile && (
-                <div className="text-sm text-muted-foreground space-y-1">
+                <div className="text-sm text-muted-foreground space-y-1 bg-card">
                   <p>✓ Free shipping on orders over KES {Math.max(0, amountNeededForFreeDelivery).toLocaleString()}</p>
                   <p>✓ 7-days return policy</p>
                   <p>✓ Secure payment options</p>
