@@ -20,6 +20,7 @@ interface MergedOption {
   countyLabel: string;
   cityValue: string;
   cityLabel: string;
+  deliveryFee: number;
 }
 
 export const LocationPickerSheet = ({
@@ -61,11 +62,14 @@ export const LocationPickerSheet = ({
       .map((city) => {
         const county = countyMap.get(city.county_id);
         if (!county) return null;
+        const cityFee = Number(city.delivery_fee || 0);
+        const countyFee = Number(county.delivery_fee || 0);
         return {
           countyValue: county.slug,
           countyLabel: county.name,
           cityValue: city.slug,
           cityLabel: city.name,
+          deliveryFee: cityFee > 0 ? cityFee : countyFee,
         } as MergedOption;
       })
       .filter((o): o is MergedOption => o !== null);
@@ -186,8 +190,15 @@ export const LocationPickerSheet = ({
                         </span>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-muted-foreground">
-                          {opt.countyLabel} County
+                        <span
+                          className={cn(
+                            'text-[11px] font-semibold px-2 py-0.5 rounded-full',
+                            opt.deliveryFee === 0
+                              ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400'
+                              : 'bg-muted text-muted-foreground'
+                          )}
+                        >
+                          {opt.deliveryFee === 0 ? 'FREE' : `KES ${opt.deliveryFee.toLocaleString()}`}
                         </span>
                         {isSelected && (
                           <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
@@ -253,4 +264,3 @@ export const LocationPickerSheet = ({
     </div>
   );
 };
-
