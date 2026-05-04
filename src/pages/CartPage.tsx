@@ -73,28 +73,6 @@ const CartPage = () => {
   if (isMobile) {
     return (
       <div className="min-h-screen bg-gray-50 pb-44">
-        {/* Free delivery progress banner */}
-        <div className="px-3 pt-3">
-          <div className="bg-card rounded-2xl border border-primary/20 p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[15px] font-semibold text-foreground flex items-center gap-2">
-                {isEligibleForFreeDelivery ? (
-                  <>🎉 You've unlocked FREE delivery!</>
-                ) : (
-                  <>🚚 Add KES {amountToFreeShipping.toLocaleString()} for FREE delivery</>
-                )}
-              </p>
-              <span className="text-sm font-bold text-primary">{progressPct}%</span>
-            </div>
-            <div className="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Select-all row */}
         {cartItems.length > 1 && (
           <div className="px-3 pt-3">
@@ -198,16 +176,16 @@ const CartPage = () => {
               )}
               <div className="flex items-center justify-between">
                 <span className="text-[15px] text-muted-foreground">Delivery</span>
-                <span className={`text-[15px] font-bold ${isEligibleForFreeDelivery ? 'text-primary' : 'text-foreground'}`}>
-                  {isEligibleForFreeDelivery ? 'FREE 🎉' : `KES ${calculations.shipping.toLocaleString()}`}
+                <span className="text-[13px] font-medium text-muted-foreground italic">
+                  Calculated at checkout
                 </span>
               </div>
             </div>
 
             <div className="mt-4 bg-primary/10 rounded-xl px-4 py-3 flex items-center justify-between">
-              <span className="text-base font-extrabold text-foreground">Total</span>
+              <span className="text-base font-extrabold text-foreground">Estimated Total</span>
               <span className="text-xl font-extrabold text-primary">
-                KES {calculations.total.toLocaleString()}
+                KES {Math.max(0, calculations.subtotal - calculations.discount).toLocaleString()}
               </span>
             </div>
           </div>
@@ -229,7 +207,7 @@ const CartPage = () => {
             ) : (
               <span className="flex items-center justify-center gap-2 ">
                 <ShoppingCart className="h-5 w-5" />
-                Proceed to Checkout · KES {calculations.total.toLocaleString()}
+                Proceed to Checkout · KES {Math.max(0, calculations.subtotal - calculations.discount).toLocaleString()}
               </span>
             )}
           </Button>
@@ -306,6 +284,66 @@ const CartPage = () => {
                     <p className="text-sm font-medium text-foreground">Easy Returns</p>
                     <p className="text-xs text-muted-foreground">7-day return policy</p>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* You might also like — desktop */}
+            {!isMobile && (relatedLoading || relatedProducts.length > 0) && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    You might also like
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {relatedLoading
+                    ? Array.from({ length: 4 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="bg-card rounded-xl border border-border/60 p-3 animate-pulse"
+                        >
+                          <div className="w-full aspect-square bg-muted rounded-lg mb-3" />
+                          <div className="h-3.5 bg-muted rounded w-3/4 mb-2" />
+                          <div className="h-3.5 bg-muted rounded w-1/2" />
+                        </div>
+                      ))
+                    : relatedProducts.slice(0, 8).map((p: any) => {
+                        const img =
+                          (Array.isArray(p.image_urls) && p.image_urls[0]) ||
+                          '/placeholder.svg';
+                        const displayPrice = p.discount_price ?? p.price;
+                        return (
+                          <button
+                            key={p.product_id}
+                            onClick={() => handleOpenProduct(p)}
+                            className="group bg-card rounded-xl border border-border/60 p-3 text-left shadow-sm hover:shadow-md hover:border-primary/40 transition-all"
+                          >
+                            <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-3">
+                              <OptimizedImage
+                                src={img}
+                                alt={p.name}
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+                            <p className="text-sm font-semibold text-foreground line-clamp-2 min-h-[40px] leading-snug">
+                              {p.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <p className="text-base font-bold text-foreground">
+                                KES {Number(displayPrice).toLocaleString()}
+                              </p>
+                              {p.discount_price && p.discount_price < p.price && (
+                                <p className="text-xs text-muted-foreground line-through">
+                                  {Number(p.price).toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                 </div>
               </div>
             )}
