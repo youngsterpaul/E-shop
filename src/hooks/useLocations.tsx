@@ -6,6 +6,7 @@ export interface County {
   name: string;
   slug: string;
   is_active: boolean;
+  delivery_fee?: number;
 }
 
 export interface City {
@@ -14,6 +15,7 @@ export interface City {
   name: string;
   slug: string;
   is_active: boolean;
+  delivery_fee?: number;
 }
 
 export const useLocations = () => {
@@ -25,7 +27,7 @@ export const useLocations = () => {
         .select('*')
         .eq('is_active', true)
         .order('name', { ascending: true });
-      
+
       if (error) throw error;
       return data as County[];
     }
@@ -39,7 +41,7 @@ export const useLocations = () => {
         .select('*')
         .eq('is_active', true)
         .order('name', { ascending: true });
-      
+
       if (error) throw error;
       return data as City[];
     }
@@ -48,13 +50,14 @@ export const useLocations = () => {
   const getCountyOptions = () => {
     return counties?.map(county => ({
       value: county.slug,
-      label: county.name
+      label: county.name,
+      delivery_fee: Number(county.delivery_fee || 0),
     })) || [];
   };
 
   const getCityOptions = (countySlug: string) => {
     if (!counties || !cities) return [];
-    
+
     const county = counties.find(c => c.slug === countySlug);
     if (!county) return [];
 
@@ -62,8 +65,23 @@ export const useLocations = () => {
       .filter(city => city.county_id === county.id)
       .map(city => ({
         value: city.slug,
-        label: city.name
+        label: city.name,
+        delivery_fee: Number(city.delivery_fee || 0),
       }));
+  };
+
+  /**
+   * Resolve the delivery fee for a given county+city slug pair.
+   * City fee takes precedence; falls back to county fee; defaults to 0.
+   */
+  const getDeliveryFee = (countySlug: string, citySlug: string): number => {
+    if (!counties || !cities) return 0;
+    const county = counties.find(c => c.slug === countySlug);
+    if (!county) return 0;
+    const city = cities.find(c => c.slug === citySlug && c.county_id === county.id);
+    const cityFee = Number(city?.delivery_fee || 0);
+    if (cityFee > 0) return cityFee;
+    return Number(county.delivery_fee || 0);
   };
 
   return {
@@ -72,6 +90,7 @@ export const useLocations = () => {
     isLoading: countiesLoading || citiesLoading,
     getCountyOptions,
     getCityOptions,
+    getDeliveryFee,
     refetchCounties,
     refetchCities
   };
