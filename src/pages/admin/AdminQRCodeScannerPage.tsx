@@ -354,33 +354,53 @@ const AdminQRCodeScannerPage = () => {
     toast({ title: 'Copied', description: `${label} copied to clipboard` });
   };
 
-  // Play success sound
-  const playSuccessSound = useCallback(() => {
-    if (!soundEnabled) return;
-    
+  // Ensure AudioContext exists & is running. MUST be invoked from a user gesture
+  // (e.g. the "Start camera" click) so iOS/Safari/Chrome will allow audio later.
+  const ensureAudioContext = useCallback(async () => {
     try {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const Ctor = (window.AudioContext || (window as any).webkitAudioContext);
+        if (!Ctor) return null;
+        audioContextRef.current = new Ctor();
       }
-      const ctx = audioContextRef.current;
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      // Create a pleasant beep sound
-      oscillator.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
-      oscillator.frequency.setValueAtTime(1108.73, ctx.currentTime + 0.1); // C#6 note
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-      
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.3);
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+      return audioContextRef.current;
     } catch (e) {
-      console.log('Could not play sound:', e);
+      console.log('AudioContext init failed:', e);
+      return null;
+    }
+  }, []);
+
+  // Play success sound (works on mobile because ctx was unlocked on user gesture)
+  const playSuccessSound = useCallback(() => {
+    if (!soundEnabled) return;
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+
+    const playBeep = () => {
+      try {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+        oscillator.frequency.setValueAtTime(1108.73, ctx.currentTime + 0.1);
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.35);
+      } catch (e) {
+        console.log('Could not play sound:', e);
+      }
+    };
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(playBeep).catch(() => playBeep());
+    } else {
+      playBeep();
     }
   }, [soundEnabled]);
 
@@ -416,6 +436,12 @@ const AdminQRCodeScannerPage = () => {
     try {
       setCameraError(null);
       setLastScannedCode(null);
+
+      // CRITICAL: unlock audio while we still have a user-gesture context.
+      // Without this, AudioContext stays "suspended" and beeps are silent on
+      // mobile Safari/Chrome.
+      await ensureAudioContext();
+
       
       // First try with environment camera
       let stream: MediaStream;
@@ -544,19 +570,20 @@ const AdminQRCodeScannerPage = () => {
             console.log('QR Code detected:', code.data);
             lastScannedCodeRef.current = code.data;
             setLastScannedCode(code.data);
-            setIsScanning(false);
-            isScanningRef.current = false; // Update ref immediately
+
+            // Play sound + vibrate FIRST (synchronously, while still in the
+            // event tick that the gesture-warmed AudioContext can use).
             playSuccessSound();
-            
-            // Vibrate if supported
             if (navigator.vibrate) {
-              navigator.vibrate(200);
+              try { navigator.vibrate(200); } catch { /* noop */ }
             }
-            
+
+            // Immediately close the scanner / camera so the user sees the
+            // result instead of a still-running viewfinder.
+            stopCamera();
+
             // Parse the QR code data - it might be a URL or just an order ID
             let orderId = code.data;
-            
-            // Check if it's a URL containing the order ID
             try {
               const url = new URL(code.data);
               const pathParts = url.pathname.split('/').filter(Boolean);
@@ -564,24 +591,21 @@ const AdminQRCodeScannerPage = () => {
               const orderIdFromQuery = url.searchParams.get('order') || url.searchParams.get('orderId') || url.searchParams.get('id');
               orderId = orderIdFromQuery || orderIdFromPath || code.data;
             } catch {
-              // Not a URL, use the raw data as order ID
               orderId = code.data.trim();
             }
-            
-            toast({ 
-              title: 'QR Code Detected!', 
-              description: `Fetching order: ${orderId.slice(0, 20)}${orderId.length > 20 ? '...' : ''}` 
+
+            toast({
+              title: 'QR Code Detected!',
+              description: `Fetching order: ${orderId.slice(0, 20)}${orderId.length > 20 ? '...' : ''}`,
             });
-            
+
             fetchOrder(orderId);
-            
-            // Resume scanning after a delay
+
+            // Reset dedupe so the next manual start can scan the same code again
             setTimeout(() => {
-              setIsScanning(true);
-              isScanningRef.current = true;
               lastScannedCodeRef.current = null;
               setLastScannedCode(null);
-            }, 3000);
+            }, 1500);
           }
         }
       }
