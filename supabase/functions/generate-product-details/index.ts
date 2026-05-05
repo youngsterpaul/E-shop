@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,8 +12,44 @@ serve(async (req) => {
   }
 
   try {
+    // ── Authenticate caller ──────────────────────────────────────────────
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // ── Authorize: must have admin/superadmin/moderator role ────────────
+    const admin = createClient(supabaseUrl, serviceKey);
+    const { data: roles } = await admin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id);
+    const allowed = (roles ?? []).some((r: { role: string }) =>
+      ["admin", "superadmin", "moderator"].includes(r.role)
+    );
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: admin role required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { productName, category, description, type } = await req.json();
-    
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");

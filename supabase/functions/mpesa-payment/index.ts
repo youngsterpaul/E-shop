@@ -188,14 +188,11 @@ async function initiateSTKPush(phone: string, amount: number, orderId: string) {
     formattedPhone = '254' + formattedPhone;
   }
 
-  // Generate unique webhook secret for this order
+  // Generate unique webhook secret for this order and store it in order_secrets
   const webhookSecret = crypto.randomUUID();
-  
-  // Store webhook secret in order
   await supabase
-    .from('orders')
-    .update({ webhook_secret: webhookSecret })
-    .eq('order_id', orderId);
+    .from('order_secrets')
+    .upsert({ order_id: orderId, webhook_secret: webhookSecret }, { onConflict: 'order_id' });
 
   // Use the project-specific function URL for callback with secret
   const callbackUrl = `https://sgpjnbdrmwrupeqhjqpj.supabase.co/functions/v1/mpesa-callback?secret=${webhookSecret}`;
@@ -248,8 +245,52 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // ── Authenticate caller ────────────────────────────────────────────────
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized: missing token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized: invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const callerId = userData.user.id;
+
     const requestBody = await req.text();
     const { phone, amount, orderId }: PaymentRequest = JSON.parse(requestBody);
+
+    // ── Verify caller owns the referenced order ───────────────────────────
+    if (orderId) {
+      const { data: order, error: orderErr } = await supabase
+        .from('orders')
+        .select('user_id, amount')
+        .eq('order_id', orderId)
+        .maybeSingle();
+      if (orderErr || !order) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Order not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (order.user_id !== callerId) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Forbidden: order does not belong to caller' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
 
     // Get identifier for rate limiting (IP address)
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() 

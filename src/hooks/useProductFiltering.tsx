@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { FilterState } from '@/components/search/SearchFilters';
 import { Product } from '@/queries/productQueries';
+import { normalizeSpecValue } from '@/utils/specNormalize';
 
 /**
  * Filters products client-side based on the active FilterState.
@@ -34,7 +35,8 @@ export function useProductFiltering(products: Product[], filters: FilterState): 
         if (product.specification && typeof product.specification === 'object' && !Array.isArray(product.specification)) {
           for (const [k, v] of Object.entries(product.specification)) {
             if (typeof v === 'string') {
-              normalizedSpec[k.toLowerCase().trim()] = v;
+              const key = k.toLowerCase().trim();
+              normalizedSpec[key] = normalizeSpecValue(key, v);
             }
           }
         }

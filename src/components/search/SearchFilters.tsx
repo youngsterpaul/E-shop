@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Product } from '@/hooks/useProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import { SpecConfig } from '@/utils/specConfig';
+import { normalizeSpecValue } from '@/utils/specNormalize';
 
 export interface FilterState {
   priceRange: [number, number];
@@ -123,7 +124,8 @@ const SearchFilters = ({
         for (const [rawKey, val] of Object.entries(product.specification)) {
           const key = rawKey.toLowerCase().trim(); // normalize DB key
           if (!allowedKeys.has(key) || !val || typeof val !== 'string') continue;
-          (specMap[key] ??= new Set()).add(val);
+          const normalized = normalizeSpecValue(key, val);
+          if (normalized) (specMap[key] ??= new Set()).add(normalized);
         }
       }
     }

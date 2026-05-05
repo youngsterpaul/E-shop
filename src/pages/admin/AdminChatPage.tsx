@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminChat } from '@/hooks/useAdminChat';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
+import { formatWhatsAppDate, shouldShowDateSeparator } from '@/utils/dateFormatting';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import {
   AlertDialog,
@@ -220,9 +221,20 @@ const AdminChatPage = () => {
                 {/* Messages */}
                 <ScrollArea ref={scrollRef} className="flex-1 p-4">
                   <div className="space-y-4">
-                    {messages.map((message) => (
+                    {messages.map((message, idx) => {
+                      const currentDate = new Date(message.created_at);
+                      const prevDate = idx > 0 ? new Date(messages[idx - 1].created_at) : undefined;
+                      const showDateSep = shouldShowDateSeparator(currentDate, prevDate);
+                      return (
+                      <React.Fragment key={message.id}>
+                        {showDateSep && (
+                          <div className="flex justify-center my-1">
+                            <span className="text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-3 py-1">
+                              {formatWhatsAppDate(currentDate)}
+                            </span>
+                          </div>
+                        )}
                       <div
-                        key={message.id}
                         className={cn(
                           "flex gap-2",
                           message.sender_type === 'admin' ? 'justify-end' : 'justify-start'
@@ -268,7 +280,9 @@ const AdminChatPage = () => {
                           </Avatar>
                         )}
                       </div>
-                    ))}
+                      </React.Fragment>
+                      );
+                    })}
                   </div>
                 </ScrollArea>
 

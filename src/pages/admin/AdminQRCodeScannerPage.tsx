@@ -127,6 +127,7 @@ const AdminQRCodeScannerPage = () => {
   const [recentScans, setRecentScans] = useState<Order[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
@@ -613,97 +614,108 @@ const AdminQRCodeScannerPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Scanner Section */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Camera Scanner */}
-<Card className="max-w-[320px] mx-auto overflow-hidden border-none shadow-2xl bg-zinc-950 rounded-[32px]">
-  <CardContent className="p-0">
-    <div className="relative aspect-square w-full group overflow-hidden">
-      
-      {/* 1. Camera Viewport */}
-      <video
-        ref={videoRef}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
-        playsInline
-        muted
-        autoPlay
-      />
-      
-      {/* 2. Inactive State (Abstract Background) */}
-      {!cameraActive && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800 to-zinc-950">
-          <div className="p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <Scan className="h-8 w-8 text-zinc-500" strokeWidth={1.5} />
-          </div>
-        </div>
-      )}
+          {/* Compact Scanner Trigger */}
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Scan className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">QR Scanner</p>
+                  <p className="text-xs text-muted-foreground">Tap to open full screen</p>
+                </div>
+              </div>
+              <Button
+                size="icon"
+                onClick={() => {
+                  setScannerOpen(true);
+                  startCamera();
+                }}
+                className="h-11 w-11 rounded-2xl shadow-md"
+                aria-label="Open scanner"
+              >
+                <Camera className="h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
 
-      {/* 3. Scanning Overlays */}
-      {cameraActive && (
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Subtle Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
-          
-          {/* Precision Focus Frame */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-48 h-48 border-2 border-white/20 rounded-3xl transition-transform duration-500 group-hover:scale-105">
-              {/* Corner Accents */}
-              <div className="absolute top-[-2px] left-[-2px] w-6 h-6 border-l-4 border-t-4 border-primary rounded-tl-xl" />
-              <div className="absolute top-[-2px] right-[-2px] w-6 h-6 border-r-4 border-t-4 border-primary rounded-tr-xl" />
-              <div className="absolute bottom-[-2px] left-[-2px] w-6 h-6 border-l-4 border-b-4 border-primary rounded-bl-xl" />
-              <div className="absolute bottom-[-2px] right-[-2px] w-6 h-6 border-r-4 border-b-4 border-primary rounded-br-xl" />
-              
-              {/* Scanning Glow Line */}
-              <div 
-                className="absolute left-1 right-1 h-[2px] bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
-                style={{ top: `${scanLinePosition}%`, transition: 'none' }}
+          {/* Fullscreen Scanner Overlay */}
+          {scannerOpen && (
+            <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+              <video
+                ref={videoRef}
+                className={`absolute inset-0 w-full h-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
+                playsInline
+                muted
+                autoPlay
               />
+              <canvas ref={canvasRef} className="hidden" />
+
+              {/* Top bar */}
+              <div className="relative z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent">
+                <Button
+                  onClick={() => { stopCamera(); setScannerOpen(false); }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full bg-black/40 text-white hover:bg-black/60"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+                <p className="text-white text-sm font-medium">Scan QR Code</p>
+                {torchSupported ? (
+                  <Button
+                    onClick={toggleTorch}
+                    variant="ghost"
+                    size="icon"
+                    className={`h-10 w-10 rounded-full ${torchOn ? 'bg-amber-500/30 text-amber-300' : 'bg-black/40 text-white hover:bg-black/60'}`}
+                  >
+                    {torchOn ? <Flashlight className="h-5 w-5" /> : <FlashlightOff className="h-5 w-5" />}
+                  </Button>
+                ) : (
+                  <div className="w-10" />
+                )}
+              </div>
+
+              {/* Scanning frame */}
+              <div className="relative flex-1 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/40" style={{
+                  WebkitMaskImage: 'radial-gradient(circle at center, transparent 140px, black 141px)',
+                  maskImage: 'radial-gradient(circle at center, transparent 140px, black 141px)'
+                }} />
+                <div className="relative w-72 h-72 max-w-[80vw] max-h-[80vw]">
+                  <div className="absolute top-0 left-0 w-10 h-10 border-l-4 border-t-4 border-primary rounded-tl-2xl" />
+                  <div className="absolute top-0 right-0 w-10 h-10 border-r-4 border-t-4 border-primary rounded-tr-2xl" />
+                  <div className="absolute bottom-0 left-0 w-10 h-10 border-l-4 border-b-4 border-primary rounded-bl-2xl" />
+                  <div className="absolute bottom-0 right-0 w-10 h-10 border-r-4 border-b-4 border-primary rounded-br-2xl" />
+                  <div
+                    className="absolute left-2 right-2 h-[3px] bg-primary shadow-[0_0_20px_hsl(var(--primary))]"
+                    style={{ top: `${scanLinePosition}%`, transition: 'none' }}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom controls */}
+              <div className="relative z-10 p-6 pb-10 bg-gradient-to-t from-black/80 to-transparent flex flex-col items-center gap-3">
+                <p className="text-white/80 text-xs">Align QR code within the frame</p>
+                <Button
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white"
+                >
+                  {soundEnabled ? <Volume2 className="h-4 w-4 mr-1" /> : <VolumeX className="h-4 w-4 mr-1" />}
+                  Sound {soundEnabled ? 'On' : 'Off'}
+                </Button>
+              </div>
+
+              {cameraError && (
+                <div className="absolute bottom-24 left-4 right-4 bg-red-500/90 text-white text-xs p-3 rounded-lg text-center">
+                  {cameraError}
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Minimal Status Indicator */}
-          <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-xl border ${isScanning ? 'bg-black/40 border-white/10' : 'bg-green-500/20 border-green-500/50'}`}>
-              <div className={`h-1.5 w-1.5 rounded-full ${isScanning ? 'bg-primary animate-pulse' : 'bg-green-400'}`} />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-
-    {/* 4. Minimalist Control Bar */}
-    <div className="p-4 bg-zinc-900/50 backdrop-blur-xl flex items-center gap-3">
-      <Button
-        onClick={cameraActive ? stopCamera : startCamera}
-        variant="ghost"
-        className={`flex-1 h-12 rounded-2xl transition-all duration-300 font-medium ${
-          cameraActive 
-            ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' 
-            : 'bg-white text-black hover:bg-white/90 shadow-lg'
-        }`}
-      >
-        {cameraActive ? (
-          <X className="h-5 w-5" />
-        ) : (
-          <div className="flex items-center gap-2">
-            <Camera className="h-4 w-4" />
-            <span>Open</span>
-          </div>
-        )}
-      </Button>
-
-      {cameraActive && torchSupported && (
-        <Button
-          onClick={toggleTorch}
-          variant="outline"
-          className={`h-12 w-12 rounded-2xl border-white/10 bg-white/5 transition-all duration-300 ${
-            torchOn ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'text-zinc-400'
-          }`}
-        >
-          {torchOn ? <Flashlight className="h-5 w-5 fill-current" /> : <FlashlightOff className="h-5 w-5" />}
-        </Button>
-      )}
-    </div>
-  </CardContent>
-</Card>
+          )}
 
           {/* Manual Input */}
           <Card>

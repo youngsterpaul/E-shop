@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -17,6 +18,27 @@ serve(async (req) => {
   }
 
   try {
+    // ── Authenticate caller ──────────────────────────────────────────────
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const {
       orderId,
       customerName,
@@ -26,6 +48,27 @@ serve(async (req) => {
       items,
       shippingAddress,
     } = await req.json();
+
+    // ── Verify the order exists and belongs to the caller ────────────────
+    const admin = createClient(supabaseUrl, serviceKey);
+    const { data: order, error: orderErr } = await admin
+      .from("orders")
+      .select("order_id, user_id, amount")
+      .eq("order_id", orderId)
+      .maybeSingle();
+    if (orderErr || !order) {
+      return new Response(
+        JSON.stringify({ error: "Order not found" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (order.user_id !== userData.user.id) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
 
     console.log("Notifying admin about new order:", orderId);
 

@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserUnreadChat } from "@/hooks/useUserUnreadChat";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { formatWhatsAppDate, shouldShowDateSeparator } from "@/utils/dateFormatting";
 
 const ChattingPage = () => {
   const { user } = useAuth();
@@ -149,12 +150,22 @@ const ChattingPage = () => {
             </div>
           )}
 
-          {messages.map((message) => {
+          {messages.map((message, idx) => {
             const isUser = message.sender_type === "user";
+            const currentDate = new Date(message.created_at);
+            const prevDate = idx > 0 ? new Date(messages[idx - 1].created_at) : undefined;
+            const showDateSep = shouldShowDateSeparator(currentDate, prevDate);
 
             return (
+              <React.Fragment key={message.id}>
+                {showDateSep && (
+                  <div className="flex justify-center my-2">
+                    <span className="text-[10px] font-medium text-muted-foreground bg-white border rounded-full px-3 py-1 shadow-sm">
+                      {formatWhatsAppDate(currentDate)}
+                    </span>
+                  </div>
+                )}
               <div
-                key={message.id}
                 className={cn(
                   "flex gap-2.5",
                   isUser ? "justify-end" : "justify-start"
@@ -222,6 +233,7 @@ const ChattingPage = () => {
                   </Avatar>
                 )}
               </div>
+              </React.Fragment>
             );
           })}
 
