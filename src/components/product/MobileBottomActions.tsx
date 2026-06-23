@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import MobileAddToCartModal from './MobileAddToCartModal';
 import MobileBuyNowModal from './MobileBuyNowModal';
 
-interface GemFashionStyleProps {
+interface MobileBottomActionsProps {
   product: {
     product_id: string;
     name: string;
@@ -26,44 +26,42 @@ interface GemFashionStyleProps {
   calculatePrice: () => number;
 }
 
-const GemFashionStyle = ({
+const MobileBottomActions = ({
   product,
   selectedVariants,
   requiredVariants,
   onVariantChange,
   calculatePrice
-}: GemFashionStyleProps) => {
+}: MobileBottomActionsProps) => {
   const [isAddToCartModalOpen, setIsAddToCartModalOpen] = useState(false);
   const [isBuyNowModalOpen, setIsBuyNowModalOpen] = useState(false);
 
   return (
     <>
-      {/* Fixed bottom action bar - Refined Fashion Restyle */}
+      {/* Fixed bottom action bar */}
       <div 
-        className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-100 p-3 z-40 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]"
+        className="fixed bottom-0 left-0 right-0 bg-background border-t border-gray-200 p-2 z-40 shadow-lg"
         style={{
-          paddingBottom: `calc(12px + env(safe-area-inset-bottom))`,
+          paddingBottom: `calc(4px + env(safe-area-inset-bottom))`,
         }}
       >
-        <div className="flex gap-3 w-full max-w-md mx-auto">
-          {/* Add To Cart - Elegant Rose Gold / Nude Aesthetic */}
+        <div className="flex gap-3 flex-1">
           <Button
             onClick={() => setIsAddToCartModalOpen(true)}
             disabled={!product.inStock}
             variant="outline"
-            className="flex-1 border-stone-200 text-stone-800 font-semibold tracking-wide text-xs uppercase bg-stone-50/50 hover:bg-stone-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 h-12 rounded-none"
+            className="flex-1 border-gray-300 text-gray-800 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            <ShoppingCart className="mr-2 h-4 w-4 stroke-[1.5]" />
+            <ShoppingCart className="mr-2 h-4 w-4" />
             Add to Cart
           </Button>
 
-          {/* Buy Now - High-End Deep Charcoal / Onyx Black Statement */}
           <Button
             onClick={() => setIsBuyNowModalOpen(true)}
             disabled={!product.inStock}
-            className="flex-1 bg-stone-900 hover:bg-stone-950 text-amber-50 font-semibold tracking-widest text-xs uppercase active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 h-12 rounded-none shadow-sm"
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-none"
           >
-            <Zap className="mr-2 h-4 w-4 fill-amber-200 text-amber-200 stroke-[1.5]" />
+            <Zap className="mr-2 h-4 w-4" />
             Buy Now
           </Button>
         </div>
@@ -94,4 +92,4 @@ const GemFashionStyle = ({
   );
 };
 
-export default GemFashionStyle;
+export default MobileBottomActions;

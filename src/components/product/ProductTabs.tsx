@@ -125,7 +125,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   const tabsHeight = tabsRef.current?.offsetHeight ?? 44;
 
   return (
-    <div className="w-full bg-[#faf9f6] text-stone-900 antialiased font-sans">
+    <div className="w-full bg-card.">
 
       {/* ── STICKY PLACEHOLDER ─────────────────────────────────────────────── */}
       {isSticky && <div style={{ height: tabsHeight }} />}
@@ -134,54 +134,46 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       <div
         ref={tabsRef}
         className={cn(
-          'bg-white z-40 transition-shadow duration-300 border-t border-stone-100',
+          'bg-white z-40 transition-shadow duration-200',
           isSticky
-            ? 'fixed left-0 right-0 border-b border-stone-200 shadow-md backdrop-blur-md bg-white/95'
-            : 'border-b border-stone-200'
+            ? 'fixed left-0 right-0 border-b border-gray-200 shadow-sm'
+            : 'border-b border-gray-200'
         )}
         style={isSticky ? { top: HEADER_OFFSET } : {}}
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-14 md:h-16">
-            
-            {/* Gem Fashion Style Brand Marker */}
-            <div className="mr-6 hidden sm:flex flex-col items-start select-none">
-              <span className="text-[10px] uppercase tracking-[0.25em] font-bold text-rose-700 leading-none">Gem Fashion</span>
-              <span className="text-[12px] italic tracking-widest text-stone-400 font-serif">Style Edition</span>
-            </div>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center h-11 md:h-12">
 
             {/* Tab buttons */}
-            <div className="flex items-center h-full space-x-1">
-              {[
-                { id: 'specs',    label: 'Specifications', short: 'Specs'   },
-                { id: 'features', label: 'Key Curations',  short: 'Curations'},
-                { id: 'reviews',  label: `Reviews (${totalReviews})`, short: `Reviews (${totalReviews})`},
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => scrollTo(tab.id)}
-                  className={cn(
-                    'relative h-full px-4 text-[11px] md:text-[12px] uppercase font-bold tracking-[0.15em] transition-all duration-200 whitespace-nowrap',
-                    activeTab === tab.id
-                      ? 'text-stone-900 font-extrabold'
-                      : 'text-stone-400 hover:text-stone-900'
-                  )}
-                >
-                  <span className="md:hidden">{tab.short}</span>
-                  <span className="hidden md:inline">{tab.label}</span>
-                  {activeTab === tab.id && (
-                    <span className="absolute bottom-0 left-4 right-4 h-[2px] bg-rose-700 transition-all duration-300" />
-                  )}
-                </button>
-              ))}
-            </div>
+            {[
+              { id: 'specs',    label: 'Specifications', short: 'Specs'   },
+              { id: 'features', label: 'Features',       short: 'Features'},
+              { id: 'reviews',  label: `Reviews (${totalReviews})`, short: 'Reviews'},
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => scrollTo(tab.id)}
+                className={cn(
+                  'relative h-full px-4 md:px-5 text-[12px] md:text-[13px] font-semibold tracking-wide transition-colors whitespace-nowrap',
+                  activeTab === tab.id
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-800'
+                )}
+              >
+                <span className="md:hidden">{tab.short}</span>
+                <span className="hidden md:inline">{tab.label}</span>
+                {activeTab === tab.id && (
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-blue-600 rounded-t" />
+                )}
+              </button>
+            ))}
 
             {/* Rating chip — desktop only */}
             {!isMobile && totalReviews > 0 && (
-              <div className="ml-auto flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-stone-500 pl-4 border-l border-stone-200">
-                <Star size={13} className="fill-stone-900 text-stone-900" />
-                <span className="font-bold text-stone-900">{averageRating.toFixed(1)}</span>
-                <span className="text-stone-300">/ 5.0</span>
+              <div className="ml-auto flex items-center gap-1.5 text-[12px] text-gray-500 pr-1">
+                <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                <span className="font-bold text-gray-700">{averageRating.toFixed(1)}</span>
+                <span className="text-gray-400 font-medium">/ 5</span>
               </div>
             )}
           </div>
@@ -189,45 +181,41 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
       </div>
 
       {/* ── BODY ──────────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
 
         {/* ═══ SPECIFICATIONS ════════════════════════════════════════════════ */}
         <div
           id="specs"
           ref={specsRef}
-          className="pt-10 pb-12 md:pt-14 md:pb-16 border-b border-stone-200"
+          className="pt-7 pb-9 md:pt-9 md:pb-12 border-b border-gray-100"
         >
           {/* Section heading */}
-          <div className="flex items-baseline justify-between mb-6 md:mb-8 border-b border-stone-100 pb-3">
-            <div className="flex items-center gap-3">
-              <Settings size={14} className="text-stone-400" />
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.25em] text-stone-800">
-                Garment Specifications
-              </h2>
-            </div>
+          <div className="flex items-center gap-2 mb-4 md:mb-5">
+            <Settings size={13} className="text-gray-400 shrink-0" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              Specifications
+            </span>
             {specEntries.length > 0 && (
-              <span className="text-[11px] font-medium tracking-widest text-stone-400 italic">
-                {specEntries.length} details documented
-              </span>
+              <span className="text-[11px] text-gray-300">— {specEntries.length} items</span>
             )}
           </div>
 
           {specEntries.length > 0 ? (
             <>
-              <div className="bg-white rounded-none border border-stone-200 shadow-sm overflow-hidden">
+              <div className="rounded-md border border-gray-100 overflow-hidden">
                 <dl>
                   {visibleSpecs.map(([key, value], i) => (
                     <div
                       key={key}
                       className={cn(
-                        'grid grid-cols-[120px_1fr] md:grid-cols-[240px_1fr] border-b border-stone-100 last:border-0 transition-colors hover:bg-stone-50/50',
-                        i % 2 === 0 ? 'bg-white' : 'bg-stone-50/30'
+                        'grid grid-cols-[110px_1fr] md:grid-cols-[200px_1fr] border-b border-gray-50 last:border-0 transition-colors hover:bg-blue-50/30',
+                        i % 2 === 0 ? 'bg-background' : 'bg-gray-50/40'
                       )}
                     >
-                      <dt className="px-4 py-3.5 md:px-6 md:py-4 text-[10px] md:text-[11px] font-bold text-stone-400 uppercase tracking-[0.15em] border-r border-stone-100 self-start leading-relaxed">
+                      <dt className="px-3 py-2.5 md:px-4 md:py-3 text-[10.5px] md:text-[11.5px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-100 self-start leading-relaxed">
                         {key.replace(/[_-]/g, ' ')}
                       </dt>
-                      <dd className="px-4 py-3.5 md:px-6 md:py-4 text-[13px] text-stone-800 font-medium leading-relaxed break-words">
+                      <dd className="px-3 py-2.5 md:px-4 md:py-3 text-[12.5px] md:text-[13px] text-gray-800 font-medium leading-relaxed break-words">
                         {Array.isArray(value) ? value.join(', ') : String(value)}
                       </dd>
                     </div>
@@ -238,18 +226,18 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
               {specEntries.length > SPECS_LIMIT && (
                 <button
                   onClick={() => setExpandedSpecs(!expandedSpecs)}
-                  className="mt-5 flex items-center gap-2 text-[11px] uppercase font-bold tracking-[0.15em] text-rose-700 hover:text-stone-900 transition-colors duration-200"
+                  className="mt-3.5 flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 hover:underline underline-offset-2"
                 >
                   {expandedSpecs
-                    ? <><ChevronUp size={14} />View less attributes</>
-                    : <><ChevronDown size={14} />View complete manifest ({specEntries.length})</>}
+                    ? <><ChevronUp size={13} />Show fewer specifications</>
+                    : <><ChevronDown size={13} />View all {specEntries.length} specifications</>}
                 </button>
               )}
             </>
           ) : (
-            <div className="flex flex-col items-center py-16 bg-white border border-stone-200">
-              <AlertCircle size={24} className="text-stone-300 mb-3" />
-              <p className="text-[12px] font-medium tracking-wide text-stone-400">Specifications dynamically unavailable.</p>
+            <div className="flex flex-col items-center py-12 rounded-lg border border-dashed border-gray-100">
+              <AlertCircle size={26} className="text-gray-200 mb-3" />
+              <p className="text-[12.5px] text-gray-400">No specifications available.</p>
             </div>
           )}
         </div>
@@ -258,39 +246,35 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         <div
           id="features"
           ref={featuresRef}
-          className="pt-10 pb-12 md:pt-14 md:pb-16 border-b border-stone-200"
+          className="pt-7 pb-9 md:pt-9 md:pb-12 border-b border-gray-100"
         >
-          <div className="flex items-baseline justify-between mb-6 md:mb-8 border-b border-stone-100 pb-3">
-            <div className="flex items-center gap-3">
-              <Layers size={14} className="text-stone-400" />
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.25em] text-stone-800">
-                Design & Style Highlights
-              </h2>
-            </div>
+          <div className="flex items-center gap-2 mb-4 md:mb-5">
+            <Layers size={13} className="text-gray-400 shrink-0" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              Key Features
+            </span>
             {features.length > 0 && (
-              <span className="text-[11px] font-medium tracking-widest text-stone-400 italic">
-                {features.length} points of interest
-              </span>
+              <span className="text-[11px] text-gray-300">— {features.length} items</span>
             )}
           </div>
 
           {features.length > 0 ? (
             <>
-              <div className="bg-white border border-stone-200 shadow-sm overflow-hidden">
+              <div className="rounded-md border border-gray-100 overflow-hidden">
                 {visibleFeatures.map((feature: string, i: number) => (
                   <div
                     key={i}
                     className={cn(
-                      'flex items-stretch border-b border-stone-100 last:border-0 hover:bg-stone-50/50 transition-colors',
-                      i % 2 === 0 ? 'bg-white' : 'bg-stone-50/30'
+                      'flex items-stretch border-b border-gray-50 last:border-0 hover:bg-blue-50/30 transition-colors',
+                      i % 2 === 0 ? 'bg-background' : 'bg-gray-50/40'
                     )}
                   >
-                    {/* Row Indicator */}
-                    <span className="shrink-0 w-12 md:w-16 flex items-center justify-center text-[10px] font-serif font-bold italic text-rose-700 bg-stone-50 border-r border-stone-100 select-none">
-                      #{String(i + 1).padStart(2, '0')}
+                    {/* Row number */}
+                    <span className="shrink-0 w-9 md:w-11 flex items-center justify-center text-[11px] md:text-[12px] font-bold text-blue-500 bg-blue-50/60 border-r border-gray-100">
+                      {i + 1}
                     </span>
                     {/* Feature text */}
-                    <p className="px-4 py-3.5 md:px-6 md:py-4 text-[13px] text-stone-800 font-medium leading-relaxed">
+                    <p className="px-3 py-2.5 md:px-4 md:py-3 text-[12.5px] md:text-[13px] text-gray-800 font-medium leading-relaxed">
                       {feature}
                     </p>
                   </div>
@@ -300,35 +284,35 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
               {features.length > FEATURES_LIMIT && (
                 <button
                   onClick={() => setExpandedFeatures(!expandedFeatures)}
-                  className="mt-5 flex items-center gap-2 text-[11px] uppercase font-bold tracking-[0.15em] text-rose-700 hover:text-stone-900 transition-colors duration-200"
+                  className="mt-3.5 flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 hover:underline underline-offset-2"
                 >
                   {expandedFeatures
-                    ? <><ChevronUp size={14} />Collapse highlights</>
-                    : <><ChevronDown size={14} />Reveal remaining elements ({features.length - FEATURES_LIMIT})</>}
+                    ? <><ChevronUp size={13} />Show fewer features</>
+                    : <><ChevronDown size={13} />Show {features.length - FEATURES_LIMIT} more features</>}
                 </button>
               )}
 
               {/* Trust badges */}
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {[
-                  { icon: <ShieldCheck size={12} />, label: 'Gem Style Guaranteed' },
-                  { icon: <Zap size={12} />,         label: 'Premium Craftsmanship' },
-                  { icon: <AlertCircle size={12} />, label: 'Authentic Lineage'   },
+                  { icon: <ShieldCheck size={11} />, label: 'Quality Guaranteed' },
+                  { icon: <Zap size={11} />,         label: 'High Performance'   },
+                  { icon: <AlertCircle size={11} />, label: 'Verified Product'   },
                 ].map(({ icon, label }) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-stone-200 text-[10px] font-bold uppercase tracking-widest text-stone-600 shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 text-[11px] font-semibold text-gray-500"
                   >
-                    <span className="text-rose-700">{icon}</span>
+                    <span className="text-blue-400">{icon}</span>
                     {label}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center py-16 bg-white border border-stone-200">
-              <AlertCircle size={24} className="text-stone-300 mb-3" />
-              <p className="text-[12px] font-medium tracking-wide text-stone-400">No specific features logged.</p>
+            <div className="flex flex-col items-center py-12 rounded-lg border border-dashed border-gray-100">
+              <AlertCircle size={26} className="text-gray-200 mb-3" />
+              <p className="text-[12.5px] text-gray-400">No features listed.</p>
             </div>
           )}
         </div>
@@ -337,45 +321,45 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
         <div
           id="reviews"
           ref={reviewsRef}
-          className="pt-10 pb-16 md:pt-14 md:pb-24"
+          className="pt-7 pb-14 md:pt-9 md:pb-20"
         >
-          <div className="flex items-center gap-3 mb-6 md:mb-8 border-b border-stone-100 pb-3">
-            <Star size={14} className="text-stone-400" />
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.25em] text-stone-800">
-              Verified Patron Feedback
-            </h2>
+          <div className="flex items-center gap-2 mb-4 md:mb-5">
+            <Star size={13} className="text-gray-400 shrink-0" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              Customer Reviews
+            </span>
           </div>
 
           {/* Rating summary card */}
           {totalReviews > 0 && (
-            <div className="bg-white border border-stone-200 p-6 md:p-8 mb-6 shadow-sm">
-              <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+            <div className="rounded-md border border-gray-100 bg-gray-50/40 p-4 md:p-5 mb-5">
+              <div className="flex flex-col sm:flex-row gap-5 md:gap-8">
 
                 {/* Score */}
-                <div className="flex flex-col items-center justify-center md:border-r md:border-stone-100 md:pr-12 shrink-0">
-                  <span className="text-[48px] md:text-[54px] font-light tracking-tighter text-stone-900 leading-none tabular-nums">
+                <div className="flex flex-col items-center justify-center sm:border-r sm:border-gray-200 sm:pr-8 shrink-0">
+                  <span className="text-[42px] md:text-[46px] font-black text-gray-900 leading-none tabular-nums">
                     {averageRating.toFixed(1)}
                   </span>
-                  <div className="flex gap-0.5 mt-3">
+                  <div className="flex gap-0.5 mt-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         size={14}
                         className={
                           i < Math.round(averageRating)
-                            ? 'fill-stone-900 text-stone-900'
-                            : 'fill-stone-200 text-stone-200'
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'fill-gray-200 text-gray-200'
                         }
                       />
                     ))}
                   </div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mt-3 tabular-nums">
-                    {totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'} Total
+                  <p className="text-[11px] text-gray-400 font-medium mt-1.5 tabular-nums">
+                    {totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}
                   </p>
                 </div>
 
                 {/* Distribution bars — clickable as filter shortcut */}
-                <div className="flex-1 space-y-2 justify-center flex flex-col">
+                <div className="flex-1 space-y-1.5 justify-center flex flex-col">
                   {[5, 4, 3, 2, 1].map((star) => {
                     const pct = totalReviews > 0
                       ? Math.round(((ratingDist[star] ?? 0) / totalReviews) * 100)
@@ -385,25 +369,25 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
                       <button
                         key={star}
                         onClick={() => setReviewFilter(active ? 'all' : String(star))}
-                        className="flex items-center gap-4 group w-full text-left"
+                        className="flex items-center gap-3 group w-full"
                       >
                         <span className={cn(
-                          'text-[11px] font-bold tracking-wider w-8 text-right shrink-0 transition-colors',
-                          active ? 'text-rose-700' : 'text-stone-500 group-hover:text-stone-900'
+                          'text-[11.5px] font-semibold w-7 text-right shrink-0 transition-colors',
+                          active ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'
                         )}>
-                          {star} ★
+                          {star}★
                         </span>
-                        <div className="flex-1 h-1 bg-stone-100 overflow-hidden">
+                        <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                           <div
                             className={cn(
-                              'h-full transition-all duration-500 ease-out',
-                              active ? 'bg-rose-700' : 'bg-stone-900'
+                              'h-full rounded-full transition-all duration-500',
+                              active ? 'bg-blue-500' : 'bg-yellow-400'
                             )}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-[11px] font-medium text-stone-400 w-8 shrink-0 text-left tabular-nums">
-                          ({ratingDist[star] ?? 0})
+                        <span className="text-[11px] text-gray-400 w-6 shrink-0 text-left tabular-nums">
+                          {ratingDist[star] ?? 0}
                         </span>
                       </button>
                     );
@@ -415,21 +399,21 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
 
           {/* Filter pills */}
           {totalReviews > 0 && (
-            <div className="flex items-center gap-2 flex-wrap mb-6">
-              <Filter size={11} className="text-stone-400 shrink-0" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 mr-1">Filter Tier:</span>
+            <div className="flex items-center gap-2 flex-wrap mb-5">
+              <Filter size={11} className="text-gray-400 shrink-0" />
+              <span className="text-[11px] font-semibold text-gray-400 mr-0.5">Filter:</span>
               {['all', '5', '4', '3', '2', '1'].map((f) => (
                 <button
                   key={f}
                   onClick={() => setReviewFilter(f)}
                   className={cn(
-                    'px-3 py-1 text-[11px] font-bold tracking-wider uppercase border transition-all duration-200',
+                    'px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors',
                     reviewFilter === f
-                      ? 'bg-stone-900 text-white border-stone-900'
-                      : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-900'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-blue-400 hover:text-blue-500'
                   )}
                 >
-                  {f === 'all' ? 'Show All' : `${f} Star`}
+                  {f === 'all' ? 'All' : `${f}★`}
                 </button>
               ))}
             </div>
@@ -437,35 +421,35 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
 
           {/* Review list */}
           {reviewsLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-28 bg-white border border-stone-200 animate-pulse" />
+                <div key={i} className="h-24 rounded-lg bg-gray-50 animate-pulse" />
               ))}
             </div>
           ) : filteredReviews.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {visibleReviews.map((review) => (
                 <ReviewCard key={review.review_id} review={review} />
               ))}
               {filteredReviews.length > REVIEWS_LIMIT && (
                 <button
                   onClick={() => setExpandedReviews(!expandedReviews)}
-                  className="mt-3 flex items-center gap-2 text-[11px] uppercase font-bold tracking-[0.15em] text-rose-700 hover:text-stone-900 transition-colors duration-200"
+                  className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 hover:underline underline-offset-2"
                 >
                   {expandedReviews
-                    ? <><ChevronUp size={14} />Show Fewer Reviews</>
-                    : <><ChevronDown size={14} />Read More Reviews ({filteredReviews.length - REVIEWS_LIMIT})</>}
+                    ? <><ChevronUp size={13} />Show fewer reviews</>
+                    : <><ChevronDown size={13} />Show {filteredReviews.length - REVIEWS_LIMIT} more reviews</>}
                 </button>
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center py-16 bg-white border-2 border-dashed border-stone-200">
-              <MessageSquare size={30} className="text-stone-300 mb-3" />
-              <p className="text-[12px] font-bold uppercase tracking-wider text-stone-500">
-                {reviewFilter === 'all' ? 'No feedback recorded yet' : `No entries matching ${reviewFilter}-Stars`}
+            <div className="flex flex-col items-center py-12 rounded-xl border-2 border-dashed border-gray-100">
+              <MessageSquare size={28} className="text-gray-200 mb-3" />
+              <p className="text-[13px] font-semibold text-gray-400">
+                {reviewFilter === 'all' ? 'No reviews yet' : `No ${reviewFilter}-star reviews`}
               </p>
               {reviewFilter === 'all' && (
-                <p className="text-[11px] text-stone-400 italic mt-1">Be the foundational review for this style piece</p>
+                <p className="text-[11.5px] text-gray-300 mt-1">Be the first to share your experience</p>
               )}
             </div>
           )}

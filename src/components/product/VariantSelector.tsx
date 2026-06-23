@@ -18,14 +18,14 @@ interface VariantGroup {
   values: VariantValue[];
 }
 
-interface GemFashionStyleProps {
+interface VariantSelectorProps {
   variants: VariantGroup[];
   selectedVariants: Record<string, string>;
   onVariantChange: (variantTypeId: string, variantValueId: string) => void;
   stockInfo?: Record<string, number>;
 }
 
-const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
+const VariantSelector: React.FC<VariantSelectorProps> = ({
   variants,
   selectedVariants,
   onVariantChange,
@@ -34,39 +34,39 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
   if (!variants?.length) return null;
 
   return (
-    <div className="space-y-8 tracking-tight">
+    <div className="space-y-6">
       {variants.map((variant) => (
-        <div key={variant.id} className="space-y-4">
+        <div key={variant.id} className="space-y-3">
           {/* Variant Label */}
-          <div className="flex items-baseline justify-between border-b border-gray-100 pb-1.5">
-            <h3 className="text-xs uppercase font-semibold tracking-wider text-slate-900">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-900">
               {variant.name}
             </h3>
             {selectedVariants[variant.id] && (
-              <span className="text-xs font-medium text-amber-700 bg-amber-50/60 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs text-gray-500">
                 {variant.values.find(v => v.id === selectedVariants[variant.id])?.name || selectedVariants[variant.id]}
               </span>
             )}
           </div>
 
           {/* Variant Options */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {variant.values.map((value) => {
               const isSelected = selectedVariants[variant.id] === value.id;
               const inStock =
                 stockInfo[`${variant.id}-${value.id}`] ?? value.available;
 
               const commonClasses = cn(
-                'relative flex items-center justify-center transition-all duration-300 ease-out',
+                'relative flex items-center justify-center transition-all duration-150',
                 inStock
-                  ? 'cursor-pointer hover:scale-105 active:scale-95'
-                  : 'opacity-35 cursor-not-allowed'
+                  ? 'cursor-pointer hover:scale-105'
+                  : 'opacity-40 cursor-not-allowed'
               );
 
               if (variant.type === 'color') {
                 // --- COLOR or IMAGE SWATCH ---
                 return (
-                  <div key={value.id} className="flex flex-col items-center gap-2 group">
+                  <div key={value.id} className="flex flex-col items-center gap-1">
                     <button
                       onClick={() =>
                         inStock && onVariantChange(variant.id, value.id)
@@ -74,10 +74,8 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
                       title={`${value.name}${!inStock ? ' (Out of Stock)' : ''}`}
                       className={cn(
                         commonClasses,
-                        'w-9 h-9 rounded-full ring-offset-2 transition-all',
-                        isSelected 
-                          ? 'ring-2 ring-slate-900 scale-105 border border-transparent' 
-                          : 'border border-gray-200 hover:border-slate-400'
+                        'w-10 h-10 rounded-full border-2',
+                        isSelected ? 'border-orange-500' : 'border-gray-300'
                       )}
                     >
                       {value.image ? (
@@ -88,20 +86,20 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
                         />
                       ) : (
                         <span
-                          className="absolute inset-0.5 rounded-full border border-black/5"
+                          className="absolute inset-0 rounded-full"
                           style={{ backgroundColor: value.value }}
                         />
                       )}
 
                       {!inStock && (
-                        <span className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
-                          <span className="w-full h-[1px] bg-gray-400 rotate-45 absolute" />
+                        <span className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-full">
+                          <span className="text-[10px] text-gray-500 font-medium">
+                            Out
+                          </span>
                         </span>
                       )}
                     </button>
-                    <span className="text-[10px] font-medium tracking-wide text-gray-500 uppercase transition-colors group-hover:text-slate-900">
-                      {value.name}
-                    </span>
+                    <span className="text-[11px] text-gray-600">{value.name}</span>
                   </div>
                 );
               }
@@ -116,14 +114,18 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
                   title={`${value.name}${!inStock ? ' (Out of Stock)' : ''}`}
                   className={cn(
                     commonClasses,
-                    'px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all min-w-[44px]',
+                    'px-3 py-1 rounded-md border text-sm font-medium',
                     isSelected
-                      ? 'bg-slate-900 text-white border border-slate-950 shadow-sm'
-                      : 'bg-white border border-gray-200 text-slate-800 hover:border-slate-900 hover:text-slate-900',
-                    !inStock && 'line-through border-dashed'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-100'
                   )}
                 >
                   {value.name}
+                  {!inStock && (
+                    <span className="ml-1 text-[10px] text-gray-400">
+                      (Out)
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -134,4 +136,4 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
   );
 };
 
-export default GemFashionStyle;
+export default VariantSelector;

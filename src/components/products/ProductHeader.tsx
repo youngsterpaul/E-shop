@@ -12,12 +12,12 @@ interface PageHeaderProps {
   autoFocusSearch?: boolean;
 }
 
-export const GemFashionStyleHeader = ({
+export const PageHeader = ({
   searchQuery,
   onSearchChange,
   onSearch,
   onBack,
-  placeholder = 'Search Gem Fashion Style...',
+  placeholder = 'Search for products...',
   autoFocusSearch = false,
 }: PageHeaderProps) => {
   const isMobile = isMobileUserAgent();
@@ -26,32 +26,32 @@ export const GemFashionStyleHeader = ({
 
   return (
     <div 
-      className="fixed top-0 z-40 bg-[#FAF9F6] border-b border-[#E5E4E2] px-3 pt-3 pb-3 w-full shadow-sm"
+      className="fixed top-0 z-40 bg-background border-b border-gray-200 px-2 pt-2 pb-2 w-full"
     >
-      <div className="flex w-full items-center gap-3">
+      <div className="flex w-full items-center gap-2">
         <Button
           variant="ghost"
           size="sm"
-          className="p-2 h-9 w-9 text-[#111111] hover:bg-[#104E3A]/5 hover:text-[#104E3A] transition-colors rounded-full"
+          className="p-2 h-8 w-8"
           onClick={onBack}
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         <EnhancedSearchInput
           value={searchQuery}
           onChange={onSearchChange}
           onSearch={onSearch}
           placeholder={placeholder}
-          className="w-full bg-white border-[#D4D1CA] focus-visible:ring-[#104E3A] text-[#111111] rounded-md"
+          className="w-full"
           autoFocus={autoFocusSearch}
         />
         <Button
           type="button"
           variant="ghost"
           onClick={() => onSearch(searchQuery)}
-          className="h-9 px-3 text-[#111111] hover:bg-[#104E3A]/5 hover:text-[#104E3A] transition-colors rounded-full"
+          className="h-8 px-2"
         >
-          <Search className="h-5 w-5" />
+          <Search className="text-gray-800 h-4 w-4" />
         </Button>
       </div>
     </div>

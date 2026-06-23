@@ -1,15 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
-import { Sparkles } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
-interface GemFashionStyleProps {
+interface PriceDisplayProps {
   currentPrice: number;
   originalPrice?: number;
   flashSalePrice?: number;
   showFlashBadge?: boolean;
 }
 
-const GemFashionStyle: React.FC<GemFashionStyleProps> = ({ 
+const PriceDisplay: React.FC<PriceDisplayProps> = ({ 
   currentPrice, 
   originalPrice,
   flashSalePrice,
@@ -30,45 +30,38 @@ const GemFashionStyle: React.FC<GemFashionStyleProps> = ({
     : 0;
 
   return (
-    <div className="space-y-1.5 font-sans tracking-tight">
-      {/* Gem Fashion Luxury Promo Badge */}
+    <div className="space-y-2">
       {showFlashBadge && hasFlashSale && (
-        <Badge className="bg-gradient-to-r from-neutral-900 to-rose-950 text-amber-100 border border-amber-500/30 uppercase tracking-widest text-[10px] px-2.5 py-0.5 shadow-sm font-medium">
-          <Sparkles className="h-3 w-3 mr-1 text-amber-400 animate-spin-slow" />
-          Exclusive Offer
+        <Badge className="bg-gradient-to-r from-destructive to-orange-500 text-destructive-foreground animate-pulse">
+          <Zap className="h-3 w-3 mr-1" />
+          Flash Sale
         </Badge>
       )}
 
-      {/* Pricing Row */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {/* Main Price - Bold Obsidian / Emerald Accent */}
-        <span className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-extrabold tracking-tighter ${hasFlashSale ? 'text-emerald-700 dark:text-emerald-400' : 'text-neutral-900 dark:text-neutral-50'}`}>
+      <div className="flex items-baseline gap-3 flex-wrap">
+        <span className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold ${hasFlashSale ? 'text-destructive' : 'text-foreground'}`}>
           {formatPrice(displayPrice)}
         </span>
         
-        {/* Original Price - Subtle Muted Strikethrough */}
         {(showOriginalPrice || hasFlashSale) && (
-          <span className="text-sm text-neutral-400 dark:text-neutral-500 line-through font-light">
+          <span className="text-sm text-muted-foreground line-through">
             {formatPrice(hasFlashSale ? currentPrice : originalPrice!)}
           </span>
         )}
-
-        {/* Fashion-forward Minimalist Discount Badge */}
         {discount > 0 && (
-          <Badge variant="outline" className="border-rose-200 bg-rose-50/50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900 text-xs font-bold px-2 rounded-full">
-            {discount}% OFF
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs font-semibold">
+            -{discount}%
           </Badge>
         )}
       </div>
       
-      {/* Savings Callout */}
       {hasFlashSale && (
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium italic">
-          Complimentary savings of {formatPrice(currentPrice - flashSalePrice)}
+        <p className="text-xs text-destructive font-medium">
+          You save {formatPrice(currentPrice - flashSalePrice)}
         </p>
       )}
     </div>
   );
 };
 
-export default GemFashionStyle;
+export default PriceDisplay;

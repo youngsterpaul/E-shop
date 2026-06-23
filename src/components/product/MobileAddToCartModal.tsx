@@ -151,7 +151,7 @@ const MobileAddToCartModal = ({
       await addToCart(product.product_id, { ...selectedVariants, ...selectedAttributes }, quantity);
       toast({
         title: 'Added to Cart',
-        description: `${product.name} has been added to your Gem Fashion Style collection.`,
+        description: `${product.name} has been added to your cart.`,
       });
       onClose();
     } catch (error) {
@@ -175,7 +175,7 @@ const MobileAddToCartModal = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-neutral-900/60 backdrop-blur-xs z-50 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
           showAnimation ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={handleBackdropClick}
@@ -187,31 +187,28 @@ const MobileAddToCartModal = ({
           showAnimation ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="bg-white rounded-t-[2.5rem] shadow-[0_-8px_30px_rgb(0,0,0,0.06)] min-h-[75vh] overflow-hidden border-t border-neutral-100">
+        <div className="bg-background rounded-t-3xl shadow-2xl min-h-[75vh] overflow-hidden">
           {/* Drag Handle */}
-          <div className="flex justify-center py-3">
-            <div className="w-12 h-1 bg-neutral-200 rounded-full" />
+          <div className="flex justify-center py-2">
+            <div className="w-10 h-1 bg-gray-300 rounded-full" />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 pb-4 border-b border-neutral-50">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-800">Gem Fashion Style</h2>
-              <p className="text-[11px] text-neutral-400">Tailor your premium selection</p>
-            </div>
-            <button onClick={onClose} className="p-2 hover:bg-neutral-50 text-neutral-400 hover:text-neutral-600 rounded-full transition-colors">
-              <X className="h-4 w-4" />
+          <div className="flex items-center justify-between px-5 pb-3 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">Select Options</h2>
+            <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full">
+              <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
 
           {/* Scrollable Content */}
-          <div className="overflow-y-auto max-h-[calc(85vh-160px)] px-6">
+          <div className="overflow-y-auto max-h-[calc(85vh-160px)]">
             {/* Product Summary */}
-            <div className="py-5 border-b border-neutral-100">
-              <div className="flex items-start gap-4">
+            <div className="p-5 bg-background border-b border-gray-100">
+              <div className="flex items-start gap-3">
                 <div 
-                  className={`w-20 h-20 bg-neutral-50 rounded-xl overflow-hidden shadow-xs border border-neutral-100 flex items-center justify-center transition-all ${
-                    hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-emerald-800' : ''
+                  className={`w-16 h-16 bg-background rounded-lg shadow-sm flex items-center justify-center overflow-hidden ${
+                    hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''
                   }`}
                   onClick={handleImageClick}
                   title={hasColorVariants ? 'Tap to cycle through colors' : ''}
@@ -222,39 +219,39 @@ const MobileAddToCartModal = ({
                     width={80}
                     height={80}
                     aspectRatio="square"
-                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover"
                   />
                 </div>
 
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <h3 className="font-medium text-sm text-neutral-800 leading-tight mb-1.5 line-clamp-2 tracking-tight">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-xs leading-tight mb-1 line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <div className="flex items-center gap-0.5">
+                  <div className="flex items-center gap-1 mb-1">
+                    <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`w-3 h-3 ${
                             i < Math.floor(averageRating)
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-neutral-200'
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="text-[11px] font-medium text-neutral-400">
-                      {reviewsLoading ? <span className="animate-pulse">...</span> : `(${displayReviewCount} reviews)`}
+                    <span className="text-[11px] text-gray-500">
+                      {reviewsLoading ? <span className="animate-pulse">...</span> : `(${displayReviewCount})`}
                     </span>
                   </div>
 
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-emerald-800 tracking-tight">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base font-semibold text-orange-500">
                       {formatPrice(calculatePrice())}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-xs text-neutral-400 line-through font-light">
+                      <span className="text-xs text-gray-400 line-through">
                         {formatPrice(product.originalPrice)}
                       </span>
                     )}
@@ -264,12 +261,12 @@ const MobileAddToCartModal = ({
             </div>
 
             {/* Variants */}
-            <div className="py-5 space-y-6">
+            <div className="p-5 space-y-5">
               {hasVariants && (
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-3 flex items-center">
-                    <span>Configure Options</span>
-                    <span className="text-rose-400 ml-1">*</span>
+                  <h4 className="text-xs font-medium text-gray-900 mb-2 flex items-center">
+                    <span>Select Options</span>
+                    <span className="text-red-500 ml-0.5">*</span>
                   </h4>
 
                   <VariantSelector
@@ -349,36 +346,34 @@ const MobileAddToCartModal = ({
 
               {/* Quantity Selector */}
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-700 mb-3">Quantity</h4>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden shadow-2xs bg-neutral-50/50">
+                <h4 className="text-xs font-medium text-gray-900 mb-2">Quantity</h4>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-3 hover:bg-neutral-100 text-neutral-600 transition-colors disabled:opacity-30"
+                      className="p-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
                       disabled={quantity <= 1}
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-3.5 w-3.5 text-gray-600" />
                     </button>
-                    <span className="px-4 font-semibold text-neutral-800 min-w-[45px] text-center text-sm">
+                    <span className="px-4 py-2 font-medium text-gray-900 bg-gray-50 min-w-[50px] text-center text-sm">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-3 hover:bg-neutral-100 text-neutral-600 transition-colors"
+                      className="p-2.5 hover:bg-gray-50 transition-colors"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3.5 w-3.5 text-gray-600" />
                     </button>
                   </div>
 
-                  <div className="text-xs font-medium tracking-tight">
+                  <div className="text-xs text-gray-500">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium ${
-                        product.inStock 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                          : 'bg-rose-50 text-rose-700 border border-rose-100'
+                      className={`font-medium ${
+                        product.inStock ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                      {product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
                     </span>
                   </div>
                 </div>
@@ -387,21 +382,23 @@ const MobileAddToCartModal = ({
           </div>
 
           {/* Bottom Action */}
-          <div className="border-t border-neutral-100 p-5 bg-white bottom-0 fixed left-0 right-0 shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
+          <div className="border-t border-gray-100 p-5 bg-background bottom-0 fixed left-0 right-0">
             <button
               onClick={handleAddToCart}
               disabled={!product.inStock || isAddingToCart}
-              className="w-full bg-neutral-900 hover:bg-emerald-900 disabled:bg-neutral-200 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm uppercase tracking-wider shadow-md disabled:shadow-none"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 
+              disabled:from-gray-300 disabled:to-gray-400 text-white font-medium py-2.5 px-4 rounded-lg 
+              transition-all duration-200 flex items-center justify-center gap-1.5 text-sm shadow-md disabled:shadow-none"
             >
               {isAddingToCart ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="normal-case">Adding to Collection...</span>
+                  <span>Adding...</span>
                 </>
               ) : (
                 <>
                   <ShoppingCart className="h-4 w-4" />
-                  <span>Add to Bag &bull; {formatPrice(calculatePrice() * quantity)}</span>
+                  <span>Add to Cart – {formatPrice(calculatePrice() * quantity)}</span>
                 </>
               )}
             </button>
