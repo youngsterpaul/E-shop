@@ -117,6 +117,7 @@ export const GemFashionStyleWidget = () => {
             Achievements
           </Button>
         </div>
-      </Card>
-    );
-  };
+      </CardContent> {/* Properly close CardContent first */}
+    </Card>          {/* Then close Card */}
+  );
+};
