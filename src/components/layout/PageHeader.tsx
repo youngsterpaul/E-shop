@@ -17,7 +17,7 @@ export const PageHeader = ({
   onSearchChange,
   onSearch,
   onBack,
-  placeholder = 'Search for products...',
+  placeholder = 'Search Gem Fashion Style...',
   autoFocusSearch = false,
 }: PageHeaderProps) => {
   const isMobile = isMobileUserAgent();
@@ -26,32 +26,36 @@ export const PageHeader = ({
 
   return (
     <div 
-      className="fixed top-0 z-40 bg-background border-b border-gray-200 px-2 pt-2 pb-2 w-full"
+      className="fixed top-0 z-40 bg-zinc-50/95 backdrop-blur-md border-b border-zinc-200/80 px-3 pt-3 pb-3 w-full shadow-sm transition-all"
     >
-      <div className="flex w-full items-center gap-2">
+      <div className="flex w-full items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
-          className="p-2 h-8 w-8"
+          className="p-2 h-9 w-9 rounded-full hover:bg-zinc-200/60 text-zinc-700 transition-colors"
           onClick={onBack}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-5 w-5" />
         </Button>
-        <EnhancedSearchInput
-          value={searchQuery}
-          onChange={onSearchChange}
-          onSearch={onSearch}
-          placeholder={placeholder}
-          className="w-full"
-          autoFocus={autoFocusSearch}
-        />
+        
+        <div className="flex-1 relative">
+          <EnhancedSearchInput
+            value={searchQuery}
+            onChange={onSearchChange}
+            onSearch={onSearch}
+            placeholder={placeholder}
+            className="w-full bg-white border-zinc-300 focus:border-amber-600 focus:ring-amber-600/20 rounded-md text-sm placeholder:text-zinc-400"
+            autoFocus={autoFocusSearch}
+          />
+        </div>
+
         <Button
           type="button"
           variant="ghost"
           onClick={() => onSearch(searchQuery)}
-          className="h-8 px-2"
+          className="h-9 px-3 rounded-md text-zinc-800 hover:text-amber-700 hover:bg-amber-50 transition-colors"
         >
-          <Search className="text-gray-800 h-4 w-4" />
+          <Search className="h-4 w-4" />
         </Button>
       </div>
     </div>

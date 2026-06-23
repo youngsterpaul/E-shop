@@ -1,5 +1,6 @@
-import { Suspense } from "react";
-import { useLocation } from "react-router-dom";
+import { Suspense, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client"; // Ensure this matches your project's client instance path
 import { TooltipProvider } from "@/components/ui/tooltip";
 import TopProgressBar from './components/TopProgressBar';
 import Header from './components/Header';
@@ -21,6 +22,7 @@ function App() {
   useUserBehaviorTracking();
 
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
   const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
   const isAuthRoute = location.pathname.startsWith("/auth");
@@ -29,6 +31,20 @@ function App() {
   const isHomePage = location.pathname === "/";
 
   const { title, backTo, rightAction } = useMobileHeaderProps();
+
+  // Listen for Google Auth redirects globally across the app shell
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // If they successfully logged in from the Google flow, wipe the parameters clean
+        if (window.location.search.includes("code=")) {
+          navigate("/", { replace: true }); // You can alter "/" to your dashboard route e.g., "/dashboard"
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   return (
     <TooltipProvider>

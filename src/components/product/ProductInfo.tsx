@@ -1,36 +1,44 @@
+import React from 'react';
 import { Star } from 'lucide-react';
 
-interface ProductInfoProps {
+interface GemFashionStyleProps {
   name: string;
   rating?: number;
   reviews?: number;
 }
 
-const ProductInfo: React.FC<ProductInfoProps> = ({ name, rating, reviews }) => {
+const GemFashionStyle: React.FC<GemFashionStyleProps> = ({ name, rating, reviews }) => {
   return (
-    <div>
-      <h1 className="text-md font-bold text-gray-900">
+    <div className="font-sans tracking-wide max-w-md p-4 bg-stone-50 rounded-xl shadow-sm border border-stone-100">
+      {/* Brand & Product Title styling */}
+      <h1 className="text-2xl font-light uppercase tracking-widest text-neutral-800 mb-2 font-serif">
         {name}
       </h1>
+      
       {rating && (
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center">
+        <div className="flex items-center gap-3 mt-3">
+          {/* Custom Fashion Star Palette: Emerald / Gold Accent */}
+          <div className="flex items-center gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`w-5 h-5 ${
+                className={`w-4 h-4 transition-colors duration-300 ${
                   i < Math.floor(rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
+                    ? 'text-emerald-700 fill-emerald-700' // Rich Gem color
+                    : 'text-stone-200'
                 }`}
               />
             ))}
           </div>
-          <span className="text-sm text-gray-600">({reviews || 0} reviews)</span>
+          
+          {/* Minimalist Review Count */}
+          <span className="text-xs tracking-wider text-stone-500 uppercase font-medium">
+            {reviews || 0} Client Reviews
+          </span>
         </div>
       )}
     </div>
   );
 };
 
-export default ProductInfo;
+export default GemFashionStyle;

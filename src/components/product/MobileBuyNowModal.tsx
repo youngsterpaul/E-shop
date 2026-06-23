@@ -9,7 +9,7 @@ import { useProductReviews } from '@/hooks/useReviews';
 import OptimizedImage from '../OptimizedImage';
 import VariantSelector from '@/components/product/VariantSelector';
 
-interface MobileBuyNowModalProps {
+interface GemFashionStyleModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: {
@@ -33,7 +33,7 @@ interface MobileBuyNowModalProps {
   calculatePrice: () => number;
 }
 
-const MobileBuyNowModal = ({
+const GemFashionStyleModal = ({
   isOpen,
   onClose,
   product,
@@ -41,7 +41,7 @@ const MobileBuyNowModal = ({
   requiredVariants,
   onVariantChange,
   calculatePrice,
-}: MobileBuyNowModalProps) => {
+}: GemFashionStyleModalProps) => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
@@ -139,7 +139,7 @@ const MobileBuyNowModal = ({
     if (!product.inStock) {
       toast({
         title: "Out of Stock",
-        description: "This item is currently out of stock",
+        description: "This collection item is currently unavailable",
         variant: "destructive"
       });
       return;
@@ -150,7 +150,7 @@ const MobileBuyNowModal = ({
       const missingVariants = variantTypes.filter((type) => !selectedVariants[type]);
       if (missingVariants.length > 0) {
         toast({
-          title: 'Please choose a variant',
+          title: 'Select styling options',
           description: `Please select: ${missingVariants.join(', ')}`,
           variant: 'destructive',
         });
@@ -173,7 +173,7 @@ const MobileBuyNowModal = ({
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to proceed to checkout",
+        description: "Failed to proceed to luxury checkout",
         variant: "destructive"
       });
       setIsBuyingNow(false);
@@ -190,7 +190,7 @@ const MobileBuyNowModal = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-zinc-950/40 backdrop-blur-sm z-50 transition-opacity duration-300 ${
           showAnimation ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={handleBackdropClick}
@@ -202,31 +202,31 @@ const MobileBuyNowModal = ({
           showAnimation ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="bg-background rounded-t-3xl shadow-2xl min-h-[75vh] overflow-hidden">
+        <div className="bg-white rounded-t-[2rem] shadow-2xl min-h-[75vh] overflow-hidden border-t border-zinc-100">
           {/* Drag Handle */}
-          <div className="flex justify-center py-2">
-            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1 bg-zinc-200 rounded-full" />
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 pb-3 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Buy Now</h2>
-            <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full">
-              <X className="h-4 w-4 text-gray-500" />
+          <div className="flex items-center justify-between px-6 pb-4 border-b border-zinc-100">
+            <h2 className="text-sm font-bold tracking-wider text-zinc-900 uppercase">Gem Fashion Style</h2>
+            <button onClick={onClose} className="p-1.5 hover:bg-zinc-100 rounded-full transition-colors">
+              <X className="h-4 w-4 text-zinc-400 hover:text-zinc-700" />
             </button>
           </div>
 
           {/* Scrollable Content */}
           <div className="overflow-y-auto max-h-[calc(85vh-160px)]">
             {/* Product Summary */}
-            <div className="p-5 bg-background border-b border-gray-100">
-              <div className="flex items-start gap-3">
+            <div className="p-6 bg-zinc-50/50 border-b border-zinc-100">
+              <div className="flex items-start gap-4">
                 <div 
-                  className={`w-16 h-16 bg-background rounded-lg shadow-sm flex items-center justify-center overflow-hidden ${
-                    hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''
+                  className={`w-20 h-20 bg-white rounded-xl shadow-sm ring-1 ring-zinc-100 flex items-center justify-center overflow-hidden transition-all ${
+                    hasColorVariants ? 'cursor-pointer hover:ring-2 hover:ring-emerald-600' : ''
                   }`}
                   onClick={handleImageClick}
-                  title={hasColorVariants ? 'Tap to cycle through colors' : ''}
+                  title={hasColorVariants ? 'Tap to view color variations' : ''}
                 >
                   <OptimizedImage
                     src={getCurrentImage()}
@@ -239,34 +239,34 @@ const MobileBuyNowModal = ({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-xs leading-tight mb-1 line-clamp-2">
+                  <h3 className="font-semibold text-sm leading-snug text-zinc-800 mb-1 line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center gap-1 mb-1">
+                  <div className="flex items-center gap-1.5 mb-2">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`w-3 h-3 ${
                             i < Math.floor(averageRating)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
+                              ? 'text-amber-400 fill-current'
+                              : 'text-zinc-200'
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="text-[11px] text-gray-500">
-                      {reviewsLoading ? <span className="animate-pulse">...</span> : `(${displayReviewCount})`}
+                    <span className="text-[11px] text-zinc-500 font-medium">
+                      {reviewsLoading ? <span className="animate-pulse">...</span> : `(${displayReviewCount} reviews)`}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base font-semibold text-orange-500">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-emerald-700">
                       {formatPrice(calculatePrice())}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-xs text-gray-400 line-through">
+                      <span className="text-xs text-zinc-400 line-through">
                         {formatPrice(product.originalPrice)}
                       </span>
                     )}
@@ -276,37 +276,37 @@ const MobileBuyNowModal = ({
             </div>
 
             {/* Variants */}
-            <div className="p-5 space-y-5">
+            <div className="p-6 space-y-6">
               {hasVariants && (
                 <div>
-                  <h4 className="text-xs font-medium text-gray-900 mb-2 flex items-center">
+                  <h4 className="text-xs font-bold tracking-wide text-zinc-900 uppercase mb-3 flex items-center">
                     <span>Select Options</span>
-                    <span className="text-red-500 ml-0.5">*</span>
+                    <span className="text-emerald-600 ml-0.5">*</span>
                   </h4>
 
                   <VariantSelector
                     variants={(() => {
                       const colorMap: Record<string, string> = {
-                        red: '#ef4444',
-                        blue: '#3b82f6',
-                        green: '#10b981',
-                        black: '#1f2937',
+                        red: '#dc2626',
+                        blue: '#2563eb',
+                        green: '#059669',
+                        black: '#09090b',
                         white: '#ffffff',
-                        gray: '#6b7280',
-                        grey: '#6b7280',
-                        yellow: '#f59e0b',
-                        orange: '#f97316',
-                        purple: '#8b5cf6',
-                        pink: '#ec4899',
-                        brown: '#92400e',
+                        gray: '#71717a',
+                        grey: '#71717a',
+                        yellow: '#eab308',
+                        orange: '#ea580c',
+                        purple: '#9333ea',
+                        pink: '#db2777',
+                        brown: '#78350f',
                         navy: '#1e3a8a',
-                        maroon: '#7f1d1d',
-                        gold: '#d97706',
-                        silver: '#9ca3af',
+                        maroon: '#991b1b',
+                        gold: '#ca8a04',
+                        silver: '#cbd5e1',
                         beige: '#f5f5dc',
                         cream: '#fffdd0',
-                        turquoise: '#06b6d4',
-                        lime: '#65a30d',
+                        turquoise: '#0d9488',
+                        lime: '#4d7c0f',
                       };
 
                       return getVariantTypes().map((type) => {
@@ -332,7 +332,7 @@ const MobileBuyNowModal = ({
                             name: variantValue,
                             value:
                               variantType === 'color'
-                                ? colorMap[variantValue.toLowerCase()] || '#6b7280'
+                                ? colorMap[variantValue.toLowerCase()] || '#71717a'
                                 : variantValue,
                             available: variant.stock_quantity > 0,
                             priceModifier: variant.price_modifier || 0,
@@ -361,34 +361,36 @@ const MobileBuyNowModal = ({
 
               {/* Quantity Selector */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-2">Quantity</h4>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
+                <h4 className="text-xs font-bold tracking-wide text-zinc-900 uppercase mb-3">Quantity</h4>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-zinc-200 rounded-xl overflow-hidden bg-zinc-50/50 p-0.5">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="p-2 rounded-lg hover:bg-white transition-colors disabled:opacity-30"
                       disabled={quantity <= 1}
                     >
-                      <Minus className="h-3.5 w-3.5 text-gray-600" />
+                      <Minus className="h-3.5 w-3.5 text-zinc-600" />
                     </button>
-                    <span className="px-4 py-2 font-medium text-gray-900 bg-gray-50 min-w-[50px] text-center text-sm">
+                    <span className="px-4 font-semibold text-zinc-900 min-w-[45px] text-center text-sm">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-2.5 hover:bg-gray-50 transition-colors"
+                      className="p-2 rounded-lg hover:bg-white transition-colors"
                     >
-                      <Plus className="h-3.5 w-3.5 text-gray-600" />
+                      <Plus className="h-3.5 w-3.5 text-zinc-600" />
                     </button>
                   </div>
 
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs">
                     <span
-                      className={`font-medium ${
-                        product.inStock ? 'text-green-600' : 'text-red-600'
+                      className={`font-semibold px-2.5 py-1 rounded-full text-[11px] ${
+                        product.inStock 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                          : 'bg-rose-50 text-rose-700 border border-rose-100'
                       }`}
                     >
-                      {product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+                      {product.inStock ? 'In Stock' : 'Unavailable'}
                     </span>
                   </div>
                 </div>
@@ -397,23 +399,23 @@ const MobileBuyNowModal = ({
           </div>
 
           {/* Bottom Action */}
-          <div className="border-t border-gray-100 p-5 bg-background bottom-0 fixed left-0 right-0">
+          <div className="border-t border-zinc-100 p-6 bg-white bottom-0 fixed left-0 right-0">
             <button
               onClick={handleBuyNow}
               disabled={!product.inStock || isBuyingNow}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 
-              disabled:from-gray-300 disabled:to-gray-400 text-white font-medium py-2.5 px-4 rounded-lg 
-              transition-all duration-200 flex items-center justify-center gap-1.5 text-sm shadow-md disabled:shadow-none"
+              className="w-full bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-200 disabled:text-zinc-400
+              text-white font-medium tracking-wide py-3.5 px-4 rounded-xl 
+              transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm"
             >
               {isBuyingNow ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Processing...</span>
+                  <span>Processing Selection...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4" />
-                  <span>Buy Now – {formatPrice(calculatePrice() * quantity)}</span>
+                  <Zap className="h-4 w-4 fill-current text-amber-400 border-none" />
+                  <span className="font-semibold">Order Now – {formatPrice(calculatePrice() * quantity)}</span>
                 </>
               )}
             </button>
@@ -424,4 +426,4 @@ const MobileBuyNowModal = ({
   );
 };
 
-export default MobileBuyNowModal;
+export default GemFashionStyleModal;

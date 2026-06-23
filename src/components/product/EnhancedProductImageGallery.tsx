@@ -3,7 +3,7 @@ import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { isMobileUserAgent } from "@/hooks/use-mobile";
 import OptimizedImage from "../OptimizedImage";
 
-interface EnhancedProductImageGalleryProps {
+interface GemFashionStyleGalleryProps {
   product: {
     id: string;
     name: string;
@@ -21,11 +21,11 @@ const LENS_SIZE = 150;
 const ZOOM_PANEL_SIZE = MAIN_SIZE;
 const LARGE_SIZE = MAIN_SIZE * ZOOM_FACTOR;
 
-const EnhancedProductImageGallery = ({
+const GemFashionStyleGallery = ({
   product,
   selectedImageUrl,
   variantImages = [],
-}: EnhancedProductImageGalleryProps) => {
+}: GemFashionStyleGalleryProps) => {
   const isMobile = isMobileUserAgent();
 
   const isVideo = useCallback(
@@ -98,9 +98,7 @@ const EnhancedProductImageGallery = ({
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  // Track the last selectedImageUrl we acted on, so we only
-  // jump to the variant image when the variant actually changes —
-  // not when the user manually clicks a thumbnail
+  // Track the last selectedImageUrl we acted on
   const lastAppliedVariantUrl = useRef<string | undefined>(undefined);
 
   // ── selectedImageUrl: only jump when variant prop actually changes ──
@@ -234,7 +232,7 @@ const EnhancedProductImageGallery = ({
   };
 
   /* ═══════════════════════════════════════════
-     RENDER — MOBILE
+     RENDER — MOBILE (GEM FASHION STYLE)
   ═══════════════════════════════════════════ */
   if (isMobile) {
     const activeDotIndex = (() => {
@@ -244,16 +242,16 @@ const EnhancedProductImageGallery = ({
     })();
 
     return (
-      <div className="w-full bg-white overflow-hidden">
+      <div className="w-full bg-[#faf9f6] overflow-hidden tracking-wide">
         <div
-          className="relative aspect-square touch-none"
+          className="relative aspect-[3/4] touch-none bg-[#111111]"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           <div
             className={`flex h-full w-full ${
-              isTransitioning ? "transition-transform duration-300 ease-out" : ""
+              isTransitioning ? "transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1)" : ""
             }`}
             style={{
               transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
@@ -262,30 +260,30 @@ const EnhancedProductImageGallery = ({
             {mobileMedia.map((media, i) => (
               <div
                 key={`${media}-${i}`}
-                className="w-full h-full flex-shrink-0 relative bg-black"
+                className="w-full h-full flex-shrink-0 relative bg-[#111111]"
               >
                 {isVideo(media) ? (
                   <div className="relative w-full h-full" onClick={togglePlay}>
                     <video
                       ref={(el) => { if (el) videoRefs.current.set(i, el); }}
                       src={media}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                       playsInline
                       loop
                       muted={isMuted}
                     />
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       {!isPlaying && (
-                        <div className="p-4 bg-black/40 rounded-full backdrop-blur-sm">
-                          <Play className="text-white w-8 h-8 fill-current" />
+                        <div className="p-5 bg-black/60 rounded-full backdrop-blur-md border border-[#D4AF37]/30">
+                          <Play className="text-[#D4AF37] w-6 h-6 fill-current translate-x-0.5" />
                         </div>
                       )}
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
-                      className="absolute bottom-16 right-4 p-2 bg-black/50 rounded-full text-white"
+                      className="absolute bottom-16 right-4 p-2.5 bg-black/60 backdrop-blur-md rounded-full text-white border border-white/10"
                     >
-                      {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                      {isMuted ? <VolumeX size={18} className="text-[#D4AF37]" /> : <Volume2 size={18} />}
                     </button>
                   </div>
                 ) : (
@@ -299,12 +297,13 @@ const EnhancedProductImageGallery = ({
             ))}
           </div>
 
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-black/20 backdrop-blur-md rounded-full">
+          {/* Premium Minimal Carousel Indicator */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
             {mobileRawMedia.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === activeDotIndex ? "w-4 bg-white" : "w-1.5 bg-white/50"
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i === activeDotIndex ? "w-6 bg-[#D4AF37]" : "w-1 bg-white/40"
                 }`}
               />
             ))}
@@ -315,87 +314,87 @@ const EnhancedProductImageGallery = ({
   }
 
   /* ═══════════════════════════════════════════
-     RENDER — DESKTOP
+     RENDER — DESKTOP (GEM FASHION STYLE)
   ═══════════════════════════════════════════ */
   return (
     <div
-      className="flex flex-col gap-3 w-full select-none items-center"
-      style={{ width: MAIN_SIZE }}
+      className="flex flex-col gap-4 w-full select-none items-center font-sans tracking-tight bg-[#faf9f6] p-3 rounded-2xl border border-neutral-200/60 shadow-sm"
+      style={{ width: MAIN_SIZE + 24 }}
     >
-      {/* Main image */}
-      <div className="relative group" style={{ width: MAIN_SIZE, height: MAIN_SIZE }}>
+      {/* Main Presentation Window */}
+      <div className="relative group" style={{ width: MAIN_SIZE, height: MAIN_SIZE * 1.2 }}>
         <div
           ref={mainRef}
-          className="w-full h-full border rounded-xl bg-white overflow-hidden relative cursor-crosshair"
+          className="w-full h-full border border-neutral-200 bg-white overflow-hidden relative cursor-zoom-in"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setShowLens(false)}
         >
           {isVideo(rawMedia[currentIndex]) ? (
-            <div className="relative w-full h-full group/video bg-black">
+            <div className="relative w-full h-full group/video bg-[#111111]">
               <video
                 ref={(el) => { if (el) videoRefs.current.set(currentIndex, el); }}
                 src={rawMedia[currentIndex]}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 controlsList="nodownload"
                 onClick={togglePlay}
                 loop
               />
-              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/video:opacity-100 transition-opacity duration-300">
                 <button
                   onClick={togglePlay}
-                  className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80"
+                  className="p-4 bg-black/70 text-white rounded-full hover:bg-[#111111] border border-[#D4AF37]/40 backdrop-blur-sm shadow-xl pointer-events-auto transition-transform active:scale-95"
                 >
-                  {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" />}
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} fill="white" className="translate-x-0.5" />}
                 </button>
               </div>
             </div>
           ) : (
             <img
               src={rawMedia[currentIndex]}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               alt={product.name}
             />
           )}
 
-          {/* Lens overlay */}
+          {/* Luxury Lens Overlay */}
           {showLens && !isVideo(rawMedia[currentIndex]) && (
             <div
-              className="absolute pointer-events-none rounded-md border-2 border-primary/60 bg-primary/5 shadow-inner"
+              className="absolute pointer-events-none border border-[#D4AF37] bg-[#D4AF37]/5 backdrop-blur-[1px]"
               style={{
                 width: LENS_SIZE,
                 height: LENS_SIZE,
                 left: lensPos.x,
                 top: lensPos.y,
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.4) inset",
+                boxShadow: "0 0 15px rgba(212, 175, 55, 0.2)",
               }}
             />
           )}
         </div>
 
-        {/* Zoom panel */}
+        {/* High-Fidelity Zoom Panel */}
         {showLens && !isVideo(rawMedia[currentIndex]) && (
           <div
-            className="absolute top-0 z-[100] border bg-white shadow-2xl rounded-xl overflow-hidden pointer-events-none"
+            className="absolute top-0 z-[100] border border-neutral-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden pointer-events-none transition-opacity duration-200"
             style={{
               width: ZOOM_PANEL_SIZE,
-              height: ZOOM_PANEL_SIZE,
+              height: ZOOM_PANEL_SIZE * 1.2,
               ...(zoomPanelSide === "right"
-                ? { left: `calc(100% + 16px)` }
-                : { right: `calc(100% + 16px)` }),
+                ? { left: `calc(100% + 20px)` }
+                : { right: `calc(100% + 20px)` }),
             }}
           >
             <div
               style={{
                 width: LARGE_SIZE,
-                height: LARGE_SIZE,
+                height: LARGE_SIZE * 1.2,
                 transform: `translate(${zoomTranslate.x}px, ${zoomTranslate.y}px)`,
                 willChange: "transform",
               }}
             >
               <img
                 src={rawMedia[currentIndex]}
-                className="w-full h-full object-contain"
-                alt="Zoomed"
+                className="w-full h-full object-cover"
+                alt="Zoomed Review"
                 draggable={false}
               />
             </div>
@@ -403,11 +402,11 @@ const EnhancedProductImageGallery = ({
         )}
       </div>
 
-      {/* Thumbnail strip — click only, no hover switching */}
+      {/* Editorial Thumbnail Strip */}
       {rawMedia.length > 1 && (
         <div
           ref={thumbnailStripRef}
-          className="flex gap-2 overflow-x-auto pb-1 w-full"
+          className="flex gap-2.5 overflow-x-auto py-1 w-full snap-x scroll-smooth"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {rawMedia.map((media, i) => (
@@ -415,31 +414,33 @@ const EnhancedProductImageGallery = ({
               key={`${media}-${i}`}
               onClick={() => setCurrentIndex(i)}
               className={`
-                relative flex-shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden
-                transition-all duration-200 ease-out outline-none
+                relative flex-shrink-0 w-[68px] h-[85px] snap-center
+                transition-all duration-300 ease-out outline-none bg-white border
                 ${
                   currentIndex === i
-                    ? "ring-2 ring-primary ring-offset-2 opacity-100 scale-105 shadow-md"
-                    : "ring-1 ring-transparent opacity-55 hover:opacity-90 hover:ring-gray-200 hover:ring-offset-1"
+                    ? "border-[#111111] shadow-sm scale-[1.02]"
+                    : "border-neutral-200 opacity-60 hover:opacity-100 hover:border-neutral-400"
                 }
               `}
-              aria-label={`View image ${i + 1}`}
+              aria-label={`View editorial media asset ${i + 1}`}
             >
               {isVideo(media) && (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
-                    <Play className="w-3 h-3 text-white fill-current" />
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/10">
+                  <div className="bg-black/60 border border-white/20 rounded-full p-1.5 shadow-sm">
+                    <Play className="w-2.5 h-2.5 text-[#D4AF37] fill-current translate-x-0.5" />
                   </div>
                 </div>
               )}
               <img
                 src={isVideo(media) ? product.image : media}
                 className="w-full h-full object-cover"
-                alt={`Thumbnail ${i + 1}`}
+                alt={`Asset thumbnail ${i + 1}`}
                 draggable={false}
               />
+              
+              {/* Active Accent Border Strip */}
               <div
-                className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-left ${
+                className={`absolute bottom-0 left-0 right-0 h-[3px] bg-[#D4AF37] transition-transform duration-300 origin-left ${
                   currentIndex === i ? "scale-x-100" : "scale-x-0"
                 }`}
               />
@@ -451,4 +452,4 @@ const EnhancedProductImageGallery = ({
   );
 };
 
-export default EnhancedProductImageGallery;
+export default GemFashionStyleGallery;

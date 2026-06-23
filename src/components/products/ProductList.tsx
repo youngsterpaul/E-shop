@@ -45,7 +45,7 @@ export const ProductList = ({
   onPageChange,
   onPageSizeChange,
   searchQuery,
-  emptyStateMessage = 'No products found.',
+  emptyStateMessage = 'No high-fashion items matched your selection.',
   emptyStateAction,
   specConfig,
 }: ProductListProps) => {
@@ -110,29 +110,36 @@ export const ProductList = ({
     ? sortedProducts.length
     : (totalCount ?? searchedProducts.length);
 
+  // Gem Fashion Luxury Loader
   if (isLoading) {
     return (
-      <div className="flex justify-center py-10">
-        <div className="animate-spin h-8 w-8 border-2 border-green-500 border-t-transparent rounded-full" />
-        <span className="ml-3 text-gray-600">Loading products...</span>
+      <div className="flex flex-col items-center justify-center py-20 bg-stone-50/50 rounded-xl">
+        <div className="relative w-12 h-12 flex items-center justify-center">
+          <div className="absolute animate-spin h-10 w-10 border-2 border-amber-600 border-t-transparent rounded-full" />
+          <div className="h-4 w-4 bg-stone-900 rounded-full animate-pulse" />
+        </div>
+        <span className="mt-4 text-xs uppercase tracking-widest text-stone-500 font-medium">
+          Curating Gem Fashion Style...
+        </span>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="text-center py-16">
-        <p className="text-red-600">Error loading products. Try again.</p>
+      <div className="text-center py-20 border border-red-100 bg-red-50/30 rounded-xl max-w-md mx-auto">
+        <p className="text-sm font-medium tracking-wide text-red-800 uppercase">A Styling Error Occurred</p>
+        <p className="text-xs text-red-600 mt-1">Unable to load the collection. Please refresh.</p>
       </div>
     );
   }
 
   if (sortedProducts.length === 0) {
     return (
-      <div className="flex gap-6">
+      <div className="flex gap-8">
         {/* Keep filters visible even when no results */}
         {!isMobile && products.length > 0 && (
-          <div className="w-72 flex-shrink-0">
+          <div className="w-64 flex-shrink-0 bg-white border border-stone-100 p-5 rounded-xl shadow-sm">
             <SearchFilters
               products={products}
               value={filters}
@@ -141,19 +148,24 @@ export const ProductList = ({
             />
           </div>
         )}
-        <div className="flex-1 text-center py-16 bg-background rounded-lg">
-          <p className="text-gray-600 text-lg">{emptyStateMessage}</p>
-          {emptyStateAction}
+        <div className="flex-1 text-center py-20 bg-stone-50 border border-stone-100 rounded-xl flex flex-col items-center justify-center px-4">
+          <h3 className="font-serif text-xl text-stone-800 mb-2">Gem Fashion Style</h3>
+          <p className="text-stone-500 max-w-sm text-sm tracking-wide">{emptyStateMessage}</p>
+          {emptyStateAction && <div className="mt-6">{emptyStateAction}</div>}
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
-      {/* Desktop Filters */}
+    <div className={`flex gap-8 ${isMobile ? 'flex-col' : ''}`}>
+      {/* Desktop Filters Side Panel */}
       {!isMobile && products.length > 0 && (
-        <div className="w-72 flex-shrink-0">
+        <div className="w-64 flex-shrink-0 bg-white border border-stone-100 p-5 rounded-xl shadow-sm h-fit sticky top-24">
+          <div className="mb-4 pb-3 border-b border-stone-100">
+            <h2 className="font-serif text-lg tracking-wide text-stone-900">Gem Fashion Style</h2>
+            <p className="text-[11px] uppercase tracking-widest text-amber-600 font-semibold mt-0.5">Filter Studio</p>
+          </div>
           <SearchFilters
             products={products}
             value={filters}
@@ -164,12 +176,12 @@ export const ProductList = ({
       )}
 
       <div className="flex-1 min-w-0">
-        {/* Products Header — fixed on mobile */}
+        {/* Products Header — luxury styling setup */}
         <div
           className={
             !isMobile
-              ? 'bg-background flex justify-between p-4 mb-2'
-              : 'fixed left-0 right-0 z-30 bg-background border-b border-border px-3 py-2 shadow-sm'
+              ? 'bg-transparent flex justify-between items-center pb-4 mb-6 border-b border-stone-200'
+              : 'fixed left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-100 px-4 py-3 shadow-sm'
           }
           style={
             isMobile
@@ -178,36 +190,49 @@ export const ProductList = ({
           }
         >
           {!isMobile && (
-            <p className="text-gray-600 text-lg">
-              <span className="font-semibold text-gray-900">{displayCount}</span>{' '}
-              product{displayCount !== 1 ? 's' : ''} found
-              {hasActiveFilters && (
-                <span className="text-sm text-gray-400 ml-2">(filtered)</span>
-              )}
-            </p>
+            <div>
+              <p className="text-xs uppercase tracking-widest text-amber-600 font-semibold mb-0.5">
+                Exclusive Lookbook
+              </p>
+              <p className="text-stone-500 text-sm tracking-wide">
+                Showing <span className="font-semibold text-stone-900">{displayCount}</span> luxury architectural piece{displayCount !== 1 ? 's' : ''}
+                {hasActiveFilters && (
+                  <span className="text-xs text-stone-400 italic ml-2">(refined selection)</span>
+                )}
+              </p>
+            </div>
           )}
-          <div className="flex justify-between items-center gap-3">
-            {isMobile ? (
-              <MobileSortDropdown sortOption={sortOption} onSortChange={onSortChange} />
-            ) : (
-              <ProductSort sortOption={sortOption} onSortChange={onSortChange} />
-            )}
+          
+          <div className="flex justify-between items-center gap-4 w-full sm:w-auto">
             {isMobile && (
-              <MobileFilterSheet
-                products={products}
-                filters={filters}
-                onFiltersChange={onFiltersChange}
-                activeFiltersCount={activeFiltersCount}
-              />
+              <div className="flex flex-col">
+                <span className="font-serif text-xs text-stone-900 tracking-wider font-semibold">Gem Fashion Style</span>
+                <span className="text-[10px] text-stone-400 font-medium">{displayCount} items available</span>
+              </div>
             )}
+            <div className="flex items-center gap-2 ml-auto">
+              {isMobile ? (
+                <MobileSortDropdown sortOption={sortOption} onSortChange={onSortChange} />
+              ) : (
+                <ProductSort sortOption={sortOption} onSortChange={onSortChange} />
+              )}
+              {isMobile && (
+                <MobileFilterSheet
+                  products={products}
+                  filters={filters}
+                  onFiltersChange={onFiltersChange}
+                  activeFiltersCount={activeFiltersCount}
+                />
+              )}
+            </div>
           </div>
         </div>
 
         {/* Spacer to offset fixed mobile header */}
-        {isMobile && <div aria-hidden="true" className="h-14" />}
+        {isMobile && <div aria-hidden="true" className="h-16" />}
 
-        {/* Products Grid */}
-        <div className={`${isMobile ? 'px-2' : 'bg-background p-6 shadow-sm'} grid ${gridCols} gap-4`}>
+        {/* Products Grid with premium padding and seamless alignment */}
+        <div className={`${isMobile ? 'px-3 py-2' : 'bg-transparent'} grid ${gridCols} gap-x-5 gap-y-8`}>
           {sortedProducts.map((p) => (
             <ProductCard
               key={p.product_id}
@@ -226,16 +251,18 @@ export const ProductList = ({
           ))}
         </div>
 
-        {/* Pagination — hide when filters are active since we're showing filtered subset */}
+        {/* Pagination Panel with Premium Clean Bordering */}
         {!isMobile && !hasActiveFilters && totalPages && totalPages > 1 && (
-          <SmartPagination
-            currentPage={currentPage!}
-            totalPages={totalPages}
-            totalItems={totalCount!}
-            itemsPerPage={itemsPerPage!}
-            onPageChange={handlePageChange}
-            className="bg-background mt-2"
-          />
+          <div className="mt-12 pt-6 border-t border-stone-200">
+            <SmartPagination
+              currentPage={currentPage!}
+              totalPages={totalPages}
+              totalItems={totalCount!}
+              itemsPerPage={itemsPerPage!}
+              onPageChange={handlePageChange}
+              className="bg-transparent"
+            />
+          </div>
         )}
       </div>
     </div>

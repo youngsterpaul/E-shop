@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 const generateSlug = (name: string): string =>
   name.toLowerCase().replace(/&/g, '-').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-const MobileHeroSearchBar = () => {
+const GemFashionStyle = () => {
   const navigate = useNavigate();
   const { data: categories } = useCategoryHierarchy();
   const [activeId, setActiveId] = useState<number | 'all'>('all');
@@ -33,12 +33,12 @@ const MobileHeroSearchBar = () => {
 
   return (
     <>
-      {/* Fixed category pills rail */}
-      <div className="fixed top-12 left-0 right-0 z-50 bg-background">
-        <div className="relative">
+      {/* Premium Fixed category pills rail */}
+      <div className="fixed top-12 left-0 right-0 z-50 bg-background/95 backdrop-blur-md shadow-sm border-b border-zinc-100">
+        <div className="relative max-w-md mx-auto">
           <div
             ref={railRef}
-            className="flex items-end gap-1 overflow-x-auto scrollbar-hide px-3 pb-1.5 pt-2"
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-4 py-3"
             style={{ scrollbarWidth: 'none' }}
           >
             {/* ALL pill */}
@@ -49,16 +49,13 @@ const MobileHeroSearchBar = () => {
                 navigate('/');
               }}
               className={cn(
-                'relative shrink-0 px-2 py-2 text-[14px] tracking-wide transition-colors',
+                'shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 border',
                 activeId === 'all'
-                  ? 'text-foreground font-bold'
-                  : 'text-muted-foreground font-medium'
+                  ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm scale-105'
+                  : 'bg-zinc-50 text-zinc-600 border-zinc-200/80 hover:bg-zinc-100 hover:text-zinc-900'
               )}
             >
-              ALL
-              {activeId === 'all' && (
-                <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
-              )}
+              All Collection
             </button>
 
             {(categories || []).map((cat) => {
@@ -69,29 +66,24 @@ const MobileHeroSearchBar = () => {
                   ref={(el) => (itemRefs.current[String(cat.id)] = el)}
                   onClick={() => handleCategoryClick(cat)}
                   className={cn(
-                    'relative shrink-0 px-3 py-2 text-[14px] whitespace-nowrap transition-colors',
+                    'shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-300 border whitespace-nowrap',
                     isActive
-                      ? 'text-foreground font-bold'
-                      : 'text-muted-foreground font-medium hover:text-foreground'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-sm scale-105'
+                      : 'bg-zinc-50 text-zinc-600 border-zinc-200/80 hover:bg-zinc-100 hover:text-zinc-900'
                   )}
                 >
                   {cat.name}
-                  {isActive && (
-                    <span className="absolute left-2 right-2 -bottom-0.5 h-[3px] rounded-full bg-primary" />
-                  )}
                 </button>
               );
             })}
           </div>
-          {/* Subtle bottom divider line */}
-          <div className="absolute left-0 right-0 bottom-0 h-px bg-border/60" />
         </div>
       </div>
 
       {/* Spacer to prevent content from hiding behind the fixed bar */}
-      <div className="h-12" />
+      <div className="h-14" />
     </>
   );
 };
 
-export default MobileHeroSearchBar;
+export default GemFashionStyle;

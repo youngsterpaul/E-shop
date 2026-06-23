@@ -6,7 +6,7 @@ import {
   ResponsiveModalDescription,
 } from '@/components/ui/responsive-modal';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, Loader2 } from 'lucide-react';
+import { ClipboardList, Loader2, Sparkles } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
 interface OrderDetailsModalProps {
@@ -24,54 +24,54 @@ interface StatusEvent {
   reason?: string | null;
 }
 
-// Default warehouse / sorting location used when no metadata is provided
-const DEFAULT_LOCATION = 'Nairobi, Kenya';
+// Modern fashion distribution hub location
+const DEFAULT_LOCATION = 'Gem Fashion Fulfillment Hub';
 
-// Build a rich, descriptive message per status — mirrors AliExpress / J&T style timelines
+// Refreshed status messages tailored for an upscale, premium fashion brand
 const buildEventDetails = (status: string, isLatest: boolean) => {
   switch (status) {
     case 'pending':
       return {
-        title: 'Order placed',
+        title: 'Order Received',
         description:
-          'Your order has been received. Awaiting payment confirmation before warehouse processing begins.',
+          'Thank you for choosing Gem Fashion Style. Your order details are being verified before runway-ready preparation.',
       };
     case 'processing':
       return {
-        title: '[Nairobi Warehouse NO.1] has started the warehouse processing',
+        title: 'Curating & Selecting Items',
         description: isLatest
-          ? 'Our team is locating and picking your items from the warehouse shelves.'
-          : 'Warehouse staff began preparing your order for packaging.',
+          ? 'Our fashion concierges are pulling your selected pieces from our exclusive collections.'
+          : 'Order preparation initialized at our central curation center.',
       };
     case 'packed':
       return {
-        title: 'Your order has been packed at Nairobi Warehouse NO.1',
+        title: 'Beautifully Packaged & Prepared',
         description:
-          'Items have been securely packaged and labelled. Awaiting handover to the courier for dispatch.',
+          'Your items have been carefully inspected, premium wrapped, and sealed in custom Gem Fashion Style packaging.',
       };
     case 'shipped':
       return {
-        title: 'Package received at Nairobi Sorting Center',
+        title: 'Dispatched via Premium Courier',
         description: isLatest
-          ? 'Your package arrived at the sorting center and is awaiting dispatch for delivery.'
-          : 'Package was scanned at the sorting center and queued for last-mile delivery.',
+          ? 'Your wardrobe additions are in transit and making their way to your location.'
+          : 'Parcel sorted and picked up by our premium logistics network.',
       };
     case 'delivered':
       return {
-        title: 'Delivered',
+        title: 'Delivered in Style',
         description:
-          'Your package has been successfully delivered. Thanks for shopping with us!',
+          'Your curated Gem Fashion Style delivery is complete. Enjoy your new look!',
       };
     case 'cancelled':
       return {
-        title: 'Order cancelled',
+        title: 'Order Cancelled',
         description:
-          'This order was cancelled. If this was unexpected, please contact our support team.',
+          'This order has been cancelled. For assistance styling your next look, contact our support team.',
       };
     default:
       return {
-        title: 'Order update',
-        description: 'Status updated.',
+        title: 'Wardrobe Update',
+        description: 'Your order milestone has updated.',
       };
   }
 };
@@ -123,23 +123,29 @@ export const OrderDetailsModal = ({
   }, [open, orderId, createdAt]);
 
   return (
-    <ResponsiveModal open={open} onOpenChange={onOpenChange} className="sm:max-w-lg">
-      <ResponsiveModalHeader>
-        <ResponsiveModalTitle>Order #{orderId.slice(-8).toUpperCase()}</ResponsiveModalTitle>
-        <ResponsiveModalDescription>
+    <ResponsiveModal open={open} onOpenChange={onOpenChange} className="sm:max-w-md border-zinc-100 shadow-2xl rounded-2xl">
+      <ResponsiveModalHeader className="border-b border-zinc-100 pb-4 bg-zinc-50/50 rounded-t-2xl px-6">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="h-4 w-4 text-rose-500 fill-rose-100" />
+          <span className="text-xs uppercase tracking-widest font-semibold text-rose-600">Gem Fashion Style</span>
+        </div>
+        <ResponsiveModalTitle className="text-xl font-serif font-semibold tracking-tight text-zinc-900">
+          Order #{orderId.slice(-8).toUpperCase()}
+        </ResponsiveModalTitle>
+        <ResponsiveModalDescription className="text-xs text-zinc-500 font-medium tracking-wide">
           Placed {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
         </ResponsiveModalDescription>
       </ResponsiveModalHeader>
 
-      <div className="px-4 pb-6">
+      <div className="px-6 py-6 bg-white rounded-b-2xl">
         {loading ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-rose-500" />
           </div>
         ) : (
           <div className="relative pl-2">
-            {/* Vertical line */}
-            <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
+            {/* Elegant tracking vertical path line */}
+            <div className="absolute left-[11px] top-2 bottom-2 w-[1.5px] bg-zinc-100" />
 
             <div className="space-y-6">
               {events.map((event, idx) => {
@@ -149,43 +155,53 @@ export const OrderDetailsModal = ({
                 const date = new Date(event.at);
 
                 return (
-                  <div key={`${event.status}-${event.at}`} className="relative flex gap-4">
-                    {/* Dot / icon */}
+                  <div key={`${event.status}-${event.at}`} className="relative flex gap-4 transition-all duration-300">
+                    {/* Modern Timeline Node */}
                     <div className="relative z-10 shrink-0">
                       {isOrdered ? (
-                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center ring-4 ring-background">
-                          <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                        <div className="w-6 h-6 rounded-full bg-zinc-50 flex items-center justify-center ring-4 ring-white border border-zinc-200">
+                          <ClipboardList className="h-3 w-3 text-zinc-500" />
                         </div>
                       ) : (
                         <div
-                          className={`w-3 h-3 rounded-full mt-1.5 ml-1.5 ring-4 ring-background ${
-                            isLatest ? 'bg-primary' : 'bg-muted-foreground/40'
+                          className={`w-3 h-3 rounded-full mt-1.5 ml-1.5 ring-4 ring-white transition-all duration-300 ${
+                            isLatest 
+                              ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] scale-110' 
+                              : 'bg-zinc-300'
                           }`}
                         />
                       )}
                     </div>
 
-                    {/* Content */}
+                    {/* Content Section */}
                     <div className="flex-1 pb-1">
                       {isOrdered ? (
-                        <p className="text-sm font-semibold text-foreground mb-1">Ordered</p>
+                        <p className="text-xs uppercase tracking-wider font-bold text-zinc-400 mb-1">
+                          Journey Started
+                        </p>
                       ) : null}
                       <p
-                        className={`text-sm leading-snug ${
-                          isLatest ? 'text-foreground font-medium' : 'text-foreground'
+                        className={`text-sm leading-snug tracking-tight ${
+                          isLatest 
+                            ? 'text-zinc-900 font-semibold' 
+                            : 'text-zinc-600 font-medium'
                         }`}
                       >
                         {details.title}
                       </p>
                       {details.description && (
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed font-normal">
                           {details.description}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-1.5">
-                        {format(date, 'MMM d, yyyy')} at {format(date, 'HH:mm')}
-                        {'  '}
-                        <span className="ml-1">{DEFAULT_LOCATION}</span>
+                      
+                      {/* Fashion Hub Meta tag */}
+                      <p className="text-[11px] text-zinc-400 mt-2 font-medium flex items-center gap-1.5">
+                        <span>{format(date, 'MMM d, yyyy')}</span>
+                        <span className="text-zinc-300">•</span>
+                        <span>{format(date, 'HH:mm')}</span>
+                        <span className="text-zinc-300">•</span>
+                        <span className="text-rose-600/80 tracking-wide font-normal">{DEFAULT_LOCATION}</span>
                       </p>
                     </div>
                   </div>

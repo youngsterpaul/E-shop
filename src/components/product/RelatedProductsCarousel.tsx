@@ -1,13 +1,13 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown, Sparkles } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import LazySection from '@/components/performance/LazySection';
 import { useOptimizedRelatedProducts } from '@/hooks/useOptimizedRelatedProducts';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import ProductSkeleton from '../products/ProductSkeleton';
 
-interface RelatedProductsCarouselProps {
+interface GemFashionStyleProps {
   currentProduct: {
     id: string;
     category: string;
@@ -18,11 +18,12 @@ const INITIAL_MOBILE = 4;
 const INITIAL_DESKTOP = 6;
 const LOAD_MORE_COUNT = 6;
 
-const RelatedProductsCarousel = memo(({ currentProduct }: RelatedProductsCarouselProps) => {
+const GemFashionStyle = memo(({ currentProduct }: GemFashionStyleProps) => {
   const isMobile = isMobileUserAgent();
   const initialCount = isMobile ? INITIAL_MOBILE : INITIAL_DESKTOP;
   const [visibleCount, setVisibleCount] = useState(initialCount);
   
+  // Database logic left untouched
   const { data: products = [], isLoading, isError, error } = useOptimizedRelatedProducts(
     currentProduct.category,
     currentProduct.id
@@ -68,13 +69,13 @@ const RelatedProductsCarousel = memo(({ currentProduct }: RelatedProductsCarouse
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <AlertCircle className="h-10 w-10 text-destructive mb-3" />
-        <h3 className="text-base font-semibold text-foreground mb-1">Failed to load related products</h3>
-        <p className="text-sm text-muted-foreground text-center mb-4">
+      <div className="flex flex-col items-center justify-center py-12 px-4 border border-rose-100 bg-rose-50/30 rounded-xl">
+        <AlertCircle className="h-10 w-10 text-rose-500 mb-3" />
+        <h3 className="text-base font-semibold text-stone-800 mb-1">Failed to load curated collection</h3>
+        <p className="text-sm text-stone-500 text-center mb-4">
           {error?.message || 'Something went wrong.'}
         </p>
-        <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+        <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="border-stone-300 text-stone-700 hover:bg-stone-50">
           Try Again
         </Button>
       </div>
@@ -91,35 +92,46 @@ const RelatedProductsCarousel = memo(({ currentProduct }: RelatedProductsCarouse
 
   return (
     <LazySection fallback={loadingSkeleton}>
-      <div className={`${isMobile ? 'mt-6' : 'mt-10'} bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden`}>
-        <div className={`flex items-center justify-between ${isMobile ? 'px-3 py-3' : 'px-6 py-4'} border-b border-border/50`}>
+      {/* Restyled wrapper with a subtle luxury border, shadow, and soft background */}
+      <div className={`${isMobile ? 'mt-6' : 'mt-12'} bg-gradient-to-b from-stone-50/50 to-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden`}>
+        
+        {/* Header restyled for a premium fashion brand vibe */}
+        <div className={`flex items-center justify-between ${isMobile ? 'px-4 py-4' : 'px-8 py-5'} border-b border-stone-100 bg-white`}>
           <div>
-            <h2 className={`font-semibold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>
-              You might also like
+            <div className="flex items-center gap-1.5 text-amber-600/90 tracking-wider uppercase text-[10px] font-bold mb-0.5">
+              <Sparkles className="h-3 w-3 fill-amber-500/20" />
+              <span>Gem Fashion Style</span>
+            </div>
+            <h2 className={`font-serif font-medium text-stone-900 tracking-tight ${isMobile ? 'text-base' : 'text-2xl'}`}>
+              Complete Your Look
             </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {transformedProducts.length} related product{transformedProducts.length !== 1 ? 's' : ''}
+            <p className="text-xs text-stone-400 italic mt-0.5">
+              {transformedProducts.length} handpicked piece{transformedProducts.length !== 1 ? 's' : ''} just for you
             </p>
           </div>
         </div>
 
-        <div className={`${isMobile ? 'px-2 py-3' : 'p-6'}`}>
-          <div className={`grid ${isMobile ? 'grid-cols-2 gap-2.5' : 'grid-cols-6 gap-4'}`}>
+        {/* Product Grid Area */}
+        <div className={`${isMobile ? 'px-3 py-4' : 'p-8'}`}>
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-6 gap-6'}`}>
             {visibleProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <div key={product.id} className="transition-all duration-300 hover:-translate-y-1 hover:shadow-md rounded-lg overflow-hidden">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
 
+          {/* Load More Button - Styled with a sleek fashion-house aesthetic */}
           {hasMore && (
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center mt-8">
               <Button
                 variant="outline"
                 size={isMobile ? 'sm' : 'default'}
                 onClick={handleLoadMore}
-                className="gap-2 min-w-[160px]"
+                className="gap-2 min-w-[180px] border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white transition-colors duration-300 font-medium tracking-wide text-xs uppercase"
               >
-                Show More
-                <ChevronDown className="h-4 w-4" />
+                Discover More
+                <ChevronDown className="h-3.5 w-3.5" />
               </Button>
             </div>
           )}
@@ -129,5 +141,5 @@ const RelatedProductsCarousel = memo(({ currentProduct }: RelatedProductsCarouse
   );
 });
 
-RelatedProductsCarousel.displayName = 'RelatedProductsCarousel';
-export default RelatedProductsCarousel;
+GemFashionStyle.displayName = 'GemFashionStyle';
+export default GemFashionStyle;

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, Clock } from 'lucide-react';
 
-interface PendingOrderCountdownProps {
+interface GemFashionStyleProps {
   createdAt: string;
   expiryHours?: number;
 }
 
-const PendingOrderCountdown = ({ createdAt, expiryHours = 48 }: PendingOrderCountdownProps) => {
+const GemFashionStyle = ({ createdAt, expiryHours = 48 }: GemFashionStyleProps) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
@@ -42,27 +42,35 @@ const PendingOrderCountdown = ({ createdAt, expiryHours = 48 }: PendingOrderCoun
     return () => clearInterval(interval);
   }, [createdAt, expiryHours]);
 
+  // Styling for Expired State (Chic, muted minimalist style)
   if (isExpired) {
     return (
-      <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg px-3 py-2 text-xs font-medium">
-        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-        <span>This order has expired and will be removed shortly.</span>
+      <div className="flex items-center gap-2.5 bg-stone-100 border border-stone-200 text-stone-500 rounded-md px-4 py-2.5 text-xs tracking-wide uppercase font-semibold dark:bg-stone-900 dark:border-stone-800 dark:text-stone-400">
+        <AlertCircle className="h-4 w-4 shrink-0 stroke-[1.5]" />
+        <span>This exclusive order window has closed.</span>
       </div>
     );
   }
 
   return (
-    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
-      isUrgent 
-        ? 'bg-destructive/10 border border-destructive/20 text-destructive' 
-        : 'bg-amber-50 border border-amber-200 text-amber-700 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400'
-    }`}>
-      <Clock className="h-3.5 w-3.5 shrink-0" />
-      <span>
-        {isUrgent ? '⚠️ ' : ''}Complete payment within <strong className="font-bold tabular-nums">{timeLeft}</strong> or this order will be auto-cancelled.
+    <div 
+      className={`flex items-center gap-2.5 rounded-md px-4 py-2.5 text-xs tracking-wide font-medium transition-all duration-300 ${
+        isUrgent 
+          ? 'bg-rose-50/60 border border-rose-200/80 text-rose-800 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-300 animate-pulse' 
+          : 'bg-zinc-50 border border-zinc-200/60 text-zinc-800 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-200'
+      }`}
+    >
+      <Clock className={`h-4 w-4 shrink-0 stroke-[1.5] ${isUrgent ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600/80'}`} />
+      <span className="uppercase">
+        {isUrgent ? 'Final Call: ' : 'Secure Your Pieces: '}
+        <span className="normal-case font-normal text-zinc-600 dark:text-zinc-400">Complete payment within </span>
+        <strong className={`font-bold tabular-nums tracking-wider ${isUrgent ? 'text-rose-700 dark:text-rose-300' : 'text-zinc-900 dark:text-white'}`}>
+          {timeLeft}
+        </strong>
+        <span className="normal-case font-normal text-zinc-600 dark:text-zinc-400"> before reservation expires.</span>
       </span>
     </div>
   );
 };
 
-export default PendingOrderCountdown;
+export default GemFashionStyle;

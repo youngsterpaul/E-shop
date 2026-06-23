@@ -7,7 +7,7 @@ import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 
-interface AddToCartSectionProps {
+interface GemFashionStyleProps {
   product: {
     product_id: string;
     name: string;
@@ -21,14 +21,14 @@ interface AddToCartSectionProps {
   className?: string;
 }
 
-const AddToCartSection = ({
+const GemFashionStyle = ({
   product,
   selectedVariants,
   requiredVariants,
   quantity,
   onQuantityChange,
   className = ''
-}: AddToCartSectionProps) => {
+}: GemFashionStyleProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -108,68 +108,75 @@ const AddToCartSection = ({
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 p-1 ${className}`}>
 
       {/* Stock Status */}
-      <div className="flex items-center gap-2">
-        <Badge variant={inStock ? "default" : "destructive"}>
+      <div className="flex items-center gap-2.5">
+        <Badge 
+          variant={inStock ? "default" : "destructive"} 
+          className={`px-3 py-1 text-xs uppercase tracking-wider font-semibold rounded-full shadow-sm border ${
+            inStock 
+              ? 'bg-emerald-900 text-emerald-50 border-emerald-800' 
+              : 'bg-rose-950 text-rose-200 border-rose-900'
+          }`}
+        >
           {inStock ? "In Stock" : "Out of Stock"}
         </Badge>
         {product.stock && product.stock <= 10 && inStock && (
-          <Badge variant="outline" className="text-amber-600 border-amber-200">
-            Only {product.stock} left
+          <Badge variant="outline" className="text-amber-700 bg-amber-50/60 border-amber-200/80 px-3 py-1 text-xs font-medium rounded-full animate-pulse">
+            Only {product.stock} items left
           </Badge>
         )}
       </div>
 
       {/* Quantity Selector */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Quantity</p>
-        <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden">
+      <div className="space-y-2.5">
+        <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest">Select Quantity</p>
+        <div className="inline-flex items-center rounded-xl border border-stone-200 bg-stone-50 shadow-sm overflow-hidden p-0.5">
           <button
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
             disabled={quantity <= 1}
-            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-white rounded-lg disabled:opacity-20 disabled:hover:bg-transparent transition-all duration-200"
           >
-            <Minus size={14} strokeWidth={2.5} />
+            <Minus size={13} strokeWidth={2.5} />
           </button>
-          <span className="w-10 h-10 flex items-center justify-center text-sm font-semibold text-gray-900 border-x border-gray-200 tabular-nums">
+          <span className="w-11 h-9 flex items-center justify-center text-sm font-bold text-stone-900 font-serif tabular-nums">
             {quantity}
           </span>
           <button
             onClick={() => onQuantityChange(quantity + 1)}
             disabled={product.stock ? quantity >= product.stock : false}
-            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-white rounded-lg disabled:opacity-20 disabled:hover:bg-transparent transition-all duration-200"
           >
-            <Plus size={14} strokeWidth={2.5} />
+            <Plus size={13} strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-3">
 
         {/* Add to Cart */}
         <button
           onClick={handleAddToCart}
           disabled={!inStock || isAddingToCart}
           className={`
-            flex-1 h-11 px-5 rounded-lg text-sm font-medium
-            flex items-center justify-center gap-2
-            border transition-colors duration-150 active:scale-[0.99] select-none
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
+            flex-1 h-12 px-6 rounded-xl text-sm font-semibold tracking-wide
+            flex items-center justify-center gap-2.5 uppercase
+            border transition-all duration-300 transform active:scale-[0.98] select-none
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
             ${showSuccess
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-white border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-inner'
+              : 'bg-white border-stone-300 text-stone-800 hover:bg-stone-50 hover:border-stone-900 shadow-sm hover:shadow'
             }
           `}
         >
           {showSuccess ? (
-            <><Check size={15} strokeWidth={2.5} /> Added</>
+            <><Check size={16} strokeWidth={3} className="text-emerald-600" /> Added to Collection</>
           ) : isAddingToCart ? (
-            <><span className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" /> Adding...</>
+            <><span className="w-4 h-4 rounded-full border-2 border-stone-300 border-t-stone-800 animate-spin" /> Updating...</>
           ) : (
-            <><ShoppingCart size={15} strokeWidth={2} /> Add to Cart</>
+            <><ShoppingCart size={16} strokeWidth={2} /> Add to Cart</>
           )}
         </button>
 
@@ -178,52 +185,55 @@ const AddToCartSection = ({
           onClick={handleBuyNow}
           disabled={!inStock || isBuyingNow}
           className="
-            flex-1 h-11 px-5 rounded-lg text-sm font-medium
-            flex items-center justify-center gap-2
-            bg-gray-900 text-white
-            hover:bg-gray-800 transition-colors duration-150
-            active:scale-[0.99] select-none
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
+            flex-1 h-12 px-6 rounded-xl text-sm font-semibold tracking-wide uppercase
+            flex items-center justify-center gap-2.5
+            bg-stone-900 text-stone-50 shadow-md shadow-stone-900/10
+            hover:bg-stone-800 hover:shadow-lg transition-all duration-300
+            transform active:scale-[0.98] select-none
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
           "
         >
           {isBuyingNow ? (
-            <><span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Processing...</>
+            <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Designing Order...</>
           ) : (
-            <><Zap size={15} strokeWidth={2} /> Buy Now</>
+            <><Zap size={16} strokeWidth={2} className="text-amber-400 fill-amber-400" /> Buy Now</>
           )}
         </button>
 
-        {/* Wishlist */}
-        <button
-          onClick={handleWishlist}
-          className={`
-            h-11 w-11 rounded-lg flex items-center justify-center shrink-0
-            border transition-colors duration-150 active:scale-[0.99] select-none
-            ${isInWishlistState
-              ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
-              : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-red-400'
-            }
-          `}
-        >
-          <Heart size={17} strokeWidth={2} className={isInWishlistState ? 'fill-current' : ''} />
-        </button>
+        {/* Wishlist & Share Group */}
+        <div className="flex gap-2.5 justify-end">
+          {/* Wishlist */}
+          <button
+            onClick={handleWishlist}
+            className={`
+              h-12 w-12 rounded-xl flex items-center justify-center shrink-0
+              border transition-all duration-300 transform active:scale-[0.98] select-none shadow-sm
+              ${isInWishlistState
+                ? 'bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100 shadow-rose-100'
+                : 'bg-white border-stone-200 text-stone-400 hover:border-rose-200 hover:text-rose-400 hover:bg-rose-50/30'
+              }
+            `}
+          >
+            <Heart size={18} strokeWidth={2} className={isInWishlistState ? 'fill-current scale-110 transition-transform duration-300' : 'transition-transform duration-300'} />
+          </button>
 
-        {/* Share */}
-        <button
-          onClick={handleShare}
-          className="
-            h-11 w-11 rounded-lg flex items-center justify-center shrink-0
-            bg-white border border-gray-200 text-gray-400
-            hover:border-gray-300 hover:text-gray-600
-            transition-colors duration-150 active:scale-[0.99] select-none
-          "
-        >
-          <Share2 size={17} strokeWidth={2} />
-        </button>
+          {/* Share */}
+          <button
+            onClick={handleShare}
+            className="
+              h-12 w-12 rounded-xl flex items-center justify-center shrink-0
+              bg-white border border-stone-200 text-stone-400 shadow-sm
+              hover:border-stone-300 hover:text-stone-700 hover:bg-stone-50/50
+              transition-all duration-300 transform active:scale-[0.98] select-none
+            "
+          >
+            <Share2 size={18} strokeWidth={2} />
+          </button>
+        </div>
 
       </div>
     </div>
   );
 };
 
-export default AddToCartSection;
+export default GemFashionStyle;

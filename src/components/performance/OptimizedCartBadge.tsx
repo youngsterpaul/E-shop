@@ -1,22 +1,21 @@
-
 import { memo, useEffect, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react'; // Switched to ShoppingBag for a more high-end fashion boutique feel
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-interface OptimizedCartBadgeProps {
+interface GemFashionCartBadgeProps {
   totalItems: number;
   onClick?: () => void;
   showText?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const OptimizedCartBadge = memo(({ 
+const GemFashionCartBadge = memo(({ 
   totalItems, 
   onClick, 
   showText = false, 
   size = 'md' 
-}: OptimizedCartBadgeProps) => {
+}: GemFashionCartBadgeProps) => {
   const [displayCount, setDisplayCount] = useState(totalItems);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -66,40 +65,41 @@ const OptimizedCartBadge = memo(({
       variant="ghost"
       size={buttonSize}
       onClick={onClick}
-      className={`relative transition-all duration-200 hover:scale-105 ${
-        isAnimating ? 'animate-pulse' : ''
+      className={`relative transition-all duration-300 hover:scale-105 rounded-full hover:bg-emerald-50 text-stone-800 hover:text-emerald-900 ${
+        isAnimating ? 'opacity-90' : ''
       }`}
     >
-      <div className="relative">
-        <ShoppingCart size={iconSize} />
+      <div className="relative flex items-center justify-center">
+        <ShoppingBag size={iconSize} className="stroke-[1.75]" />
+        
         {displayCount > 0 && (
           <Badge 
-            variant="destructive" 
             className={`
-              absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs
+              absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-semibold tracking-tighter
+              bg-amber-500 hover:bg-amber-500 text-stone-950 rounded-full border border-white shadow-sm
               transition-all duration-300 ease-in-out
-              ${isAnimating ? 'scale-125 animate-bounce' : 'scale-100'}
+              ${isAnimating ? 'scale-125 rotate-12' : 'scale-100'}
             `}
           >
             {displayCount > 99 ? '99+' : displayCount}
           </Badge>
         )}
         
-        {/* Pulse animation for updates */}
+        {/* Luxury subtle pulse animation for fashion theme updates */}
         {isAnimating && (
-          <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping"></div>
+          <div className="absolute inset-0 rounded-full bg-amber-400/30 animate-ping duration-700"></div>
         )}
       </div>
       
       {showText && (
-        <span className="ml-2 hidden sm:inline">
-          Cart {displayCount > 0 && `(${displayCount})`}
+        <span className="ml-2.5 hidden sm:inline text-xs font-medium tracking-widest uppercase text-stone-700">
+          Bag {displayCount > 0 && `(${displayCount})`}
         </span>
       )}
     </Button>
   );
 });
 
-OptimizedCartBadge.displayName = 'OptimizedCartBadge';
+GemFashionCartBadge.displayName = 'GemFashionCartBadge';
 
-export default OptimizedCartBadge;
+export default GemFashionCartBadge;
