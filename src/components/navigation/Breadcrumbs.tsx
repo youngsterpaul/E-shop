@@ -1,12 +1,12 @@
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 
-interface GemFashionStyleProps {
+interface BreadcrumbsProps {
   items: string[];
   onItemClick: (index: number) => void;
 }
 
-export const GemFashionStyle = ({ items, onItemClick }: GemFashionStyleProps) => {
+export const Breadcrumbs = ({ items, onItemClick }: BreadcrumbsProps) => {
   const isMobile = isMobileUserAgent();
 
   if (isMobile || items.length === 0) return null;
@@ -20,7 +20,7 @@ export const GemFashionStyle = ({ items, onItemClick }: GemFashionStyleProps) =>
       >
         <Sparkles className="h-4 w-4" />
       </button>
-      
+
       {items.map((item, index) => (
         <div key={index} className="flex items-center space-x-3">
           <ChevronRight className="h-3 w-3 text-neutral-400 font-light" />
@@ -39,3 +39,6 @@ export const GemFashionStyle = ({ items, onItemClick }: GemFashionStyleProps) =>
     </nav>
   );
 };
+
+// Alias for backward compatibility
+export const GemFashionStyle = Breadcrumbs;
