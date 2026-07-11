@@ -8,7 +8,7 @@ import { useCartContext } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import EnhancedSearchInput from './search/EnhancedSearchInput';
-import smartkenyaLogo from '@/assets/images/smartkenya-logo.png';
+import storeLogo from '@/assets/images/store-logo.png';
 import { useUserRole } from '@/hooks/useUserRole';
 
 const Header = () => {
@@ -93,30 +93,6 @@ const Header = () => {
 
   return (
     <>
-      {/* Enhanced Schema for better sitelinks */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "url": "https://www.smartkenya.co.ke",
-          "name": "SmartKenya Online Shopping",
-          "alternateName": "SmartKenya",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": "https://www.smartkenya.co.ke/search?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          },
-          "mainEntity": {
-            "@type": "Organization",
-            "name": "SmartKenya",
-            "url": "https://www.smartkenya.co.ke"
-          }
-        })}
-      </script>
-
       <header className={`bg-card top-0 z-50 ${isMobile ? 'sticky' : ''}`}>
 
         {/* Nav stays constrained */}
@@ -149,7 +125,7 @@ const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex-shrink-0 group" aria-label="Store Home">
               <img 
-                src={smartkenyaLogo} 
+                src={storeLogo} 
                 alt="Store - Premium electronics and essentials" 
                 width={isMobile ? 132 : 132}
                 height={isMobile ? 40 : 44}
@@ -241,7 +217,7 @@ const Header = () => {
                         </DropdownMenuItem>
                         {(isAdmin || isSuperAdmin || isModerator) && (
                           <DropdownMenuItem asChild>
-                            <Link to="/supersmartkenyaadmin123" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
+                            <Link to="/admin" className="cursor-pointer flex items-center gap-2.5 px-3 py-2">
                               <Settings className="h-4 w-4 text-muted-foreground" />
                               <span>Admin Dashboard</span>
                             </Link>

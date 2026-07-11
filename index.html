@@ -17,20 +17,18 @@
     <meta http-equiv="Expires" content="0" />
     
     <!-- Title and Description -->
-    <title>SmartKenya Online Shopping - Electronics, Gadgets & Tech Accessories</title>
-    <meta name="description" content="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed. Over 10,000+ satisfied customers." />
-    <meta name="keywords" content="electronics Kenya, gadgets Nairobi, tech accessories, online shopping Kenya, smartphones, laptops, SmartKenya" />
-    <meta name="author" content="SmartKenya" />
+    <title>Online Shopping - Electronics, Gadgets & Tech Accessories</title>
+    <meta name="description" content="Shop the latest electronics, gadgets, and tech accessories. Fast delivery. Best prices guaranteed. Over 10,000+ satisfied customers." />
+    <meta name="keywords" content="electronics, gadgets, tech accessories, online shopping, smartphones, laptops" />
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://www.smartkenya.co.ke/" />
+    <link rel="canonical" href="/" />
     
     <!-- Favicon and App Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="shortcut icon" href="/favicon_new.ico">
     
     <!-- PWA and Mobile App Configuration -->
@@ -38,7 +36,6 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="SmartKenya" />
     <meta name="msapplication-TileColor" content="#f97316" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
     
@@ -48,21 +45,19 @@
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.smartkenya.co.ke/" />
-    <meta property="og:title" content="SmartKenya Online Shopping - Best Electronics in Kenya" />
-    <meta property="og:description" content="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed." />
-    <meta property="og:image" content="https://www.smartkenya.co.ke/og-image.png" />
-    <meta property="og:image:alt" content="SmartKenya Online Shopping" />
-    <meta property="og:site_name" content="SmartKenya" />
-    <meta property="og:locale" content="en_KE" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="Online Shopping - Best Electronics" />
+    <meta property="og:description" content="Shop the latest electronics, gadgets, and tech accessories. Fast delivery. Best prices guaranteed." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:alt" content="Online Shopping" />
+    <meta property="og:locale" content="en_US" />
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://www.smartkenya.co.ke/" />
-    <meta name="twitter:title" content="SmartKenya Online Shopping - Best Electronics in Kenya" />
-    <meta name="twitter:description" content="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya." />
-    <meta name="twitter:image" content="https://www.smartkenya.co.ke/twitter-card.png" />
-    <meta name="twitter:site" content="@SmartKenyaKE" />
+    <meta name="twitter:url" content="/" />
+    <meta name="twitter:title" content="Online Shopping - Best Electronics" />
+    <meta name="twitter:description" content="Shop the latest electronics, gadgets, and tech accessories. Fast delivery." />
+    <meta name="twitter:image" content="/twitter-card.png" />
     
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
@@ -77,16 +72,14 @@
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     
-    <!-- Non-blocking font loading with font-display: swap -->
+    <!-- Non-blocking font loading -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
     </noscript>
     
-    <!-- Critical CSS for above-the-fold content to reduce CLS -->
     <style>
-      /* Prevent layout shift with explicit sizing */
       :root {
         --header-height: 64px;
         --mobile-nav-height: 60px;
@@ -96,7 +89,6 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-      /* Reserve space for hero section to prevent CLS */
       .hero-placeholder {
         min-height: 280px;
         background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
@@ -106,7 +98,6 @@
           min-height: 480px;
         }
       }
-      /* Skeleton loading animation */
       @keyframes shimmer {
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
@@ -116,7 +107,6 @@
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
       }
-      /* Image aspect ratio containers to prevent CLS */
       .aspect-square { aspect-ratio: 1 / 1; }
       .aspect-video { aspect-ratio: 16 / 9; }
       .aspect-hero { aspect-ratio: 4 / 1; }
@@ -126,43 +116,27 @@
     <!-- Accessibility -->
     <meta name="color-scheme" content="light dark" />
 
-    <!-- Business/Location Markup -->
-    <meta name="geo.region" content="KE" />
-    <meta name="geo.placename" content="Kenya" />
-
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4788969103185262"
-     crossorigin="anonymous"></script>
+      crossorigin="anonymous"></script>
     
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "OnlineStore",
-      "name": "SmartKenya",
-      "description": "Electronics and tech accessories online store in Kenya",
-      "url": "https://www.smartkenya.co.ke",
-      "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
-      "sameAs": [
-        "https://twitter.com/SmartKenyaKE",
-        "https://facebook.com/SmartKenyaKE"
-      ],
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "KE",
-        "addressRegion": "Nairobi"
-      },
+      "name": "Store",
+      "description": "Electronics and tech accessories online store",
+      "url": "/",
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer service",
-        "availableLanguage": ["English", "Swahili"]
+        "availableLanguage": ["English"]
       }
     }
     </script>
     
-    <!-- Preload Critical Resources with High Priority -->
     <link rel="modulepreload" href="/src/main.tsx" />
     
-    <!-- Defer Service Worker Registration to Improve Initial Load -->
     <script>
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller === null) {
         window.addEventListener('load', () => {
@@ -187,15 +161,11 @@
     <!-- <script src="https://cdn.gpteng.co/gptengineer.js" crossorigin="anonymous" type="module"></script> -->
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Fallback for No-JavaScript Users -->
     <noscript>
       <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
         <h1>JavaScript Required</h1>
         <p>This website requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
       </div>
     </noscript>
-
-    <!-- Google tag (gtag.js) - Deferred for Performance -->
-
 </body>
 </html>
