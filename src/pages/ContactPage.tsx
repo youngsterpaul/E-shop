@@ -101,6 +101,7 @@ const ContactPage = () => {
   };
 
   const phoneLink = settings.phone.replace(/\s/g, '');
+  const hasContactDetails = Boolean(settings.phone || settings.email || settings.address || settings.business_hours);
 
   return (
     <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>
@@ -122,11 +123,9 @@ const ContactPage = () => {
               </div>
               <h3 className="font-semibold text-foreground mb-2">Call Us</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                {settingsLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : settings.business_hours}
+                {settingsLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Available soon'}
               </p>
-              <a href={`tel:${phoneLink}`} className="text-primary font-medium hover:underline">
-                {settings.phone}
-              </a>
+              <span className="text-primary font-medium">—</span>
             </CardContent>
           </Card>
           
@@ -137,9 +136,7 @@ const ContactPage = () => {
               </div>
               <h3 className="font-semibold text-foreground mb-2">Email Us</h3>
               <p className="text-sm text-muted-foreground mb-3">We'll respond within 24 hours</p>
-              <a href={`mailto:${settings.email}`} className="text-primary font-medium hover:underline">
-                {settings.email}
-              </a>
+              <span className="text-primary font-medium">—</span>
             </CardContent>
           </Card>
           
@@ -150,9 +147,7 @@ const ContactPage = () => {
               </div>
               <h3 className="font-semibold text-foreground mb-2">Visit Us</h3>
               <p className="text-sm text-muted-foreground mb-3">Our headquarters</p>
-              <address className="not-italic text-primary font-medium text-sm">
-                {settings.address}
-              </address>
+              <span className="not-italic text-primary font-medium text-sm">—</span>
             </CardContent>
           </Card>
         </div>

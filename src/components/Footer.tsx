@@ -152,10 +152,10 @@ const Footer = ({ className }: FooterProps) => {
               <div className="space-y-4">
                 <h3 className="font-bold text-foreground">We Accept</h3>
                 <div className="flex flex-wrap gap-2">
-                  <div className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm">
+                  <div className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold shadow-sm">
                     M-PESA
                   </div>
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm">
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm">
                     Card
                   </div>
                 </div>

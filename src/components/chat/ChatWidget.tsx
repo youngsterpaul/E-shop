@@ -161,7 +161,7 @@ const ChatWidget = () => {
                       Store Assistant
                     </h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
                       <p className="text-[11px] opacity-80">
                         {conversation?.status === 'pending_admin'
                           ? 'Connecting to agent…'
@@ -217,7 +217,7 @@ const ChatWidget = () => {
                             className={cn(
                               'text-[10px] rounded-lg',
                               message.sender_type === 'admin'
-                                ? 'bg-emerald-100 text-emerald-600'
+                                ? 'bg-orange-100 text-orange-600'
                                 : 'bg-primary/10 text-primary'
                             )}
                           >
@@ -234,7 +234,7 @@ const ChatWidget = () => {
                         {message.sender_type === 'admin' && (
                           <Badge
                             variant="outline"
-                            className="text-[9px] px-1.5 py-0 uppercase bg-emerald-50 text-emerald-700 border-emerald-100"
+                            className="text-[9px] px-1.5 py-0 uppercase bg-orange-50 text-orange-700 border-orange-100"
                           >
                             Agent
                           </Badge>

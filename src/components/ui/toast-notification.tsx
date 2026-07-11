@@ -20,7 +20,7 @@ const icons = {
 };
 
 const colors = {
-  success: 'bg-green-500',
+  success: 'bg-primary',
   error: 'bg-destructive',
   info: 'bg-primary',
   warning: 'bg-amber-500'
