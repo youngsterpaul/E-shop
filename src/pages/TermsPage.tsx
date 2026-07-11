@@ -37,7 +37,7 @@ const TermsPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-3 text-foreground">1. Agreement to Terms</h2>
                 <p className="text-muted-foreground">
-                  Welcome to SmartKenya. These Terms and Conditions constitute a legally binding agreement between you and SmartKenya Limited governing your access to and use of our website, mobile applications (iOS and Android), and related services.
+                  Welcome to our store. These Terms and Conditions constitute a legally binding agreement between you and our store governing your access to and use of our website, mobile applications (iOS and Android), and related services.
                 </p>
                 <p className="mt-3 text-muted-foreground">
                   By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part, you may not access the Service.
@@ -104,7 +104,7 @@ const TermsPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-3 text-foreground">8. Intellectual Property</h2>
                 <p className="mb-3 text-muted-foreground">
-                  The Service and its contents are owned by SmartKenya and protected by copyright, trademark, and other intellectual property laws.
+                  The Service and its contents are owned by our store and protected by copyright, trademark, and other intellectual property laws.
                 </p>
                 <p className="text-muted-foreground">
                   By posting content, you grant us a license to use, reproduce, and distribute it.
@@ -114,7 +114,7 @@ const TermsPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-3 text-foreground">9. Limitation of Liability</h2>
                 <p className="text-muted-foreground">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, SMARTKENYA SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID IN THE 12 MONTHS PRECEDING THE CLAIM.
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, OUR STORE SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID IN THE 12 MONTHS PRECEDING THE CLAIM.
                 </p>
               </section>
 

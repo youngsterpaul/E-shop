@@ -83,12 +83,12 @@ const Header = () => {
     { label: 'Customer Service', href: '/contact', description: 'Get help and support' },
     { label: 'Track Order', href: '/orders', description: 'Track your orders' },
     { label: 'Wishlist', href: '/wishlist', description: 'Check your wishlist products' },
-    { label: 'About Us', href: '/about', description: 'Learn more about SmartKenya' },
-    { label: 'Careers', href: '/careers', description: 'Get your dream job at smartkenya' },
+    { label: 'About Us', href: '/about', description: 'Learn more about our store' },
+    { label: 'Careers', href: '/careers', description: 'Explore careers with our team' },
     { label: 'FAQs', href: '/faq', description: 'Get answers to most asked questions' },
-    { label: 'Privacy Policy', href: '/privacy', description: 'Know your privacy at smartkenya' },
+    { label: 'Privacy Policy', href: '/privacy', description: 'Review our privacy policy' },
     { label: 'Returns', href: '/returns', description: 'Return policy' },
-    { label: 'T&C', href: '/terms', description: 'Terms and Conditions of Smartkenya' },
+    { label: 'T&C', href: '/terms', description: 'Terms and conditions of our store' },
   ];
 
   return (
@@ -147,10 +147,10 @@ const Header = () => {
         <div className={`${!isMobile ? 'min-w-[1200px] container mx-auto px-4 xl:px-28' : ''}`}>
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 group" aria-label="SmartKenya Home">
+            <Link to="/" className="flex-shrink-0 group" aria-label="Store Home">
               <img 
                 src={smartkenyaLogo} 
-                alt="SmartKenya - Kenya's Leading Electronics Store" 
+                alt="Store - Premium electronics and essentials" 
                 width={isMobile ? 132 : 132}
                 height={isMobile ? 40 : 44}
                 className={`object-contain transition-transform duration-200 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 

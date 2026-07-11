@@ -78,7 +78,7 @@ const CareersPage = () => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Careers at SmartKenya",
+          "name": "Careers at Our Store",
           "description": "Join our growing team",
           "url": "https://smartkenya.co.ke/careers",
         })}
@@ -86,7 +86,7 @@ const CareersPage = () => {
 
       <Helmet>
         <title>Careers - Join Our Team</title>
-        <meta name="description" content="Explore career opportunities at SmartKenya." />
+        <meta name="description" content="Explore career opportunities with our team." />
       </Helmet>
 
       <div className={`min-h-screen bg-background ${!isMobile ? 'min-w-max' : ''}`}>

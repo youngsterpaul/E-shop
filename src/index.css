@@ -17,8 +17,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Modern green primary for marketplace */
-    --primary: 142 71% 45%;
+    /* Energetic orange primary for a modern storefront */
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -41,13 +41,13 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 142 71% 45%;
+    --ring: 24 95% 53%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 142 71% 45%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 222 47% 11%;
@@ -55,8 +55,8 @@
     --sidebar-ring: 142 71% 45%;
 
     /* Chart colors */
-    --chart-1: 142 71% 45%;
-    --chart-2: 24 95% 53%;
+    --chart-1: 24 95% 53%;
+    --chart-2: 32 95% 57%;
     --chart-3: 199 89% 48%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
@@ -89,7 +89,7 @@
     --popover: 222 47% 9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142 71% 50%;
+    --primary: 25 95% 58%;
     --primary-foreground: 222 47% 6%;
 
     --secondary: 222 47% 15%;
@@ -112,19 +112,19 @@
 
     --border: 222 47% 18%;
     --input: 222 47% 18%;
-    --ring: 142 71% 50%;
+    --ring: 25 95% 58%;
 
     --sidebar-background: 222 47% 9%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 71% 50%;
+    --sidebar-primary: 25 95% 58%;
     --sidebar-primary-foreground: 222 47% 6%;
     --sidebar-accent: 222 47% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 222 47% 18%;
     --sidebar-ring: 142 71% 50%;
 
-    --chart-1: 142 71% 50%;
-    --chart-2: 24 95% 60%;
+    --chart-1: 25 95% 58%;
+    --chart-2: 32 95% 62%;
     --chart-3: 199 89% 55%;
     --chart-4: 280 65% 65%;
     --chart-5: 340 75% 60%;

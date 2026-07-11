@@ -80,7 +80,7 @@ const SettingsPage = () => {
       title: 'Legal',
       items: [
         { icon: Shield, label: 'Privacy & Security', description: 'Data & privacy policy', href: '/privacy' },
-        { icon: Info,   label: 'About SmartKenya',   description: 'App info & version',    href: '/about' },
+        { icon: Info,   label: 'About Our Store',   description: 'App info & version',    href: '/about' },
       ],
     },
     ...(isAdmin || isSuperAdmin || isModerator
@@ -174,7 +174,7 @@ const SettingsPage = () => {
         )}
       </div>
 
-      <p className="text-center text-[11px] text-muted-foreground mt-8">SmartKenya v1.0.0</p>
+      <p className="text-center text-[11px] text-muted-foreground mt-8">Store v1.0.0</p>
     </div>
   );
 };

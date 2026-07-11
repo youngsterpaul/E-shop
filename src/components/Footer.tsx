@@ -84,7 +84,7 @@ const Footer = ({ className }: FooterProps) => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "SmartKenya",
+          "name": "Store",
           "url": "https://smartkenya.co.ke",
           "logo": "https://smartkenya.co.ke/apple-touch-icon.png",
           "contactPoint": [
@@ -169,7 +169,7 @@ const Footer = ({ className }: FooterProps) => {
           <div className="container max-w-6xl lg:max-w-7xl">
             <div className="flex flex-col /md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} SmartKenya. All rights reserved.
+                © {new Date().getFullYear()} Store. All rights reserved.
               </p>
             </div>
           </div>

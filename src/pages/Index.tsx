@@ -19,19 +19,19 @@ const Index = () => {
   return (
     <>
       <SEOHelmet
-        title="SmartKenya - Quality Electronics & Gadgets Online Shopping"
-        description="Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed."
-        keywords="electronics, gadgets, smartphones, laptops, accessories, Kenya, online shopping, fast delivery, best prices"
+        title="Store - Premium Electronics & Everyday Essentials"
+        description="Shop quality electronics, gadgets, and everyday essentials at our store with fast delivery and dependable service."
+        keywords="electronics, gadgets, essentials, online shopping, quality products, fast delivery"
         canonical="https://www.smartkenya.co.ke"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "SmartKenya - Quality Electronics & Gadgets Online Shopping",
-          "description": "Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed.",
+          "name": "Store - Premium Electronics & Everyday Essentials",
+          "description": "Shop quality electronics, gadgets, and everyday essentials at our store with fast delivery and dependable service.",
           "url": "https://www.smartkenya.co.ke",
           "mainEntity": {
             "@type": "Organization",
-            "name": "SmartKenya",
+            "name": "Store",
             "url": "https://www.smartkenya.co.ke",
             "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
           },

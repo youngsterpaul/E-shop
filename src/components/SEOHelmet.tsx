@@ -19,9 +19,9 @@ interface SEOHelmetProps {
 }
 
 export const SEOHelmet = ({
-  title = 'SmartKenya - Quality Electronics & Gadgets Online Shopping',
-  description = 'Shop the latest electronics, gadgets, and tech accessories at SmartKenya. Fast delivery across Kenya. Best prices guaranteed.',
-  keywords = 'electronics, gadgets, smartphones, laptops, accessories, Kenya, online shopping',
+  title = 'Store - Premium Electronics & Everyday Essentials',
+  description = 'Shop quality electronics, gadgets, and everyday essentials at our store with fast delivery and dependable service.',
+  keywords = 'electronics, gadgets, essentials, online shopping, quality products',
   canonical,
   ogImage = 'https://www.smartkenya.co.ke/apple-touch-icon.png',
   ogType = 'website',
@@ -30,7 +30,7 @@ export const SEOHelmet = ({
   breadcrumbs,
   article
 }: SEOHelmetProps) => {
-  const fullTitle = title.includes('SmartKenya') ? title : `${title} | SmartKenya`;
+  const fullTitle = title.includes('Store') ? title : `${title} | Store`;
   const currentUrl = canonical || (typeof window !== 'undefined' ? window.location.href : '');
 
   return (
@@ -48,7 +48,7 @@ export const SEOHelmet = ({
       <meta property="og:image" content={ogImage} />
       <meta property="og:type" content={ogType} />
       <meta property="og:url" content={currentUrl} />
-      <meta property="og:site_name" content="SmartKenya" />
+      <meta property="og:site_name" content="Store" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -58,7 +58,7 @@ export const SEOHelmet = ({
       <meta name="twitter:image" content={ogImage} />
       
       {/* Additional SEO */}
-      <meta name="author" content="SmartKenya" />
+      <meta name="author" content="Store" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta httpEquiv="Content-Language" content="en" />
       

@@ -22,8 +22,8 @@ const AboutPage = () => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "About SmartKenya - SmartKenya",
-          "description": "Know more about SmartKenya",
+          "name": "About Our Store",
+          "description": "Learn more about our store and mission",
           "url": "https://smartkenya.co.ke/about",
           "breadcrumb": {
             "@type": "BreadcrumbList",
@@ -39,7 +39,7 @@ const AboutPage = () => {
         <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6 py-8' : 'px-4 py-8 pb-24'}`}>
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">About SmartKenya</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">About Our Store</h1>
             <p className="text-muted-foreground">Learn more about our story, mission, and values</p>
           </div>
           

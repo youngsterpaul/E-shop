@@ -745,7 +745,7 @@ const AuthPage = () => {
               <div className="flex items-center">
                 <img
                   src={smartkenyaLogo}
-                  alt="SmartKenya Logo"
+                  alt="Store logo"
                   className="h-11 w-52 object-contain"
                 />
               </div>
@@ -1097,7 +1097,7 @@ const AuthPage = () => {
 
             <div className="mt-10 text-center">
               <p className="text-xs text-muted-foreground">
-                © 2025 SmartKenya. All rights reserved.
+                © 2025 Store. All rights reserved.
               </p>
             </div>
           </div>

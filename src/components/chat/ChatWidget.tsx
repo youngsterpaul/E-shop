@@ -158,7 +158,7 @@ const ChatWidget = () => {
 
                   <div>
                     <h3 className="font-semibold text-sm leading-tight tracking-tight">
-                      SmartKenya Assistant
+                      Store Assistant
                     </h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />

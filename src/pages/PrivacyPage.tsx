@@ -54,7 +54,7 @@ const PrivacyPage = () => {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-3 text-foreground">1. Introduction</h2>
                 <p className="text-muted-foreground">
-                  SmartKenya ("we," "our," or "us") is committed to protecting your privacy and ensuring the security of your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website, mobile applications (iOS and Android), and services (collectively, the "Service").
+                  Our store ("we," "our," or "us") is committed to protecting your privacy and ensuring the security of your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website, mobile applications (iOS and Android), and services (collectively, the "Service").
                 </p>
                 <p className="mt-3 text-muted-foreground">
                   This policy complies with the General Data Protection Regulation (GDPR), Kenya Data Protection Act 2019, and other applicable data protection laws. By using our Service, you consent to the data practices described in this policy.
@@ -63,7 +63,7 @@ const PrivacyPage = () => {
 
               <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-3 text-foreground">2. Data Controller Information</h2>
-                <p className="mb-2 text-muted-foreground"><strong className="text-foreground">Company Name:</strong> SmartKenya Online Shopping Limited</p>
+                <p className="mb-2 text-muted-foreground"><strong className="text-foreground">Company Name:</strong> Store Online Limited</p>
                 <p className="mb-2 text-muted-foreground"><strong className="text-foreground">Registered Address:</strong> 38-60100 Embu Town, Embu, Kenya</p>
                 <p className="mb-2 text-muted-foreground"><strong className="text-foreground">Email:</strong> privacy@smartkenya.co.ke</p>
                 <p className="mb-2 text-muted-foreground"><strong className="text-foreground">Phone:</strong> +254 798 229 783</p>
