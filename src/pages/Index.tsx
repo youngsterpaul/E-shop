@@ -9,7 +9,6 @@ import CriticalCSS from '@/components/performance/CriticalCSS';
 import { SEOHelmet } from '@/components/SEOHelmet';
 import { isMobileUserAgent } from '@/hooks/use-mobile';
 import TrustBadges from '@/components/TrustBadges';
-import NewsletterSubscription from '@/components/NewsletterSubscription';
 import Testimonials from '@/components/Testimonials';
 import { WebsiteStructuredData, LocalBusinessStructuredData } from '@/components/seo/StructuredData';
 
@@ -20,20 +19,19 @@ const Index = () => {
     <>
       <SEOHelmet
         title="Store - Premium Electronics & Everyday Essentials"
-        description="Shop quality electronics, gadgets, and everyday essentials at our store with fast delivery and dependable service."
+        description="Shop quality electronics, gadgets, and everyday essentials with fast delivery and dependable service."
         keywords="electronics, gadgets, essentials, online shopping, quality products, fast delivery"
-        canonical="https://www.smartkenya.co.ke"
+        canonical="/"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
           "name": "Store - Premium Electronics & Everyday Essentials",
-          "description": "Shop quality electronics, gadgets, and everyday essentials at our store with fast delivery and dependable service.",
-          "url": "https://www.smartkenya.co.ke",
+          "description": "Shop quality electronics, gadgets, and everyday essentials with fast delivery and dependable service.",
+          "url": "/",
           "mainEntity": {
             "@type": "Organization",
             "name": "Store",
-            "url": "https://www.smartkenya.co.ke",
-            "logo": "https://www.smartkenya.co.ke/apple-touch-icon.png",
+            "url": "/",
           },
         }}
       />
@@ -41,16 +39,16 @@ const Index = () => {
       
       {/* SEO Structured Data */}
       <WebsiteStructuredData 
-        name="SmartKenya"
-        url="https://www.smartkenya.co.ke"
-        searchUrl="https://www.smartkenya.co.ke/search"
+        name="Online Store"
+        url="/"
+        searchUrl="/search"
       />
       <LocalBusinessStructuredData
-        name="SmartKenya"
-        url="https://www.smartkenya.co.ke"
-        logo="https://www.smartkenya.co.ke/apple-touch-icon.png"
-        telephone="+254798229783"
-        email="info@smartkenya.co.ke"
+        name="Online Store"
+        url="/"
+        logo="/apple-touch-icon.png"
+        telephone=""
+        email="info@example.com"
         address={{
           street: "Nairobi",
           city: "Nairobi",
@@ -65,61 +63,38 @@ const Index = () => {
         {isMobile && <Header />}
 
         <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6' : ''}`}>
-          {/* Mobile search + categories pill rail (above hero) */}
           {isMobile && <MobileHeroSearchBar />}
 
-          {/* Hero Section */}
           <section className={isMobile ? '' : 'py-4'}>
             <EnhancedHeroSection />
           </section>
 
-          {/* Flash Sale Section */}
           <section className={isMobile ? 'mt-4' : 'mt-6'}>
             <FlashSaleBanner />
           </section>
           
-          {/* Category Icons - Desktop Only */}
           {!isMobile && (
-            <section className="mt-6 bg-card /rounded-xl .p-6 shadow-sm">
+            <section className="mt-6 bg-card rounded-xl p-6 shadow-sm">
               <CategoryIcons showAll={false} />
             </section>
           )}
           
-          {/* Featured Products */}
           <section className={`${isMobile ? '' : 'mt-6'}`}>
             <EnhancedFeaturedProducts />
           </section>
 
-          {/* Recently Viewed - Desktop Only
-          {!isMobile && (
-            <section>
-              <RecentlyViewedProducts maxItems={6} />
-            </section>
-          )}
-    */}
-          {/* Trust Badges - Desktop Only */}
           {!isMobile && (
             <section className="mt-8">
               <TrustBadges />
             </section>
           )}
 
-          {/* Testimonials - Desktop Only */}
           {!isMobile && (
             <section>
               <Testimonials variant="carousel" />
             </section>
           )}
-
-          {/* Newsletter - Desktop Only */}
-          {/* 
-          {!isMobile && (
-            <section className="py-12">
-              <NewsletterSubscription />
-            </section>
-          )}  */}
         </main>
-
       </div>
     </>
   );
