@@ -123,7 +123,7 @@ const Header = () => {
         <div className={`${!isMobile ? 'min-w-[1200px] container mx-auto px-4 xl:px-28' : ''}`}>
           <div className="flex items-center gap-3 lg:gap-6">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 group" aria-label="Store Home">
+            <Link to="/" className="flex-shrink-0 group flex flex-col items-center" aria-label="Store Home">
               <img 
                 src={storeLogo} 
                 alt="Store - Premium electronics and essentials" 
@@ -131,6 +131,9 @@ const Header = () => {
                 height={isMobile ? 40 : 44}
                 className={`object-contain transition-transform duration-200 ${!isMobile ? 'h-11 w-auto' : 'h-8 w-auto'}`} 
               />
+              <span className={`font-semibold tracking-tight text-foreground whitespace-nowrap leading-none ${isMobile ? 'text-[10px] mt-0.5' : 'text-xs mt-1'}`}>
+                Youngsters Fashion Hub
+              </span>
             </Link>
 
             {/* Desktop Search - Expanded */}
