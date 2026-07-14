@@ -65,6 +65,12 @@ const Index = () => {
         <main className={`${!isMobile ? 'max-w-[1200px] mx-auto px-4 lg:px-6' : ''}`}>
           {isMobile && <MobileHeroSearchBar />}
 
+          <section className={isMobile ? 'text-center py-3 px-4' : 'text-center py-4'}>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              Youngsters Fashion Hub
+            </h1>
+          </section>
+
           <section className={isMobile ? '' : 'py-4'}>
             <EnhancedHeroSection />
           </section>
