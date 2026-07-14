@@ -22,11 +22,11 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
   // Get the base route path (without dynamic segments)
   const getBaseRoutePath = (path: string) => {
     // Handle edit routes by removing the dynamic ID part
-    const editMatch = path.match(/^(\/supersmartkenyaadmin123\/[^/]+\/edit)/);
+    const editMatch = path.match(/^(\/admin\/[^/]+\/edit)/);
     if (editMatch) return editMatch[1].replace(/\/edit$/, '');
     
     // Handle view routes like /customers/:id
-    const viewMatch = path.match(/^(\/supersmartkenyaadmin123\/[^/]+)\/[^/]+$/);
+    const viewMatch = path.match(/^(\/admin\/[^/]+)\/[^/]+$/);
     if (viewMatch && !path.includes('/add') && !path.includes('/create')) {
       return viewMatch[1];
     }
@@ -78,7 +78,7 @@ const AdminRoute = ({ children, requiredRole = 'admin' }: AdminRouteProps) => {
         description: "You don't have permission to access this page. Contact a superadmin for access.",
         variant: "destructive",
       });
-      navigate('/supersmartkenyaadmin123', { replace: true });
+      navigate('/admin', { replace: true });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user?.id, isSuperAdmin, hasAnyAdminRole, hasRouteAccess, routePath]);

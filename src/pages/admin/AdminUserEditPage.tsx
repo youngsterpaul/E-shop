@@ -47,7 +47,7 @@ const AdminUserEditPage = () => {
           description: "User ID is missing",
           variant: "destructive"
         });
-        navigate('/supersmartkenyaadmin123/users');
+        navigate('/admin/users');
         return;
       }
 
@@ -91,7 +91,7 @@ const AdminUserEditPage = () => {
           description: error.message,
           variant: "destructive"
         });
-        navigate('/supersmartkenyaadmin123/users');
+        navigate('/admin/users');
       } finally {
         setIsLoading(false);
       }
@@ -217,7 +217,7 @@ const AdminUserEditPage = () => {
         description: "The user has been successfully updated.",
       });
 
-      navigate('/supersmartkenyaadmin123/users');
+      navigate('/admin/users');
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast({
@@ -246,7 +246,7 @@ const AdminUserEditPage = () => {
         <div>
           <Button 
             variant="ghost"
-            onClick={() => navigate('/supersmartkenyaadmin123/users')}
+            onClick={() => navigate('/admin/users')}
             className="mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Users
@@ -359,7 +359,7 @@ const AdminUserEditPage = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate('/supersmartkenyaadmin123/users')}
+                    onClick={() => navigate('/admin/users')}
                   >
                     Cancel
                   </Button>

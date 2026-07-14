@@ -115,7 +115,7 @@ const AdminPurchaseOrderCreatePage = () => {
         description: "The purchase order has been created successfully"
       });
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-      navigate('/supersmartkenyaadmin123/purchase-orders');
+      navigate('/admin/purchase-orders');
     },
     onError: (error: any) => {
       toast({
@@ -154,7 +154,7 @@ const AdminPurchaseOrderCreatePage = () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/supersmartkenyaadmin123/purchase-orders')}>
+          <Button variant="ghost" onClick={() => navigate('/admin/purchase-orders')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -294,7 +294,7 @@ const AdminPurchaseOrderCreatePage = () => {
           <div className="flex gap-4 justify-end">
             <Button
               variant="outline"
-              onClick={() => navigate('/supersmartkenyaadmin123/purchase-orders')}
+              onClick={() => navigate('/admin/purchase-orders')}
             >
               Cancel
             </Button>

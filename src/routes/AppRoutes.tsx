@@ -89,7 +89,7 @@ const AdminChatPage = lazy(() => import("@/pages/admin/AdminChatPage"));
 const AdminUserBehaviorPage = lazy(() => import("@/pages/admin/AdminUserBehaviorPage"));
 const AdminSalesForecastPage = lazy(() => import("@/pages/admin/AdminSalesForecastPage"));
 
-const ADMIN_PREFIX = "/supersmartkenyaadmin123";
+const ADMIN_PREFIX = "/admin";
 
 const AppRoutes = () => (
   <Routes>

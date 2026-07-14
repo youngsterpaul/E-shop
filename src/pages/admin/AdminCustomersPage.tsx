@@ -215,7 +215,7 @@ export default function AdminCustomersPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => navigate(`/supersmartkenyaadmin123/customers/${customer.user_id}`)}
+                                onClick={() => navigate(`/admin/customers/${customer.user_id}`)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 View

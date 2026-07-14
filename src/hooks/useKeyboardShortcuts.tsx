@@ -16,7 +16,7 @@ export const useKeyboardShortcuts = (isAdmin: boolean = false) => {
   const location = useLocation();
   const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
 
-  const isAdminRoute = location.pathname.includes('/supersmartkenyaadmin123');
+  const isAdminRoute = location.pathname.includes('/admin');
 
   const shortcuts: ShortcutConfig[] = [
     // Global shortcuts
@@ -26,10 +26,10 @@ export const useKeyboardShortcuts = (isAdmin: boolean = false) => {
     { key: '?', shift: true, description: 'Show keyboard shortcuts', action: () => setShowShortcutsDialog(true), scope: 'global' },
     
     // Admin shortcuts (only active on admin routes)
-    { key: 'd', ctrl: true, shift: true, description: 'Go to dashboard', action: () => navigate('/supersmartkenyaadmin123'), scope: 'admin' },
-    { key: 'p', ctrl: true, shift: true, description: 'Go to products', action: () => navigate('/supersmartkenyaadmin123/products'), scope: 'admin' },
-    { key: 'o', ctrl: true, shift: true, description: 'Go to orders', action: () => navigate('/supersmartkenyaadmin123/orders'), scope: 'admin' },
-    { key: 'n', ctrl: true, shift: true, description: 'Add new product', action: () => navigate('/supersmartkenyaadmin123/products/add'), scope: 'admin' },
+    { key: 'd', ctrl: true, shift: true, description: 'Go to dashboard', action: () => navigate('/admin'), scope: 'admin' },
+    { key: 'p', ctrl: true, shift: true, description: 'Go to products', action: () => navigate('/admin/products'), scope: 'admin' },
+    { key: 'o', ctrl: true, shift: true, description: 'Go to orders', action: () => navigate('/admin/orders'), scope: 'admin' },
+    { key: 'n', ctrl: true, shift: true, description: 'Add new product', action: () => navigate('/admin/products/add'), scope: 'admin' },
     { key: 'r', ctrl: true, shift: true, description: 'Refresh page data', action: () => window.location.reload(), scope: 'admin' },
   ];
 

@@ -162,7 +162,7 @@ const AdminProductsPage = () => {
   const categoryOptions = [{ id: 0, category: 'All Categories' }, ...categories];
 
   const handleEdit = (productId: string) => {
-    navigate(`/supersmartkenyaadmin123/products/edit/${productId}`);
+    navigate(`/admin/products/edit/${productId}`);
   };
 
   const sensors = useSensors(
@@ -392,7 +392,7 @@ const AdminProductsPage = () => {
       <QuickActionsBar
         title="Products"
         onRefresh={() => refetch()}
-        addNewPath="/supersmartkenyaadmin123/products/add"
+        addNewPath="/admin/products/add"
         addNewLabel="Add Product"
       />
 
@@ -471,7 +471,7 @@ const AdminProductsPage = () => {
                 : "Get started by adding your first product"
               }
               actionLabel="Add Product"
-              onAction={() => navigate('/supersmartkenyaadmin123/products/add')}
+              onAction={() => navigate('/admin/products/add')}
             />
           ) : (
             <>

@@ -133,45 +133,45 @@ export function ModernAdminSidebar() {
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
-      path: '/supersmartkenyaadmin123',
+      path: '/admin',
       badge: null,
     },
     {
       name: 'Orders',
       icon: ShoppingCart,
-      path: '/supersmartkenyaadmin123/orders',
+      path: '/admin/orders',
       badge: pendingOrdersCount > 0 ? String(pendingOrdersCount) : null,
       badgeVariant: 'default' as const,
     },
     {
       name: 'QR Scanner',
       icon: QrCode,
-      path: '/supersmartkenyaadmin123/qr-scanner',
+      path: '/admin/qr-scanner',
       badge: null,
     },
     {
       name: 'Discounts',
       icon: Tag,
-      path: '/supersmartkenyaadmin123/discounts',
+      path: '/admin/discounts',
       badge: null,
     },
     {
       name: 'Flash Sales',
       icon: Zap,
-      path: '/supersmartkenyaadmin123/flash-sales',
+      path: '/admin/flash-sales',
       badge: null,
     },
     {
       name: 'Returns',
       icon: PackageX,
-      path: '/supersmartkenyaadmin123/returns',
+      path: '/admin/returns',
       badge: pendingReturnsCount > 0 ? String(pendingReturnsCount) : null,
       badgeVariant: 'destructive' as const,
     },
     {
       name: 'Chat',
       icon: MessageCircle,
-      path: '/supersmartkenyaadmin123/chat',
+      path: '/admin/chat',
       badge: unreadChatCount > 0 ? String(unreadChatCount) : null,
       badgeVariant: 'default' as const,
     },
@@ -181,49 +181,49 @@ export function ModernAdminSidebar() {
     {
       name: 'Products',
       icon: Package,
-      path: '/supersmartkenyaadmin123/products',
+      path: '/admin/products',
       badge: null,
     },
     {
       name: 'Reviews',
       icon: Star,
-      path: '/supersmartkenyaadmin123/reviews',
+      path: '/admin/reviews',
       badge: null,
     },
     {
       name: 'Inventory',
       icon: Warehouse,
-      path: '/supersmartkenyaadmin123/inventory',
+      path: '/admin/inventory',
       badge: null,
     },
     {
       name: 'Purchase Orders',
       icon: Truck,
-      path: '/supersmartkenyaadmin123/purchase-orders',
+      path: '/admin/purchase-orders',
       badge: null,
     },
     {
       name: 'Suppliers',
       icon: Users2,
-      path: '/supersmartkenyaadmin123/suppliers',
+      path: '/admin/suppliers',
       badge: null,
     },
     {
       name: 'Categories',
       icon: Tags,
-      path: '/supersmartkenyaadmin123/categories',
+      path: '/admin/categories',
       badge: null,
     },
     {
       name: 'Category Icons',
       icon: Image,
-      path: '/supersmartkenyaadmin123/category-icons',
+      path: '/admin/category-icons',
       badge: null,
     },
     {
       name: 'Stores',
       icon: Store,
-      path: '/supersmartkenyaadmin123/stores',
+      path: '/admin/stores',
       badge: null,
     },
   ];
@@ -232,37 +232,37 @@ export function ModernAdminSidebar() {
     {
       name: 'Hero Slides',
       icon: Image,
-      path: '/supersmartkenyaadmin123/heroslides',
+      path: '/admin/heroslides',
       badge: null,
     },
     {
       name: 'Testimonials',
       icon: MessageSquareQuote,
-      path: '/supersmartkenyaadmin123/testimonials',
+      path: '/admin/testimonials',
       badge: null,
     },
     {
       name: 'Newsletter',
       icon: Newspaper,
-      path: '/supersmartkenyaadmin123/newsletter',
+      path: '/admin/newsletter',
       badge: null,
     },
     {
       name: 'Careers',
       icon: Users2,
-      path: '/supersmartkenyaadmin123/careers',
+      path: '/admin/careers',
       badge: null,
     },
     {
       name: 'FAQ',
       icon: HelpCircle,
-      path: '/supersmartkenyaadmin123/faq',
+      path: '/admin/faq',
       badge: null,
     },
     {
       name: 'Site Content',
       icon: FileText,
-      path: '/supersmartkenyaadmin123/site-content',
+      path: '/admin/site-content',
       badge: null,
     },
   ];
@@ -271,19 +271,19 @@ export function ModernAdminSidebar() {
     {
       name: 'Users',
       icon: Users,
-      path: '/supersmartkenyaadmin123/users',
+      path: '/admin/users',
       badge: null,
     },
     {
       name: 'Customers',
       icon: Users2,
-      path: '/supersmartkenyaadmin123/customers',
+      path: '/admin/customers',
       badge: null,
     },
     {
       name: 'Locations',
       icon: MapPin,
-      path: '/supersmartkenyaadmin123/locations',
+      path: '/admin/locations',
       badge: null,
     },
   ];
@@ -292,20 +292,20 @@ export function ModernAdminSidebar() {
     {
       name: 'Security Alerts',
       icon: Shield,
-      path: '/supersmartkenyaadmin123/security-alerts',
+      path: '/admin/security-alerts',
       badge: securityAlertsCount > 0 ? String(securityAlertsCount) : null,
       badgeVariant: 'destructive',
     },
     {
       name: 'Login Audit',
       icon: Activity,
-      path: '/supersmartkenyaadmin123/login-audit',
+      path: '/admin/login-audit',
       badge: null,
     },
     {
       name: 'Activity Log',
       icon: Activity,
-      path: '/supersmartkenyaadmin123/activity-log',
+      path: '/admin/activity-log',
       badge: null,
     },
   ];
@@ -314,25 +314,25 @@ export function ModernAdminSidebar() {
     {
       name: 'Settings',
       icon: Settings,
-      path: '/supersmartkenyaadmin123/settings',
+      path: '/admin/settings',
       badge: null,
     },
     {
       name: 'Route Permissions',
       icon: Lock,
-      path: '/supersmartkenyaadmin123/route-permissions',
+      path: '/admin/route-permissions',
       badge: null,
     },
     {
       name: 'Contact Settings',
       icon: Phone,
-      path: '/supersmartkenyaadmin123/contact',
+      path: '/admin/contact',
       badge: null,
     },
     {
       name: 'Email Templates',
       icon: Mail,
-      path: '/supersmartkenyaadmin123/email-templates',
+      path: '/admin/email-templates',
       badge: null,
     },
   ];
@@ -341,43 +341,43 @@ export function ModernAdminSidebar() {
     {
       name: 'Analytics',
       icon: BarChart3,
-      path: '/supersmartkenyaadmin123/analytics',
+      path: '/admin/analytics',
       badge: null,
     },
     {
       name: 'User Behavior',
       icon: Eye,
-      path: '/supersmartkenyaadmin123/user-behavior',
+      path: '/admin/user-behavior',
       badge: null,
     },
     {
       name: 'Sales Forecast',
       icon: TrendingUp,
-      path: '/supersmartkenyaadmin123/sales-forecast',
+      path: '/admin/sales-forecast',
       badge: null,
     },
     {
       name: 'Revenue Dashboard',
       icon: DollarSign,
-      path: '/supersmartkenyaadmin123/revenue-dashboard',
+      path: '/admin/revenue-dashboard',
       badge: null,
     },
     {
       name: 'Reports',
       icon: FileText,
-      path: '/supersmartkenyaadmin123/reports',
+      path: '/admin/reports',
       badge: null,
     },
     {
       name: 'Daily Sales',
       icon: TrendingUp,
-      path: '/supersmartkenyaadmin123/daily-sales',
+      path: '/admin/daily-sales',
       badge: null,
     },
     {
       name: 'A/B Testing',
       icon: BarChart3,
-      path: '/supersmartkenyaadmin123/ab-testing',
+      path: '/admin/ab-testing',
       badge: null,
     },
   ];
@@ -449,13 +449,13 @@ export function ModernAdminSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            {showQuickAction && !collapsed && canAccessRoute('/supersmartkenyaadmin123/products/add') && (
+            {showQuickAction && !collapsed && canAccessRoute('/admin/products/add') && (
               <SidebarMenuItem>
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => navigate('/supersmartkenyaadmin123/products/add')}
+                  onClick={() => navigate('/admin/products/add')}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product

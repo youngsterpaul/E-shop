@@ -133,7 +133,7 @@ export default function AdminCustomerViewPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/supersmartkenyaadmin123/customers')}
+            onClick={() => navigate('/admin/customers')}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

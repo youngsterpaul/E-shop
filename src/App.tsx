@@ -24,7 +24,7 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = isMobileUserAgent();
-  const isAdminRoute = location.pathname.startsWith("/supersmartkenyaadmin123");
+  const isAdminRoute = location.pathname.startsWith("/admin");
   const isAuthRoute = location.pathname.startsWith("/auth");
   const isSearchPage = location.pathname.startsWith("/search");
   const isCategoryPage = location.pathname.startsWith("/category/");

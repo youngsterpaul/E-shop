@@ -91,7 +91,7 @@ const SettingsPage = () => {
               icon: Settings,
               label: 'Admin Dashboard',
               description: 'Manage products & users',
-              href: '/supersmartkenyaadmin123',
+              href: '/admin',
               primary: true,
             },
           ],

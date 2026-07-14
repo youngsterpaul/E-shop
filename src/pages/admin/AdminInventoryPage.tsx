@@ -108,13 +108,13 @@ const AdminInventoryPage = () => {
         onRefresh={refetch}
         customActions={
           <>
-            <Link to="/supersmartkenyaadmin123/suppliers">
+            <Link to="/admin/suppliers">
               <Button variant="outline" size="sm">
                 <FileText className="h-4 w-4 mr-2" />
                 Suppliers
               </Button>
             </Link>
-            <Link to="/supersmartkenyaadmin123/purchase-orders">
+            <Link to="/admin/purchase-orders">
               <Button size="sm">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Purchase Orders
@@ -268,14 +268,14 @@ const AdminInventoryPage = () => {
 
                           <div className="flex gap-2 shrink-0">
                             {product.stock <= product.reorder_point && (
-                              <Link to={`/supersmartkenyaadmin123/purchase-orders/create?product=${product.product_id}`}>
+                              <Link to={`/admin/purchase-orders/create?product=${product.product_id}`}>
                                 <Button size="sm">
                                   <ShoppingCart className="h-4 w-4 mr-1" />
                                   Reorder
                                 </Button>
                               </Link>
                             )}
-                            <Link to={`/supersmartkenyaadmin123/products/edit/${product.product_id}`}>
+                            <Link to={`/admin/products/edit/${product.product_id}`}>
                               <Button variant="outline" size="sm">
                                 Edit
                               </Button>

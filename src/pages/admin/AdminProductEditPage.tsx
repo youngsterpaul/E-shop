@@ -348,7 +348,7 @@ const AdminProductEdit = () => {
         description: `"${data.name}" has been updated with ${finalMediaUrls.length} media file(s).`,
       });
       
-      navigate('/supersmartkenyaadmin123/products');
+      navigate('/admin/products');
       
     } catch (error: any) {
       console.error('Error updating product:', error);
@@ -390,7 +390,7 @@ const AdminProductEdit = () => {
             <p className="text-muted-foreground">Update product information</p>
           </div>
           
-          <Button onClick={() => navigate('/supersmartkenyaadmin123/products')} variant="outline">
+          <Button onClick={() => navigate('/admin/products')} variant="outline">
             Cancel
           </Button>
         </div>

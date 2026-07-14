@@ -93,7 +93,7 @@ const AdminPurchaseOrdersPage = () => {
       <QuickActionsBar
         title="Purchase Orders"
         onRefresh={refetch}
-        addNewPath="/supersmartkenyaadmin123/purchase-orders/create"
+        addNewPath="/admin/purchase-orders/create"
         addNewLabel="Create PO"
       />
 
@@ -156,7 +156,7 @@ const AdminPurchaseOrdersPage = () => {
                   ? 'Try adjusting your filter'
                   : 'Create your first purchase order to get started'}
               </p>
-              <Link to="/supersmartkenyaadmin123/purchase-orders/create">
+              <Link to="/admin/purchase-orders/create">
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Purchase Order
@@ -204,7 +204,7 @@ const AdminPurchaseOrdersPage = () => {
                         </div>
 
                         <div className="flex gap-2 shrink-0">
-                          <Link to={`/supersmartkenyaadmin123/purchase-orders/${order.id}`}>
+                          <Link to={`/admin/purchase-orders/${order.id}`}>
                             <Button variant="outline" size="sm">
                               View Details
                             </Button>

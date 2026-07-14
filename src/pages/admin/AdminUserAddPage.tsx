@@ -174,7 +174,7 @@ const AdminUserAddPage = () => {
         description: "The user has been successfully created.",
       });
 
-      navigate('/supersmartkenyaadmin123/users');
+      navigate('/admin/users');
     } catch (error: any) {
       console.error('Error creating user:', error);
       toast({
@@ -193,7 +193,7 @@ const AdminUserAddPage = () => {
         <div>
           <Button 
             variant="ghost"
-            onClick={() => navigate('/supersmartkenyaadmin123/users')}
+            onClick={() => navigate('/admin/users')}
             className="mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Users
@@ -320,7 +320,7 @@ const AdminUserAddPage = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate('/supersmartkenyaadmin123/users')}
+                    onClick={() => navigate('/admin/users')}
                   >
                     Cancel
                   </Button>

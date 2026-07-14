@@ -100,7 +100,7 @@ export default function AdminUsersPage() {
       <QuickActionsBar
         title="User Management"
         onRefresh={() => refetch()}
-        addNewPath="/supersmartkenyaadmin123/users/add"
+        addNewPath="/admin/users/add"
         addNewLabel="Add User"
       />
       <div className="space-y-6">
@@ -199,7 +199,7 @@ export default function AdminUsersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/supersmartkenyaadmin123/users/edit/${user.user_id}`)}
+                            onClick={() => navigate(`/admin/users/edit/${user.user_id}`)}
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
