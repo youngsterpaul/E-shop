@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
-import { useAuth } from '@/hooks/useAuth';
 
 interface AddToCartSectionProps {
   product: {
@@ -29,7 +28,6 @@ const AddToCartSection = ({
   onQuantityChange,
   className = ''
 }: AddToCartSectionProps) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
@@ -76,8 +74,7 @@ const AddToCartSection = ({
     setIsBuyingNow(true);
     try {
       await addToCart(product.product_id, selectedVariants, quantity);
-      if (user) navigate('/checkout');
-      else { sessionStorage.setItem('redirectAfterAuth', '/checkout'); navigate('/auth'); }
+      navigate('/checkout');
     } catch {
       toast({ title: "Error", description: "Failed to proceed to checkout", variant: "destructive" });
       setIsBuyingNow(false);

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, X, Star, Minus, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
-import { useAuth } from '@/hooks/useAuth';
 import { useProductVariants } from '@/hooks/useProductVariants';
 import { useProductReviews } from '@/hooks/useReviews';
 import OptimizedImage from '../OptimizedImage';
@@ -48,7 +47,6 @@ const MobileBuyNowModal = ({
   const [showAnimation, setShowAnimation] = useState(false);
   const { toast } = useToast();
   const { addToCart } = useCart();
-  const { user } = useAuth();
   const { variants, getVariantsByType, getVariantTypes } = useProductVariants(product.product_id);
   const { data: reviews = [], isLoading: reviewsLoading } = useProductReviews(product.product_id);
 
@@ -163,13 +161,7 @@ const MobileBuyNowModal = ({
     try {
       await addToCart(product.product_id, selectedVariants, quantity);
       onClose();
-      
-      if (user) {
-        navigate('/checkout');
-      } else {
-        sessionStorage.setItem('redirectAfterAuth', '/checkout');
-        navigate('/auth');
-      }
+      navigate('/checkout');
     } catch (error) {
       toast({
         title: "Error",
