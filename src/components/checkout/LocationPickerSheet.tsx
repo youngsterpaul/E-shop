@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, MapPin, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -30,11 +29,15 @@ export const LocationPickerSheet = ({
   cityValue,
   onConfirm,
 }: LocationPickerSheetProps) => {
-  const { counties, cities, isLoading } = useLocations();
+  const { counties, cities, isLoading, addCustomLocation } = useLocations();
   const isMobile = isMobileUserAgent();
   const [query, setQuery] = useState('');
   const [tempCounty, setTempCounty] = useState(countyValue);
   const [tempCity, setTempCity] = useState(cityValue);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualCounty, setManualCounty] = useState('');
+  const [manualCity, setManualCity] = useState('');
+  const [isSavingManual, setIsSavingManual] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +45,9 @@ export const LocationPickerSheet = ({
       setTempCounty(countyValue);
       setTempCity(cityValue);
       setQuery('');
+      setShowManualEntry(false);
+      setManualCounty('');
+      setManualCity('');
     }
   }, [open, countyValue, cityValue]);
 
@@ -101,6 +107,21 @@ export const LocationPickerSheet = ({
     setTempCity(opt.cityValue);
   };
 
+  const handleSaveManualLocation = async () => {
+    if (!manualCounty.trim() || !manualCity.trim()) return;
+    setIsSavingManual(true);
+    try {
+      const result = await addCustomLocation(manualCounty, manualCity);
+      if (result) {
+        setTempCounty(result.countySlug);
+        setTempCity(result.citySlug);
+        setShowManualEntry(false);
+      }
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
+
   const handleConfirm = () => {
     if (tempCounty && tempCity) {
       onConfirm(tempCounty, tempCity);
@@ -136,10 +157,62 @@ export const LocationPickerSheet = ({
             autoFocus={!isMobile}
           />
         </div>
+        {!showManualEntry && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowManualEntry(true);
+              setManualCity(query);
+            }}
+            className="mt-2 text-sm text-primary font-medium hover:underline"
+          >
+            Can't find your area? Add it manually
+          </button>
+        )}
       </div>
 
-      {/* List - min-height keeps the sheet a consistent large size even with few/no results */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain min-h-[55vh]">
+      {showManualEntry ? (
+        <div className="flex-1 overflow-y-auto px-5 py-6 min-h-[55vh]">
+          <p className="text-sm text-muted-foreground mb-4">
+            Enter your county and city/area — we'll save it so you (and future customers) can pick it directly next time.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">County</label>
+              <Input
+                value={manualCounty}
+                onChange={(e) => setManualCounty(e.target.value)}
+                placeholder="e.g. Nakuru"
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">City / Area</label>
+              <Input
+                value={manualCity}
+                onChange={(e) => setManualCity(e.target.value)}
+                placeholder="e.g. Naivasha"
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <Button
+              onClick={handleSaveManualLocation}
+              disabled={!manualCounty.trim() || !manualCity.trim() || isSavingManual}
+              className="w-full h-11 rounded-full"
+            >
+              {isSavingManual ? 'Saving...' : 'Save & Use This Location'}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setShowManualEntry(false)}
+              className="w-full text-center text-sm text-muted-foreground hover:underline"
+            >
+              Back to search
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain min-h-[55vh]">
         {isLoading ? (
           <div className="px-5 py-8 text-center text-sm text-muted-foreground">
             Loading locations...
@@ -147,9 +220,19 @@ export const LocationPickerSheet = ({
         ) : grouped.length === 0 ? (
           <div className="px-5 py-16 text-center">
             <MapPin className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-4">
               No locations found {query && `for "${query}"`}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowManualEntry(true);
+                setManualCity(query);
+              }}
+              className="text-sm text-primary font-medium hover:underline"
+            >
+              Add "{query || 'my area'}" manually
+            </button>
           </div>
         ) : (
           <div className="py-2">
@@ -213,7 +296,8 @@ export const LocationPickerSheet = ({
             ))}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div
@@ -264,4 +348,3 @@ export const LocationPickerSheet = ({
     </div>
   );
 };
-

@@ -20,7 +20,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { Separator } from '@/components/ui/separator';
 
 // Icons
-import { ArrowLeft, MapPin, CheckCircle, Loader2, X, ChevronRight, CreditCard, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle, Loader2, X, ChevronRight, CreditCard, ShoppingBag, Phone } from 'lucide-react';
 import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
 import { LocationPickerSheet } from '@/components/checkout/LocationPickerSheet';
@@ -745,6 +745,14 @@ const CheckoutPage = () => {
                   {errors.address && (
                     <p className="text-destructive text-xs mt-1">{errors.address}</p>
                   )}
+                </div>
+
+                <div className="flex items-start gap-2.5 rounded-2xl bg-muted/50 border border-border/50 p-3.5">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Our delivery team will call or text the phone number you provided above to
+                    confirm details before your order arrives. Please make sure it's active and reachable.
+                  </p>
                 </div>
               </div>
             </section>

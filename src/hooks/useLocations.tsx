@@ -84,6 +84,71 @@ export const useLocations = () => {
     return Number(county.delivery_fee || 0);
   };
 
+  const slugify = (s: string) =>
+    s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+  /**
+   * Used when a customer's area isn't in the list yet. Creates the county
+   * (if needed) and city as new rows so the location becomes a real, reusable
+   * option going forward, then returns the slugs to select immediately.
+   */
+  const addCustomLocation = async (
+    countyName: string,
+    cityName: string
+  ): Promise<{ countySlug: string; citySlug: string } | null> => {
+    const countySlug = slugify(countyName);
+    const citySlug = slugify(cityName);
+    if (!countySlug || !citySlug) return null;
+
+    try {
+      // Find or create the county
+      let county = counties?.find((c) => c.slug === countySlug);
+      if (!county) {
+        const { data: newCounty, error: countyError } = await supabase
+          .from('counties')
+          .insert({ name: countyName.trim(), slug: countySlug, delivery_fee: 350, is_active: true })
+          .select()
+          .single();
+        if (countyError) {
+          // Someone else may have just created the same slug — try fetching it instead
+          const { data: existing } = await supabase
+            .from('counties').select('*').eq('slug', countySlug).maybeSingle();
+          if (!existing) throw countyError;
+          county = existing as County;
+        } else {
+          county = newCounty as County;
+        }
+      }
+
+      // Find or create the city under that county
+      let city = cities?.find((c) => c.slug === citySlug && c.county_id === county!.id);
+      if (!city) {
+        const { data: newCity, error: cityError } = await supabase
+          .from('cities')
+          .insert({
+            name: cityName.trim(),
+            slug: citySlug,
+            county_id: county!.id,
+            delivery_fee: 0,
+            is_active: true,
+          })
+          .select()
+          .single();
+        if (cityError) {
+          const { data: existing } = await supabase
+            .from('cities').select('*').eq('slug', citySlug).eq('county_id', county!.id).maybeSingle();
+          if (!existing) throw cityError;
+        }
+      }
+
+      await Promise.all([refetchCounties(), refetchCities()]);
+      return { countySlug, citySlug };
+    } catch (error) {
+      console.error('Failed to add custom location:', error);
+      return null;
+    }
+  };
+
   return {
     counties,
     cities,
@@ -91,6 +156,7 @@ export const useLocations = () => {
     getCountyOptions,
     getCityOptions,
     getDeliveryFee,
+    addCustomLocation,
     refetchCounties,
     refetchCities
   };
