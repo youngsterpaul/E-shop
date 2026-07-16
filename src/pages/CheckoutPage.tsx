@@ -64,6 +64,7 @@ const CheckoutPage = () => {
   type ErrorsType = {
     firstName?: string;
     lastName?: string;
+    email?: string;
     phone?: string;
     location?: string;
     address?: string;
@@ -160,11 +161,24 @@ const CheckoutPage = () => {
     const newErrors: ErrorsType = {};
     if (!customerData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!customerData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!customerData.phone.trim()) {
+
+    // Email and phone are required for guests (no account to fall back on).
+    // Logged-in users can leave them blank if already on file, but if they
+    // do fill something in, it still has to be a valid format.
+    const emailTrimmed = customerData.email.trim();
+    if (!user && !emailTrimmed) {
+      newErrors.email = 'Email is required';
+    } else if (emailTrimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      newErrors.email = 'Enter a valid email address';
+    }
+
+    const phoneTrimmed = customerData.phone.trim();
+    if (!user && !phoneTrimmed) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^(\+254|254|0)[17]\d{8}$/.test(customerData.phone.replace(/\s/g, ''))) {
+    } else if (phoneTrimmed && !/^(\+254|254|0)[17]\d{8}$/.test(phoneTrimmed.replace(/\s/g, ''))) {
       newErrors.phone = 'Enter a valid Kenyan phone number';
     }
+
     if (!deliveryData.county || !deliveryData.city) {
       newErrors.location = 'Please select a delivery location';
     }
