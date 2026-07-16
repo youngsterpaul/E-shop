@@ -5,13 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useShippingSettings } from '@/hooks/useShippingSettings';
 
 const CartSummary = () => {
   const { calculations } = useSelectiveCart();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
   const { freeShippingThreshold, isLoading: settingsLoading } = useShippingSettings();
 
@@ -19,11 +17,7 @@ const CartSummary = () => {
     try {
       setIsNavigating(true);
       await new Promise(resolve => setTimeout(resolve, 300));
-      if (user) {
-        navigate('/checkout');
-      } else if (!user) {
-        navigate('/auth');
-      }
+      navigate('/checkout');
     } catch (err) {
       console.error('Checkout navigation error:', err);
     } finally {
