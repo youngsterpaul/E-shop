@@ -42,6 +42,7 @@ export interface SubcategoryWithIcon {
   productImage?: string | null;
   iconName?: string;
   color?: string;
+  productCount: number;
 }
 
 export interface CategoryWithHierarchy {
@@ -51,14 +52,13 @@ export interface CategoryWithHierarchy {
   iconName: string;
   icon: any;
   subcategories: SubcategoryWithIcon[];
+  productCount: number;
 }
 
 export const useCategoryHierarchy = () => {
   return useQuery({
     queryKey: ['categoryHierarchy'],
     queryFn: async () => {
-      console.log('Fetching category hierarchy...');
-      
       // Fetch parent categories
       const { data: parentCategories, error: parentError } = await supabase
         .from('categories')
@@ -70,8 +70,6 @@ export const useCategoryHierarchy = () => {
         console.error('Error fetching parent categories:', parentError);
         throw parentError;
       }
-
-      console.log('Parent categories:', parentCategories);
 
       // Fetch all subcategories
       const { data: subcategories, error: subError } = await supabase
@@ -85,8 +83,6 @@ export const useCategoryHierarchy = () => {
         // Don't throw, continue with empty subcategories
       }
 
-      console.log('Subcategories:', subcategories);
-
       // Fetch category icons for subcategories
       const { data: categoryIcons, error: iconsError } = await supabase
         .from('category_icons')
@@ -98,7 +94,31 @@ export const useCategoryHierarchy = () => {
         // Don't throw, continue without icons
       }
 
-      console.log('Category icons:', categoryIcons);
+      // Fetch subcategory_id for every active product, to compute how many
+      // products sit under each category / subcategory id.
+      const { data: activeProducts, error: productsError } = await supabase
+        .from('products')
+        .select('subcategory_id')
+        .eq('is_active', true)
+        .not('subcategory_id', 'is', null);
+
+      if (productsError) {
+        console.error('Error fetching product counts:', productsError);
+        // Don't throw — fall back to treating everything as having 0 products
+        // is too aggressive, so instead skip filtering if this call fails.
+      }
+
+      const countByCategoryId: Record<number, number> = {};
+      (activeProducts || []).forEach((p: any) => {
+        const subId = p.subcategory_id;
+        if (subId == null) return;
+        countByCategoryId[subId] = (countByCategoryId[subId] || 0) + 1;
+      });
+
+      // If the product-count fetch failed, don't hide anything — better to
+      // show a possibly-empty category than to hide real categories due to
+      // a transient error.
+      const countsAvailable = !productsError;
 
       // Create a map of subcategory icons
       const iconDataMap = new Map();
@@ -122,9 +142,25 @@ export const useCategoryHierarchy = () => {
               slug: sub.slug,
               productImage: iconData?.productImage || null,
               iconName: iconData?.iconName || sub.icon_name,
-              color: iconData?.color || 'bg-gray-500'
+              color: iconData?.color || 'bg-gray-500',
+              productCount: countByCategoryId[sub.id] || 0,
             };
-          });
+          })
+          // Drop subcategories with zero active products
+          .filter((sub) => !countsAvailable || sub.productCount > 0);
+
+        // Parent's total count = anything tagged directly on the parent id
+        // (rare, but possible) + everything under its subcategories.
+        // Use the pre-filter subcategory list for the sum so a parent with
+        // products only in a now-hidden subcategory still shows correctly
+        // as having 0 (it should be hidden too).
+        const allSubsForParent = (subcategories || []).filter((sub: any) => sub.parent_id === parent.id);
+        const subsTotal = allSubsForParent.reduce(
+          (sum: number, sub: any) => sum + (countByCategoryId[sub.id] || 0),
+          0
+        );
+        const parentDirectCount = countByCategoryId[parent.id] || 0;
+        const productCount = parentDirectCount + subsTotal;
 
         return {
           id: parent.id,
@@ -132,11 +168,13 @@ export const useCategoryHierarchy = () => {
           slug: parent.slug,
           iconName: parent.icon_name || 'ShoppingBag',
           icon: iconMap[parent.icon_name] || ShoppingBag,
-          subcategories: subs
+          subcategories: subs,
+          productCount,
         };
-      });
+      })
+      // Drop parent categories with zero active products anywhere under them
+      .filter((cat) => !countsAvailable || cat.productCount > 0);
 
-      console.log('Final hierarchy:', hierarchy);
       return hierarchy;
     },
     staleTime: 5 * 60 * 1000,
