@@ -66,6 +66,8 @@ const iconMap: Record<string, any> = {
   Home
 };
 
+const norm = (s: string | null | undefined) => (s || '').trim().toLowerCase();
+
 export const useCategoryIcons = () => {
   return useQuery({
     queryKey: ['categoryIcons'],
@@ -86,63 +88,52 @@ export const useCategoryIcons = () => {
         throw error;
       }
 
-      // 2. Fetch parent/child relationships for every category, so we can
-      //    roll subcategory product counts up into their parent category.
-      const { data: allCategories, error: categoriesError } = await supabase
-        .from('categories')
-        .select('id, parent_id');
-
-      if (categoriesError) {
-        console.error('Error fetching categories:', categoriesError);
-        throw categoriesError;
-      }
-
-      const parentToChildren: Record<number, number[]> = {};
-      (allCategories || []).forEach((cat: any) => {
-        if (cat.parent_id != null) {
-          if (!parentToChildren[cat.parent_id]) parentToChildren[cat.parent_id] = [];
-          parentToChildren[cat.parent_id].push(cat.id);
-        }
-      });
-
-      // 3. Fetch subcategory_id for every active product (with stock) and
-      //    tally how many products fall under each category id.
+      // 2. Fetch categories/subcategories text for every active product, to
+      //    compute how many products sit under each category / subcategory.
+      //    NOTE: products are tagged via the denormalized text columns
+      //    `categories` (top-level category name, e.g. "fashion-clothing")
+      //    and `subcategories` (subcategory name) — NOT via subcategory_id,
+      //    which is null on real product rows. is_active can also be NULL
+      //    on older rows (treated as active), only explicit `false` excludes.
       const { data: activeProducts, error: productsError } = await supabase
         .from('products')
-        .select('subcategory_id')
-        .eq('is_active', true)
-        .not('subcategory_id', 'is', null);
+        .select('categories, subcategories')
+        .or('is_active.eq.true,is_active.is.null')
+        .not('categories', 'is', null);
 
       if (productsError) {
         console.error('Error fetching product counts:', productsError);
         throw productsError;
       }
 
-      const countByCategoryId: Record<number, number> = {};
+      // Total products per top-level category name (regardless of whether
+      // they also have a subcategory set).
+      const countByCategoryText: Record<string, number> = {};
+      // Products per specific subcategory, scoped by parent category to
+      // avoid name collisions across different parents.
+      const countBySubcategoryKey: Record<string, number> = {};
+
       (activeProducts || []).forEach((p: any) => {
-        const subId = p.subcategory_id;
-        if (subId == null) return;
-        countByCategoryId[subId] = (countByCategoryId[subId] || 0) + 1;
+        const catKey = norm(p.categories);
+        if (!catKey) return;
+        countByCategoryText[catKey] = (countByCategoryText[catKey] || 0) + 1;
+
+        const subKey = norm(p.subcategories);
+        if (subKey) {
+          const comboKey = `${catKey}||${subKey}`;
+          countBySubcategoryKey[comboKey] = (countBySubcategoryKey[comboKey] || 0) + 1;
+        }
       });
 
-      // Returns total product count for a category id, including any
-      // products assigned directly to it plus everything under its children.
-      const getProductCount = (categoryId: number): number => {
-        let total = countByCategoryId[categoryId] || 0;
-        const children = parentToChildren[categoryId] || [];
-        children.forEach((childId) => {
-          total += countByCategoryId[childId] || 0;
-        });
-        return total;
-      };
-      
-      // 4. Transform database records to CategoryIcon format, attaching
+      // 3. Transform database records to CategoryIcon format, attaching
       //    each icon's resolved product count.
       const mapped = (data || []).map((item: any) => {
-        const relevantId = item.subcategory_id ?? item.category_id;
-        const productCount = item.subcategory_id
-          ? countByCategoryId[item.subcategory_id] || 0
-          : getProductCount(item.category_id);
+        const categoryName = item.category?.category || '';
+        const subcategoryName = item.subcategory?.category || null;
+        const catKey = norm(categoryName);
+        const productCount = subcategoryName
+          ? countBySubcategoryKey[`${catKey}||${norm(subcategoryName)}`] || 0
+          : countByCategoryText[catKey] || 0;
 
         return {
           id: item.id,
@@ -164,7 +155,7 @@ export const useCategoryIcons = () => {
         } as CategoryIcon;
       });
 
-      // 5. Hide any category/subcategory icon that has zero active products.
+      // 4. Hide any category/subcategory icon that has zero active products.
       return mapped.filter((c) => c.productCount > 0);
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes

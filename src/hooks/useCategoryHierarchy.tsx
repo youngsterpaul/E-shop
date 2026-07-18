@@ -94,13 +94,17 @@ export const useCategoryHierarchy = () => {
         // Don't throw, continue without icons
       }
 
-      // Fetch subcategory_id for every active product, to compute how many
-      // products sit under each category / subcategory id.
+      // Fetch categories/subcategories text for every active product, to
+      // compute how many products sit under each category / subcategory.
+      // NOTE: products are tagged via the denormalized text columns
+      // `categories` (top-level category name, e.g. "fashion-clothing")
+      // and `subcategories` (subcategory name), NOT via subcategory_id —
+      // confirmed against real product rows, subcategory_id is null on them.
       const { data: activeProducts, error: productsError } = await supabase
         .from('products')
-        .select('subcategory_id')
-        .eq('is_active', true)
-        .not('subcategory_id', 'is', null);
+        .select('categories, subcategories')
+        .or('is_active.eq.true,is_active.is.null')
+        .not('categories', 'is', null);
 
       if (productsError) {
         console.error('Error fetching product counts:', productsError);
@@ -108,11 +112,25 @@ export const useCategoryHierarchy = () => {
         // is too aggressive, so instead skip filtering if this call fails.
       }
 
-      const countByCategoryId: Record<number, number> = {};
+      const norm = (s: string | null | undefined) => (s || '').trim().toLowerCase();
+
+      // Total products per top-level category name (regardless of whether
+      // they also have a subcategory set).
+      const countByCategoryText: Record<string, number> = {};
+      // Products per specific subcategory, scoped by parent category to
+      // avoid name collisions across different parents.
+      const countBySubcategoryKey: Record<string, number> = {};
+
       (activeProducts || []).forEach((p: any) => {
-        const subId = p.subcategory_id;
-        if (subId == null) return;
-        countByCategoryId[subId] = (countByCategoryId[subId] || 0) + 1;
+        const catKey = norm(p.categories);
+        if (!catKey) return;
+        countByCategoryText[catKey] = (countByCategoryText[catKey] || 0) + 1;
+
+        const subKey = norm(p.subcategories);
+        if (subKey) {
+          const comboKey = `${catKey}||${subKey}`;
+          countBySubcategoryKey[comboKey] = (countBySubcategoryKey[comboKey] || 0) + 1;
+        }
       });
 
       // If the product-count fetch failed, don't hide anything — better to
@@ -132,10 +150,12 @@ export const useCategoryHierarchy = () => {
 
       // Build hierarchy
       const hierarchy: CategoryWithHierarchy[] = (parentCategories || []).map((parent: any) => {
+        const parentKey = norm(parent.category);
         const subs = (subcategories || [])
           .filter((sub: any) => sub.parent_id === parent.id)
           .map((sub: any) => {
             const iconData = iconDataMap.get(sub.id);
+            const comboKey = `${parentKey}||${norm(sub.category)}`;
             return {
               id: sub.id,
               name: sub.category,
@@ -143,24 +163,15 @@ export const useCategoryHierarchy = () => {
               productImage: iconData?.productImage || null,
               iconName: iconData?.iconName || sub.icon_name,
               color: iconData?.color || 'bg-gray-500',
-              productCount: countByCategoryId[sub.id] || 0,
+              productCount: countBySubcategoryKey[comboKey] || 0,
             };
           })
           // Drop subcategories with zero active products
           .filter((sub) => !countsAvailable || sub.productCount > 0);
 
-        // Parent's total count = anything tagged directly on the parent id
-        // (rare, but possible) + everything under its subcategories.
-        // Use the pre-filter subcategory list for the sum so a parent with
-        // products only in a now-hidden subcategory still shows correctly
-        // as having 0 (it should be hidden too).
-        const allSubsForParent = (subcategories || []).filter((sub: any) => sub.parent_id === parent.id);
-        const subsTotal = allSubsForParent.reduce(
-          (sum: number, sub: any) => sum + (countByCategoryId[sub.id] || 0),
-          0
-        );
-        const parentDirectCount = countByCategoryId[parent.id] || 0;
-        const productCount = parentDirectCount + subsTotal;
+        // Parent's total = every active product tagged with this category
+        // name, whether or not it also has a subcategory set.
+        const productCount = countByCategoryText[parentKey] || 0;
 
         return {
           id: parent.id,
