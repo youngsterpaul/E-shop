@@ -20,7 +20,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { Separator } from '@/components/ui/separator';
 
 // Icons
-import { ArrowLeft, MapPin, CheckCircle, Loader2, X, ChevronRight, CreditCard, ShoppingBag, Mail } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle, Loader2, X, ChevronRight, CreditCard, ShoppingBag, Phone } from 'lucide-react';
 import CheckoutSkeleton from '@/components/checkout/CheckoutSkeleton';
 import { DiscountCodeInput } from '@/components/checkout/DiscountCodeInput';
 import { LocationPickerSheet } from '@/components/checkout/LocationPickerSheet';
@@ -37,9 +37,6 @@ const CheckoutPage = () => {
   const { addresses, loading: addressesLoading, getDefaultAddress } = useDeliveryAddresses();
   const { getCountyOptions, getCityOptions, getDeliveryFee, isLoading: locationsLoading } = useLocations();
 
-  // Whether we're checking out as a guest (not logged in)
-  const isGuest = !user;
-
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<{
@@ -55,8 +52,7 @@ const CheckoutPage = () => {
     lastName: '',
     user_id: '',
     email: '',
-    phone: '', // M-Pesa number — receives the STK push for payment
-    callPhone: '', // Contact number — used by riders/support to reach the customer
+    phone: '',
   });
   const [deliveryData, setDeliveryData] = useState({
     address: '',
@@ -70,7 +66,6 @@ const CheckoutPage = () => {
     lastName?: string;
     email?: string;
     phone?: string;
-    callPhone?: string;
     location?: string;
     address?: string;
   };
@@ -85,7 +80,6 @@ const CheckoutPage = () => {
       email: user?.email || '',
       user_id: profile?.user_id || '',
       phone: profile?.phone || '',
-      callPhone: profile?.phone || '',
     });
 
     const defaultAddress = getDefaultAddress();
@@ -168,25 +162,21 @@ const CheckoutPage = () => {
     if (!customerData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!customerData.lastName.trim()) newErrors.lastName = 'Last name is required';
 
-    // Email is always required for guests (no account to fall back on for order
-    // confirmation / support contact). Logged-in users may still edit it, but if
-    // they clear it out we still require a valid value.
-    if (!customerData.email.trim()) {
+    // Email and phone are required for guests (no account to fall back on).
+    // Logged-in users can leave them blank if already on file, but if they
+    // do fill something in, it still has to be a valid format.
+    const emailTrimmed = customerData.email.trim();
+    if (!user && !emailTrimmed) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerData.email.trim())) {
+    } else if (emailTrimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
       newErrors.email = 'Enter a valid email address';
     }
 
-    if (!customerData.phone.trim()) {
-      newErrors.phone = 'M-Pesa number is required';
-    } else if (!/^(\+254|254|0)[17]\d{8}$/.test(customerData.phone.replace(/\s/g, ''))) {
+    const phoneTrimmed = customerData.phone.trim();
+    if (!user && !phoneTrimmed) {
+      newErrors.phone = 'Phone number is required';
+    } else if (phoneTrimmed && !/^(\+254|254|0)[17]\d{8}$/.test(phoneTrimmed.replace(/\s/g, ''))) {
       newErrors.phone = 'Enter a valid Kenyan phone number';
-    }
-
-    if (!customerData.callPhone.trim()) {
-      newErrors.callPhone = 'Contact number is required';
-    } else if (!/^(\+254|254|0)[17]\d{8}$/.test(customerData.callPhone.replace(/\s/g, ''))) {
-      newErrors.callPhone = 'Enter a valid Kenyan phone number';
     }
 
     if (!deliveryData.county || !deliveryData.city) {
@@ -209,7 +199,6 @@ const CheckoutPage = () => {
       first_name: customerData.firstName,
       last_name: customerData.lastName,
       phone: customerData.phone,
-      call_phone: customerData.callPhone,
       address: deliveryData.address,
       city: deliveryData.city,
       county: deliveryData.county,
@@ -275,7 +264,6 @@ const CheckoutPage = () => {
           .update({
             email: customerData.email,
             phone_number: customerData.phone,
-            call_phone_number: customerData.callPhone,
             amount: finalTotal,
             items: orderItems,
             shipping_address: shippingAddr,
@@ -292,12 +280,9 @@ const CheckoutPage = () => {
           .from('orders')
           .insert({
             order_id: currentOrderId,
-            // Guests place orders with user_id = null; the orders table must allow
-            // this (see accompanying SQL migration).
             user_id: customerData.user_id || null,
             email: customerData.email,
             phone_number: customerData.phone,
-            call_phone_number: customerData.callPhone,
             status: 'pending',
             amount: finalTotal,
             items: orderItems,
@@ -322,7 +307,6 @@ const CheckoutPage = () => {
               customerName: fullName,
               customerEmail: customerData.email,
               customerPhone: customerData.phone,
-              customerCallPhone: customerData.callPhone,
               amount: finalTotal,
               items: orderItems,
               shippingAddress: shippingAddr,
@@ -645,18 +629,6 @@ const CheckoutPage = () => {
               <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
                 Personal Details
               </h2>
-
-              {/* Guest checkout notice */}
-              {isGuest && (
-                <div className="mb-4 flex items-start gap-2 rounded-2xl bg-primary/5 border border-primary/20 p-3">
-                  <Mail className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-muted-foreground">
-                    You're checking out as a guest. We'll use your email and phone
-                    number to send order updates and confirm delivery.
-                  </p>
-                </div>
-              )}
-
               <div className="space-y-4 w-full">
                 <div className="flex flex-col gap-4 w-full">
                   <div data-error={!!errors.firstName} className="w-full">
@@ -697,75 +669,24 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* Email - required for everyone, especially guests since there's
-                   no account to fall back on for order confirmation */}
-                <div data-error={!!errors.email} className="w-full">
-                  <Label htmlFor="email" className="text-sm text-muted-foreground mb-1.5 block">
-                    Email Address{isGuest && <span className="text-destructive"> *</span>}
+                <div data-error={!!errors.phone} className="w-full">
+                  <Label htmlFor="phone" className="text-sm text-muted-foreground mb-1.5 block">
+                    Phone Number (M-Pesa)
                   </Label>
                   <Input
-                    id="email"
-                    type="email"
-                    value={customerData.email}
-                    onChange={(e) => handleCustomerChange('email', e.target.value)}
-                    placeholder="you@example.com"
-                    inputMode="email"
+                    id="phone"
+                    value={customerData.phone}
+                    onChange={(e) => handleCustomerChange('phone', e.target.value)}
+                    placeholder="0712 345 678"
+                    inputMode="tel"
                     className={cn(
                       'h-12 w-full rounded-2xl bg-background border-border text-base',
-                      errors.email && 'border-destructive'
+                      errors.phone && 'border-destructive'
                     )}
                   />
-                  {errors.email && (
-                    <p className="text-destructive text-xs mt-1">{errors.email}</p>
+                  {errors.phone && (
+                    <p className="text-destructive text-xs mt-1">{errors.phone}</p>
                   )}
-                </div>
-
-                <div className="flex flex-col gap-4 w-full">
-                  <div data-error={!!errors.phone} className="w-full">
-                    <Label htmlFor="phone" className="text-sm text-muted-foreground mb-1.5 block">
-                      M-Pesa Number (for payment){isGuest && <span className="text-destructive"> *</span>}
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={customerData.phone}
-                      onChange={(e) => handleCustomerChange('phone', e.target.value)}
-                      placeholder="0712 345 678"
-                      inputMode="tel"
-                      className={cn(
-                        'h-12 w-full rounded-2xl bg-background border-border text-base',
-                        errors.phone && 'border-destructive'
-                      )}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      We'll send the STK push to this number.
-                    </p>
-                    {errors.phone && (
-                      <p className="text-destructive text-xs mt-1">{errors.phone}</p>
-                    )}
-                  </div>
-
-                  <div data-error={!!errors.callPhone} className="w-full">
-                    <Label htmlFor="callPhone" className="text-sm text-muted-foreground mb-1.5 block">
-                      Call Number (for delivery){isGuest && <span className="text-destructive"> *</span>}
-                    </Label>
-                    <Input
-                      id="callPhone"
-                      value={customerData.callPhone}
-                      onChange={(e) => handleCustomerChange('callPhone', e.target.value)}
-                      placeholder="0712 345 678"
-                      inputMode="tel"
-                      className={cn(
-                        'h-12 w-full rounded-2xl bg-background border-border text-base',
-                        errors.callPhone && 'border-destructive'
-                      )}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      The rider will call this number if they can't find you. Can be different from your M-Pesa number.
-                    </p>
-                    {errors.callPhone && (
-                      <p className="text-destructive text-xs mt-1">{errors.callPhone}</p>
-                    )}
-                  </div>
                 </div>
               </div>
             </section>
@@ -838,6 +759,14 @@ const CheckoutPage = () => {
                   {errors.address && (
                     <p className="text-destructive text-xs mt-1">{errors.address}</p>
                   )}
+                </div>
+
+                <div className="flex items-start gap-2.5 rounded-2xl bg-muted/50 border border-border/50 p-3.5">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Our delivery team will call or text the phone number you provided above to
+                    confirm details before your order arrives. Please make sure it's active and reachable.
+                  </p>
                 </div>
               </div>
             </section>
