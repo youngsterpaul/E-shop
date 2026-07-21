@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CartItemSelection, ShippingOption, Coupon, CartCalculations } from '@/types/cart';
 import { useCartContext } from './CartContext';
@@ -193,7 +192,7 @@ export const SelectiveCartProvider = ({ children }: { children: React.ReactNode 
       shipping: Math.round(shipping * 100) / 100,
       discount: Math.round(discount * 100) / 100,
       tax: Math.round(tax * 100) / 100,
-      total: Math.round(Math.max(0, total) * 100) / 100,
+      total: Math.ceil(Math.max(0, total)),
       selectedItemsCount: selectedItems.length
     };
   }, [cartItems, selectedItemIds, shippingOption, appliedCoupons, calculationKey, shippingFee, freeShippingThreshold]);
